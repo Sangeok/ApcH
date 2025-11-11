@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+test.mp4
+testmin5.mp4
+testmin30.mp4
+
+# IDE
+.vscode/
+.idea/
