@@ -65,11 +65,11 @@ export default function NavHeader({ credits, email }: NavHeaderProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/billing">Billings</Link>
+                <Link href="/dashboard/billing">Billing</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => signOut({ redirectTo: "/dashboard" })}
+                onClick={() => signOut({ redirectTo: "/login" })}
                 className="text-destructive cursor-pointer"
               >
                 Sign out
