@@ -34,6 +34,7 @@ import {
 } from "~/fsd/shared/ui/atoms/table";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { useRouter } from "next/navigation";
+import ClipDisplay from "~/fsd/widgets/clip-display/ui";
 
 interface DashboardClientProps {
   uploadedFiles: {
@@ -278,7 +279,21 @@ export default function DashboardClient({
             </div>
           )}
         </TabsContent>
-        <TabsContent value="my-clips"></TabsContent>
+
+        <TabsContent value="my-clips">
+          <Card>
+            <CardHeader>
+              <CardTitle>My Clips</CardTitle>
+              <CardDescription>
+                View and manage your generated clips. Processing may take a few
+                minutes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ClipDisplay clips={clips} />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
