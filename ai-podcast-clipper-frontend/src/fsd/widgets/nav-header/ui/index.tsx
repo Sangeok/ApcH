@@ -1,8 +1,18 @@
 "use client";
 
+import { signOut } from "next-auth/react";
 import Link from "next/link";
+import { Avatar, AvatarFallback } from "~/fsd/shared/ui/atoms/avatar";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/fsd/shared/ui/atoms/dropdown-menu";
 
 interface NavHeaderProps {
   credits: number;
@@ -37,6 +47,35 @@ export default function NavHeader({ credits, email }: NavHeaderProps) {
               <Link href="/dashboard/billing">Buy more</Link>
             </Button>
           </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative h-8 w-8 cursor-pointer rounded-full p-0"
+              >
+                <Avatar>
+                  <AvatarFallback>{email.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>
+                <p className="text-muted-foreground text-xs">{email}</p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/billing">Billings</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => signOut({ redirectTo: "/dashboard" })}
+                className="text-destructive cursor-pointer"
+              >
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
