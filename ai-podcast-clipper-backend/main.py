@@ -365,58 +365,40 @@ class AiPodcastClipper:
         return json.dumps(segments)
 
     def identify_moments(self, transcript: list) -> str:
-        prompt = (
-            'Return ONLY a JSON array of objects with numeric keys "start" and "end".\n'
-            "- Return exactly 3 clips when possible; otherwise return as many as possible (0-3).\n"
-            "- Each clip MUST be 40-60 seconds long.\n"
-            "- Clips must be in chronological order and must not overlap.\n"
-            "- Use only provided timestamps.\n"
-            "- No prose, no markdown, no code fences.\n\n"
-            "- Never return any clip shorter than 40 seconds.\n"
-            "- Start and end must align to word boundaries in the transcript.\n\n"
-            "- If no valid clips exist, return [] only.\n\n"
-            "Transcript:\n"
-            f"{json.dumps(transcript, ensure_ascii=False)}"
-        )
+        prompt = ("""
+        This is a podcast video transcript consisting of word, along with each words's start and end time. I am looking to create clips between a minimum of 30 and maximum of 60 seconds long. The clip should never exceed 60 seconds.
 
+        Your task is to find and extract stories, or question and their corresponding answers from the transcript.
+        Each clip should begin with the question and conclude with the answer.
+        It is acceptable for the clip to include a few additional sentences before a question if it aids in contextualizing the question.
+
+        Please adhere to the following rules:
+        - Ensure that clips do not overlap with one another.
+        - Start and end timestamps of the clips should align perfectly with the sentence boundaries in the transcript.
+        - Only use the start and end timestamps provided in the input. modifying timestamps is not allowed.
+        - Format the output as a list of JSON objects, each representing a clip with 'start' and 'end' timestamps: [{"start": seconds, "end": seconds}, ...clip2, clip3]. The output should always be readable by the python json.loads function.
+        - Aim to generate longer clips between 40-60 seconds, and ensure to include as much content from the context as viable.
+
+        Avoid including:
+        - Moments of greeting, thanking, or saying goodbye.
+        - Non-question and answer interactions.
+
+        If there are no valid clips to extract, the output should be an empty list [], in JSON format. Also readable by json.loads() in Python.
+        """
+        + "Transcript:\n"
+        + json.dumps(transcript, ensure_ascii=False)
+        )
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash-lite",
+            model="gemini-2.5-flash",
             contents=prompt,
             config=genai.types.GenerateContentConfig(
                 response_mime_type="application/json",
-                max_output_tokens=8192,
                 # 필요 시 temperature, top_p, max_output_tokens 등 추가
-            ),
-        )
-        print(f"Identified moments response: {response.text[:500]}")
+        ))
+        print(f"Identified moments response: ${response}")
         return response.text
 
-    # def identify_moments(self, transcript: dict):
-    #     response = self.gemini_client.models.generate_content(model="gemini-2.5-flash-lite", contents="""  
-    #     This is a podcast video transcript consisting of word, along with each words's start and end time. I am looking to create clips between a minimum of 40 and maximum of 60 seconds long. The clip should never exceed 60 seconds.
-
-    #     Your task is to find and extract stories, or question and their corresponding answers from the transcript.
-    #     Each clip should begin with the question and conclude with the answer.
-    #     It is acceptable for the clip to include a few additional sentences before a question if it aids in contextualizing the question.
-
-    #     Please adhere to the following rules:
-    #     - Ensure that clips do not overlap with one another.
-    #     - Start and end timestamps of the clips should align perfectly with the sentence boundaries in the transcript.
-    #     - Only use the start and end timestamps provided in the input. modifying timestamps is not allowed.
-    #     - Format the output as a list of JSON objects, each representing a clip with 'start' and 'end' timestamps: [{"start": seconds, "end": seconds}, ...clip2, clip3]. The output should always be readable by the python json.loads function.
-    #     - Aim to generate longer clips between 40-60 seconds, and ensure to include as much content from the context as viable.
-
-    #     Avoid including:
-    #     - Moments of greeting, thanking, or saying goodbye.
-    #     - Non-question and answer interactions.
-
-    #     If there are no valid clips to extract, the output should be an empty list [], in JSON format. Also readable by json.loads() in Python.
-
-    #     The transcript is as follows:\n\n""" + str(transcript))
-    #     print(f"Identified moments response: ${response.text}")
-    #     return response.text
-
-    # FastAPI POST 엔드포인트: Bearer 토큰 검증 의존성, 요청 바디 파싱
+    # Modal에 배포된 FastAPI 엔드포인트로, Inngest 워커가 s3_key를 담아 POST 요청을 보내면 해당 영상을 클립으로 가공하고 결과를 S3에 업로드합니다.
     @modal.fastapi_endpoint(method="POST")
     def process_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
         s3_key = request.s3_key
@@ -428,6 +410,7 @@ class AiPodcastClipper:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # create temporary directory folder for the video processing
         run_id = str(uuid.uuid4())
         base_dir = pathlib.Path("/tmp") / run_id
         base_dir.mkdir(parents=True, exist_ok=True)
@@ -435,13 +418,14 @@ class AiPodcastClipper:
         # download video file
         video_path = base_dir / "input.mp4"
 
-        # 자격증명/리전 확인 및 명시적 사용
+        # check AWS credentials and region
         aws_id = os.getenv("AWS_ACCESS_KEY_ID")
         aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
         region = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-2")
         if not aws_id or not aws_secret:
             raise HTTPException(status_code=500, detail="AWS credentials are missing (check Modal secret).")
 
+        # download video file from S3(path : /tmp/<run_id>/input.mp4)
         s3_client = boto3.client(
             "s3",
             region_name=region,
@@ -458,6 +442,7 @@ class AiPodcastClipper:
         print("Identifying moments for clips...")
         identified_moments_raws = self.identify_moments(transcript_segments)
 
+        # extract first json array from the response(except code fences or etc description)
         def _extract_first_json_array(s: str) -> str:
             start = s.find('[')
             end = s.rfind(']')
@@ -465,11 +450,12 @@ class AiPodcastClipper:
                 raise ValueError("No JSON array found.")
             return s[start:end+1]
 
+        # extract start and end pairs from the unsafe response(extract only "{"start": x, "end": y}" pattern)
         def _extract_start_end_pairs(s: str) -> list:
-            # 불완전/코드펜스 포함 응답에서 '{"start": x, "end": y}' 패턴만 안전 추출
             matches = re.findall(r'\{[^{}]*"start"\s*:\s*([0-9.]+)[^{}]*"end"\s*:\s*([0-9.]+)[^{}]*\}', s)
             return [{"start": float(a), "end": float(b)} for a, b in matches]
 
+        # Returns (min_start, max_end) for the transcript; falls back to (0.0, 0.0) when missing.
         def _get_transcript_bounds(words: list) -> tuple[float, float]:
             starts = [float(w.get("start")) for w in words if w.get("start") is not None]
             ends = [float(w.get("end")) for w in words if w.get("end") is not None]
@@ -477,6 +463,7 @@ class AiPodcastClipper:
                 return 0.0, 0.0
             return min(starts), max(ends)
 
+        # Finds the end time for a given start time, ensuring it falls within the 40–60 second window.
         def _find_end_time_for_target(start_time: float, words: list, min_dur: float = 40.0, max_dur: float = 60.0) -> float | None:
             lower = start_time + min_dur
             upper = start_time + max_dur
@@ -495,6 +482,7 @@ class AiPodcastClipper:
             # best가 없으면 실패
             return best
 
+        # Adjusts the start and end times of the moments to ensure they fall within the 40–60 second window.
         def _select_moments_with_adjustment(moments: list, words: list) -> list:
             # 입력 제안들을 시간 순으로 정렬하고, 40–60초가 되도록 end를 단어 경계에 맞춰 보정
             sorted_moments = []
@@ -519,6 +507,7 @@ class AiPodcastClipper:
                     break
             return selected
 
+        # Builds fallback clip windows by scanning the transcript and adding up to `desired` 40–60 second spans.
         def _build_fallback_windows(words: list, desired: int = 3) -> list:
             # 트랜스크립트에서 순차적으로 40–60초 창을 최대 desired개 생성
             if not words:
@@ -541,15 +530,16 @@ class AiPodcastClipper:
 
         raw = identified_moments_raws.strip()
 
-        # 코드펜스/마크다운 제거
+        # remove code fences and markdown
         if raw.startswith("```"):
             raw = raw[len("```"):].strip()
-            # ```json 같은 언어 태그 제거
+            # remove language tag like ```json
             if raw.lower().startswith("json"):
                 raw = raw[4:].lstrip()
         if raw.endswith("```"):
             raw = raw[:-3].strip()
 
+        # try to parse the identified moments as JSON
         try:
             clip_moments = json.loads(raw)
         except json.JSONDecodeError:
@@ -557,7 +547,7 @@ class AiPodcastClipper:
                 clip_moments = json.loads(_extract_first_json_array(raw))
             except Exception as e:
                 print(f"Failed to parse identified moments as JSON: {e}")
-                # 일부라도 salvage
+                # salvage if possible by extracting start and end pairs
                 clip_moments = _extract_start_end_pairs(raw)
 
         if not isinstance(clip_moments, list):
@@ -574,7 +564,7 @@ class AiPodcastClipper:
 
         clip_moments = adjusted
 
-        print(clip_moments)
+        print(f"Final identified moments: {clip_moments}")
 
         # 3. Process clips
         for index, moment in enumerate(clip_moments[:3]):
