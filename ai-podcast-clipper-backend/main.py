@@ -372,14 +372,19 @@ class AiPodcastClipper:
         Each clip should begin with the question and conclude with the answer.
         It is acceptable for the clip to include a few additional sentences before a question if it aids in contextualizing the question.
 
-        Please adhere to the following rules:
+        # Please adhere to the following rules:
         - Ensure that clips do not overlap with one another.
         - Start and end timestamps of the clips should align perfectly with the sentence boundaries in the transcript.
         - Only use the start and end timestamps provided in the input. modifying timestamps is not allowed.
         - Format the output as a list of JSON objects, each representing a clip with 'start' and 'end' timestamps: [{"start": seconds, "end": seconds}, ...clip2, clip3]. The output should always be readable by the python json.loads function.
         - Aim to generate longer clips between 40-60 seconds, and ensure to include as much content from the context as viable.
+        - Do not end a clip in the middle of a speaker’s sentence. Extend the end timestamp to include the full sentence, even if that means using the next available word boundary.
+        - End each clip exactly at the conclusion of the answer sentence. Do not include the first words of the next sentence or the next speaker.
+        - Treat the first punctuation mark that ends the answer ('.', '?', '!', etc.) or a clear pause marker as the point where the clip must stop; do not move past it.
+        - If the answer continues past 60 seconds, skip that candidate clip instead of trimming the speaker mid-sentence.
+        - Before finalizing each clip, re-check that the final word belongs to the same speaker and that the sentence is complete (ends with natural punctuation or a clear pause). Confirm that the very next word after the end timestamp begins a new sentence or a different speaker. If not, adjust the end time backward to exclude the continuation.
 
-        Avoid including:
+        # Avoid including:
         - Moments of greeting, thanking, or saying goodbye.
         - Non-question and answer interactions.
 
@@ -395,7 +400,7 @@ class AiPodcastClipper:
                 response_mime_type="application/json",
                 # 필요 시 temperature, top_p, max_output_tokens 등 추가
         ))
-        print(f"Identified moments response: ${response}")
+        print(f"Identified moments response: ${response.text}")
         return response.text
 
     # Modal에 배포된 FastAPI 엔드포인트로, Inngest 워커가 s3_key를 담아 POST 요청을 보내면 해당 영상을 클립으로 가공하고 결과를 S3에 업로드합니다.
@@ -540,29 +545,34 @@ class AiPodcastClipper:
             raw = raw[:-3].strip()
 
         # try to parse the identified moments as JSON
-        try:
-            clip_moments = json.loads(raw)
-        except json.JSONDecodeError:
-            try:
-                clip_moments = json.loads(_extract_first_json_array(raw))
-            except Exception as e:
-                print(f"Failed to parse identified moments as JSON: {e}")
-                # salvage if possible by extracting start and end pairs
-                clip_moments = _extract_start_end_pairs(raw)
+        # try:
+        #     clip_moments = json.loads(raw)
+        # except json.JSONDecodeError:
+        #     try:
+        #         clip_moments = json.loads(_extract_first_json_array(raw))
+        #     except Exception as e:
+        #         print(f"Failed to parse identified moments as JSON: {e}")
+        #         # salvage if possible by extracting start and end pairs
+        #         clip_moments = _extract_start_end_pairs(raw)
 
-        if not isinstance(clip_moments, list):
-            print("Error: identified moments is not a list; attempting salvage")
-            clip_moments = _extract_start_end_pairs(raw)
+        # if not isinstance(clip_moments, list):
+        #     print("Error: identified moments is not a list; attempting salvage")
+        #     clip_moments = _extract_start_end_pairs(raw)
 
-        # 유효 범위 및 정책 적용: 길이 보정 및 겹침 제거, 최대 3개
-        adjusted = _select_moments_with_adjustment(clip_moments, transcript_segments)
+        # # 유효 범위 및 정책 적용: 길이 보정 및 겹침 제거, 최대 3개
+        # adjusted = _select_moments_with_adjustment(clip_moments, transcript_segments)
 
-        # 보정 후에도 부족하면 트랜스크립트 기반 폴백 생성으로 보완
-        if len(adjusted) < 1:
-            fallback = _build_fallback_windows(transcript_segments, desired=3)
-            adjusted = fallback
+        clip_moments = json.loads(raw)
+        if not clip_moments or not isinstance(clip_moments, list):
+            print("Error: Identified moments is not a list")
+            clip_moments = []
 
-        clip_moments = adjusted
+        # # 보정 후에도 부족하면 트랜스크립트 기반 폴백 생성으로 보완
+        # if len(adjusted) < 1:
+        #     fallback = _build_fallback_windows(transcript_segments, desired=3)
+        #     adjusted = fallback
+
+        # clip_moments = adjusted
 
         print(f"Final identified moments: {clip_moments}")
 
