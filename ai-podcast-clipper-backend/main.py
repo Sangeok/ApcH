@@ -34,6 +34,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
     .run_commands([
         "mkdir -p /usr/share/fonts/truetype/custom",
         "wget -O /usr/share/fonts/truetype/custom/Anton-Regular.ttf https://raw.githubusercontent.com/google/fonts/main/ofl/anton/Anton-Regular.ttf",
+        "wget -O /usr/share/fonts/truetype/custom/NotoSansKR-Bold.otf https://fonts.gstatic.com/ea/notosanskr/v2/NotoSansKR-Bold.otf",
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True))
@@ -146,8 +147,8 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
     clip_segments = [segment for segment in transcript_segments
                     if segment.get("start") is not None
                     and segment.get("end") is not None
-                    and segment.get("start") < clip_end
-                    and segment.get("end") > clip_start
+                    and segment.get("start") >= clip_start
+                    and segment.get("end") <= clip_end
                     ]
 
     subtitles = []
@@ -163,21 +164,26 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
         if not word or seg_start is None or seg_end is None:
             continue
 
+        # Calculate relative start and end time
         start_rel = max(0.0, seg_start - clip_start)
         end_rel = max(0.0, seg_end - clip_start)
 
+        # If end time is less than or equal to 0, skip the segment
         if end_rel <= 0:
             continue
 
+        # If current words is empty, set current start and end time to the relative start and end time
         if not current_words:
             current_start = start_rel
             current_end = end_rel
             current_words = [word]
+        # If current words is not empty and the number of words is greater than or equal to max_word, add the current words to the subtitles and reset the current words
         elif len(current_words) >= max_word:
             subtitles.append((current_start, current_end, ' '.join(current_words)))
             current_words = [word]
             current_start = start_rel
             current_end = end_rel
+        # If current words is not empty and the number of words is less than max_word, add the word to the current words
         else:
             current_words.append(word)
             current_end = end_rel
@@ -185,14 +191,17 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
     if current_words:
         subtitles.append((current_start, current_end, ' '.join(current_words)))
 
+    # Create subtitles file
     subs = pysubs2.SSAFile()
 
+    # Set subtitles file info
     subs.info["WrapStyle"] = 0
     subs.info["ScaledBorderAndShadow"] = "yes"
     subs.info["PlayResX"] = 1080
     subs.info["PlayResY"] = 1920
     subs.info["ScriptType"] = "v4.00+"
 
+    # Set subtitles style
     style_name = "Default"
     new_style = pysubs2.SSAStyle()
     new_style.fontname = "Anton"
@@ -210,26 +219,190 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
 
     subs.styles[style_name] = new_style
 
+    # Add subtitles to the file(extract start and end time to ssa time object)
     for i, (start,end,text) in enumerate(subtitles):
+        # create ssa time object for start and end time
         start_time = pysubs2.make_time(s=start)
         end_time = pysubs2.make_time(s=end)
         line = pysubs2.SSAEvent(start=start_time, end=end_time, style=style_name, text=text)
         subs.events.append(line)
     
+    # Save subtitles file to ass/ass file
     subs.save(subtitle_path)
+
 
     ffmpeg_cmd = (f"ffmpeg -y -i {clip_video_path} -vf \"ass={subtitle_path}\" "
                     f"-c:v h264 -preset fast -crf 23 {output_path}")
     
+    # Run ffmpeg command to add subtitles to the video
     subprocess.run(ffmpeg_cmd, shell=True, check=True)
-                     
-    
 
-def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list):
+def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, clip_end: float, clip_video_path: str, output_path: str, gemini_client, max_word: int = 3):
+    temp_dir = os.path.dirname(output_path)
+    subtitle_path = os.path.join(temp_dir, "temp_korean_subtitles.ass")
+
+    # Step 1: 클립 범위 내 세그먼트 필터링
+    clip_segments = [segment for segment in transcript_segments
+                    if segment.get("start") is not None
+                    and segment.get("end") is not None
+                    and segment.get("start") >= clip_start
+                    and segment.get("end") <= clip_end
+                    ]
+
+    # Step 2: 단어를 max_word씩 그룹핑하고 영어 텍스트 수집
+    english_subtitles = []  # [(start, end, english_text), ...]
+    current_words = []
+    current_start = None
+    current_end = None
+
+    for segment in clip_segments:
+        word = segment.get("word", "").strip()
+        seg_start = segment.get("start")
+        seg_end = segment.get("end")
+
+        if not word or seg_start is None or seg_end is None:
+            continue
+
+        # 상대 시간으로 변환
+        start_rel = max(0.0, seg_start - clip_start)
+        end_rel = max(0.0, seg_end - clip_start)
+
+        if end_rel <= 0:
+            continue
+
+        if not current_words:
+            current_start = start_rel
+            current_end = end_rel
+            current_words = [word]
+        elif len(current_words) >= max_word:
+            # 현재 그룹 완성
+            english_subtitles.append((current_start, current_end, ' '.join(current_words)))
+            current_words = [word]
+            current_start = start_rel
+            current_end = end_rel
+        else:
+            current_words.append(word)
+            current_end = end_rel
+
+    # 마지막 그룹 추가
+    if current_words:
+        english_subtitles.append((current_start, current_end, ' '.join(current_words)))
+
+    # Step 3: 영어 텍스트만 추출
+    english_texts = [text for _, _, text in english_subtitles]
+
+    # Step 4: Gemini로 일괄 번역
+    subtitle_count = len(english_texts)
+    prompt = f"""
+        You are a professional podcast translator. Please translate the English subtitles below into natural Korean.
+
+        # Translation rules:
+        1. Because this is a podcast, use a conversational tone.
+        2. Keep each line short and easy to read.
+        3. Return the same number of translated lines as the input.
+        4. Consider the context to make the translation sound natural.
+        5. Paraphrase technical terms into easy-to-understand Korean.
+
+        Number of input lines: {subtitle_count}
+
+        # Output rules:
+        - Return only a JSON array.
+        - The array length must be {subtitle_count}.
+        - If you cannot meet the above conditions, return the JSON object {{"error":"cannot-translate"}}.
+        - Never include code fences like ``` or any additional explanations.
+
+        # Input (English subtitles):
+        {json.dumps(english_texts, ensure_ascii=False)}
+
+        # Output example (when there are 3 input lines):
+        ["translation1", "translation2", "translation3"]
+    """
+
+    try:
+        response = gemini_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.3,
+            )
+        )
+
+        response_text = response.text.strip()
+        if response_text.startswith("```"):
+            response_text = response_text[3:].strip()
+            if response_text.lower().startswith("json"):
+                response_text = response_text[4:].lstrip()
+        if response_text.endswith("```"):
+            response_text = response_text[:-3].strip()
+
+        korean_texts = json.loads(response_text)
+
+        # 검증
+        if len(korean_texts) != len(english_texts):
+            print(f"korean_texts: {korean_texts}")
+            print(f"english_texts: {english_texts}")
+            print(f"Warning: Translation count mismatch. Expected {len(english_texts)}, got {len(korean_texts)}")
+            while len(korean_texts) < len(english_texts):
+                korean_texts.append(english_texts[len(korean_texts)])
+            korean_texts = korean_texts[:len(english_texts)]
+
+    except Exception as e:
+        print(f"Translation error: {e}. Using original English text.")
+        korean_texts = english_texts
+
+    # Step 5: 한글 자막과 타이밍 매핑
+    korean_subtitles = []
+    for i, (start, end, _) in enumerate(english_subtitles):
+        korean_subtitles.append((start, end, korean_texts[i]))
+
+    # Step 6: ASS 파일 생성 (한글 폰트 사용)
+    subs = pysubs2.SSAFile()
+
+    subs.info["WrapStyle"] = 0
+    subs.info["ScaledBorderAndShadow"] = "yes"
+    subs.info["PlayResX"] = 1080
+    subs.info["PlayResY"] = 1920
+    subs.info["ScriptType"] = "v4.00+"
+
+    # 한글 스타일 설정
+    style_name = "Korean"
+    korean_style = pysubs2.SSAStyle()
+    korean_style.fontname = "Noto Sans KR"  # 한글 폰트
+    korean_style.fontsize = 140
+    korean_style.primary_color = pysubs2.Color(255, 255, 255)
+    korean_style.border_style = 1
+    korean_style.outline = 2.0
+    korean_style.shadow = 2.0
+    korean_style.shadowcolor = pysubs2.Color(0, 0, 0, 128)
+    korean_style.alignment = 2  # 하단 중앙
+    korean_style.marginl = 50
+    korean_style.marginr = 50
+    korean_style.marginv = 50
+    korean_style.spacing = 0.0
+
+    subs.styles[style_name] = korean_style
+
+    # 자막 이벤트 추가
+    for start, end, text in korean_subtitles:
+        start_time = pysubs2.make_time(s=start)
+        end_time = pysubs2.make_time(s=end)
+        line = pysubs2.SSAEvent(start=start_time, end=end_time, style=style_name, text=text)
+        subs.events.append(line)
+
+    # ASS 파일 저장
+    subs.save(subtitle_path)
+
+    # Step 7: FFmpeg로 자막 오버레이
+    ffmpeg_cmd = (f"ffmpeg -y -i {clip_video_path} -vf \"ass={subtitle_path}\" "
+                  f"-c:v h264 -preset fast -crf 23 {output_path}")
+
+    subprocess.run(ffmpeg_cmd, shell=True, check=True)
+
+def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client):
     clip_name = f"clip_{clip_index}"
     s3_key_dir = os.path.dirname(s3_key)
-    output_s3_key = f"{s3_key_dir}/{clip_name}.mp4"
-    print(f"Output S3 key: {output_s3_key}")
+    print(f"Processing clip: {clip_name}")
 
     clip_dir = base_dir / clip_name
     clip_dir.mkdir(parents=True, exist_ok=True)
@@ -237,7 +410,8 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     # Segment Path : Original clip from start to end
     clip_segment_path = clip_dir / f"{clip_name}_segment.mp4"
     vertical_mp4_path = clip_dir / "pyavi" / "video_out_vertical.mp4"
-    subtitle_output_path = clip_dir / "pyavi" / "video_with_subtitles.mp4"
+    english_output_path = clip_dir / "pyavi" / "video_with_english_subtitles.mp4"
+    korean_output_path = clip_dir / "pyavi" / "video_with_korean_subtitles.mp4"
 
     (clip_dir / "pywork").mkdir(exist_ok=True)
     pyframes_path = clip_dir / "pyframes"
@@ -286,8 +460,15 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     cvv_end_time = time.time()
     print(f"Clip {clip_index} vertical video created in {cvv_end_time - cvv_start_time:.2f} seconds")
 
-    create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, subtitle_output_path, max_word=5)
+    # 영어 자막 영상 생성
+    print(f"Creating English subtitles for clip {clip_index}...")
+    create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, english_output_path, max_word=5)
 
+    # 한글 자막 영상 생성
+    print(f"Creating Korean subtitles for clip {clip_index}...")
+    create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
+
+    # S3 업로드 (영어/한글 각각)
     aws_id = os.getenv("AWS_ACCESS_KEY_ID")
     aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
     region = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-2")
@@ -298,7 +479,16 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         aws_access_key_id=aws_id,
         aws_secret_access_key=aws_secret,
     )
-    s3_client.upload_file(str(subtitle_output_path), "ai-podcast-clipper-hamsoo", output_s3_key)
+
+    # 영어 자막 영상 업로드
+    english_s3_key = f"{s3_key_dir}/{clip_name}_en.mp4"
+    s3_client.upload_file(str(english_output_path), "ai-podcast-clipper-hamsoo", english_s3_key)
+    print(f"Uploaded English subtitle video: {english_s3_key}")
+
+    # 한글 자막 영상 업로드
+    korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
+    s3_client.upload_file(str(korean_output_path), "ai-podcast-clipper-hamsoo", korean_s3_key)
+    print(f"Uploaded Korean subtitle video: {korean_s3_key}")
 
 
 # GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스
@@ -447,92 +637,6 @@ class AiPodcastClipper:
         print("Identifying moments for clips...")
         identified_moments_raws = self.identify_moments(transcript_segments)
 
-        # extract first json array from the response(except code fences or etc description)
-        def _extract_first_json_array(s: str) -> str:
-            start = s.find('[')
-            end = s.rfind(']')
-            if start == -1 or end == -1 or end <= start:
-                raise ValueError("No JSON array found.")
-            return s[start:end+1]
-
-        # extract start and end pairs from the unsafe response(extract only "{"start": x, "end": y}" pattern)
-        def _extract_start_end_pairs(s: str) -> list:
-            matches = re.findall(r'\{[^{}]*"start"\s*:\s*([0-9.]+)[^{}]*"end"\s*:\s*([0-9.]+)[^{}]*\}', s)
-            return [{"start": float(a), "end": float(b)} for a, b in matches]
-
-        # Returns (min_start, max_end) for the transcript; falls back to (0.0, 0.0) when missing.
-        def _get_transcript_bounds(words: list) -> tuple[float, float]:
-            starts = [float(w.get("start")) for w in words if w.get("start") is not None]
-            ends = [float(w.get("end")) for w in words if w.get("end") is not None]
-            if not starts or not ends:
-                return 0.0, 0.0
-            return min(starts), max(ends)
-
-        # Finds the end time for a given start time, ensuring it falls within the 40–60 second window.
-        def _find_end_time_for_target(start_time: float, words: list, min_dur: float = 40.0, max_dur: float = 60.0) -> float | None:
-            lower = start_time + min_dur
-            upper = start_time + max_dur
-            best = None
-            for w in words:
-                we = w.get("end")
-                if we is None:
-                    continue
-                e = float(we)
-                if e < lower:
-                    continue
-                if e <= upper:
-                    return e
-                # e > upper → 더 이상 진행해도 조건을 만족하는 e는 없음
-                break
-            # best가 없으면 실패
-            return best
-
-        # Adjusts the start and end times of the moments to ensure they fall within the 40–60 second window.
-        def _select_moments_with_adjustment(moments: list, words: list) -> list:
-            # 입력 제안들을 시간 순으로 정렬하고, 40–60초가 되도록 end를 단어 경계에 맞춰 보정
-            sorted_moments = []
-            for m in moments:
-                try:
-                    s = float(m.get("start"))
-                except Exception:
-                    continue
-                sorted_moments.append({"start": s})
-            sorted_moments.sort(key=lambda x: x["start"])
-
-            selected = []
-            last_end = -1.0
-            for m in sorted_moments:
-                start = max(m["start"], last_end)
-                end = _find_end_time_for_target(start, words)
-                if end is None:
-                    continue
-                selected.append({"start": start, "end": end})
-                last_end = end
-                if len(selected) >= 3:
-                    break
-            return selected
-
-        # Builds fallback clip windows by scanning the transcript and adding up to `desired` 40–60 second spans.
-        def _build_fallback_windows(words: list, desired: int = 3) -> list:
-            # 트랜스크립트에서 순차적으로 40–60초 창을 최대 desired개 생성
-            if not words:
-                return []
-            words_sorted = sorted(words, key=lambda w: float(w.get("start", 0.0)))
-            first_start, last_end_time = _get_transcript_bounds(words_sorted)
-            if last_end_time - first_start < 40.0:
-                return []
-            windows = []
-            current = first_start
-            while len(windows) < desired:
-                end = _find_end_time_for_target(current, words_sorted)
-                if end is None:
-                    break
-                windows.append({"start": current, "end": end})
-                current = end
-                if last_end_time - current < 40.0:
-                    break
-            return windows
-
         raw = identified_moments_raws.strip()
 
         # remove code fences and markdown
@@ -544,43 +648,18 @@ class AiPodcastClipper:
         if raw.endswith("```"):
             raw = raw[:-3].strip()
 
-        # try to parse the identified moments as JSON
-        # try:
-        #     clip_moments = json.loads(raw)
-        # except json.JSONDecodeError:
-        #     try:
-        #         clip_moments = json.loads(_extract_first_json_array(raw))
-        #     except Exception as e:
-        #         print(f"Failed to parse identified moments as JSON: {e}")
-        #         # salvage if possible by extracting start and end pairs
-        #         clip_moments = _extract_start_end_pairs(raw)
-
-        # if not isinstance(clip_moments, list):
-        #     print("Error: identified moments is not a list; attempting salvage")
-        #     clip_moments = _extract_start_end_pairs(raw)
-
-        # # 유효 범위 및 정책 적용: 길이 보정 및 겹침 제거, 최대 3개
-        # adjusted = _select_moments_with_adjustment(clip_moments, transcript_segments)
-
         clip_moments = json.loads(raw)
         if not clip_moments or not isinstance(clip_moments, list):
             print("Error: Identified moments is not a list")
             clip_moments = []
 
-        # # 보정 후에도 부족하면 트랜스크립트 기반 폴백 생성으로 보완
-        # if len(adjusted) < 1:
-        #     fallback = _build_fallback_windows(transcript_segments, desired=3)
-        #     adjusted = fallback
-
-        # clip_moments = adjusted
-
         print(f"Final identified moments: {clip_moments}")
 
         # 3. Process clips
-        for index, moment in enumerate(clip_moments[:3]):
+        for index, moment in enumerate(clip_moments[:2]):
             if "start" in moment and "end" in moment:
                 print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
-                process_clip(base_dir, video_path, s3_key, moment["start"], moment["end"], index, transcript_segments)
+                process_clip(base_dir, video_path, s3_key, moment["start"], moment["end"], index, transcript_segments, self.gemini_client)
 
         # 정리 및 응답
         if base_dir.exists():
