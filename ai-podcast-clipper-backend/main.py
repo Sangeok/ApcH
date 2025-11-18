@@ -25,6 +25,7 @@ from google import genai
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
     s3_key: str
+    language: str = "Korean"
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -50,6 +51,21 @@ mount_path = "/root/.cache/torch"
 
 # FastAPI의 HTTP Bearer 인증 스킴(토큰 의존성 주입)
 auth_scheme = HTTPBearer()
+
+def get_video_duration_seconds(video_path: pathlib.Path) -> float:
+    """Return the duration of a video file in seconds using ffprobe."""
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        str(video_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    return float(result.stdout.strip())
 
 def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path, output_path, framerate=25):
     target_width = 1080
@@ -289,7 +305,12 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
         english_subtitles.append((current_start, current_end, ' '.join(current_words)))
 
     # Step 3: 영어 텍스트만 추출
-    english_texts = [text for _, _, text in english_subtitles]
+    # 번역 프롬프트에 사용할 페이로드: 각 자막에 index를 부여해 모델이 동일 길이를 유지하도록 강제
+    english_payload = [
+        {"index": idx, "text": text}
+        for idx, (_, _, text) in enumerate(english_subtitles)
+    ]
+    english_texts = [entry["text"] for entry in english_payload]
 
     # Step 4: Gemini로 일괄 번역
     subtitle_count = len(english_texts)
@@ -312,15 +333,24 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
         - Never include code fences like ``` or any additional explanations.
 
         # Input (English subtitles):
-        {json.dumps(english_texts, ensure_ascii=False)}
+        {json.dumps(english_payload, ensure_ascii=False)}
 
-        # Output example (when there are 3 input lines):
-        ["translation1", "translation2", "translation3"]
+        # Output rules (JSON only):
+        - Return a JSON array of length {subtitle_count}.
+        - Each element must be an object: {{"index": <int>, "translation": "<string>"}}
+        - Every index value must exactly match the input index.
+        - Do not skip or duplicate indices. If unsure about a line, repeat the English text as the translation.
+
+        # Output example (when there are 2 input lines):
+        [
+            {{"index": 0, "translation": "번역문1"}},
+            {{"index": 1, "translation": "번역문2"}}
+        ]
     """
 
     try:
         response = gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-pro",
             contents=prompt,
             config=genai.types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -336,16 +366,25 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
         if response_text.endswith("```"):
             response_text = response_text[:-3].strip()
 
-        korean_texts = json.loads(response_text)
+        translation_payload = json.loads(response_text)
 
-        # 검증
-        if len(korean_texts) != len(english_texts):
-            print(f"korean_texts: {korean_texts}")
-            print(f"english_texts: {english_texts}")
-            print(f"Warning: Translation count mismatch. Expected {len(english_texts)}, got {len(korean_texts)}")
-            while len(korean_texts) < len(english_texts):
-                korean_texts.append(english_texts[len(korean_texts)])
-            korean_texts = korean_texts[:len(english_texts)]
+        translations_map = {}
+        if isinstance(translation_payload, list):
+            for item in translation_payload:
+                if not isinstance(item, dict):
+                    continue
+                idx = item.get("index")
+                text = item.get("translation")
+                if isinstance(idx, int) and isinstance(text, str):
+                    translations_map[idx] = text.strip()
+
+        korean_texts = []
+        for idx in range(len(english_texts)):
+            translation = translations_map.get(idx)
+            if not translation:
+                print(f"Warning: Missing translation for index {idx}, using English text fallback.")
+                translation = english_texts[idx]
+            korean_texts.append(translation)
 
     except Exception as e:
         print(f"Translation error: {e}. Using original English text.")
@@ -399,7 +438,7 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
 
     subprocess.run(ffmpeg_cmd, shell=True, check=True)
 
-def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client):
+def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str):
     clip_name = f"clip_{clip_index}"
     s3_key_dir = os.path.dirname(s3_key)
     print(f"Processing clip: {clip_name}")
@@ -420,7 +459,18 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     pyframes_path.mkdir(exist_ok=True)
     pyavi_path.mkdir(exist_ok=True)
 
-    duration = end_time - start_time
+    clip_end_time = end_time
+    if selected_language == "Korean":
+        # 한글 자막 영상 생성 시 버퍼 시간을 추가
+        buffer_time = 0.2
+        try:
+            video_duration = get_video_duration_seconds(original_video_path)
+        except Exception as exc:
+            video_duration = end_time
+            print(f"Warning: Unable to read video duration for {original_video_path}: {exc}. Using original end time.")
+        clip_end_time = min(end_time + buffer_time, video_duration)
+
+    duration = max(clip_end_time - start_time, 0)
     cut_command = (f"ffmpeg -i {original_video_path} -ss {start_time} -t {duration} {clip_segment_path}")
     subprocess.run(cut_command, shell=True, check=True, capture_output=True, text=True)
 
@@ -460,14 +510,6 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     cvv_end_time = time.time()
     print(f"Clip {clip_index} vertical video created in {cvv_end_time - cvv_start_time:.2f} seconds")
 
-    # 영어 자막 영상 생성
-    print(f"Creating English subtitles for clip {clip_index}...")
-    create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, english_output_path, max_word=5)
-
-    # 한글 자막 영상 생성
-    print(f"Creating Korean subtitles for clip {clip_index}...")
-    create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
-
     # S3 업로드 (영어/한글 각각)
     aws_id = os.getenv("AWS_ACCESS_KEY_ID")
     aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -480,15 +522,25 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         aws_secret_access_key=aws_secret,
     )
 
-    # 영어 자막 영상 업로드
-    english_s3_key = f"{s3_key_dir}/{clip_name}_en.mp4"
-    s3_client.upload_file(str(english_output_path), "ai-podcast-clipper-hamsoo", english_s3_key)
-    print(f"Uploaded English subtitle video: {english_s3_key}")
+    if selected_language == "English":
+        # 영어 자막 영상 생성
+        print(f"Creating English subtitles for clip {clip_index}...")
+        create_subtitles_with_ffmpeg(transcript_segments, start_time, clip_end_time, vertical_mp4_path, english_output_path, max_word=5)
+    
+        # 영어 자막 영상 업로드
+        english_s3_key = f"{s3_key_dir}/{clip_name}_en.mp4"
+        s3_client.upload_file(str(english_output_path), "ai-podcast-clipper-hamsoo", english_s3_key)
+        print(f"Uploaded English subtitle video: {english_s3_key}")
+    elif selected_language == "Korean":
+        # 한글 자막 영상 생성
+        print(f"Creating Korean subtitles for clip {clip_index}...")
+        create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, clip_end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
 
-    # 한글 자막 영상 업로드
-    korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
-    s3_client.upload_file(str(korean_output_path), "ai-podcast-clipper-hamsoo", korean_s3_key)
-    print(f"Uploaded Korean subtitle video: {korean_s3_key}")
+        # 한글 자막 영상 업로드
+        korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
+        s3_client.upload_file(str(korean_output_path), "ai-podcast-clipper-hamsoo", korean_s3_key)
+        print(f"Uploaded Korean subtitle video: {korean_s3_key}")
+
 
 
 # GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스
@@ -597,6 +649,7 @@ class AiPodcastClipper:
     @modal.fastapi_endpoint(method="POST")
     def process_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
         s3_key = request.s3_key
+        selected_language = request.language
 
         if token.credentials != os.environ["AUTH_TOKEN"]:
             raise HTTPException(
@@ -659,7 +712,7 @@ class AiPodcastClipper:
         for index, moment in enumerate(clip_moments[:2]):
             if "start" in moment and "end" in moment:
                 print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
-                process_clip(base_dir, video_path, s3_key, moment["start"], moment["end"], index, transcript_segments, self.gemini_client)
+                process_clip(base_dir, video_path, s3_key, moment["start"], moment["end"], index, transcript_segments, self.gemini_client, selected_language)
 
         # 정리 및 응답
         if base_dir.exists():
