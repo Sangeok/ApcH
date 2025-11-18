@@ -25,7 +25,7 @@ from google import genai
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
     s3_key: str
-    language: str = "Korean"
+    language: str = "English"
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -459,18 +459,18 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     pyframes_path.mkdir(exist_ok=True)
     pyavi_path.mkdir(exist_ok=True)
 
-    clip_end_time = end_time
-    if selected_language == "Korean":
-        # 한글 자막 영상 생성 시 버퍼 시간을 추가
-        buffer_time = 0.2
-        try:
-            video_duration = get_video_duration_seconds(original_video_path)
-        except Exception as exc:
-            video_duration = end_time
-            print(f"Warning: Unable to read video duration for {original_video_path}: {exc}. Using original end time.")
-        clip_end_time = min(end_time + buffer_time, video_duration)
+    # clip_end_time = end_time
+    # if selected_language == "Korean":
+    #     # 한글 자막 영상 생성 시 버퍼 시간을 추가
+    #     buffer_time = 0.2
+    #     try:
+    #         video_duration = get_video_duration_seconds(original_video_path)
+    #     except Exception as exc:
+    #         video_duration = end_time
+    #         print(f"Warning: Unable to read video duration for {original_video_path}: {exc}. Using original end time.")
+    #     clip_end_time = min(end_time + buffer_time, video_duration)
 
-    duration = max(clip_end_time - start_time, 0)
+    duration = end_time - start_time
     cut_command = (f"ffmpeg -i {original_video_path} -ss {start_time} -t {duration} {clip_segment_path}")
     subprocess.run(cut_command, shell=True, check=True, capture_output=True, text=True)
 
@@ -650,6 +650,8 @@ class AiPodcastClipper:
     def process_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
         s3_key = request.s3_key
         selected_language = request.language
+
+        print(f"Processing video language: {selected_language}")
 
         if token.credentials != os.environ["AUTH_TOKEN"]:
             raise HTTPException(

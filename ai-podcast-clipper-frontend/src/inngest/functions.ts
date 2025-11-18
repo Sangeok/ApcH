@@ -14,7 +14,9 @@ export const processVideo = inngest.createFunction(
     },
   },
   async ({ event, step }: { event: any; step: any }) => {
-    const { uploadedFileId } = event.data;
+    const { uploadedFileId, language } = event.data;
+
+    console.log("processVideo function called with language:", language);
 
     try {
       const { userId, credits, s3Key } = await step.run(
@@ -61,6 +63,7 @@ export const processVideo = inngest.createFunction(
             method: "POST",
             body: JSON.stringify({
               s3_key: s3Key,
+              language: language,
             }),
             headers: {
               "Content-Type": "application/json",
