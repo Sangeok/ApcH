@@ -8,10 +8,11 @@ import { inngest } from "~/inngest/client";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
-export async function processVideo(uploadedFileId: string) {
+export async function processVideo(uploadedFileId: string, language: string) {
   console.log(
-    "processVideo function called with uploadedFileId:",
+    "processVideo function called with uploadedFileId and language:",
     uploadedFileId,
+    language,
   );
   const uploadedVideo = await db.uploadedFile.findUniqueOrThrow({
     where: {
@@ -28,7 +29,11 @@ export async function processVideo(uploadedFileId: string) {
 
   await inngest.send({
     name: "process-video-events",
-    data: { uploadedFileId: uploadedVideo.id, userId: uploadedVideo.userId },
+    data: {
+      uploadedFileId: uploadedVideo.id,
+      userId: uploadedVideo.userId,
+      language,
+    },
   });
 
   await db.uploadedFile.update({
