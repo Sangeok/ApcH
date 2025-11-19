@@ -104,6 +104,8 @@ export default function DashboardClient({
         },
       });
 
+      console.log("uploadResponse:", uploadResponse);
+
       if (!uploadResponse.ok) throw new Error("Failed to upload file");
 
       await processVideo(uploadedFileId, language);

@@ -1,19 +1,27 @@
 "use client";
 
 import type { Clip } from "generated/prisma";
-import { Download, Loader2, Play } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Download, Loader2, Play, Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { getClipPlayUrl } from "~/actions/generation";
+import { deleteClip, getClipPlayUrl } from "~/actions/generation";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 
 interface ClipDisplayProps {
   clips: Clip[];
 }
 
-function ClipCard({ clip }: { clip: Clip }) {
+interface ClipCardProps {
+  clip: Clip;
+  onDeleted: (clipId: string) => void;
+}
+
+function ClipCard({ clip, onDeleted }: ClipCardProps) {
+  const router = useRouter();
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [isLoadingUrl, setIsLoadingUrl] = useState<boolean>(true);
+  const [isDeleting, startDeleting] = useTransition();
 
   useEffect(() => {
     const fetchPlayUrl = async () => {
@@ -47,6 +55,19 @@ function ClipCard({ clip }: { clip: Clip }) {
     document.body.removeChild(link);
   };
 
+  const handleDelete = () => {
+    startDeleting(async () => {
+      const result = await deleteClip(clip.id);
+      if (result.success) {
+        toast.success("Clip deleted");
+        onDeleted(clip.id);
+      } else {
+        toast.error(result.error ?? "Failed to delete clip");
+        router.refresh();
+      }
+    });
+  };
+
   return (
     <div className="flex max-w-52 flex-col gap-2">
       <div className="bg-muted">
@@ -74,12 +95,36 @@ function ClipCard({ clip }: { clip: Clip }) {
           <Download className="mr-1.5 h-4 w-4" />
           Download
         </Button>
+        <Button
+          onClick={handleDelete}
+          variant="outline"
+          size="sm"
+          disabled={isDeleting}
+          aria-busy={isDeleting}
+        >
+          {isDeleting ? (
+            <>
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              Deleting...
+            </>
+          ) : (
+            <>
+              <Trash className="mr-1.5 h-4 w-4" />
+              Delete
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );
 }
 
 export default function ClipDisplay({ clips }: ClipDisplayProps) {
+  const [optimisticClips, removeClipOptimistic] = useOptimistic(
+    clips,
+    (state, clipId: string) => state.filter((clip) => clip.id !== clipId),
+  );
+
   if (clips.length === 0) {
     return (
       <p className="text-muted-foreground p-4 text-center">No clips found</p>
@@ -88,8 +133,14 @@ export default function ClipDisplay({ clips }: ClipDisplayProps) {
 
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-      {clips.map((clip) => {
-        return <ClipCard key={clip.id} clip={clip} />;
+      {optimisticClips.map((clip) => {
+        return (
+          <ClipCard
+            key={clip.id}
+            clip={clip}
+            onDeleted={removeClipOptimistic}
+          />
+        );
       })}
     </div>
   );
