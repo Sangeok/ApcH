@@ -35,6 +35,14 @@ import {
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { useRouter } from "next/navigation";
 import ClipDisplay from "~/fsd/widgets/clip-display/ui";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/fsd/shared/ui/atoms/dropdown-menu";
 
 interface DashboardClientProps {
   uploadedFiles: {
@@ -55,6 +63,7 @@ export default function DashboardClient({
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [language, setLanguage] = useState<string>("English");
   const router = useRouter();
 
   const handleRefresh = async () => {
@@ -97,7 +106,7 @@ export default function DashboardClient({
 
       if (!uploadResponse.ok) throw new Error("Failed to upload file");
 
-      await processVideo(uploadedFileId);
+      await processVideo(uploadedFileId, language);
 
       setFiles([]);
 
@@ -126,9 +135,11 @@ export default function DashboardClient({
           Upload your podcast files and get AI-generated clips.
         </p>
       </div>
-      <Link href="/dashboard/billing">
-        <Button>Buy Credits</Button>
-      </Link>
+      <div className="flex justify-between">
+        <Link href="/dashboard/billing">
+          <Button>Buy Credits</Button>
+        </Link>
+      </div>
 
       <Tabs defaultValue="upload">
         <TabsList>
@@ -181,17 +192,74 @@ export default function DashboardClient({
             </CardHeader>
           </Card>
           <div className="mt-4 flex items-start justify-between">
-            <div>
+            <div className="flex">
+              {/* <div className="flex"> */}
               {files.length > 0 && (
-                <div className="space-y-1 text-sm">
-                  <p className="font-medium">Selected file:</p>
-                  {files.map((file) => (
-                    <p className="text-muted-foreground" key={file.name}>
-                      {file.name}
+                <div className="flex flex-col gap-y-4">
+                  <div className="flex space-y-1 gap-x-2 text-sm">
+                    <p className="font-medium">Selected file:</p>
+                    {files.map((file) => (
+                      <p className="text-muted-foreground" key={file.name}>
+                        {file.name}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="flex gap-x-2">
+                    <p className="mt-1.5 text-sm font-medium">
+                      Select Subtitle Language:
                     </p>
-                  ))}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          {language !== "" ? language : "Language"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem asChild>
+                          <DropdownMenuItem
+                            onClick={() => setLanguage("English")}
+                            className="text-destructive cursor-pointer"
+                          >
+                            English
+                          </DropdownMenuItem>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => setLanguage("Korean")}
+                          className="text-destructive cursor-pointer"
+                        >
+                          Korean
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               )}
+              {/* </div> */}
+              {/* <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    {language !== "" ? language : "Language"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <DropdownMenuItem
+                      onClick={() => setLanguage("English")}
+                      className="text-destructive cursor-pointer"
+                    >
+                      English
+                    </DropdownMenuItem>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setLanguage("Korean")}
+                    className="text-destructive cursor-pointer"
+                  >
+                    Korean
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu> */}
             </div>
             <Button
               disabled={files.length === 0 || uploading}
@@ -210,7 +278,7 @@ export default function DashboardClient({
           {uploadedFiles.length > 0 && (
             <div className="pt-6">
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-md font-semibold">Qeueu status</h3>
+                <h3 className="text-md font-semibold">Queue status</h3>
                 <Button
                   variant="outline"
                   size="sm"
