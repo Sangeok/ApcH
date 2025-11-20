@@ -25,7 +25,7 @@ from google import genai
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
     s3_key: str
-    language: str = "English"
+    language: str = "Korean"
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -525,7 +525,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     if selected_language == "English":
         # 영어 자막 영상 생성
         print(f"Creating English subtitles for clip {clip_index}...")
-        create_subtitles_with_ffmpeg(transcript_segments, start_time, clip_end_time, vertical_mp4_path, english_output_path, max_word=5)
+        create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, english_output_path, max_word=5)
     
         # 영어 자막 영상 업로드
         english_s3_key = f"{s3_key_dir}/{clip_name}_en.mp4"
@@ -534,7 +534,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     elif selected_language == "Korean":
         # 한글 자막 영상 생성
         print(f"Creating Korean subtitles for clip {clip_index}...")
-        create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, clip_end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
+        create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
 
         # 한글 자막 영상 업로드
         korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
