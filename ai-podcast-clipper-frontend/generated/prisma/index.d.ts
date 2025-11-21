@@ -6106,6 +6106,7 @@ export namespace Prisma {
     status: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    language: string | null
     userId: string | null
   }
 
@@ -6117,6 +6118,7 @@ export namespace Prisma {
     status: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    language: string | null
     userId: string | null
   }
 
@@ -6128,6 +6130,7 @@ export namespace Prisma {
     status: number
     createdAt: number
     updatedAt: number
+    language: number
     userId: number
     _all: number
   }
@@ -6141,6 +6144,7 @@ export namespace Prisma {
     status?: true
     createdAt?: true
     updatedAt?: true
+    language?: true
     userId?: true
   }
 
@@ -6152,6 +6156,7 @@ export namespace Prisma {
     status?: true
     createdAt?: true
     updatedAt?: true
+    language?: true
     userId?: true
   }
 
@@ -6163,6 +6168,7 @@ export namespace Prisma {
     status?: true
     createdAt?: true
     updatedAt?: true
+    language?: true
     userId?: true
     _all?: true
   }
@@ -6247,6 +6253,7 @@ export namespace Prisma {
     status: string
     createdAt: Date
     updatedAt: Date
+    language: string
     userId: string
     _count: UploadedFileCountAggregateOutputType | null
     _min: UploadedFileMinAggregateOutputType | null
@@ -6275,6 +6282,7 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    language?: boolean
     userId?: boolean
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6289,6 +6297,7 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    language?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -6301,6 +6310,7 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    language?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -6313,10 +6323,11 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    language?: boolean
     userId?: boolean
   }
 
-  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["uploadedFile"]>
+  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "language" | "userId", ExtArgs["result"]["uploadedFile"]>
   export type UploadedFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6343,6 +6354,7 @@ export namespace Prisma {
       status: string
       createdAt: Date
       updatedAt: Date
+      language: string
       userId: string
     }, ExtArgs["result"]["uploadedFile"]>
     composites: {}
@@ -6776,6 +6788,7 @@ export namespace Prisma {
     readonly status: FieldRef<"UploadedFile", 'String'>
     readonly createdAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly updatedAt: FieldRef<"UploadedFile", 'DateTime'>
+    readonly language: FieldRef<"UploadedFile", 'String'>
     readonly userId: FieldRef<"UploadedFile", 'String'>
   }
     
@@ -9349,6 +9362,7 @@ export namespace Prisma {
     status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    language: 'language',
     userId: 'userId'
   };
 
@@ -9735,6 +9749,7 @@ export namespace Prisma {
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
+    language?: StringFilter<"UploadedFile"> | string
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -9748,6 +9763,7 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    language?: SortOrder
     userId?: SortOrder
     clips?: ClipOrderByRelationAggregateInput
     user?: UserOrderByWithRelationInput
@@ -9764,6 +9780,7 @@ export namespace Prisma {
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
+    language?: StringFilter<"UploadedFile"> | string
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -9777,6 +9794,7 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    language?: SortOrder
     userId?: SortOrder
     _count?: UploadedFileCountOrderByAggregateInput
     _max?: UploadedFileMaxOrderByAggregateInput
@@ -9794,6 +9812,7 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"UploadedFile"> | string
     createdAt?: DateTimeWithAggregatesFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"UploadedFile"> | Date | string
+    language?: StringWithAggregatesFilter<"UploadedFile"> | string
     userId?: StringWithAggregatesFilter<"UploadedFile"> | string
   }
 
@@ -10219,6 +10238,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
@@ -10231,6 +10251,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
     userId: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
   }
@@ -10243,6 +10264,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
@@ -10255,6 +10277,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
@@ -10267,6 +10290,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
     userId: string
   }
 
@@ -10278,6 +10302,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
   }
 
   export type UploadedFileUncheckedUpdateManyInput = {
@@ -10288,6 +10313,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -10790,6 +10816,7 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    language?: SortOrder
     userId?: SortOrder
   }
 
@@ -10801,6 +10828,7 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    language?: SortOrder
     userId?: SortOrder
   }
 
@@ -10812,6 +10840,7 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    language?: SortOrder
     userId?: SortOrder
   }
 
@@ -11771,6 +11800,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
   }
 
@@ -11782,6 +11812,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
@@ -11934,6 +11965,7 @@ export namespace Prisma {
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
+    language?: StringFilter<"UploadedFile"> | string
     userId?: StringFilter<"UploadedFile"> | string
   }
 
@@ -12090,6 +12122,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -12101,6 +12134,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
     userId: string
   }
 
@@ -12163,6 +12197,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -12174,6 +12209,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -12254,6 +12290,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    language?: string
   }
 
   export type ClipCreateManyUserInput = {
@@ -12355,6 +12392,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
   }
 
@@ -12366,6 +12404,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
@@ -12377,6 +12416,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    language?: StringFieldUpdateOperationsInput | string
   }
 
   export type ClipUpdateWithoutUserInput = {

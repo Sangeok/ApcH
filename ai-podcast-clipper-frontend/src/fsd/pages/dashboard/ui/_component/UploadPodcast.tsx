@@ -16,7 +16,7 @@ import {
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 
 import Dropzone, { type DropzoneState } from "react-dropzone";
-import { cn } from "~/lib/utils";
+import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Loader2, UploadCloud } from "lucide-react";
 import { useState } from "react";
@@ -39,13 +39,15 @@ export default function UploadPodcast() {
     const file = files[0]!;
     setUploading(true);
 
+    console.log("file.type", file.type);
+
     try {
       // client -> nextjs backend -> s3 bucket
-      const { success, signedUrl, uploadedFileId, key } =
-        await generateUploadUrl({
-          fileName: file.name,
-          contentType: file.type,
-        });
+      const { success, signedUrl, uploadedFileId } = await generateUploadUrl({
+        fileName: file.name,
+        contentType: file.type,
+        language: language,
+      });
 
       if (!success) throw new Error("Failed to get upload url");
 
@@ -69,6 +71,7 @@ export default function UploadPodcast() {
         duration: 5000,
       });
     } catch (error) {
+      console.error("Failed to upload video", error);
       toast.error("Failed to upload video", {
         description:
           "There was a problem uploading your video. Please try again.",

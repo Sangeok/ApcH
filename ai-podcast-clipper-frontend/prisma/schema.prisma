@@ -80,6 +80,7 @@ model UploadedFile {
     status String @default("queued") // processing, processed, no credits
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    language String @default("English")
 
     clips Clip[]
 

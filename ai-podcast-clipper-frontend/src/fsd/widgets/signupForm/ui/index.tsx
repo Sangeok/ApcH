@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "~/lib/utils";
+import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -17,12 +17,14 @@ import {
   FieldLabel,
 } from "~/fsd/shared/ui/atoms/field";
 import { Input } from "~/fsd/shared/ui/atoms/input";
-import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import Link from "next/link";
-import { signupSchema, type SignupFormValues } from "~/schemas/auth";
+import {
+  signupSchema,
+  type SignupFormValues,
+} from "~/fsd/entity/auth/model/schemas/auth";
 import { signUp } from "~/actions/auth";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -55,7 +57,7 @@ export function SignupForm({
       const result = await signUp(data);
       if (!result.success) {
         setError(
-          result.error || "An unexpected error occurred while signing up",
+          result.error ?? "An unexpected error occurred while signing up",
         );
         return;
       }
@@ -73,6 +75,7 @@ export function SignupForm({
         router.push("/dashboard");
       }
     } catch (error) {
+      console.error("Failed to sign up", error);
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);

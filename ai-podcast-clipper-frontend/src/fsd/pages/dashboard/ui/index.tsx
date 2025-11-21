@@ -16,9 +16,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "~/fsd/shared/ui/atoms/tabs";
-import ClipDisplay from "~/fsd/widgets/clip-display/ui";
 import QueueStatus from "./_component/QueueStatus";
 import UploadPodcast from "./_component/UploadPodcast";
+import UploadedFileList from "~/fsd/widgets/uploaded-file-list/ui";
 
 interface DashboardClientProps {
   uploadedFiles: {
@@ -34,7 +34,6 @@ interface DashboardClientProps {
 
 export default function DashboardClient({
   uploadedFiles,
-  clips,
 }: DashboardClientProps) {
   return (
     <div className="mx-auto flex max-w-5xl flex-col space-y-6 px-4 py-8">
@@ -73,7 +72,7 @@ export default function DashboardClient({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ClipDisplay clips={clips} />
+              <UploadedFileList files={uploadedFiles} />
             </CardContent>
           </Card>
         </TabsContent>
