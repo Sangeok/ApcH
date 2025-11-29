@@ -1,9 +1,11 @@
 "use server";
 
-import { hashPassword } from "~/lib/auth";
-import { signupSchema, type SignupFormValues } from "~/schemas/auth";
+import { hashPassword } from "~/fsd/shared/lib/auth";
+import {
+  signupSchema,
+  type SignupFormValues,
+} from "~/fsd/entity/auth/model/schemas/auth";
 import { db } from "~/server/db";
-import Stripe from "stripe";
 
 type SignUpResult = {
   success: boolean;
@@ -15,7 +17,7 @@ export async function signUp(data: SignupFormValues): Promise<SignUpResult> {
   if (!validatedResult.success) {
     return {
       success: false,
-      error: validatedResult.error.issues[0]?.message || "Invalid input",
+      error: validatedResult.error.issues[0]?.message ?? "Invalid input",
     };
   }
 
@@ -32,16 +34,10 @@ export async function signUp(data: SignupFormValues): Promise<SignUpResult> {
 
     const hashedPassword = await hashPassword(password);
 
-    // const stripe = new Stripe("TODO: stripe key");
-    // const stripeCustomer = await stripe.customers.create({
-    //   email: email.toLowerCase(),
-    // });
-
     await db.user.create({
       data: {
         email: email.toLowerCase(),
         password: hashedPassword,
-        // stripeCustomerId: stripeCustomer.id,
       },
     });
 

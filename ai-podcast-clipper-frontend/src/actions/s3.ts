@@ -10,6 +10,7 @@ import { db } from "~/server/db";
 export async function generateUploadUrl(fileInfo: {
   fileName: string;
   contentType: string;
+  language: string;
 }): Promise<{
   success: boolean;
   signedUrl: string;
@@ -28,7 +29,7 @@ export async function generateUploadUrl(fileInfo: {
     },
   });
 
-  const fileExtentsion = fileInfo.fileName.split(".").pop() || "";
+  const fileExtentsion = fileInfo.fileName.split(".").pop() ?? "";
 
   const uniqueId = uuidv4();
   const key = `${uniqueId}/original.${fileExtentsion}`;
@@ -49,6 +50,7 @@ export async function generateUploadUrl(fileInfo: {
       s3Key: key,
       displayName: fileInfo.fileName,
       uploaded: false,
+      language: fileInfo.language ?? "English",
     },
     select: {
       id: true,

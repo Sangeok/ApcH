@@ -3,6 +3,18 @@ import { inngest } from "./client";
 import { db } from "~/server/db";
 import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 
+type ProcessVideoEvent = {
+  data: {
+    uploadedFileId: string;
+    userId: string;
+    language: string;
+  };
+};
+
+type StepRunner = {
+  run<T>(name: string, handler: () => Promise<T> | T): Promise<T>;
+};
+
 export const processVideo = inngest.createFunction(
   { id: "process-video" },
   {
@@ -13,7 +25,7 @@ export const processVideo = inngest.createFunction(
       key: "event.data.userId",
     },
   },
-  async ({ event, step }: { event: any; step: any }) => {
+  async ({ event, step }: { event: ProcessVideoEvent; step: StepRunner }) => {
     const { uploadedFileId, language } = event.data;
 
     console.log("processVideo function called with language:", language);
@@ -133,7 +145,7 @@ export const processVideo = inngest.createFunction(
           });
         });
       }
-    } catch (error) {
+    } catch {
       await db.uploadedFile.update({
         where: {
           id: uploadedFileId,
@@ -151,7 +163,7 @@ export const processVideo = inngest.createFunction(
  * @param prefix S3 버킷 내에서 검색할 객체의 접두사 (예: 'uploads/images/')
  * @returns 일치하는 객체 키(Key)의 문자열 배열. 일치하는 객체가 없으면 빈 배열을 반환합니다.
  */
-async function listS3ObjectsByPrefix(prefix: string) {
+async function listS3ObjectsByPrefix(prefix: string): Promise<string[]> {
   // S3 클라이언트 생성
   const s3Client = new S3Client({
     region: env.AWS_REGION,
@@ -168,5 +180,9 @@ async function listS3ObjectsByPrefix(prefix: string) {
   });
 
   const response = await s3Client.send(listCommand);
-  return response.Contents?.map((item) => item.Key).filter(Boolean) || [];
+  return (
+    response.Contents?.map((item) => item.Key).filter(
+      (key): key is string => typeof key === "string",
+    ) ?? []
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "~/lib/utils";
+import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -17,12 +17,14 @@ import {
   FieldLabel,
 } from "~/fsd/shared/ui/atoms/field";
 import { Input } from "~/fsd/shared/ui/atoms/input";
-import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import Link from "next/link";
-import { loginSchema, type LoginFormValues } from "~/schemas/auth";
+import {
+  loginSchema,
+  type LoginFormValues,
+} from "~/fsd/entity/auth/model/schemas/auth";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -64,6 +66,7 @@ export function LoginForm({
         router.push("/dashboard");
       }
     } catch (error) {
+      console.error("Failed to login", error);
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
@@ -119,7 +122,8 @@ export function LoginForm({
                   {isSubmitting ? "Signing up..." : "Sign up"}
                 </Button>
                 <FieldDescription className="text-center">
-                  Don't have an account? <Link href="/signup">Sign Up</Link>
+                  Don&apos;t have an account?{" "}
+                  <Link href="/signup">Sign Up</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

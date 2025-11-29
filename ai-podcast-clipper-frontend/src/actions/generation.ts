@@ -19,6 +19,13 @@ export async function processVideo(uploadedFileId: string, language: string) {
     uploadedFileId,
     language,
   );
+
+  // Overwrite with the latest value each time so language stays consistent across reprocessing or repeated calls.
+  await db.uploadedFile.update({
+    where: { id: uploadedFileId },
+    data: { language },
+  });
+
   const uploadedVideo = await db.uploadedFile.findUniqueOrThrow({
     where: {
       id: uploadedFileId,
@@ -92,6 +99,7 @@ export async function getClipPlayUrl(
       url: signedUrl,
     };
   } catch (error) {
+    console.error("Failed to generate play URL", error);
     return { success: false, error: "Failed to generate play URL." };
   }
 }
