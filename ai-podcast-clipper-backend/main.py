@@ -459,17 +459,6 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     pyframes_path.mkdir(exist_ok=True)
     pyavi_path.mkdir(exist_ok=True)
 
-    # clip_end_time = end_time
-    # if selected_language == "Korean":
-    #     # 한글 자막 영상 생성 시 버퍼 시간을 추가
-    #     buffer_time = 0.2
-    #     try:
-    #         video_duration = get_video_duration_seconds(original_video_path)
-    #     except Exception as exc:
-    #         video_duration = end_time
-    #         print(f"Warning: Unable to read video duration for {original_video_path}: {exc}. Using original end time.")
-    #     clip_end_time = min(end_time + buffer_time, video_duration)
-
     duration = end_time - start_time
     cut_command = (f"ffmpeg -i {original_video_path} -ss {start_time} -t {duration} {clip_segment_path}")
     subprocess.run(cut_command, shell=True, check=True, capture_output=True, text=True)
@@ -711,7 +700,7 @@ class AiPodcastClipper:
         print(f"Final identified moments: {clip_moments}")
 
         # 3. Process clips
-        for index, moment in enumerate(clip_moments[:2]):
+        for index, moment in enumerate(clip_moments[:3]):
             if "start" in moment and "end" in moment:
                 print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
                 process_clip(base_dir, video_path, s3_key, moment["start"], moment["end"], index, transcript_segments, self.gemini_client, selected_language)
