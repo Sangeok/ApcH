@@ -221,17 +221,17 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
     style_name = "Default"
     new_style = pysubs2.SSAStyle()
     new_style.fontname = "Anton"
-    new_style.fontsize = 140
+    new_style.fontsize = 122
     new_style.primary_color = pysubs2.Color(255, 255, 255)
     new_style.border_style = 1
-    new_style.outline = 2.0
-    new_style.shadow = 2.0
-    new_style.shadowcolor = pysubs2.Color(0, 0, 0, 128)
-    new_style.alignment = 2
-    new_style.marginl = 50
-    new_style.marginr = 50
-    new_style.marginv = 50
-    new_style.spacing = 0.0
+    new_style.outline = 1.1
+    new_style.shadow = 6.5
+    new_style.shadowcolor = pysubs2.Color(12, 12, 12, 210)
+    new_style.alignment = 5
+    new_style.marginl = 44
+    new_style.marginr = 44
+    new_style.marginv = 165
+    new_style.spacing = 1.8
 
     subs.styles[style_name] = new_style
 
@@ -350,7 +350,7 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
 
     try:
         response = gemini_client.models.generate_content(
-            model="gemini-2.5-pro",
+            model="gemini-2.5-flash",
             contents=prompt,
             config=genai.types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -408,17 +408,17 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
     style_name = "Korean"
     korean_style = pysubs2.SSAStyle()
     korean_style.fontname = "Noto Sans KR"  # 한글 폰트
-    korean_style.fontsize = 140
+    korean_style.fontsize = 130
     korean_style.primary_color = pysubs2.Color(255, 255, 255)
     korean_style.border_style = 1
-    korean_style.outline = 2.0
-    korean_style.shadow = 2.0
-    korean_style.shadowcolor = pysubs2.Color(0, 0, 0, 128)
-    korean_style.alignment = 2  # 하단 중앙
-    korean_style.marginl = 50
-    korean_style.marginr = 50
-    korean_style.marginv = 50
-    korean_style.spacing = 0.0
+    korean_style.outline = 1.3
+    korean_style.shadow = 6.5
+    korean_style.shadowcolor = pysubs2.Color(8, 8, 8, 210)
+    korean_style.alignment = 5  # 하단 중앙
+    korean_style.marginl = 48
+    korean_style.marginr = 48
+    korean_style.marginv = 155
+    korean_style.spacing = 1.2
 
     subs.styles[style_name] = korean_style
 
