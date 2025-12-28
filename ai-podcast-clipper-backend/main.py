@@ -253,6 +253,10 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
     # Run ffmpeg command to add subtitles to the video
     subprocess.run(ffmpeg_cmd, shell=True, check=True)
 
+    # Return the script text
+    script_text = "\n".join(text for _, _, text in subtitles if text)
+    return script_text
+
 def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, clip_end: float, clip_video_path: str, output_path: str, gemini_client, max_word: int = 3):
     temp_dir = os.path.dirname(output_path)
     subtitle_path = os.path.join(temp_dir, "temp_korean_subtitles.ass")
@@ -438,6 +442,10 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
 
     subprocess.run(ffmpeg_cmd, shell=True, check=True)
 
+    # Return the script text
+    script_text = "\n".join(text for _, _, text in korean_subtitles if text)
+    return script_text
+
 def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str):
     clip_name = f"clip_{clip_index}"
     s3_key_dir = os.path.dirname(s3_key)
@@ -511,26 +519,43 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         aws_secret_access_key=aws_secret,
     )
 
+    script_text = ""
+    uploaded_clip_s3_key = None
+
     if selected_language == "English":
         # 영어 자막 영상 생성
         print(f"Creating English subtitles for clip {clip_index}...")
-        create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, english_output_path, max_word=5)
+        script_text = create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, english_output_path, max_word=5)
     
         # 영어 자막 영상 업로드
         english_s3_key = f"{s3_key_dir}/{clip_name}_en.mp4"
         s3_client.upload_file(str(english_output_path), "ai-podcast-clipper-hamsoo", english_s3_key)
+        
+        uploaded_clip_s3_key = english_s3_key
         print(f"Uploaded English subtitle video: {english_s3_key}")
     elif selected_language == "Korean":
         # 한글 자막 영상 생성
         print(f"Creating Korean subtitles for clip {clip_index}...")
-        create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
+        script_text = create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
 
         # 한글 자막 영상 업로드
         korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
         s3_client.upload_file(str(korean_output_path), "ai-podcast-clipper-hamsoo", korean_s3_key)
+        
+        uploaded_clip_s3_key = korean_s3_key
         print(f"Uploaded Korean subtitle video: {korean_s3_key}")
 
+    else:
+        raise ValueError(f"Invalid language: {selected_language}")
 
+    return {
+        "index": clip_index,
+        "startSeconds": float(start_time),
+        "endSeconds": float(end_time),
+        "s3Key": uploaded_clip_s3_key,
+        "scriptText": script_text,
+        "language": selected_language,
+    }
 
 # GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스
 @app.cls(gpu="L40S", timeout=900, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")],  volumes={mount_path: volume})
@@ -662,58 +687,87 @@ class AiPodcastClipper:
         aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
         region = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-2")
         if not aws_id or not aws_secret:
-            raise HTTPException(status_code=500, detail="AWS credentials are missing (check Modal secret).")
+            raise HTTPException(
+                status_code=500,
+                detail="AWS credentials are missing (check Modal secret).",
+            )
 
-        # download video file from S3(path : /tmp/<run_id>/input.mp4)
+        # S3 client (used for downloading original video)
         s3_client = boto3.client(
             "s3",
             region_name=region,
             aws_access_key_id=aws_id,
             aws_secret_access_key=aws_secret,
         )
-        s3_client.download_file("ai-podcast-clipper-hamsoo", s3_key, str(video_path))
 
-        # 1. transcription
-        transcript_segments_json = self.transcribe_video(base_dir, video_path)
-        transcript_segments = json.loads(transcript_segments_json)
+        clip_moments = []
+        clip_results = []
 
-        # 2. Identify moments for clips
-        print("Identifying moments for clips...")
-        identified_moments_raws = self.identify_moments(transcript_segments)
+        try:
+            # download video file from S3(path : /tmp/<run_id>/input.mp4)
+            s3_client.download_file("ai-podcast-clipper-hamsoo", s3_key, str(video_path))
 
-        raw = identified_moments_raws.strip()
+            # 1. transcription
+            transcript_segments_json = self.transcribe_video(base_dir, video_path)
+            transcript_segments = json.loads(transcript_segments_json)
 
-        # remove code fences and markdown
-        if raw.startswith("```"):
-            raw = raw[len("```"):].strip()
-            # remove language tag like ```json
-            if raw.lower().startswith("json"):
-                raw = raw[4:].lstrip()
-        if raw.endswith("```"):
-            raw = raw[:-3].strip()
+            # 2. Identify moments for clips
+            print("Identifying moments for clips...")
+            identified_moments_raws = self.identify_moments(transcript_segments)
 
-        clip_moments = json.loads(raw)
-        if not clip_moments or not isinstance(clip_moments, list):
-            print("Error: Identified moments is not a list")
-            clip_moments = []
+            raw = identified_moments_raws.strip()
 
-        print(f"Final identified moments: {clip_moments}")
+            # remove code fences and markdown
+            if raw.startswith("```"):
+                raw = raw[len("```"):].strip()
+                # remove language tag like ```json
+                if raw.lower().startswith("json"):
+                    raw = raw[4:].lstrip()
+            if raw.endswith("```"):
+                raw = raw[:-3].strip()
 
-        # 3. Process clips
-        for index, moment in enumerate(clip_moments[:3]):
-            if "start" in moment and "end" in moment:
-                print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
-                process_clip(base_dir, video_path, s3_key, moment["start"], moment["end"], index, transcript_segments, self.gemini_client, selected_language)
+            try:
+                clip_moments = json.loads(raw)
+            except json.JSONDecodeError:
+                print("Error: Identified moments is not valid JSON")
+                clip_moments = []
 
-        # 정리 및 응답
-        if base_dir.exists():
-            print(f"Cleaning up temp dir after {base_dir}")
-            shutil.rmtree(base_dir, ignore_errors=True)
+            if not clip_moments or not isinstance(clip_moments, list):
+                print("Error: Identified moments is not a list")
+                clip_moments = []
+
+            print(f"Final identified moments: {clip_moments}")
+
+            # 3. Process clips
+            for index, moment in enumerate(clip_moments[:3]):
+                if "start" in moment and "end" in moment:
+                    print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
+
+                    clip_result = process_clip(
+                        base_dir,
+                        video_path,
+                        s3_key,
+                        moment["start"],
+                        moment["end"],
+                        index,
+                        transcript_segments,
+                        self.gemini_client,
+                        selected_language,
+                    )
+                    clip_results.append(clip_result)
+
+        finally:
+            # 정리
+            if base_dir.exists():
+                print(f"Cleaning up temp dir after {base_dir}")
+                shutil.rmtree(base_dir, ignore_errors=True)
 
         return {
             "status": "ok",
             "clips_planned": min(3, len(clip_moments)),
             "s3_prefix": os.path.dirname(s3_key),
+            "language": selected_language,
+            "clips": clip_results,
         }
 
 # 로컬에서 원격 엔드포인트를 호출해 동작을 검증하는 엔트리포인트

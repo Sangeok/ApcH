@@ -26,6 +26,7 @@ interface UploadDetailPageProps {
     createdAt: Date;
     updatedAt: Date;
     status: string;
+    language: string;
     clips: Clip[];
   };
 }
