@@ -2,22 +2,22 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-> Automatically transform long podcast videos into engaging short-form vertical clips with AI-powered speaker detection and multilingual subtitles.
+> AI 기반 화자 감지와 다국어 자막으로 긴 팟캐스트 영상을 매력적인 세로형 숏폼 클립으로 자동 변환합니다.
 
-## Overview
+## 개요
 
-AI Podcast Clipper (ApcH) is an intelligent video processing platform that extracts viral-worthy moments from podcast episodes. The system analyzes video content to identify engaging Q&A segments, tracks active speakers, generates social media-optimized vertical videos, and overlays professional-styled subtitles in multiple languages (English, Korean).
+AI Podcast Clipper (ApcH)는 팟캐스트 에피소드에서 “바이럴 될 만한” 순간을 자동으로 추출하는 지능형 영상 처리 플랫폼입니다. 영상 내용을 분석해 흥미로운 Q&A 구간을 식별하고, 액티브 스피커(현재 말하는 사람)를 추적하며, SNS에 최적화된 세로형(1080x1920) 영상을 생성하고, 전문적인 스타일의 다국어 자막(영어/한국어)을 오버레이합니다.
 
-### Key Features
+### 주요 기능
 
-- **AI-Powered Highlight Extraction**: Gemini 2.5 automatically identifies engaging Q&A segments (30-60 seconds)
-- **Word-Level Transcription**: WhisperX provides word-level timestamps for precise subtitles
-- **Active Speaker Detection**: Columbia ASD tracks speakers with intelligent face cropping
-- **Vertical Video Generation**: Converts landscape videos to 1080x1920 portrait format (smart crop or blur background)
-- **Multilingual Subtitles**: Support for English and Korean with automatic translation via Gemini
-- **Real-time Processing Queue**: Asynchronous job processing with Inngest workflow orchestration
+- **AI 기반 하이라이트 추출**: Gemini 2.5가 흥미로운 Q&A 구간(30~60초)을 자동으로 식별
+- **단어(Word) 단위 전사**: WhisperX의 단어 단위 타임스탬프로 정밀 자막 생성
+- **액티브 스피커 탐지**: Columbia ASD로 발화자 추적 및 지능형 얼굴 크롭
+- **세로형 영상 생성**: 가로 영상을 1080x1920 세로 포맷으로 변환(스마트 크롭 또는 블러 배경)
+- **다국어 자막**: Gemini 자동 번역을 통한 영어/한국어 자막 지원
+- **실시간 처리 큐**: Inngest 워크플로 오케스트레이션 기반 비동기 작업 처리
 
-## Architecture
+## 아키텍처
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -70,54 +70,54 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-## Tech Stack
+## 기술 스택
 
-### Frontend
+### 프론트엔드
 
-- **Framework**: Next.js 15 (App Router)
-- **Authentication**: NextAuth.js 5.0
-- **Database**: Prisma + SQLite
-- **Styling**: Tailwind CSS 4.0 + shadcn/ui
-- **Architecture**: Feature-Sliced Design (FSD)
-- **Form Handling**: React Hook Form + Zod
-- **File Upload**: AWS S3 presigned URLs
-- **Workflows**: Inngest (async job orchestration)
+- **프레임워크**: Next.js 15 (App Router)
+- **인증**: NextAuth.js 5.0
+- **데이터베이스**: Prisma + SQLite
+- **스타일링**: Tailwind CSS 4.0 + shadcn/ui
+- **아키텍처**: Feature-Sliced Design (FSD)
+- **폼 처리**: React Hook Form + Zod
+- **파일 업로드**: AWS S3 presigned URLs
+- **워크플로**: Inngest (비동기 작업 오케스트레이션)
 
-### Backend
+### 백엔드
 
-- **Deployment**: Modal.com (serverless GPU containers)
-- **GPU**: L40S with CUDA 12.4
-- **AI Models**:
-  - WhisperX (large-v2): Speech-to-text transcription
-  - Gemini 2.5 Flash/Pro: Highlight detection and translation
-  - Columbia ASD: Active speaker detection
-- **Video Processing**: FFmpeg, ffmpegcv (GPU-accelerated)
-- **Subtitle Generation**: pysubs2 (ASS format)
-- **Storage**: AWS S3
-- **API**: FastAPI (Bearer authentication)
+- **배포**: Modal.com (서버리스 GPU 컨테이너)
+- **GPU**: L40S + CUDA 12.4
+- **AI 모델**:
+  - WhisperX (large-v2): 음성 → 텍스트 전사
+  - Gemini 2.5 Flash/Pro: 하이라이트 검출 및 번역
+  - Columbia ASD: 액티브 스피커 탐지
+- **영상 처리**: FFmpeg, ffmpegcv (GPU 가속)
+- **자막 생성**: pysubs2 (ASS 포맷)
+- **스토리지**: AWS S3
+- **API**: FastAPI (Bearer 인증)
 
-## Installation & Setup
+## 설치 & 설정
 
-### Prerequisites
+### 사전 준비
 
-- Node.js 20+ and npm 10+
+- Node.js 20+ 및 npm 10+
 - Python 3.12+
-- AWS account (S3 bucket)
-- Modal.com account
-- Gemini API key
+- AWS 계정(S3 버킷)
+- Modal.com 계정
+- Gemini API 키
 
-### Frontend Setup
+### 프론트엔드 설정
 
 ```bash
 cd ai-podcast-clipper-frontend
 
-# Install dependencies
+# 의존성 설치
 npm install
 
-# Configure environment variables
+# 환경 변수 설정
 cp .env.example .env
 
-# Required environment variables in .env:
+# .env에 필요한 환경 변수:
 - AUTH_SECRET
 
 - DATABASE_URL
@@ -129,24 +129,24 @@ cp .env.example .env
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 
-# Initialize database
+# DB 초기화
 npm run db:push
 
-# Start development server
+# 개발 서버 실행
 npm run dev
 
-# Start Inngest development server (separate terminal)
+# Inngest 개발 서버 실행(별도 터미널)
 npm run inngest-dev
 ```
 
-Frontend will be available at http://localhost:3000
+프론트엔드는 `http://localhost:3000` 에서 확인할 수 있습니다.
 
-### Backend Setup
+### 백엔드 설정
 
 ```bash
 cd ai-podcast-clipper-backend
 
-# Create Modal secret with required environment variables
+# 필요한 환경 변수로 Modal secret 생성
 modal secret create ai-podcast-clipper-secret \
   AWS_ACCESS_KEY_ID=<your-aws-key> \
   AWS_SECRET_ACCESS_KEY=<your-aws-secret> \
@@ -154,34 +154,34 @@ modal secret create ai-podcast-clipper-secret \
   GEMINI_API_KEY=<your-gemini-key> \
   AUTH_TOKEN=<generate-secure-token>
 
-# Deploy to Modal
+# Modal에 배포
 modal deploy main.py
 
-# Local testing (calls deployed endpoint)
+# 로컬 테스트(배포된 엔드포인트 호출)
 modal run main.py
 ```
 
-## Usage
+## 사용 방법
 
-### User Workflow
+### 사용자 워크플로
 
-1. **Sign Up / Log In**: Create an account at `/signup` or log in at `/login`
-2. **Upload Podcast**: Navigate to `/dashboard` and upload an MP4 video to S3
-3. **Select Language**: Choose English or Korean subtitles
-4. **Processing**: Inngest triggers Modal endpoint, processing takes 5-15 minutes
-5. **View Clips**: Navigate to upload detail page to see generated clips
-6. **Download**: Click on clips to download vertical videos
+1. **회원가입 / 로그인**: `/signup`에서 회원가입하거나 `/login`에서 로그인
+2. **팟캐스트 업로드**: `/dashboard`로 이동해 MP4 영상을 S3로 업로드
+3. **언어 선택**: 영어 또는 한국어 자막 선택
+4. **처리**: Inngest가 Modal 엔드포인트를 트리거하며, 처리 시간은 5~15분 소요
+5. **클립 확인**: 업로드 상세 페이지에서 생성된 클립을 확인
+6. **다운로드**: 클립을 클릭해 세로형 영상을 다운로드
 
-### Credit System (Currently in Development)
+### 크레딧 시스템(현재 개발 중)
 
-- New users receive 3 free credits
-- Each video processing consumes 1 credit
-- Credits required before processing starts
-- Credit purchase via Stripe integration (planned)
+- 신규 유저는 3개의 무료 크레딧 제공
+- 영상 처리 1회당 1 크레딧 사용
+- 처리 시작 전에 크레딧 필요
+- Stripe 결제 연동(예정)
 
-## API Documentation
+## API 문서
 
-### Backend Endpoint
+### 백엔드 엔드포인트
 
 **URL**: `https://[your-modal-username]--ai-podcast-clipper-process-video.modal.run`
 
@@ -201,7 +201,7 @@ modal run main.py
 ```json
 {
   "s3_key": "user-id/video-name.mp4",
-  "language": "English" // or "Korean"
+  "language": "English" // 또는 "Korean"
 }
 ```
 
@@ -215,25 +215,25 @@ modal run main.py
 }
 ```
 
-### Processing Details
+### 처리 상세
 
-**Input**: MP4 video uploaded to S3 bucket `ai-podcast-clipper-hamsoo`
+**입력(Input)**: S3 버킷 `ai-podcast-clipper-hamsoo` 에 업로드된 MP4 영상
 
-**Output**:
+**출력(Output)**:
 
-- English: `{s3_key_dir}/clip_{index}_en.mp4`
-- Korean: `{s3_key_dir}/clip_{index}_kr.mp4`
+- 영어: `{s3_key_dir}/clip_{index}_en.mp4`
+- 한국어: `{s3_key_dir}/clip_{index}_kr.mp4`
 
-**Constraints**:
+**제약(Constraints)**:
 
-- Maximum 3 clips processed per video
-- Clip duration: 30-60 seconds
-- Timeout: 900 seconds (15 minutes)
+- 영상 1개당 최대 3개 클립 처리(하드코딩된 제한)
+- 클립 길이: 30~60초
+- 타임아웃: 900초(15분)
 - GPU: L40S (48GB VRAM)
 
-## Development
+## 개발
 
-### Frontend Structure (FSD)
+### 프론트엔드 구조(FSD)
 
 ```
 ai-podcast-clipper-frontend/
@@ -256,51 +256,51 @@ ai-podcast-clipper-frontend/
     └── db.sqlite               # SQLite database
 ```
 
-### Backend Structure
+### 백엔드 구조
 
 ```
 ai-podcast-clipper-backend/
-├── main.py                     # Modal app entry point
-├── asd/                        # Columbia ASD model
+├── main.py                     # Modal 앱 엔트리포인트
+├── asd/                        # Columbia ASD 모델
 │   ├── Columbia_test.py        # Active speaker detection
 │   ├── ASD.py                  # Model architecture
 │   └── weight/                 # Model weights
 ├── requirements.txt            # Python dependencies
-└── ytdownload.py               # YouTube download utility
+└── ytdownload.py               # YouTube 다운로드 유틸리티
 ```
 
-### Key Components
+### 핵심 구성 요소
 
-**Frontend Pages**:
+**프론트엔드 페이지**:
 
-- `/` - Feature showcase homepage
-- `/dashboard` - User dashboard with upload queue
-- `/dashboard/uploads/[id]` - Clip gallery and processing timeline
+- `/` - 기능 소개 홈
+- `/dashboard` - 업로드 큐가 있는 사용자 대시보드
+- `/dashboard/uploads/[id]` - 클립 갤러리 및 처리 타임라인
 
-**Backend Functions**:
+**백엔드 함수**:
 
-- `transcribe_video()` - WhisperX word-level transcription
-- `identify_moments()` - Gemini Q&A extraction
-- `process_clip()` - Complete clip processing pipeline
-- `create_vertical_video()` - Smart crop and vertical conversion
-- `create_subtitles_with_ffmpeg()` - English subtitle overlay
-- `create_korean_subtitles_with_ffmpeg()` - Korean translation and subtitles
+- `transcribe_video()` - WhisperX 단어 단위 전사
+- `identify_moments()` - Gemini Q&A 구간 추출
+- `process_clip()` - 전체 클립 처리 파이프라인
+- `create_vertical_video()` - 스마트 크롭 및 세로 변환
+- `create_subtitles_with_ffmpeg()` - 영어 자막 오버레이
+- `create_korean_subtitles_with_ffmpeg()` - 한국어 번역 및 자막 생성
 
-## Known Issues & Limitations
+## 알려진 이슈 & 제한사항
 
-- Only the first 3 clips are processed per video (hardcoded limit)
-- Korean translation may fallback to English on API errors
-- No error handling for S3 upload failures
-- Temporary directory cleanup regardless of success
-- Credits not consumed if pipeline fails mid-process
+- 영상 1개당 최초 3개 클립만 처리(하드코딩)
+- 한국어 번역이 API 오류 시 영어로 폴백될 수 있음
+- S3 업로드 실패에 대한 에러 핸들링이 없음
+- 성공/실패와 무관하게 임시 디렉토리 정리가 수행됨
+- 파이프라인 중간 실패 시 크레딧이 차감되지 않을 수 있음
 
-## License
+## 라이선스
 
-Private project - All rights reserved
+비공개 프로젝트 - 모든 권리 보유
 
 ## Acknowledgments
 
-- **Columbia ASD**: LR-ASD model from IJCV 2025
-- **WhisperX**: Fast automatic speech recognition with word-level timestamps
-- **T3 Stack**: Type-safe Next.js starter template
-- **shadcn/ui**: Beautifully designed component library
+- **Columbia ASD**: IJCV 2025의 LR-ASD 모델
+- **WhisperX**: 단어 단위 타임스탬프를 제공하는 고속 ASR
+- **T3 Stack**: 타입-세이프 Next.js 스타터 템플릿
+- **shadcn/ui**: 아름답게 디자인된 컴포넌트 라이브러리
