@@ -58,7 +58,7 @@ model Session {
 model User {
   id               String    @id @default(cuid())
   name             String?
-  email            String?   @unique
+  email            String    @unique
   emailVerified    DateTime?
   password         String
   credits          Int       @default(3)
@@ -80,6 +80,7 @@ model UploadedFile {
   status      String   @default("queued") // processing, processed, no credits
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  language    String   @default("English")
 
   clips Clip[]
 
@@ -95,6 +96,10 @@ model UploadedFile {
 model Clip {
   id    String @id @default(cuid())
   s3Key String
+
+  startSeconds Float?
+  endSeconds   Float?
+  scriptText   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

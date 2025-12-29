@@ -11,6 +11,23 @@ type ProcessVideoEvent = {
   };
 };
 
+type ProcessVideoBackendClip = {
+  index: number;
+  startSeconds?: number | null;
+  endSeconds?: number | null;
+  s3Key?: string | null;
+  scriptText?: string | null;
+  language?: string | null;
+};
+
+type ProcessVideoBackendResponse = {
+  status?: string;
+  clips_planned?: number;
+  s3_prefix?: string;
+  language?: string;
+  clips?: ProcessVideoBackendClip[];
+};
+
 type StepRunner = {
   run<T>(name: string, handler: () => Promise<T> | T): Promise<T>;
 };
@@ -70,38 +87,79 @@ export const processVideo = inngest.createFunction(
           });
         });
 
-        await step.run("call-modal-endpoint", async () => {
-          await fetch(env.PROCESS_VIDEO_ENDPOINT, {
-            method: "POST",
-            body: JSON.stringify({
-              s3_key: s3Key,
-              language: language,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
-            },
-          });
-        });
+        const modalPayload = await step.run<ProcessVideoBackendResponse | null>(
+          "call-modal-endpoint",
+          async () => {
+            const res = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
+              method: "POST",
+              body: JSON.stringify({ s3_key: s3Key, language }),
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
+              },
+            });
 
+            if (!res.ok) {
+              const text = await res.text().catch(() => "");
+              throw new Error(
+                `PROCESS_VIDEO_ENDPOINT failed (${res.status}): ${text.slice(0, 500)}`,
+              );
+            }
+
+            try {
+              return (await res.json()) as ProcessVideoBackendResponse;
+            } catch {
+              return null;
+            }
+          },
+        );
+
+        // CHANGED: clips[]가 있으면 그걸로 DB 저장, 없으면 S3 listing fallback
         const { clipsFound } = await step.run(
           "create-clips-in-db",
           async () => {
-            const folderPrefix = s3Key.split("/")[0]!;
+            const backendClips = modalPayload?.clips;
 
+            // 1) 백엔드 메타 기반(우선)
+            if (Array.isArray(backendClips) && backendClips.length > 0) {
+              const createData = backendClips
+                .filter(
+                  (c) => typeof c?.s3Key === "string" && c.s3Key.length > 0,
+                )
+                .map((c) => ({
+                  s3Key: c.s3Key as string,
+                  uploadedFileId,
+                  userId,
+                  // 아래 3개 필드는 Prisma에 컬럼이 있어야 합니다.
+                  startSeconds: c.startSeconds ?? null,
+                  endSeconds: c.endSeconds ?? null,
+                  scriptText: c.scriptText ?? null,
+                }));
+
+              if (createData.length > 0) {
+                await db.clip.createMany({ data: createData });
+              }
+
+              return { clipsFound: createData.length };
+            }
+
+            // 2) fallback: S3 listing 기반(필터 버그 수정 포함)
+            const folderPrefix = s3Key.split("/")[0]!;
             const allKeys = await listS3ObjectsByPrefix(folderPrefix);
 
             const clipKeys = allKeys.filter(
               (key): key is string =>
-                key !== undefined && !key.endsWith("original.mp4"),
+                typeof key === "string" &&
+                key.startsWith(`${folderPrefix}/clip_`) &&
+                key.endsWith(".mp4"),
             );
 
             if (clipKeys.length > 0) {
               await db.clip.createMany({
-                data: clipKeys.map((clipkey) => ({
-                  s3Key: clipkey,
-                  uploadedFileId: uploadedFileId,
-                  userId: userId,
+                data: clipKeys.map((clipKey) => ({
+                  s3Key: clipKey,
+                  uploadedFileId,
+                  userId,
                 })),
               });
             }

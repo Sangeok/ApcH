@@ -294,8 +294,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.19.0
-   * Query Engine version: 2ba551f319ab1df4bc874a89965d8b3641056773
+   * Prisma Client JS version: 6.19.1
+   * Query Engine version: c2990dca591cba766e3b7ef5d9e8a84796e47ab7
    */
   export type PrismaVersion = {
     client: string
@@ -7232,13 +7232,28 @@ export namespace Prisma {
 
   export type AggregateClip = {
     _count: ClipCountAggregateOutputType | null
+    _avg: ClipAvgAggregateOutputType | null
+    _sum: ClipSumAggregateOutputType | null
     _min: ClipMinAggregateOutputType | null
     _max: ClipMaxAggregateOutputType | null
+  }
+
+  export type ClipAvgAggregateOutputType = {
+    startSeconds: number | null
+    endSeconds: number | null
+  }
+
+  export type ClipSumAggregateOutputType = {
+    startSeconds: number | null
+    endSeconds: number | null
   }
 
   export type ClipMinAggregateOutputType = {
     id: string | null
     s3Key: string | null
+    startSeconds: number | null
+    endSeconds: number | null
+    scriptText: string | null
     createdAt: Date | null
     updatedAt: Date | null
     uploadedFileId: string | null
@@ -7248,6 +7263,9 @@ export namespace Prisma {
   export type ClipMaxAggregateOutputType = {
     id: string | null
     s3Key: string | null
+    startSeconds: number | null
+    endSeconds: number | null
+    scriptText: string | null
     createdAt: Date | null
     updatedAt: Date | null
     uploadedFileId: string | null
@@ -7257,6 +7275,9 @@ export namespace Prisma {
   export type ClipCountAggregateOutputType = {
     id: number
     s3Key: number
+    startSeconds: number
+    endSeconds: number
+    scriptText: number
     createdAt: number
     updatedAt: number
     uploadedFileId: number
@@ -7265,9 +7286,22 @@ export namespace Prisma {
   }
 
 
+  export type ClipAvgAggregateInputType = {
+    startSeconds?: true
+    endSeconds?: true
+  }
+
+  export type ClipSumAggregateInputType = {
+    startSeconds?: true
+    endSeconds?: true
+  }
+
   export type ClipMinAggregateInputType = {
     id?: true
     s3Key?: true
+    startSeconds?: true
+    endSeconds?: true
+    scriptText?: true
     createdAt?: true
     updatedAt?: true
     uploadedFileId?: true
@@ -7277,6 +7311,9 @@ export namespace Prisma {
   export type ClipMaxAggregateInputType = {
     id?: true
     s3Key?: true
+    startSeconds?: true
+    endSeconds?: true
+    scriptText?: true
     createdAt?: true
     updatedAt?: true
     uploadedFileId?: true
@@ -7286,6 +7323,9 @@ export namespace Prisma {
   export type ClipCountAggregateInputType = {
     id?: true
     s3Key?: true
+    startSeconds?: true
+    endSeconds?: true
+    scriptText?: true
     createdAt?: true
     updatedAt?: true
     uploadedFileId?: true
@@ -7331,6 +7371,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: ClipAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ClipSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ClipMinAggregateInputType
@@ -7361,6 +7413,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ClipCountAggregateInputType | true
+    _avg?: ClipAvgAggregateInputType
+    _sum?: ClipSumAggregateInputType
     _min?: ClipMinAggregateInputType
     _max?: ClipMaxAggregateInputType
   }
@@ -7368,11 +7422,16 @@ export namespace Prisma {
   export type ClipGroupByOutputType = {
     id: string
     s3Key: string
+    startSeconds: number | null
+    endSeconds: number | null
+    scriptText: string | null
     createdAt: Date
     updatedAt: Date
     uploadedFileId: string | null
     userId: string
     _count: ClipCountAggregateOutputType | null
+    _avg: ClipAvgAggregateOutputType | null
+    _sum: ClipSumAggregateOutputType | null
     _min: ClipMinAggregateOutputType | null
     _max: ClipMaxAggregateOutputType | null
   }
@@ -7394,6 +7453,9 @@ export namespace Prisma {
   export type ClipSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     s3Key?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     uploadedFileId?: boolean
@@ -7405,6 +7467,9 @@ export namespace Prisma {
   export type ClipSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     s3Key?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     uploadedFileId?: boolean
@@ -7416,6 +7481,9 @@ export namespace Prisma {
   export type ClipSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     s3Key?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     uploadedFileId?: boolean
@@ -7427,13 +7495,16 @@ export namespace Prisma {
   export type ClipSelectScalar = {
     id?: boolean
     s3Key?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     uploadedFileId?: boolean
     userId?: boolean
   }
 
-  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "createdAt" | "updatedAt" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
+  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "startSeconds" | "endSeconds" | "scriptText" | "createdAt" | "updatedAt" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
   export type ClipInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7456,6 +7527,9 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       s3Key: string
+      startSeconds: number | null
+      endSeconds: number | null
+      scriptText: string | null
       createdAt: Date
       updatedAt: Date
       uploadedFileId: string | null
@@ -7887,6 +7961,9 @@ export namespace Prisma {
   interface ClipFieldRefs {
     readonly id: FieldRef<"Clip", 'String'>
     readonly s3Key: FieldRef<"Clip", 'String'>
+    readonly startSeconds: FieldRef<"Clip", 'Float'>
+    readonly endSeconds: FieldRef<"Clip", 'Float'>
+    readonly scriptText: FieldRef<"Clip", 'String'>
     readonly createdAt: FieldRef<"Clip", 'DateTime'>
     readonly updatedAt: FieldRef<"Clip", 'DateTime'>
     readonly uploadedFileId: FieldRef<"Clip", 'String'>
@@ -9372,6 +9449,9 @@ export namespace Prisma {
   export const ClipScalarFieldEnum: {
     id: 'id',
     s3Key: 's3Key',
+    startSeconds: 'startSeconds',
+    endSeconds: 'endSeconds',
+    scriptText: 'scriptText',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     uploadedFileId: 'uploadedFileId',
@@ -9822,6 +9902,9 @@ export namespace Prisma {
     NOT?: ClipWhereInput | ClipWhereInput[]
     id?: StringFilter<"Clip"> | string
     s3Key?: StringFilter<"Clip"> | string
+    startSeconds?: FloatNullableFilter<"Clip"> | number | null
+    endSeconds?: FloatNullableFilter<"Clip"> | number | null
+    scriptText?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
     uploadedFileId?: StringNullableFilter<"Clip"> | string | null
@@ -9833,6 +9916,9 @@ export namespace Prisma {
   export type ClipOrderByWithRelationInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    startSeconds?: SortOrderInput | SortOrder
+    endSeconds?: SortOrderInput | SortOrder
+    scriptText?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     uploadedFileId?: SortOrderInput | SortOrder
@@ -9847,6 +9933,9 @@ export namespace Prisma {
     OR?: ClipWhereInput[]
     NOT?: ClipWhereInput | ClipWhereInput[]
     s3Key?: StringFilter<"Clip"> | string
+    startSeconds?: FloatNullableFilter<"Clip"> | number | null
+    endSeconds?: FloatNullableFilter<"Clip"> | number | null
+    scriptText?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
     uploadedFileId?: StringNullableFilter<"Clip"> | string | null
@@ -9858,13 +9947,18 @@ export namespace Prisma {
   export type ClipOrderByWithAggregationInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    startSeconds?: SortOrderInput | SortOrder
+    endSeconds?: SortOrderInput | SortOrder
+    scriptText?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     uploadedFileId?: SortOrderInput | SortOrder
     userId?: SortOrder
     _count?: ClipCountOrderByAggregateInput
+    _avg?: ClipAvgOrderByAggregateInput
     _max?: ClipMaxOrderByAggregateInput
     _min?: ClipMinOrderByAggregateInput
+    _sum?: ClipSumOrderByAggregateInput
   }
 
   export type ClipScalarWhereWithAggregatesInput = {
@@ -9873,6 +9967,9 @@ export namespace Prisma {
     NOT?: ClipScalarWhereWithAggregatesInput | ClipScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Clip"> | string
     s3Key?: StringWithAggregatesFilter<"Clip"> | string
+    startSeconds?: FloatNullableWithAggregatesFilter<"Clip"> | number | null
+    endSeconds?: FloatNullableWithAggregatesFilter<"Clip"> | number | null
+    scriptText?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
     uploadedFileId?: StringNullableWithAggregatesFilter<"Clip"> | string | null
@@ -10320,6 +10417,9 @@ export namespace Prisma {
   export type ClipCreateInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     uploadedFile?: UploadedFileCreateNestedOneWithoutClipsInput
@@ -10329,6 +10429,9 @@ export namespace Prisma {
   export type ClipUncheckedCreateInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     uploadedFileId?: string | null
@@ -10338,6 +10441,9 @@ export namespace Prisma {
   export type ClipUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     uploadedFile?: UploadedFileUpdateOneWithoutClipsNestedInput
@@ -10347,6 +10453,9 @@ export namespace Prisma {
   export type ClipUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10356,6 +10465,9 @@ export namespace Prisma {
   export type ClipCreateManyInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     uploadedFileId?: string | null
@@ -10365,6 +10477,9 @@ export namespace Prisma {
   export type ClipUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -10372,6 +10487,9 @@ export namespace Prisma {
   export type ClipUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10852,6 +10970,17 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type UploadedFileNullableScalarRelationFilter = {
     is?: UploadedFileWhereInput | null
     isNot?: UploadedFileWhereInput | null
@@ -10860,15 +10989,26 @@ export namespace Prisma {
   export type ClipCountOrderByAggregateInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    scriptText?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     uploadedFileId?: SortOrder
     userId?: SortOrder
   }
 
+  export type ClipAvgOrderByAggregateInput = {
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+  }
+
   export type ClipMaxOrderByAggregateInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    scriptText?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     uploadedFileId?: SortOrder
@@ -10878,10 +11018,34 @@ export namespace Prisma {
   export type ClipMinOrderByAggregateInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    scriptText?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     uploadedFileId?: SortOrder
     userId?: SortOrder
+  }
+
+  export type ClipSumOrderByAggregateInput = {
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type VerificationTokenIdentifierTokenCompoundUniqueInput = {
@@ -11263,6 +11427,14 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type UploadedFileUpdateOneWithoutClipsNestedInput = {
     create?: XOR<UploadedFileCreateWithoutClipsInput, UploadedFileUncheckedCreateWithoutClipsInput>
     connectOrCreate?: UploadedFileCreateOrConnectWithoutClipsInput
@@ -11480,6 +11652,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type UserCreateWithoutPostsInput = {
@@ -11828,6 +12016,9 @@ export namespace Prisma {
   export type ClipCreateWithoutUserInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     uploadedFile?: UploadedFileCreateNestedOneWithoutClipsInput
@@ -11836,6 +12027,9 @@ export namespace Prisma {
   export type ClipUncheckedCreateWithoutUserInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     uploadedFileId?: string | null
@@ -11991,6 +12185,9 @@ export namespace Prisma {
     NOT?: ClipScalarWhereInput | ClipScalarWhereInput[]
     id?: StringFilter<"Clip"> | string
     s3Key?: StringFilter<"Clip"> | string
+    startSeconds?: FloatNullableFilter<"Clip"> | number | null
+    endSeconds?: FloatNullableFilter<"Clip"> | number | null
+    scriptText?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
     uploadedFileId?: StringNullableFilter<"Clip"> | string | null
@@ -12000,6 +12197,9 @@ export namespace Prisma {
   export type ClipCreateWithoutUploadedFileInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutClipsInput
@@ -12008,6 +12208,9 @@ export namespace Prisma {
   export type ClipUncheckedCreateWithoutUploadedFileInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
@@ -12296,6 +12499,9 @@ export namespace Prisma {
   export type ClipCreateManyUserInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     uploadedFileId?: string | null
@@ -12422,6 +12628,9 @@ export namespace Prisma {
   export type ClipUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     uploadedFile?: UploadedFileUpdateOneWithoutClipsNestedInput
@@ -12430,6 +12639,9 @@ export namespace Prisma {
   export type ClipUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12438,6 +12650,9 @@ export namespace Prisma {
   export type ClipUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12446,6 +12661,9 @@ export namespace Prisma {
   export type ClipCreateManyUploadedFileInput = {
     id?: string
     s3Key: string
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
@@ -12454,6 +12672,9 @@ export namespace Prisma {
   export type ClipUpdateWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutClipsNestedInput
@@ -12462,6 +12683,9 @@ export namespace Prisma {
   export type ClipUncheckedUpdateWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
@@ -12470,6 +12694,9 @@ export namespace Prisma {
   export type ClipUncheckedUpdateManyWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
