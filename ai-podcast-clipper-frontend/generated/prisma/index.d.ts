@@ -7256,6 +7256,9 @@ export namespace Prisma {
     scriptText: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    youtubeTitle: string | null
+    youtubeDescription: string | null
+    youtubeHashtags: string | null
     uploadedFileId: string | null
     userId: string | null
   }
@@ -7268,6 +7271,9 @@ export namespace Prisma {
     scriptText: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    youtubeTitle: string | null
+    youtubeDescription: string | null
+    youtubeHashtags: string | null
     uploadedFileId: string | null
     userId: string | null
   }
@@ -7280,6 +7286,9 @@ export namespace Prisma {
     scriptText: number
     createdAt: number
     updatedAt: number
+    youtubeTitle: number
+    youtubeDescription: number
+    youtubeHashtags: number
     uploadedFileId: number
     userId: number
     _all: number
@@ -7304,6 +7313,9 @@ export namespace Prisma {
     scriptText?: true
     createdAt?: true
     updatedAt?: true
+    youtubeTitle?: true
+    youtubeDescription?: true
+    youtubeHashtags?: true
     uploadedFileId?: true
     userId?: true
   }
@@ -7316,6 +7328,9 @@ export namespace Prisma {
     scriptText?: true
     createdAt?: true
     updatedAt?: true
+    youtubeTitle?: true
+    youtubeDescription?: true
+    youtubeHashtags?: true
     uploadedFileId?: true
     userId?: true
   }
@@ -7328,6 +7343,9 @@ export namespace Prisma {
     scriptText?: true
     createdAt?: true
     updatedAt?: true
+    youtubeTitle?: true
+    youtubeDescription?: true
+    youtubeHashtags?: true
     uploadedFileId?: true
     userId?: true
     _all?: true
@@ -7427,6 +7445,9 @@ export namespace Prisma {
     scriptText: string | null
     createdAt: Date
     updatedAt: Date
+    youtubeTitle: string | null
+    youtubeDescription: string | null
+    youtubeHashtags: string | null
     uploadedFileId: string | null
     userId: string
     _count: ClipCountAggregateOutputType | null
@@ -7458,6 +7479,9 @@ export namespace Prisma {
     scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    youtubeTitle?: boolean
+    youtubeDescription?: boolean
+    youtubeHashtags?: boolean
     uploadedFileId?: boolean
     userId?: boolean
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
@@ -7472,6 +7496,9 @@ export namespace Prisma {
     scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    youtubeTitle?: boolean
+    youtubeDescription?: boolean
+    youtubeHashtags?: boolean
     uploadedFileId?: boolean
     userId?: boolean
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
@@ -7486,6 +7513,9 @@ export namespace Prisma {
     scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    youtubeTitle?: boolean
+    youtubeDescription?: boolean
+    youtubeHashtags?: boolean
     uploadedFileId?: boolean
     userId?: boolean
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
@@ -7500,11 +7530,14 @@ export namespace Prisma {
     scriptText?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    youtubeTitle?: boolean
+    youtubeDescription?: boolean
+    youtubeHashtags?: boolean
     uploadedFileId?: boolean
     userId?: boolean
   }
 
-  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "startSeconds" | "endSeconds" | "scriptText" | "createdAt" | "updatedAt" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
+  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "startSeconds" | "endSeconds" | "scriptText" | "createdAt" | "updatedAt" | "youtubeTitle" | "youtubeDescription" | "youtubeHashtags" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
   export type ClipInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7532,6 +7565,9 @@ export namespace Prisma {
       scriptText: string | null
       createdAt: Date
       updatedAt: Date
+      youtubeTitle: string | null
+      youtubeDescription: string | null
+      youtubeHashtags: string | null
       uploadedFileId: string | null
       userId: string
     }, ExtArgs["result"]["clip"]>
@@ -7966,6 +8002,9 @@ export namespace Prisma {
     readonly scriptText: FieldRef<"Clip", 'String'>
     readonly createdAt: FieldRef<"Clip", 'DateTime'>
     readonly updatedAt: FieldRef<"Clip", 'DateTime'>
+    readonly youtubeTitle: FieldRef<"Clip", 'String'>
+    readonly youtubeDescription: FieldRef<"Clip", 'String'>
+    readonly youtubeHashtags: FieldRef<"Clip", 'String'>
     readonly uploadedFileId: FieldRef<"Clip", 'String'>
     readonly userId: FieldRef<"Clip", 'String'>
   }
@@ -9454,6 +9493,9 @@ export namespace Prisma {
     scriptText: 'scriptText',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    youtubeTitle: 'youtubeTitle',
+    youtubeDescription: 'youtubeDescription',
+    youtubeHashtags: 'youtubeHashtags',
     uploadedFileId: 'uploadedFileId',
     userId: 'userId'
   };
@@ -9907,6 +9949,9 @@ export namespace Prisma {
     scriptText?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
+    youtubeTitle?: StringNullableFilter<"Clip"> | string | null
+    youtubeDescription?: StringNullableFilter<"Clip"> | string | null
+    youtubeHashtags?: StringNullableFilter<"Clip"> | string | null
     uploadedFileId?: StringNullableFilter<"Clip"> | string | null
     userId?: StringFilter<"Clip"> | string
     uploadedFile?: XOR<UploadedFileNullableScalarRelationFilter, UploadedFileWhereInput> | null
@@ -9921,6 +9966,9 @@ export namespace Prisma {
     scriptText?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    youtubeTitle?: SortOrderInput | SortOrder
+    youtubeDescription?: SortOrderInput | SortOrder
+    youtubeHashtags?: SortOrderInput | SortOrder
     uploadedFileId?: SortOrderInput | SortOrder
     userId?: SortOrder
     uploadedFile?: UploadedFileOrderByWithRelationInput
@@ -9938,6 +9986,9 @@ export namespace Prisma {
     scriptText?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
+    youtubeTitle?: StringNullableFilter<"Clip"> | string | null
+    youtubeDescription?: StringNullableFilter<"Clip"> | string | null
+    youtubeHashtags?: StringNullableFilter<"Clip"> | string | null
     uploadedFileId?: StringNullableFilter<"Clip"> | string | null
     userId?: StringFilter<"Clip"> | string
     uploadedFile?: XOR<UploadedFileNullableScalarRelationFilter, UploadedFileWhereInput> | null
@@ -9952,6 +10003,9 @@ export namespace Prisma {
     scriptText?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    youtubeTitle?: SortOrderInput | SortOrder
+    youtubeDescription?: SortOrderInput | SortOrder
+    youtubeHashtags?: SortOrderInput | SortOrder
     uploadedFileId?: SortOrderInput | SortOrder
     userId?: SortOrder
     _count?: ClipCountOrderByAggregateInput
@@ -9972,6 +10026,9 @@ export namespace Prisma {
     scriptText?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
+    youtubeTitle?: StringNullableWithAggregatesFilter<"Clip"> | string | null
+    youtubeDescription?: StringNullableWithAggregatesFilter<"Clip"> | string | null
+    youtubeHashtags?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     uploadedFileId?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     userId?: StringWithAggregatesFilter<"Clip"> | string
   }
@@ -10422,6 +10479,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     uploadedFile?: UploadedFileCreateNestedOneWithoutClipsInput
     user: UserCreateNestedOneWithoutClipsInput
   }
@@ -10434,6 +10494,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     uploadedFileId?: string | null
     userId: string
   }
@@ -10446,6 +10509,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFile?: UploadedFileUpdateOneWithoutClipsNestedInput
     user?: UserUpdateOneRequiredWithoutClipsNestedInput
   }
@@ -10458,6 +10524,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
   }
@@ -10470,6 +10539,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     uploadedFileId?: string | null
     userId: string
   }
@@ -10482,6 +10554,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ClipUncheckedUpdateManyInput = {
@@ -10492,6 +10567,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
   }
@@ -10994,6 +11072,9 @@ export namespace Prisma {
     scriptText?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    youtubeTitle?: SortOrder
+    youtubeDescription?: SortOrder
+    youtubeHashtags?: SortOrder
     uploadedFileId?: SortOrder
     userId?: SortOrder
   }
@@ -11011,6 +11092,9 @@ export namespace Prisma {
     scriptText?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    youtubeTitle?: SortOrder
+    youtubeDescription?: SortOrder
+    youtubeHashtags?: SortOrder
     uploadedFileId?: SortOrder
     userId?: SortOrder
   }
@@ -11023,6 +11107,9 @@ export namespace Prisma {
     scriptText?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    youtubeTitle?: SortOrder
+    youtubeDescription?: SortOrder
+    youtubeHashtags?: SortOrder
     uploadedFileId?: SortOrder
     userId?: SortOrder
   }
@@ -12021,6 +12108,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     uploadedFile?: UploadedFileCreateNestedOneWithoutClipsInput
   }
 
@@ -12032,6 +12122,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     uploadedFileId?: string | null
   }
 
@@ -12190,6 +12283,9 @@ export namespace Prisma {
     scriptText?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
+    youtubeTitle?: StringNullableFilter<"Clip"> | string | null
+    youtubeDescription?: StringNullableFilter<"Clip"> | string | null
+    youtubeHashtags?: StringNullableFilter<"Clip"> | string | null
     uploadedFileId?: StringNullableFilter<"Clip"> | string | null
     userId?: StringFilter<"Clip"> | string
   }
@@ -12202,6 +12298,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     user: UserCreateNestedOneWithoutClipsInput
   }
 
@@ -12213,6 +12312,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     userId: string
   }
 
@@ -12504,6 +12606,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     uploadedFileId?: string | null
   }
 
@@ -12633,6 +12738,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFile?: UploadedFileUpdateOneWithoutClipsNestedInput
   }
 
@@ -12644,6 +12752,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
@@ -12655,6 +12766,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
@@ -12666,6 +12780,9 @@ export namespace Prisma {
     scriptText?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
     userId: string
   }
 
@@ -12677,6 +12794,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     user?: UserUpdateOneRequiredWithoutClipsNestedInput
   }
 
@@ -12688,6 +12808,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -12699,6 +12822,9 @@ export namespace Prisma {
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
   }
 

@@ -14,12 +14,6 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 export async function processVideo(uploadedFileId: string, language: string) {
-  console.log(
-    "processVideo function called with uploadedFileId and language:",
-    uploadedFileId,
-    language,
-  );
-
   // Overwrite with the latest value each time so language stays consistent across reprocessing or repeated calls.
   await db.uploadedFile.update({
     where: { id: uploadedFileId },

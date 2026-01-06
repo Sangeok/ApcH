@@ -446,6 +446,111 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
     script_text = "\n".join(text for _, _, text in korean_subtitles if text)
     return script_text
 
+def generate_youtube_metadata(script_text: str, language: str, gemini_client) -> dict:
+    default_metadata = {
+        "title": "",
+        "description": "",
+        "hashtags": []
+    }
+
+    if not script_text or not script_text.strip():
+        print("Warning: Empty script text, skipping metadata generation")
+        return default_metadata
+
+    # Prompt for Gemini AI to generate optimized metadata for a short-form podcast clip.
+    prompt = f"""You are a YouTube SEO expert specializing in podcast content. Generate optimized metadata for a short-form podcast clip.
+
+# Input Script:
+{script_text}
+
+# Target Language: {language}
+
+# Requirements:
+
+## Title (100 characters max, 60 recommended):
+- Hook the viewer in first 3 words
+- Include 1-2 relevant keywords
+- Create curiosity or urgency
+- Avoid clickbait that doesn't deliver
+- Use power words: "How", "Why", "Secret", "Truth"
+
+## Description (500 characters max):
+- First 150 characters are critical (shown in search results)
+- Summarize the key insight or story
+- Include a call-to-action (subscribe, comment, share)
+- Use relevant keywords naturally
+
+## Hashtags (5-7 tags):
+- Mix broad and niche hashtags
+- Include: 1 trending tag, 2-3 topic tags, 2-3 niche tags
+- Include #Shorts for short-form content
+
+# Output Format (JSON only):
+{{
+    "title": "Your engaging title here",
+    "description": "Your SEO-optimized description here",
+    "hashtags": ["#Tag1", "#Tag2", "#Tag3", "#Tag4", "#Tag5"]
+}}
+
+# Rules:
+- Return ONLY valid JSON, no code fences or explanations
+- If language is Korean, generate all content in Korean
+- If language is English, generate all content in English
+- Ensure title fits within YouTube's 100-character limit
+- Hashtags should be single words or short phrases without spaces
+"""
+
+    # 한국어 추가 지침
+    if language == "Korean":
+        prompt += """
+
+# Korean-Specific Guidelines:
+- Use natural Korean expressions, not direct translations
+- Consider Korean search trends and vocabulary
+- Use Hangul hashtags primarily, mix with English trending tags
+- Title should be punchy in Korean style (rhetorical questions work well)
+- Description should use formal-polite register (합니다체)
+"""
+
+    try:
+        response = gemini_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.7,  # 창의적인 제목을 위해 높은 temperature
+            )
+        )
+
+        response_text = response.text.strip()
+
+        # 마크다운 코드 펜스 제거
+        if response_text.startswith("```"):
+            response_text = response_text[3:].strip()
+            if response_text.lower().startswith("json"):
+                response_text = response_text[4:].lstrip()
+        if response_text.endswith("```"):
+            response_text = response_text[:-3].strip()
+
+        metadata = json.loads(response_text)
+
+        # 검증 및 정제
+        return {
+            "title": str(metadata.get("title", ""))[:100],  # YouTube 제한
+            "description": str(metadata.get("description", ""))[:5000],
+            "hashtags": [
+                str(tag) for tag in metadata.get("hashtags", [])
+                if isinstance(tag, str)
+            ][:15]  # YouTube 최대 15개 해시태그
+        }
+
+    except json.JSONDecodeError as e:
+        print(f"Metadata JSON parse error: {e}")
+        return default_metadata
+    except Exception as e:
+        print(f"Metadata generation error: {e}")
+        return default_metadata
+
 def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str):
     clip_name = f"clip_{clip_index}"
     s3_key_dir = os.path.dirname(s3_key)
@@ -548,6 +653,10 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     else:
         raise ValueError(f"Invalid language: {selected_language}")
 
+    youtube_metadata = generate_youtube_metadata(script_text, selected_language, gemini_client)
+
+    print(f"Created YouTube metadata for clip {clip_index}: {youtube_metadata}")
+
     return {
         "index": clip_index,
         "startSeconds": float(start_time),
@@ -555,6 +664,9 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         "s3Key": uploaded_clip_s3_key,
         "scriptText": script_text,
         "language": selected_language,
+        "youtubeTitle": youtube_metadata["title"],
+        "youtubeDescription": youtube_metadata["description"],
+        "youtubeHashtags": youtube_metadata["hashtags"],
     }
 
 # GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스
@@ -739,7 +851,7 @@ class AiPodcastClipper:
             print(f"Final identified moments: {clip_moments}")
 
             # 3. Process clips
-            for index, moment in enumerate(clip_moments[:3]):
+            for index, moment in enumerate(clip_moments[:1]):
                 if "start" in moment and "end" in moment:
                     print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
 

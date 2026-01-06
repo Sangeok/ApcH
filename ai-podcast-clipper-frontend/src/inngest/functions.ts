@@ -18,6 +18,9 @@ type ProcessVideoBackendClip = {
   s3Key?: string | null;
   scriptText?: string | null;
   language?: string | null;
+  youtubeTitle?: string | null;
+  youtubeDescription?: string | null;
+  youtubeHashtags?: string[] | null;
 };
 
 type ProcessVideoBackendResponse = {
@@ -44,8 +47,6 @@ export const processVideo = inngest.createFunction(
   },
   async ({ event, step }: { event: ProcessVideoEvent; step: StepRunner }) => {
     const { uploadedFileId, language } = event.data;
-
-    console.log("processVideo function called with language:", language);
 
     try {
       const { userId, credits, s3Key } = await step.run(
@@ -134,6 +135,11 @@ export const processVideo = inngest.createFunction(
                   startSeconds: c.startSeconds ?? null,
                   endSeconds: c.endSeconds ?? null,
                   scriptText: c.scriptText ?? null,
+                  youtubeTitle: c.youtubeTitle ?? null,
+                  youtubeDescription: c.youtubeDescription ?? null,
+                  youtubeHashtags: c.youtubeHashtags
+                    ? JSON.stringify(c.youtubeHashtags)
+                    : null,
                 }));
 
               if (createData.length > 0) {

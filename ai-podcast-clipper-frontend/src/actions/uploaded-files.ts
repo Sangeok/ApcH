@@ -31,17 +31,6 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
       language: true,
       clips: {
         orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          s3Key: true,
-          startSeconds: true,
-          endSeconds: true,
-          scriptText: true,
-          createdAt: true,
-          updatedAt: true,
-          uploadedFileId: true,
-          userId: true,
-        },
       },
     },
   });
@@ -128,11 +117,6 @@ export async function reprocessUploadedFile(
   if (!session?.user?.id) {
     return { success: false, error: "Unauthorized" };
   }
-
-  console.log(
-    "reprocessUploadedFile function called with uploadedFileId:",
-    uploadedFileId,
-  );
 
   try {
     const uploadedFile = await db.uploadedFile.findFirstOrThrow({

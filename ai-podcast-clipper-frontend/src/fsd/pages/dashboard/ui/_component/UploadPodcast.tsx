@@ -39,8 +39,6 @@ export default function UploadPodcast() {
     const file = files[0]!;
     setUploading(true);
 
-    console.log("file.type", file.type);
-
     try {
       // client -> nextjs backend -> s3 bucket
       const { success, signedUrl, uploadedFileId } = await generateUploadUrl({

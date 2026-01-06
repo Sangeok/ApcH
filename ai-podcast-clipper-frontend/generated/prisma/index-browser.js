@@ -180,6 +180,9 @@ exports.Prisma.ClipScalarFieldEnum = {
   scriptText: 'scriptText',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  youtubeTitle: 'youtubeTitle',
+  youtubeDescription: 'youtubeDescription',
+  youtubeHashtags: 'youtubeHashtags',
   uploadedFileId: 'uploadedFileId',
   userId: 'userId'
 };

@@ -104,6 +104,10 @@ model Clip {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  youtubeTitle       String? // YouTube 제목 (100자 제한)
+  youtubeDescription String? // YouTube 설명 (5000자 제한)
+  youtubeHashtags    String? // 해시태그 JSON 배열 문자열
+
   uploadedFile   UploadedFile? @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
   uploadedFileId String?
 
