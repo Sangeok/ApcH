@@ -8,6 +8,7 @@ type ProcessVideoEvent = {
     uploadedFileId: string;
     userId: string;
     language: string;
+    clipCount: number;
   };
 };
 
@@ -46,7 +47,9 @@ export const processVideo = inngest.createFunction(
     },
   },
   async ({ event, step }: { event: ProcessVideoEvent; step: StepRunner }) => {
-    const { uploadedFileId, language } = event.data;
+    const { uploadedFileId, language, clipCount } = event.data;
+
+    console.log("clipCount", clipCount);
 
     try {
       const { userId, credits, s3Key } = await step.run(
@@ -93,7 +96,11 @@ export const processVideo = inngest.createFunction(
           async () => {
             const res = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
               method: "POST",
-              body: JSON.stringify({ s3_key: s3Key, language }),
+              body: JSON.stringify({
+                s3_key: s3Key,
+                language,
+                clip_count: clipCount,
+              }),
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,

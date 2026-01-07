@@ -9,6 +9,7 @@ AI Podcast Clipper is a Next.js 15 application built with the T3 Stack that proc
 ## Development Commands
 
 ### Core Workflows
+
 ```bash
 # Development
 npm run dev                    # Start Next.js dev server with Turbo
@@ -41,6 +42,7 @@ npm run start                 # Start production server
 The codebase follows Feature-Sliced Design methodology in `src/fsd/`:
 
 **Layers (top to bottom)**:
+
 - `pages/` - Route-level orchestration (home, dashboard, uploadDetail)
 - `widgets/` - Composite UI blocks (clip-display, uploaded-file-list, loginForm, signupForm, dashboard-header)
 - `features/` - User interactions with business logic (upload)
@@ -50,6 +52,7 @@ The codebase follows Feature-Sliced Design methodology in `src/fsd/`:
   - `ui/atoms/` - Base components (button, input, card, etc.)
 
 **Key Rules**:
+
 - Higher layers can import from lower layers only (no upward imports)
 - Peer imports within same layer are forbidden
 - Each slice is self-contained with ui/, model/, constants/ subfolders
@@ -57,12 +60,14 @@ The codebase follows Feature-Sliced Design methodology in `src/fsd/`:
 ### Server-Side Architecture
 
 **NextAuth.js Authentication** (`src/server/auth/`):
+
 - Uses Prisma adapter with SQLite database
 - Credentials provider with bcrypt password hashing
 - JWT session strategy (not database sessions)
 - Session includes user.id via JWT callbacks
 
 **Inngest Background Jobs** (`src/inngest/`):
+
 - `processVideo` function handles async video processing
 - Concurrency limited to 1 per user (via userId key)
 - Workflow: check credits → call Modal endpoint → parse response → create clips in DB → deduct credits
@@ -70,6 +75,7 @@ The codebase follows Feature-Sliced Design methodology in `src/fsd/`:
 - Retries: 1 attempt
 
 **Database (Prisma + SQLite)**:
+
 - Schema located in `prisma/schema.prisma`
 - Generated client in `generated/prisma/` (not `node_modules`)
 - Key models: User, UploadedFile, Clip
@@ -78,6 +84,7 @@ The codebase follows Feature-Sliced Design methodology in `src/fsd/`:
 ### Server Actions (`src/actions/`)
 
 All server actions use `"use server"` directive:
+
 - `auth.ts` - User signup/login with bcrypt
 - `s3.ts` - Presigned URL generation for file uploads
 - `generation.ts` - Video processing trigger, clip URL generation, clip deletion
@@ -86,6 +93,7 @@ All server actions use `"use server"` directive:
 ### Environment Variables
 
 Managed via `@t3-oss/env-nextjs` in `src/env.js`:
+
 - Type-safe validation with Zod
 - Separate server/client schemas
 - Required vars: AUTH_SECRET, DATABASE_URL, AWS credentials, S3_BUCKET_NAME, PROCESS_VIDEO_ENDPOINT
@@ -123,6 +131,7 @@ Managed via `@t3-oss/env-nextjs` in `src/env.js`:
 ## Path Aliases
 
 TypeScript `baseUrl` is set to `.` with path mapping:
+
 - `~/*` → `./src/*`
 
 Always use `~/*` imports, never relative paths across feature boundaries.
@@ -130,11 +139,13 @@ Always use `~/*` imports, never relative paths across feature boundaries.
 ## Database Operations
 
 **When modifying schema**:
+
 1. Edit `prisma/schema.prisma`
 2. Run `npm run db:push` (dev) or `npm run db:generate` + `npm run db:migrate` (prod)
 3. Prisma Client regenerates automatically via postinstall hook
 
 **Database client import**:
+
 ```typescript
 import { db } from "~/server/db";
 ```
@@ -160,3 +171,23 @@ import { db } from "~/server/db";
 - Inngest concurrency key prevents parallel processing for same user
 - S3 operations require checking both DB records and actual S3 objects (eventual consistency)
 - Environment variables are validated at build time - add new vars to `src/env.js` schema
+
+## CRITICAL: File Editing on Windows
+
+### ⚠️ MANDATORY: Always Use Backslashes on Windows for File Paths
+
+**When using Edit or MultiEdit tools on Windows, you MUST use backslashes (`\`) in file paths, NOT forward slashes (`/`).**
+
+#### ❌ WRONG - Will cause errors:
+
+```
+Edit(file_path: "D:/repos/project/file.tsx", ...)
+MultiEdit(file_path: "D:/repos/project/file.tsx", ...)
+```
+
+#### ✅ CORRECT - Always works:
+
+```
+Edit(file_path: "D:\repos\project\file.tsx", ...)
+MultiEdit(file_path: "D:\repos\project\file.tsx", ...)
+```

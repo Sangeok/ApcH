@@ -26,6 +26,7 @@ from google import genai
 class ProcessVideoRequest(BaseModel):
     s3_key: str
     language: str = "Korean"
+    clip_count: int
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -776,8 +777,10 @@ class AiPodcastClipper:
     def process_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
         s3_key = request.s3_key
         selected_language = request.language
+        clip_count = int(request.clip_count) # clip_count is the number of clips to generate
 
         print(f"Processing video language: {selected_language}")
+        print(f"Processing video clip count: {clip_count}")
 
         if token.credentials != os.environ["AUTH_TOKEN"]:
             raise HTTPException(
@@ -851,7 +854,7 @@ class AiPodcastClipper:
             print(f"Final identified moments: {clip_moments}")
 
             # 3. Process clips
-            for index, moment in enumerate(clip_moments[:1]):
+            for index, moment in enumerate(clip_moments[:clip_count]):
                 if "start" in moment and "end" in moment:
                     print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
 

@@ -28,6 +28,7 @@ export default function UploadPodcast() {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
   const [language, setLanguage] = useState<string>("English");
+  const [clipCount, setClipCount] = useState<number>(3);
 
   const handleDrop = (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
@@ -59,7 +60,7 @@ export default function UploadPodcast() {
 
       if (!uploadResponse.ok) throw new Error("Failed to upload file");
 
-      await processVideo(uploadedFileId, language);
+      await processVideo(uploadedFileId, language, clipCount);
 
       setFiles([]);
 
@@ -139,34 +140,57 @@ export default function UploadPodcast() {
                   </p>
                 ))}
               </div>
-              <div className="flex gap-x-2">
-                <p className="mt-1.5 text-sm font-medium">
-                  Select Subtitle Language:
-                </p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      {language !== "" ? language : "Language"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem asChild>
+              <div className="flex gap-x-4">
+                <div className="flex gap-x-2">
+                  <p className="mt-1.5 text-sm font-medium">
+                    Select Subtitle Language:
+                  </p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        {language !== "" ? language : "Language"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem asChild>
+                        <DropdownMenuItem
+                          onClick={() => setLanguage("English")}
+                          className="text-destructive cursor-pointer"
+                        >
+                          English
+                        </DropdownMenuItem>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => setLanguage("English")}
+                        onClick={() => setLanguage("Korean")}
                         className="text-destructive cursor-pointer"
                       >
-                        English
+                        Korean
                       </DropdownMenuItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => setLanguage("Korean")}
-                      className="text-destructive cursor-pointer"
-                    >
-                      Korean
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="flex gap-x-2">
+                  <p className="mt-1.5 text-sm font-medium">Number of Clips:</p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        {clipCount} {clipCount === 1 ? "clip" : "clips"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {[1, 2, 3, 4].map((count) => (
+                        <DropdownMenuItem
+                          key={count}
+                          onClick={() => setClipCount(count)}
+                          className="cursor-pointer"
+                        >
+                          {count} {count === 1 ? "clip" : "clips"}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
           )}

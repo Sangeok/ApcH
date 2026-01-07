@@ -13,7 +13,11 @@ import { inngest } from "~/inngest/client";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
-export async function processVideo(uploadedFileId: string, language: string) {
+export async function processVideo(
+  uploadedFileId: string,
+  language: string,
+  clipCount: number,
+) {
   // Overwrite with the latest value each time so language stays consistent across reprocessing or repeated calls.
   await db.uploadedFile.update({
     where: { id: uploadedFileId },
@@ -39,6 +43,7 @@ export async function processVideo(uploadedFileId: string, language: string) {
       uploadedFileId: uploadedVideo.id,
       userId: uploadedVideo.userId,
       language,
+      clipCount,
     },
   });
 
