@@ -11,9 +11,11 @@ import {
   TableRow,
 } from "~/fsd/shared/ui/atoms/table";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { STATUS_CONFIG } from "../../constants";
+import { hasStatusConfig } from "../../utils/type-guard";
 
 interface QueueStatusProps {
   uploadedFiles: {
@@ -26,15 +28,13 @@ interface QueueStatusProps {
 }
 
 export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    router.refresh();
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 600);
+    startTransition(async () => {
+      router.refresh();
+    });
   };
 
   return (
@@ -47,9 +47,9 @@ export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
               variant="outline"
               size="sm"
               onClick={handleRefresh}
-              disabled={refreshing}
+              disabled={isPending}
             >
-              {refreshing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Refresh
             </Button>
           </div>
@@ -65,52 +65,46 @@ export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {uploadedFiles.map((file) => (
-                  <TableRow className="hover:!bg-transparent" key={file.id}>
-                    <TableCell className="max-w-xs truncate font-medium">
-                      {file.fileName}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(file.createdAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate font-medium">
-                      {file.status === "queued" && (
-                        <Badge variant="outline">Queued</Badge>
-                      )}
-                      {file.status === "processing" && (
-                        <Badge variant="outline">Processing</Badge>
-                      )}
-                      {file.status === "processed" && (
-                        <Badge variant="outline">Processed</Badge>
-                      )}
-                      {file.status === "failed" && (
-                        <Badge variant="destructive">Faileds</Badge>
-                      )}
-                      {file.status === "failed" && (
-                        <Badge variant="destructive">Faileds</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate font-medium">
-                      {file.clipsCount > 0 ? (
-                        <span>
-                          {file.clipsCount} clip
-                          {file.clipsCount !== 1 ? "s" : ""}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          No clips yet
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate font-medium">
-                      <Link href={`/dashboard/uploads/${file.id}`}>
-                        <Button variant="outline" size="sm">
-                          View details
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {uploadedFiles.map((file) => {
+                  const config = hasStatusConfig(file.status)
+                    ? STATUS_CONFIG[file.status]
+                    : undefined;
+
+                  return (
+                    <TableRow className="hover:!bg-transparent" key={file.id}>
+                      <TableCell className="max-w-xs truncate font-medium">
+                        {file.fileName}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(file.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate font-medium">
+                        <Badge variant={config?.variant ?? "outline"}>
+                          {config?.label ?? file.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate font-medium">
+                        {file.clipsCount > 0 ? (
+                          <span>
+                            {file.clipsCount} clip
+                            {file.clipsCount !== 1 ? "s" : ""}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            No clips yet
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate font-medium">
+                        <Link href={`/dashboard/uploads/${file.id}`}>
+                          <Button variant="outline" size="sm">
+                            View details
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

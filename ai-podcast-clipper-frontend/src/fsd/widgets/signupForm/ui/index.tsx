@@ -25,11 +25,11 @@ import {
   signupSchema,
   type SignupFormValues,
 } from "~/fsd/entity/auth/model/schemas/auth";
-import { signUp } from "~/actions/auth";
+import { signUp } from "~/fsd/features/auth/api";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-export function SignupForm({
+export default function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {

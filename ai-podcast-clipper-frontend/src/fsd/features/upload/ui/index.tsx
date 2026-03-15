@@ -12,9 +12,10 @@ import { toast } from "sonner";
 import {
   deleteUploadedFileWithClips,
   reprocessUploadedFile,
-} from "~/actions/uploaded-files";
+} from "~/fsd/features/upload/api";
 import { Loader2, Trash2, RefreshCw, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
+import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface UploadedFileActionsProps {
   uploadedFileId: string;
@@ -27,7 +28,7 @@ export default function UploadedFileActions({
   const [isPending, startTransition] = useTransition();
 
   const run = (
-    action: () => Promise<{ success: boolean; error?: string }>,
+    action: () => Promise<ActionResult<void>>,
     successMessage: string,
     confirmationMessage?: string,
   ) => {
@@ -39,9 +40,9 @@ export default function UploadedFileActions({
         }
       }
 
-      const { success, error } = await action();
-      if (!success) {
-        toast.error(error ?? "Request failed");
+      const result = await action();
+      if (!result.success) {
+        toast.error(result.error ?? "Request failed");
         return;
       }
       toast.success(successMessage);

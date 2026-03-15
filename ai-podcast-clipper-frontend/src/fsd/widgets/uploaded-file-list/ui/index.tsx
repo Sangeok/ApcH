@@ -11,7 +11,9 @@ interface UploadedFileListProps {
 }
 
 export default function UploadedFileList({ files }: UploadedFileListProps) {
-  if (files.length === 0) {
+  const hasNoFiles = files.length === 0;
+
+  if (hasNoFiles) {
     return (
       <p className="text-muted-foreground text-sm">
         No uploaded files yet. Upload a file to get started.

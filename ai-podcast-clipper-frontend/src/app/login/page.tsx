@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { LoginForm } from "~/fsd/widgets/loginForm/ui";
+import LoginForm from "~/fsd/widgets/loginForm/ui";
 import { auth } from "~/server/auth";
 
 export default async function Page() {

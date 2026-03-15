@@ -13,7 +13,7 @@ import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import UploadedFileActions from "~/fsd/features/upload/ui";
 import ProcessingTimeline from "~/fsd/pages/uploadDetail/ui/_component/processing-timeline";
 import type { Clip } from "generated/prisma";
-import { getOriginalPlayUrl } from "~/actions/uploaded-files";
+import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
@@ -48,9 +48,9 @@ export default function UploadDetailPage({
       setIsLoadingOriginalPlayUrl(true);
       try {
         const result = await getOriginalPlayUrl(uploadedFileId);
-        if (result.success && result.url) {
-          setPlayUrl(result.url);
-        } else if (result.error) {
+        if (result.success) {
+          setPlayUrl(result.data.url);
+        } else {
           toast.error("Failed to get original play url: " + result.error);
           console.error("Failed to get original play url: " + result.error);
         }

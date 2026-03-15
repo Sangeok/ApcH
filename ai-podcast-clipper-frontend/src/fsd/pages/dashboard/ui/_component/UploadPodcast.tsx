@@ -11,7 +11,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 
@@ -20,9 +19,14 @@ import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Loader2, UploadCloud } from "lucide-react";
 import { useState } from "react";
-import { generateUploadUrl } from "~/actions/s3";
-import { processVideo } from "~/actions/generation";
+import { generateUploadUrl } from "~/fsd/features/upload/api";
+import { processVideo } from "~/fsd/features/clip/api";
 import { toast } from "sonner";
+import {
+  UPLOAD_CONFIG,
+  SUPPORTED_LANGUAGES,
+  CLIP_COUNT_OPTIONS,
+} from "~/fsd/shared/config/constants";
 
 export default function UploadPodcast() {
   const [files, setFiles] = useState<File[]>([]);
@@ -92,10 +96,8 @@ export default function UploadPodcast() {
           <CardContent>
             <Dropzone
               onDrop={handleDrop}
-              maxSize={500 * 1024 * 1024}
-              accept={{
-                "video/mp4": [".mp4"],
-              }}
+              maxSize={UPLOAD_CONFIG.MAX_FILE_SIZE}
+              accept={UPLOAD_CONFIG.ACCEPTED_TYPES}
               maxFiles={1}
               disabled={uploading}
             >
@@ -152,21 +154,15 @@ export default function UploadPodcast() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem asChild>
+                      {SUPPORTED_LANGUAGES.map((lang) => (
                         <DropdownMenuItem
-                          onClick={() => setLanguage("English")}
-                          className="text-destructive cursor-pointer"
+                          key={lang.value}
+                          onClick={() => setLanguage(lang.value)}
+                          className="cursor-pointer"
                         >
-                          English
+                          {lang.label}
                         </DropdownMenuItem>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => setLanguage("Korean")}
-                        className="text-destructive cursor-pointer"
-                      >
-                        Korean
-                      </DropdownMenuItem>
+                      ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -179,13 +175,13 @@ export default function UploadPodcast() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      {[1, 2, 3, 4].map((count) => (
+                      {CLIP_COUNT_OPTIONS.map((option) => (
                         <DropdownMenuItem
-                          key={count}
-                          onClick={() => setClipCount(count)}
+                          key={option.value}
+                          onClick={() => setClipCount(option.value)}
                           className="cursor-pointer"
                         >
-                          {count} {count === 1 ? "clip" : "clips"}
+                          {option.label}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>

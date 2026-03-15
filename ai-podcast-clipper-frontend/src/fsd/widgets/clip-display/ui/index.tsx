@@ -3,6 +3,7 @@
 import type { Clip } from "generated/prisma";
 import { useOptimistic } from "react";
 import ClipCard from "./_component/ClipCard";
+import { deleteClip } from "~/fsd/features/clip/api";
 
 interface ClipDisplayProps {
   clips: Clip[];
@@ -27,6 +28,7 @@ export default function ClipDisplay({ clips }: ClipDisplayProps) {
           <ClipCard
             key={clip.id}
             clip={clip}
+            onDelete={deleteClip}
             onDeleted={removeClipOptimistic}
           />
         );

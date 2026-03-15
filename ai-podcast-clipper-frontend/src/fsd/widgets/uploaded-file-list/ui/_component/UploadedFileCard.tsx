@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { getOriginalPlayUrl } from "~/actions/uploaded-files";
+import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import {
   Card,
   CardContent,
@@ -38,9 +38,9 @@ export function UploadedFileCard({ file }: UploadedFileCardProps) {
       setIsLoadingOriginalPlayUrl(true);
       try {
         const result = await getOriginalPlayUrl(file.id);
-        if (result.success && result.url) {
-          setPlayUrl(result.url);
-        } else if (result.error) {
+        if (result.success) {
+          setPlayUrl(result.data.url);
+        } else {
           toast.error("Failed to get original play url: " + result.error);
           console.error("Failed to get original play url: " + result.error);
         }

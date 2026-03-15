@@ -733,41 +733,85 @@ class AiPodcastClipper:
 
         return json.dumps(segments)
 
-    def identify_moments(self, transcript: list) -> str:
-        prompt = ("""
-        This is a podcast video transcript consisting of word, along with each words's start and end time. I am looking to create clips between a minimum of 30 and maximum of 60 seconds long. The clip should never exceed 60 seconds.
+    def identify_moments(self, transcript: list, target_count: int = 6) -> str:
+        prompt_template = """You are a viral short-form video editor specializing in podcast content.
 
-        Your task is to find and extract stories, or question and their corresponding answers from the transcript.
-        Each clip should begin with the question and conclude with the answer.
-        It is acceptable for the clip to include a few additional sentences before a question if it aids in contextualizing the question.
+You will receive a word-level podcast transcript with timestamps.
+Identify the MOST ENGAGING moments suitable for a short-form clip.
 
-        # Please adhere to the following rules:
-        - Ensure that clips do not overlap with one another.
-        - Start and end timestamps of the clips should align perfectly with the sentence boundaries in the transcript.
-        - Only use the start and end timestamps provided in the input. modifying timestamps is not allowed.
-        - Format the output as a list of JSON objects, each representing a clip with 'start' and 'end' timestamps: [{"start": seconds, "end": seconds}, ...clip2, clip3]. The output should always be readable by the python json.loads function.
-        - Aim to generate longer clips between 40-60 seconds, and ensure to include as much content from the context as viable.
-        - Do not end a clip in the middle of a speaker’s sentence. Extend the end timestamp to include the full sentence, even if that means using the next available word boundary.
-        - End each clip exactly at the conclusion of the answer sentence. Do not include the first words of the next sentence or the next speaker.
-        - Treat the first punctuation mark that ends the answer ('.', '?', '!', etc.) or a clear pause marker as the point where the clip must stop; do not move past it.
-        - If the answer continues past 60 seconds, skip that candidate clip instead of trimming the speaker mid-sentence.
-        - Before finalizing each clip, re-check that the final word belongs to the same speaker and that the sentence is complete (ends with natural punctuation or a clear pause). Confirm that the very next word after the end timestamp begins a new sentence or a different speaker. If not, adjust the end time backward to exclude the continuation.
+# What Makes a Great Clip
 
-        # Avoid including:
-        - Moments of greeting, thanking, or saying goodbye.
-        - Non-question and answer interactions.
+A great clip must have ALL of the following:
+1. STRONG HOOK (first 5 seconds): Starts with a surprising claim,
+   a compelling question, a counterintuitive statement, or a story
+   already in progress. Do NOT start with small talk, filler words,
+   or topic transitions.
+2. COMPLETE PAYOFF: Ends at a natural conclusion — a full answer
+   delivered, an insight fully stated, a story arc completed.
+   The viewer must feel satisfied, not cut off.
+3. HIGH CONTENT DENSITY: Every second contains value.
+   Avoid long pauses, filler phrases ("um", "like", "you know"),
+   or tangential side-comments that dilute the core message.
 
-        If there are no valid clips to extract, the output should be an empty list [], in JSON format. Also readable by json.loads() in Python.
-        """
-        + "Transcript:\n"
-        + json.dumps(transcript, ensure_ascii=False)
+# Eligible Moment Types
+
+Find moments from EITHER of these categories:
+- Q&A: A sharp question followed by a compelling, complete answer.
+  Include a few sentences of context before the question if needed.
+- Insight or Revelation: A speaker delivers a counterintuitive point,
+  surprising fact, contrarian opinion, or "the real reason is..."
+  moment. The moment must be fully stated with context and conclusion.
+
+# Duration Rules
+
+- Minimum: 30 seconds
+- Target: 50 to 90 seconds
+- Maximum: 90 seconds
+- If a compelling moment runs slightly over 90 seconds, skip it.
+  Do NOT trim mid-sentence.
+
+# Hard Constraints
+
+- Clips must NOT overlap with each other.
+- Only use timestamps that exist verbatim in the input. Do not invent
+  or interpolate timestamps.
+- Do NOT start a clip with greetings ("Hello", "Hi", "Welcome"),
+  filler words used as connectors ("Um", "So", "Anyway", "Like"),
+  or topic transitions ("Moving on", "Next", "Let’s talk about").
+- Do NOT end a clip mid-sentence. The clip must end at the last word
+  of a complete sentence.
+- Do NOT include the first word of the next sentence after the ending.
+
+# Output Format
+
+Return a JSON array ordered from MOST ENGAGING to LEAST ENGAGING.
+Each element:
+{
+  "start": <number, seconds from transcript>,
+  "end": <number, seconds from transcript>,
+  "type": <"qa" | "insight">,
+  "hook": <one sentence: why the first 5 seconds hook viewers>,
+  "payoff": <one sentence: what value the viewer gets at the end>
+}
+
+Return exactly TARGET_COUNT moments if possible.
+If fewer genuine moments exist, return only valid ones.
+Return [] if no suitable moments exist.
+
+Output must be valid JSON parseable by Python json.loads().
+No code fences. No markdown. No explanations.
+
+Transcript:
+"""
+        prompt = (
+            prompt_template.replace("TARGET_COUNT", str(target_count))
+            + json.dumps(transcript, ensure_ascii=False)
         )
         response = self.gemini_client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
             config=genai.types.GenerateContentConfig(
                 response_mime_type="application/json",
-                # 필요 시 temperature, top_p, max_output_tokens 등 추가
         ))
         print(f"Identified moments response: ${response.text}")
         return response.text
@@ -828,7 +872,7 @@ class AiPodcastClipper:
 
             # 2. Identify moments for clips
             print("Identifying moments for clips...")
-            identified_moments_raws = self.identify_moments(transcript_segments)
+            identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2)
 
             raw = identified_moments_raws.strip()
 
@@ -853,23 +897,43 @@ class AiPodcastClipper:
 
             print(f"Final identified moments: {clip_moments}")
 
-            # 3. Process clips
-            for index, moment in enumerate(clip_moments[:clip_count]):
-                if "start" in moment and "end" in moment:
-                    print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
+            # 3. 30~90초 범위 검증 및 필터링
+            MAX_CLIP_DURATION = 90
+            MIN_CLIP_DURATION = 30
 
-                    clip_result = process_clip(
-                        base_dir,
-                        video_path,
-                        s3_key,
-                        moment["start"],
-                        moment["end"],
-                        index,
-                        transcript_segments,
-                        self.gemini_client,
-                        selected_language,
-                    )
-                    clip_results.append(clip_result)
+            validated_moments = []
+            for moment in clip_moments:
+                start = moment.get("start")
+                end = moment.get("end")
+                if start is None or end is None:
+                    continue
+                duration = end - start
+                if MIN_CLIP_DURATION <= duration <= MAX_CLIP_DURATION:
+                    validated_moments.append(moment)
+                else:
+                    print(f"Skipping moment ({duration:.1f}s): outside [{MIN_CLIP_DURATION}, {MAX_CLIP_DURATION}]s range")
+
+            # validated_moments는 이미 engagement 순 정렬 상태
+            for index, moment in enumerate(validated_moments[:clip_count]):
+                print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
+
+                clip_result = process_clip(
+                    base_dir,
+                    video_path,
+                    s3_key,
+                    moment["start"],
+                    moment["end"],
+                    index,
+                    transcript_segments,
+                    self.gemini_client,
+                    selected_language,
+                )
+
+                clip_result["clipType"] = moment.get("type")
+                clip_result["hook"] = moment.get("hook")
+                clip_result["payoff"] = moment.get("payoff")
+
+                clip_results.append(clip_result)
 
         finally:
             # 정리
@@ -879,7 +943,7 @@ class AiPodcastClipper:
 
         return {
             "status": "ok",
-            "clips_planned": min(3, len(clip_moments)),
+            "clips_processed": len(clip_results),
             "s3_prefix": os.path.dirname(s3_key),
             "language": selected_language,
             "clips": clip_results,

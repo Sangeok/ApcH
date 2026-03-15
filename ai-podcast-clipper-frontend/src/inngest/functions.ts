@@ -1,7 +1,7 @@
 import { env } from "~/env";
 import { inngest } from "./client";
 import { db } from "~/server/db";
-import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
+import { listS3Objects } from "~/fsd/shared/api/s3";
 
 type ProcessVideoEvent = {
   data: {
@@ -55,7 +55,7 @@ export const processVideo = inngest.createFunction(
       const { userId, credits, s3Key } = await step.run(
         "check-credits",
         async () => {
-          // 업로드된 파일의 사용자 ID·크레딧 및 S3 키를 조회해 처리 가능한 상태인지 확인한다.
+          // Check if the uploaded file is ready for processing by fetching user ID, credits, and S3 key
           const uploadedFile = await db.uploadedFile.findUniqueOrThrow({
             where: {
               id: uploadedFileId,
@@ -122,23 +122,23 @@ export const processVideo = inngest.createFunction(
           },
         );
 
-        // CHANGED: clips[]가 있으면 그걸로 DB 저장, 없으면 S3 listing fallback
+        // Use clips[] from backend response if available, otherwise fallback to S3 listing
         const { clipsFound } = await step.run(
           "create-clips-in-db",
           async () => {
             const backendClips = modalPayload?.clips;
 
-            // 1) 백엔드 메타 기반(우선)
+            // 1) Backend metadata-based approach (primary)
             if (Array.isArray(backendClips) && backendClips.length > 0) {
               const createData = backendClips
                 .filter(
                   (c) => typeof c?.s3Key === "string" && c.s3Key.length > 0,
                 )
                 .map((c) => ({
-                  s3Key: c.s3Key as string,
+                  s3Key: c.s3Key!,
                   uploadedFileId,
                   userId,
-                  // 아래 3개 필드는 Prisma에 컬럼이 있어야 합니다.
+                  // These fields require corresponding columns in Prisma schema
                   startSeconds: c.startSeconds ?? null,
                   endSeconds: c.endSeconds ?? null,
                   scriptText: c.scriptText ?? null,
@@ -156,9 +156,9 @@ export const processVideo = inngest.createFunction(
               return { clipsFound: createData.length };
             }
 
-            // 2) fallback: S3 listing 기반(필터 버그 수정 포함)
+            // 2) Fallback: S3 listing-based approach
             const folderPrefix = s3Key.split("/")[0]!;
-            const allKeys = await listS3ObjectsByPrefix(folderPrefix);
+            const allKeys = await listS3Objects(folderPrefix);
 
             const clipKeys = allKeys.filter(
               (key): key is string =>
@@ -229,31 +229,3 @@ export const processVideo = inngest.createFunction(
   },
 );
 
-/**
- * AWS S3 버킷에서 특정 접두사(prefix)를 가진 모든 객체의 키(Key) 목록을 조회합니다.
- * @param prefix S3 버킷 내에서 검색할 객체의 접두사 (예: 'uploads/images/')
- * @returns 일치하는 객체 키(Key)의 문자열 배열. 일치하는 객체가 없으면 빈 배열을 반환합니다.
- */
-async function listS3ObjectsByPrefix(prefix: string): Promise<string[]> {
-  // S3 클라이언트 생성
-  const s3Client = new S3Client({
-    region: env.AWS_REGION,
-    credentials: {
-      accessKeyId: env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    },
-  });
-
-  // 파일 목록 조회
-  const listCommand = new ListObjectsV2Command({
-    Bucket: env.S3_BUCKET_NAME,
-    Prefix: prefix,
-  });
-
-  const response = await s3Client.send(listCommand);
-  return (
-    response.Contents?.map((item) => item.Key).filter(
-      (key): key is string => typeof key === "string",
-    ) ?? []
-  );
-}

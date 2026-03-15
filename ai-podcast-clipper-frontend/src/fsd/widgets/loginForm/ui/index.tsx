@@ -28,7 +28,7 @@ import {
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-export function LoginForm({
+export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -119,7 +119,7 @@ export function LoginForm({
               )}
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Signing up..." : "Sign up"}
+                  {isSubmitting ? "Logging in..." : "Log in"}
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
