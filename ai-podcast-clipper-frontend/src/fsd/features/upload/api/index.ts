@@ -12,6 +12,7 @@ import {
   S3_CONFIG,
 } from "~/fsd/shared/api/s3";
 import { type ActionResult, success, failure } from "~/fsd/shared/api/result";
+import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { env } from "~/env";
 import { v4 as uuidv4 } from "uuid";
 
@@ -126,8 +127,14 @@ export async function getOriginalPlayUrl(
 export async function deleteUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
+
   try {
-    await db.uploadedFile.delete({ where: { id: uploadedFileId } });
+    await db.uploadedFile.delete({
+      where: { id: uploadedFileId, userId },
+    });
     revalidatePath("/dashboard");
     return success(undefined);
   } catch (error) {
@@ -142,9 +149,13 @@ export async function deleteUploadedFile(
 export async function deleteUploadedFileWithClips(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
+
   try {
     const uploadedFile = await db.uploadedFile.findUnique({
-      where: { id: uploadedFileId },
+      where: { id: uploadedFileId, userId },
       select: { s3Key: true },
     });
 
@@ -158,7 +169,7 @@ export async function deleteUploadedFileWithClips(
 
     await db.$transaction([
       db.clip.deleteMany({ where: { uploadedFileId } }),
-      db.uploadedFile.delete({ where: { id: uploadedFileId } }),
+      db.uploadedFile.delete({ where: { id: uploadedFileId, userId } }),
     ]);
 
     revalidatePath("/dashboard");
@@ -232,13 +243,18 @@ export async function reprocessUploadedFile(
 
 /**
  * Generate presigned URL for uploading to S3
+ * @deprecated generateUploadUrl 함수를 사용하세요. 이 함수는 다음 버전에서 제거됩니다.
  */
 export async function getPresignedUploadUrl(
   fileName: string,
   contentType: string,
-  userId: string,
+  _userId: string,
   fileId: string,
 ): Promise<ActionResult<{ url: string; s3Key: string }>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
+
   try {
     const s3Key = `${userId}/${fileId}/original.mp4`;
     const url = await generatePresignedPutUrl(

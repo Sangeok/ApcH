@@ -18,15 +18,21 @@ export async function processVideo(
   language: string,
   clipCount: number,
 ) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
   // Overwrite with the latest value each time so language stays consistent across reprocessing or repeated calls.
   await db.uploadedFile.update({
-    where: { id: uploadedFileId },
+    where: { id: uploadedFileId, userId: session.user.id },
     data: { language },
   });
 
   const uploadedVideo = await db.uploadedFile.findUniqueOrThrow({
     where: {
       id: uploadedFileId,
+      userId: session.user.id,
     },
     select: {
       uploaded: true,
@@ -50,6 +56,7 @@ export async function processVideo(
   await db.uploadedFile.update({
     where: {
       id: uploadedVideo.id,
+      userId: session.user.id,
     },
     data: {
       uploaded: true,

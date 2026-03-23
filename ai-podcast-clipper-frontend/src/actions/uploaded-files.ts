@@ -73,16 +73,34 @@ export async function getOriginalPlayUrl(uploadedFileId: string) {
   }
 }
 
+/**
+ * @deprecated src/fsd/features/upload/api/index.ts의 동일 함수를 사용하세요.
+ */
 export async function deleteUploadedFile(uploadedFileId: string) {
-  await db.uploadedFile.delete({ where: { id: uploadedFileId } });
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  await db.uploadedFile.delete({
+    where: { id: uploadedFileId, userId: session.user.id },
+  });
   revalidatePath("/dashboard");
   return { success: true };
 }
 
+/**
+ * @deprecated src/fsd/features/upload/api/index.ts의 동일 함수를 사용하세요.
+ */
 export async function deleteUploadedFileWithClips(uploadedFileId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const uploadedFile = await db.uploadedFile.findUnique({
-      where: { id: uploadedFileId },
+      where: { id: uploadedFileId, userId: session.user.id },
       select: { s3Key: true },
     });
 
@@ -96,7 +114,9 @@ export async function deleteUploadedFileWithClips(uploadedFileId: string) {
 
     await db.$transaction([
       db.clip.deleteMany({ where: { uploadedFileId } }),
-      db.uploadedFile.delete({ where: { id: uploadedFileId } }),
+      db.uploadedFile.delete({
+        where: { id: uploadedFileId, userId: session.user.id },
+      }),
     ]);
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/uploads/${uploadedFileId}`);

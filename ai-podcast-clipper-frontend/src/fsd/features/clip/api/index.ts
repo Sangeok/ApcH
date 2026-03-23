@@ -11,6 +11,7 @@ import {
   S3_CONFIG,
 } from "~/fsd/shared/api/s3";
 import { type ActionResult, success, failure } from "~/fsd/shared/api/result";
+import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { processVideoSchema } from "~/fsd/features/clip/model/schemas";
 
 /**
@@ -21,7 +22,12 @@ export async function processVideo(
   language: string,
   clipCount: number,
 ): Promise<ActionResult<void>> {
-  // Input validation
+  // Step 1: 인증 체크
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
+
+  // Step 2: 입력 검증
   const validated = processVideoSchema.safeParse({
     uploadedFileId,
     language,
@@ -41,12 +47,12 @@ export async function processVideo(
   try {
     // Update language for consistency
     await db.uploadedFile.update({
-      where: { id: fileId },
+      where: { id: fileId, userId },
       data: { language: lang },
     });
 
     const uploadedVideo = await db.uploadedFile.findUniqueOrThrow({
-      where: { id: fileId },
+      where: { id: fileId, userId },
       select: {
         uploaded: true,
         id: true,
@@ -69,7 +75,7 @@ export async function processVideo(
     });
 
     await db.uploadedFile.update({
-      where: { id: uploadedVideo.id },
+      where: { id: uploadedVideo.id, userId },
       data: { uploaded: true },
     });
 
