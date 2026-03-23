@@ -87,6 +87,9 @@ Prisma.NullTypes = {
  * Enums
  */
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
@@ -170,6 +173,11 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
@@ -223,7 +231,7 @@ const config = {
   "datasourceNames": [
     "db"
   ],
-  "activeProvider": "sqlite",
+  "activeProvider": "postgresql",
   "inlineDatasources": {
     "db": {
       "url": {
@@ -232,8 +240,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below\n  // Further reading:\n  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema\n  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Post {\n  id        Int      @id @default(autoincrement())\n  name      String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  createdBy   User   @relation(fields: [createdById], references: [id])\n  createdById String\n\n  @@index([name])\n}\n\n// Necessary for Next auth\nmodel Account {\n  id                       String  @id @default(cuid())\n  userId                   String\n  type                     String\n  provider                 String\n  providerAccountId        String\n  refresh_token            String? // @db.Text\n  access_token             String? // @db.Text\n  expires_at               Int?\n  token_type               String?\n  scope                    String?\n  id_token                 String? // @db.Text\n  session_state            String?\n  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)\n  refresh_token_expires_in Int?\n\n  @@unique([provider, providerAccountId])\n}\n\nmodel Session {\n  id           String   @id @default(cuid())\n  sessionToken String   @unique\n  userId       String\n  expires      DateTime\n  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel User {\n  id               String    @id @default(cuid())\n  name             String?\n  email            String    @unique\n  emailVerified    DateTime?\n  password         String\n  credits          Int       @default(3)\n  stripeCustomerId String?   @unique\n  image            String?\n  accounts         Account[]\n  sessions         Session[]\n  posts            Post[]\n\n  uploadedFiles UploadedFile[]\n  clips         Clip[]\n}\n\nmodel UploadedFile {\n  id          String   @id @default(cuid())\n  s3Key       String\n  displayName String?\n  uploaded    Boolean  @default(false)\n  status      String   @default(\"queued\") // processing, processed, no credits\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  language    String   @default(\"English\")\n\n  clips Clip[]\n\n  // 관계 정의 필드\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  // 외래키\n  userId String\n\n  @@index([s3Key])\n}\n\nmodel Clip {\n  id    String @id @default(cuid())\n  s3Key String\n\n  startSeconds Float?\n  endSeconds   Float?\n  scriptText   String?\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  youtubeTitle       String? // YouTube 제목 (100자 제한)\n  youtubeDescription String? // YouTube 설명 (5000자 제한)\n  youtubeHashtags    String? // 해시태그 JSON 배열 문자열\n\n  uploadedFile   UploadedFile? @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)\n  uploadedFileId String?\n\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String\n}\n\nmodel VerificationToken {\n  identifier String\n  token      String   @unique\n  expires    DateTime\n\n  @@unique([identifier, token])\n}\n",
-  "inlineSchemaHash": "6ec75b29b0f2ec8abccf84cd8f93c5191f217f3034687087b6903d6836f3044f",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider  = \"postgresql\"\n  url       = env(\"DATABASE_URL\")\n  directUrl = env(\"DATABASE_URL_UNPOOLED\")\n}\n\nmodel Post {\n  id        Int      @id @default(autoincrement())\n  name      String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  createdBy   User   @relation(fields: [createdById], references: [id])\n  createdById String\n\n  @@index([name])\n}\n\n// Necessary for Next auth\nmodel Account {\n  id                       String  @id @default(cuid())\n  userId                   String\n  type                     String\n  provider                 String\n  providerAccountId        String\n  refresh_token            String? // @db.Text\n  access_token             String? // @db.Text\n  expires_at               Int?\n  token_type               String?\n  scope                    String?\n  id_token                 String? // @db.Text\n  session_state            String?\n  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)\n  refresh_token_expires_in Int?\n\n  @@unique([provider, providerAccountId])\n}\n\nmodel Session {\n  id           String   @id @default(cuid())\n  sessionToken String   @unique\n  userId       String\n  expires      DateTime\n  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel User {\n  id               String    @id @default(cuid())\n  name             String?\n  email            String    @unique\n  emailVerified    DateTime?\n  password         String?\n  credits          Int       @default(3)\n  stripeCustomerId String?   @unique\n  image            String?\n  accounts         Account[]\n  sessions         Session[]\n  posts            Post[]\n\n  uploadedFiles UploadedFile[]\n  clips         Clip[]\n}\n\nmodel UploadedFile {\n  id          String   @id @default(cuid())\n  s3Key       String\n  displayName String?\n  uploaded    Boolean  @default(false)\n  status      String   @default(\"queued\") // processing, processed, no credits\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  language    String   @default(\"English\")\n\n  clips Clip[]\n\n  // 관계 정의 필드\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  // 외래키\n  userId String\n\n  @@index([s3Key])\n}\n\nmodel Clip {\n  id    String @id @default(cuid())\n  s3Key String\n\n  startSeconds Float?\n  endSeconds   Float?\n  scriptText   String?\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  youtubeTitle       String? // YouTube 제목 (100자 제한)\n  youtubeDescription String? // YouTube 설명 (5000자 제한)\n  youtubeHashtags    String? // 해시태그 JSON 배열 문자열\n\n  uploadedFile   UploadedFile? @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)\n  uploadedFileId String?\n\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String\n}\n\nmodel VerificationToken {\n  identifier String\n  token      String   @unique\n  expires    DateTime\n\n  @@unique([identifier, token])\n}\n",
+  "inlineSchemaHash": "41c409cc7bedf7ef7e68f84bdce51a105415074ef245a8122f412309c58d76d5",
   "copyEngine": true
 }
 config.dirname = '/'

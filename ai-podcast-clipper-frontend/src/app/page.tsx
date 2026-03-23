@@ -25,6 +25,7 @@ export default async function Home() {
   const isLoggedIn = !!userId;
 
   let email: string | null = null;
+  let image: string | null = null;
 
   if (userId) {
     const user = await db.user.findUniqueOrThrow({
@@ -33,10 +34,12 @@ export default async function Home() {
       },
       select: {
         email: true,
+        image: true,
       },
     });
 
     email = user.email;
+    image = user.image;
   }
 
   const jsonLd = generateWebApplicationJsonLd();
@@ -47,7 +50,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomePage isLoggedIn={isLoggedIn} email={email} />
+      <HomePage isLoggedIn={isLoggedIn} email={email} image={image} />
     </>
   );
 }

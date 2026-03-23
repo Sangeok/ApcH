@@ -20,16 +20,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
-import { Avatar, AvatarFallback } from "~/fsd/shared/ui/atoms/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/fsd/shared/ui/atoms/avatar";
 import { signOut } from "next-auth/react";
 import { coreFeatures, heroHighlights, workflowSteps } from "../constants";
 
 interface HomePageProps {
   isLoggedIn: boolean;
   email: string | null;
+  image?: string | null;
 }
 
-export default function HomePage({ isLoggedIn, email }: HomePageProps) {
+export default function HomePage({ isLoggedIn, email, image }: HomePageProps) {
   return (
     <div className="bg-background text-foreground relative overflow-hidden">
       <div
@@ -62,6 +63,7 @@ export default function HomePage({ isLoggedIn, email }: HomePageProps) {
                     className="relative h-8 w-8 cursor-pointer rounded-full p-0"
                   >
                     <Avatar>
+                      {image && <AvatarImage src={image} alt={email ?? ""} />}
                       <AvatarFallback>{email?.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </Button>

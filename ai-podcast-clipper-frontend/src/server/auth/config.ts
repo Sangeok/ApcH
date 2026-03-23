@@ -1,6 +1,7 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { comparePasswords } from "~/fsd/shared/lib/auth";
 
 import { db } from "~/server/db";
@@ -12,18 +13,14 @@ import { db } from "~/server/db";
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
 declare module "next-auth" {
+  interface User {
+    emailVerified?: Date | null;
+  }
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
     } & DefaultSession["user"];
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
 /**
@@ -32,8 +29,10 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-  // check
   providers: [
+    Google({
+      allowDangerousEmailAccountLinking: true,
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -58,6 +57,10 @@ export const authConfig = {
           return null;
         }
 
+        if (!user.password) {
+          return null;
+        }
+
         const passwordsMatch = await comparePasswords(password, user.password);
 
         if (!passwordsMatch) {
@@ -71,16 +74,57 @@ export const authConfig = {
   session: { strategy: "jwt" },
   adapter: PrismaAdapter(db),
   callbacks: {
+    signIn: async ({ user, account, profile }) => {
+      if (account?.provider === "google") {
+        if (!user.email) return false;
+
+        // signIn callback runs BEFORE PrismaAdapter creates the user record.
+        // Only update existing users; new users will be created by the adapter.
+        const existingUser = await db.user.findUnique({
+          where: { email: user.email },
+        });
+
+        if (existingUser) {
+          const googleProfile = profile as { picture?: string; name?: string };
+          const needsImageOrName = !existingUser.image || !existingUser.name;
+          const needsEmailVerified = !existingUser.emailVerified;
+
+          if (needsImageOrName || needsEmailVerified) {
+            await db.user.update({
+              where: { email: user.email },
+              data: {
+                ...(needsImageOrName && {
+                  image: existingUser.image ?? googleProfile?.picture,
+                  name: existingUser.name ?? googleProfile?.name,
+                }),
+                ...(needsEmailVerified && {
+                  emailVerified: new Date(),
+                }),
+              },
+            });
+          }
+        }
+
+        return true;
+      }
+
+      return true;
+    },
     session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
         id: token.sub,
+        image: token.image as string | undefined,
       },
     }),
-    jwt: ({ token, user }) => {
+    jwt: ({ token, user, account, profile }) => {
       if (user) {
         token.id = user.id;
+        token.image = user.image;
+      }
+      if (account?.provider === "google" && profile) {
+        token.image = (profile as { picture?: string }).picture;
       }
       return token;
     },

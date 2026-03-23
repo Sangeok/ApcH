@@ -15,7 +15,9 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldSeparator,
 } from "~/fsd/shared/ui/atoms/field";
+import { GoogleIcon } from "~/fsd/shared/ui/atoms/icons/google";
 import { Input } from "~/fsd/shared/ui/atoms/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -121,11 +123,24 @@ export default function LoginForm({
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Logging in..." : "Log in"}
                 </Button>
-                <FieldDescription className="text-center">
-                  Don&apos;t have an account?{" "}
-                  <Link href="/signup">Sign Up</Link>
-                </FieldDescription>
               </Field>
+
+              <FieldSeparator>or continue with</FieldSeparator>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              >
+                <GoogleIcon className="mr-2 size-4" />
+                Sign in with Google
+              </Button>
+
+              <FieldDescription className="text-center">
+                Don&apos;t have an account?{" "}
+                <Link href="/signup">Sign Up</Link>
+              </FieldDescription>
             </FieldGroup>
           </form>
         </CardContent>

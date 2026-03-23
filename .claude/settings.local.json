@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep -E \"\\\\.\\(md|txt|MD|TXT\\)$|^d\")",
+      "Bash(grep -E \"\\\\.\\(md|txt|MD|TXT|json\\)$|^d\")",
+      "Bash(xargs grep:*)",
+      "Bash(SKIP_ENV_VALIDATION=1 npx tsc --noEmit)",
+      "Bash(npm run:*)"
     ]
   }
 }

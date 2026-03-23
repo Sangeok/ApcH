@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { Avatar, AvatarFallback } from "~/fsd/shared/ui/atoms/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/fsd/shared/ui/atoms/avatar";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -17,11 +17,13 @@ import {
 interface DashboardHeaderProps {
   credits: number;
   email: string;
+  image?: string | null;
 }
 
 export default function DashboardHeader({
   credits,
   email,
+  image,
 }: DashboardHeaderProps) {
   return (
     <header className="bg-background sticky top-0 z-10 flex justify-center border-b">
@@ -58,6 +60,7 @@ export default function DashboardHeader({
                 className="relative h-8 w-8 cursor-pointer rounded-full p-0"
               >
                 <Avatar>
+                  {image && <AvatarImage src={image} alt={email} />}
                   <AvatarFallback>{email.charAt(0)}</AvatarFallback>
                 </Avatar>
               </Button>
