@@ -1,10 +1,16 @@
-"use server";
-
+import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Toaster } from "~/fsd/shared/ui/atoms/sonner";
 import DashboardHeader from "~/fsd/widgets/dashboard-header/ui";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function DashboardLayout({
   children,

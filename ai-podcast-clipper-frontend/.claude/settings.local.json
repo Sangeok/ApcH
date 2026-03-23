@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(xargs -I {} bash -c \"echo ''=== {} ==='' && head -5 {}\")",
-      "Bash(npm run check:*)"
+      "Bash(npm run check:*)",
+      "Bash(find /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend -name middleware.ts -o -name middleware.js -o -name next.config.*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"^[^/]*$\")",
+      "Bash(find C:UsershamsoOneDriveDesktopgitApcHai-podcast-clipper-frontendsrc -name not-found* -o -name error* -o -name *error*)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(grep -r \"next/image\\\\|next-image\\\\|Image\\\\|optimization\" /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.tsx)",
+      "Bash(npm list:*)",
+      "Bash(grep:*)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(find C:UsershamsoOneDriveDesktopgitApcHai-podcast-clipper-frontendsrc -type f \\\\\\(-name head.tsx -o -name *head* -o -name *viewport* \\\\\\))",
+      "Bash(ls -1 *.*)",
+      "Bash(find . -maxdepth 2 -type f -name *.md)"
     ]
   }
 }

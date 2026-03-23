@@ -1,6 +1,23 @@
+import { type Metadata } from "next";
 import HomePage from "~/fsd/pages/home/ui";
+import { generateWebApplicationJsonLd } from "~/fsd/shared/lib/seo";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+
+export const metadata: Metadata = {
+  title: "Turn Your Podcast into Short-Form Clips with AI",
+  description:
+    "Upload your podcast video and AI finds the best Q&A highlights, adds captions, and exports vertical short-form clips. Powered by Gemini 2.5 + WhisperX. English & Korean subtitles supported.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "AI Podcast Clipper — Upload Once, Get Highlight Clips",
+    description:
+      "AI automatically detects podcast highlights and creates captioned vertical clips in minutes.",
+    url: "/",
+  },
+};
 
 export default async function Home() {
   const session = await auth();
@@ -22,5 +39,15 @@ export default async function Home() {
     email = user.email;
   }
 
-  return <HomePage isLoggedIn={isLoggedIn} email={email} />;
+  const jsonLd = generateWebApplicationJsonLd();
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <HomePage isLoggedIn={isLoggedIn} email={email} />
+    </>
+  );
 }
