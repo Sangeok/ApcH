@@ -15,7 +15,9 @@
       "mcp__plugin_context7_context7__query-docs",
       "Bash(find C:UsershamsoOneDriveDesktopgitApcHai-podcast-clipper-frontendsrc -type f \\\\\\(-name head.tsx -o -name *head* -o -name *viewport* \\\\\\))",
       "Bash(ls -1 *.*)",
-      "Bash(find . -maxdepth 2 -type f -name *.md)"
+      "Bash(find . -maxdepth 2 -type f -name *.md)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

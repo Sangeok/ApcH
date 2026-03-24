@@ -151,7 +151,7 @@ exports.Prisma.UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   password: 'password',
   credits: 'credits',
-  stripeCustomerId: 'stripeCustomerId',
+  polarCustomerId: 'polarCustomerId',
   image: 'image'
 };
 
@@ -182,6 +182,34 @@ exports.Prisma.ClipScalarFieldEnum = {
   userId: 'userId'
 };
 
+exports.Prisma.SubscriptionScalarFieldEnum = {
+  id: 'id',
+  polarSubscriptionId: 'polarSubscriptionId',
+  userId: 'userId',
+  polarProductId: 'polarProductId',
+  planTier: 'planTier',
+  status: 'status',
+  recurringInterval: 'recurringInterval',
+  monthlyCredits: 'monthlyCredits',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  canceledAt: 'canceledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderScalarFieldEnum = {
+  id: 'id',
+  polarOrderId: 'polarOrderId',
+  userId: 'userId',
+  productName: 'productName',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.VerificationTokenScalarFieldEnum = {
   identifier: 'identifier',
   token: 'token',
@@ -210,6 +238,8 @@ exports.Prisma.ModelName = {
   User: 'User',
   UploadedFile: 'UploadedFile',
   Clip: 'Clip',
+  Subscription: 'Subscription',
+  Order: 'Order',
   VerificationToken: 'VerificationToken'
 };
 

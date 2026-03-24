@@ -13,7 +13,7 @@
 |---|------|----------|----------|-----------|-----------|
 | 1 | SQLite → PostgreSQL 마이그레이션 | 🚨 CRITICAL | 인프라 | SQLite 사용 중 | 1-2일 |
 | 2 | Server Action 인가 누락 수정 | 🚨 CRITICAL | 보안 | auth() 미호출 | 0.5일 |
-| 3 | Stripe 결제 구현 | 🚨 CRITICAL | 결제 | 패키지만 설치됨 | 3-5일 |
+| 3 | Polar 결제 구현 | 🚨 CRITICAL | 결제 | 미구현 | 3-5일 |
 | 4 | 배포 인프라 구성 | 🚨 CRITICAL | 인프라 | 미구성 | 1-2일 |
 | 5 | 에러 바운더리 구현 | 🚨 CRITICAL | 에러 처리 | 없음 | 1일 |
 | 6 | 환경 변수 보안 강화 | 🚨 CRITICAL | 보안 | .env 하드코딩 | 0.5일 |
@@ -93,7 +93,7 @@
 - **필요 작업**:
   - [ ] 프로덕션 환경변수는 배포 플랫폼의 시크릿 관리 사용
   - [ ] `.env.example` 파일 작성 (실제 값 없이 키 이름만)
-  - [ ] `src/env.js`에 Stripe 키 등 누락된 환경 변수 추가
+  - [ ] `src/env.js`에 Polar 키 등 누락된 환경 변수 추가
   - [ ] AWS IAM 역할 기반 인증 검토 (액세스 키 대신)
   - [ ] 시크릿 로테이션 정책 수립
 - **관련 파일**: `.env`, `src/env.js`, `.gitignore`
@@ -130,26 +130,28 @@
 
 ## 3. 결제 & 과금
 
-### 3.1 Stripe 결제 시스템 구현 🚨 CRITICAL
+### 3.1 Polar 결제 시스템 구현 🚨 CRITICAL
 
-- **현재 상태**: `package.json`에 `stripe` 패키지 설치됨. `prisma/schema.prisma`의 User 모델에 `stripeCustomerId` 필드 존재. 그러나 코드 내 Stripe import 0건, 실제 구현 없음. `/dashboard/billing` 링크만 존재.
+- **현재 상태**: 결제 시스템 미구현. `/dashboard/billing` 링크만 존재. Polar(polar.sh)를 결제 플랫폼으로 사용하여 구독 및 크레딧 과금을 구현해야 함.
 - **필요 작업**:
-  - [ ] Stripe API 키를 `src/env.js`에 추가 (STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET)
-  - [ ] 요금제 설계 및 Stripe Product/Price 생성
-  - [ ] Checkout Session 생성 API 구현
-  - [ ] Stripe Webhook 핸들러 구현 (`/api/webhooks/stripe`)
-    - `checkout.session.completed` → 크레딧 충전
-    - `invoice.payment_succeeded` → 구독 갱신
-    - `customer.subscription.deleted` → 구독 취소 처리
-  - [ ] 고객 포털 연동 (구독 관리, 결제 수단 변경)
+  - [ ] `@polar-sh/sdk` 패키지 설치
+  - [ ] Polar API 키를 `src/env.js`에 추가 (POLAR_ACCESS_TOKEN, POLAR_WEBHOOK_SECRET)
+  - [ ] Polar 대시보드에서 요금제(Product) 설계 및 생성
+  - [ ] Polar Checkout 연동 구현 (결제 페이지 리다이렉트)
+  - [ ] Polar Webhook 핸들러 구현 (`/api/webhooks/polar`)
+    - `order.completed` → 크레딧 충전
+    - `subscription.created` / `subscription.updated` → 구독 활성화/갱신
+    - `subscription.canceled` → 구독 취소 처리
+  - [ ] Polar 고객 포털 연동 (구독 관리, 결제 수단 변경)
   - [ ] `/dashboard/billing` 페이지 구현
     - 현재 플랜 표시
     - 크레딧 잔여량
     - 결제 히스토리
     - 플랜 업그레이드/다운그레이드
-  - [ ] 크레딧 시스템과 Stripe 연동 (현재: 기본 3 크레딧, 수동 관리)
+  - [ ] 크레딧 시스템과 Polar 연동 (현재: 기본 3 크레딧, 수동 관리)
+  - [ ] `prisma/schema.prisma` User 모델에 `polarCustomerId` 필드 추가
   - [ ] 무료 체험 플로우 구현
-- **관련 파일**: `prisma/schema.prisma` (stripeCustomerId), `package.json` (stripe), `src/env.js`
+- **관련 파일**: `prisma/schema.prisma`, `package.json`, `src/env.js`
 - **예상 공수**: 3-5일
 
 ---
@@ -315,7 +317,7 @@
 
 | 순서 | 항목 | 공수 |
 |------|------|------|
-| 1 | Stripe 결제 시스템 구현 (#3) | 3-5일 |
+| 1 | Polar 결제 시스템 구현 (#3) | 3-5일 |
 | 2 | 모니터링 도입 (#8) | 1-2일 |
 | 3 | 법적 페이지 작성 (#11) | 1-2일 |
 | 4 | Inngest 프로덕션 설정 (#9) | 1일 |

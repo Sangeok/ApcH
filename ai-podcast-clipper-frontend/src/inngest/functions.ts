@@ -182,16 +182,11 @@ export const processVideo = inngest.createFunction(
         );
 
         await step.run("deduct-credits", async () => {
-          await db.user.update({
-            where: {
-              id: userId,
-            },
-            data: {
-              credits: {
-                decrement: Math.min(credits, clipsFound),
-              },
-            },
-          });
+          await db.$executeRaw`
+            UPDATE "User"
+            SET "credits" = GREATEST("credits" - ${clipsFound}, 0)
+            WHERE "id" = ${userId}
+          `;
         });
 
         await step.run("set-status-processed", async () => {
