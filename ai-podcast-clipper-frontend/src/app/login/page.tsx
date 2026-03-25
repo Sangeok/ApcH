@@ -4,7 +4,7 @@ import LoginForm from "~/fsd/widgets/loginForm/ui";
 import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
-  title: "Log In",
+  title: "Sign In",
   robots: {
     index: false,
     follow: false,

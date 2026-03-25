@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 
 const PROTECTED_ROUTES = ["/dashboard"];
-const AUTH_ROUTES = ["/login", "/signup"];
+const AUTH_ROUTES = ["/login"];
 
 /**
  * Edge Runtime 호환 인증 설정.

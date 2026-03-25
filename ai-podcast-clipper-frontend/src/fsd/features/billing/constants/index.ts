@@ -1,5 +1,3 @@
-import { env } from "~/env";
-
 export const PLAN_TIERS = {
   free: {
     name: "Free",
@@ -30,8 +28,5 @@ export const POLAR_PRODUCT_IDS = {
 } as const;
 
 export function getProductIds() {
-  const server =
-    env.POLAR_SERVER ??
-    (env.NODE_ENV === "production" ? "production" : "sandbox");
-  return POLAR_PRODUCT_IDS[server];
+  return POLAR_PRODUCT_IDS.sandbox;
 }

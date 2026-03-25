@@ -22,10 +22,9 @@
 | `src/app/error.tsx` | 없음 | - |
 | `src/app/dashboard/error.tsx` | 없음 | - |
 | `src/app/api/health/route.ts` | 없음 | - |
-| `src/fsd/shared/lib/cloudfront.ts` | 없음 | - |
 | `next.config.js` 보안 헤더 | 없음 | `next.config.js` |
-| `src/env.js` Inngest/CloudFront 변수 | 없음 | `src/env.js` |
-| `.env.example` Inngest/CloudFront 변수 | 없음 | `.env.example` |
+| `src/env.js` Inngest 변수 | 없음 | `src/env.js` |
+| `.env.example` Inngest 변수 | 없음 | `.env.example` |
 | `src/server/auth/config.ts` edge config 확장 | 미적용 | `src/server/auth/config.ts` |
 | `src/app/api/inngest/route.ts` maxDuration | 없음 | `src/app/api/inngest/route.ts` |
 | `src/app/api/webhooks/polar/route.ts` maxDuration | 없음 | `src/app/api/webhooks/polar/route.ts` |
@@ -38,8 +37,8 @@
 | A | 코드 변경 (배포 준비) | 11 | 2일 | Vercel 배포에 필요한 코드 수정 |
 | B | Vercel 대시보드 설정 | 6 | 0.5일 | Vercel 프로젝트 생성 및 구성 |
 | C | 외부 서비스 연동 | 2 | 0.5일 | Inngest, Neon 연동 |
-| D | 도메인 & CDN | 4 | 1.5일 | 도메인 설정, CloudFront CDN 구성 |
-| **합계** | | **23** | **4일** | |
+| D | 도메인 | 1 | 0.5일 | 도메인 설정 |
+| **합계** | | **20** | **3일** | |
 
 ---
 
@@ -370,7 +369,7 @@ export default config;
 **CSP 배포 전략 (권장)**:
 1. **첫 배포 시**: `Content-Security-Policy` 대신 `Content-Security-Policy-Report-Only` 헤더명을 사용하여, 차단 없이 위반만 브라우저 콘솔에 보고
 2. **1-2주 모니터링 후**: 위반 사항이 없으면 `Content-Security-Policy`로 전환하여 실제 차단 적용
-3. **CloudFront 도입 시**: `media-src`와 `img-src`에 CloudFront 도메인 추가 (예: `https://cdn.podcastclipper.com`)
+3. **CDN 도입 시**: `media-src`와 `img-src`에 CDN 도메인 추가 (별도 문서 `cloudfront-cdn-setup-guide.md` 참고)
 
 **⚠️ 로컬 개발 환경 주의사항**:
 - 위 CSP는 Next.js의 `headers()` 설정이므로 `npm run dev`에서도 적용된다
@@ -542,11 +541,6 @@ export async function GET() {
 INNGEST_EVENT_KEY: z.string().optional(),
 INNGEST_SIGNING_KEY: z.string().optional(),
 
-// CloudFront CDN (선택)
-CLOUDFRONT_DOMAIN: z.string().optional(),
-CLOUDFRONT_KEY_PAIR_ID: z.string().optional(),
-CLOUDFRONT_PRIVATE_KEY: z.string().optional(),
-
 // NextAuth Production URL
 AUTH_URL: z.string().url().optional(),
 ```
@@ -556,9 +550,6 @@ AUTH_URL: z.string().url().optional(),
 ```typescript
 INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
 INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
-CLOUDFRONT_DOMAIN: process.env.CLOUDFRONT_DOMAIN,
-CLOUDFRONT_KEY_PAIR_ID: process.env.CLOUDFRONT_KEY_PAIR_ID,
-CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,
 AUTH_URL: process.env.AUTH_URL,
 ```
 
@@ -669,11 +660,6 @@ AWS_ACCESS_KEY_ID=""
 AWS_SECRET_ACCESS_KEY=""
 AWS_REGION=""
 S3_BUCKET_NAME=""
-
-# CloudFront CDN (선택, PEM 키는 base64 인코딩)
-CLOUDFRONT_DOMAIN=""
-CLOUDFRONT_KEY_PAIR_ID=""
-CLOUDFRONT_PRIVATE_KEY=""
 
 # Video Processing
 PROCESS_VIDEO_ENDPOINT=""
@@ -908,7 +894,7 @@ Preview 환경이 Production DB에 영향을 주지 않도록, Neon의 브랜칭
 
 ---
 
-## Phase D: 도메인 & CDN
+## Phase D: 도메인
 
 ### D-1. Vercel 도메인 설정
 
@@ -943,171 +929,6 @@ Preview 환경이 Production DB에 영향을 주지 않도록, Neon의 브랜칭
 - [ ] `https://podcastclipper.com` 접속 가능
 - [ ] `https://www.podcastclipper.com` -> `https://podcastclipper.com`으로 리다이렉트
 - [ ] SSL 인증서 유효 (브라우저 자물쇠 아이콘 확인)
-
----
-
-### D-2. CloudFront CDN 설정
-
-> 이 작업은 **선택 사항**이다. S3 presigned URL로도 서비스 운영이 가능하며, 사용자 규모가 커지면 CDN을 도입한다.
-
-#### D-2-1. CloudFront 배포 생성
-
-1. AWS Console > **CloudFront** > **Create Distribution**
-2. 설정:
-
-| 항목 | 값 | 비고 |
-|------|-----|------|
-| Origin Domain | `{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com` | S3 버킷 |
-| Origin Access | **OAC (Origin Access Control)** 생성 | OAI 대신 최신 방식 사용 |
-| Viewer Protocol Policy | Redirect HTTP to HTTPS | |
-| Allowed HTTP Methods | GET, HEAD | 읽기 전용 |
-| Cache Policy | CachingOptimized | 클립 파일은 불변이므로 장기 캐싱 |
-| Price Class | PriceClass_200 | 아시아 포함 |
-| Alternate Domain | `cdn.podcastclipper.com` | |
-
-#### D-2-2. S3 버킷 정책 업데이트
-
-CloudFront OAC 설정 후 S3 버킷 정책을 업데이트:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "cloudfront.amazonaws.com"
-      },
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::YOUR_BUCKET_NAME/*",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceArn": "arn:aws:cloudfront::YOUR_ACCOUNT_ID:distribution/YOUR_DISTRIBUTION_ID"
-        }
-      }
-    }
-  ]
-}
-```
-
-#### D-2-3. CloudFront Key Pair 생성
-
-Signed URL을 위한 키 페어를 생성한다:
-
-1. AWS Console > **CloudFront** > **Public keys**
-2. **"Create public key"** 클릭
-3. 로컬에서 RSA 키 페어 생성:
-   ```bash
-   openssl genrsa -out private_key.pem 2048
-   openssl rsa -pubout -in private_key.pem -out public_key.pem
-   ```
-4. `public_key.pem` 내용을 복사하여 AWS에 등록
-5. **Key Groups** > **"Create key group"** > 방금 생성한 Public Key를 추가
-6. CloudFront Distribution > **Behaviors** > Default > **Restrict viewer access**: Yes, Key Group 선택
-
-#### D-2-4. 환경 변수 등록
-
-Private Key를 base64 인코딩하여 환경 변수에 저장:
-
-```bash
-# PEM 키를 base64 인코딩
-cat private_key.pem | base64 -w 0
-# 출력된 값을 CLOUDFRONT_PRIVATE_KEY에 저장
-```
-
-Vercel **Production** 환경 변수에 추가:
-- `CLOUDFRONT_DOMAIN` = `cdn.podcastclipper.com`
-- `CLOUDFRONT_KEY_PAIR_ID` = AWS에서 생성한 Key Pair ID
-- `CLOUDFRONT_PRIVATE_KEY` = base64 인코딩된 PEM 키
-
-#### D-2-5. CDN 도메인 SSL 인증서
-
-1. AWS Console > **ACM (Certificate Manager)** (반드시 **us-east-1** 리전)
-2. **"Request certificate"** > Public certificate
-3. Domain name: `cdn.podcastclipper.com`
-4. DNS 검증 선택 > 안내된 CNAME 레코드를 도메인 등록업체에서 설정
-5. 인증서 발급 완료 후 CloudFront Distribution에서 해당 인증서 선택
-
-#### D-2-6. CDN 도메인 DNS 설정
-
-도메인 등록업체에서:
-
-| 타입 | 이름 | 값 |
-|------|------|-----|
-| CNAME | `cdn` | `{distribution-id}.cloudfront.net` |
-
-#### D-2-7. 코드 변경
-
-CloudFront 유틸리티 파일 생성과 `generation.ts` 수정이 필요하다.
-
-**신규 파일**: `src/fsd/shared/lib/cloudfront.ts`
-
-```typescript
-import { env } from "~/env";
-
-/**
- * CloudFront Signed URL을 생성한다.
- * 환경 변수가 설정되지 않은 경우 null을 반환하여 S3 fallback을 유도한다.
- */
-export async function getCloudFrontSignedUrl(
-  s3Key: string,
-  expiresInSeconds = 3600,
-): Promise<string | null> {
-  const domain = env.CLOUDFRONT_DOMAIN;
-  const keyPairId = env.CLOUDFRONT_KEY_PAIR_ID;
-  const privateKeyBase64 = env.CLOUDFRONT_PRIVATE_KEY;
-
-  if (!domain || !keyPairId || !privateKeyBase64) {
-    return null; // CloudFront 미설정 → S3 presigned URL로 fallback
-  }
-
-  // @aws-sdk/cloudfront-signer 사용
-  const { getSignedUrl } = await import("@aws-sdk/cloudfront-signer");
-
-  const privateKey = Buffer.from(privateKeyBase64, "base64").toString("utf-8");
-  const url = `https://${domain}/${s3Key}`;
-  const dateLessThan = new Date(
-    Date.now() + expiresInSeconds * 1000,
-  ).toISOString();
-
-  return getSignedUrl({
-    url,
-    keyPairId,
-    dateLessThan,
-    privateKey,
-  });
-}
-```
-
-> **참고**: `@aws-sdk/cloudfront-signer` 패키지를 devDependencies에 추가해야 한다: `npm install @aws-sdk/cloudfront-signer`
-
-**수정 파일**: `src/actions/generation.ts` (CloudFront 우선, S3 fallback 패턴)
-
-클립 URL 생성 로직에서 CloudFront signed URL을 우선 시도하고, 실패 시 기존 S3 presigned URL로 fallback한다:
-
-```typescript
-import { getCloudFrontSignedUrl } from "~/fsd/shared/lib/cloudfront";
-
-// 기존 getClipUrl 함수 내부에서:
-const cloudFrontUrl = await getCloudFrontSignedUrl(clip.s3Key);
-if (cloudFrontUrl) {
-  return cloudFrontUrl;
-}
-// 기존 S3 presigned URL 로직 (fallback)
-```
-
-**CSP 업데이트**: `next.config.js`의 CSP에 CloudFront 도메인 추가:
-```
-media-src 'self' https://*.amazonaws.com https://cdn.podcastclipper.com
-img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.amazonaws.com https://cdn.podcastclipper.com
-```
-
-#### D-2-8. CloudFront 검증
-
-- [ ] `https://cdn.podcastclipper.com` 접속 가능
-- [ ] SSL 인증서 유효
-- [ ] 클립 재생이 CloudFront URL을 통해 정상 동작
-- [ ] S3 직접 접근이 차단되고 CloudFront를 통해서만 접근 가능
 
 ---
 
@@ -1146,10 +967,11 @@ img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.amazonaws
 - [ ] C-1. Inngest Vercel Integration 연결
 - [ ] C-2. Neon DB Preview/Dev 브랜치 생성
 
-### Phase D: 도메인 & CDN
+### Phase D: 도메인
 
 - [ ] D-1. Vercel 도메인 + DNS + SSL 설정
-- [ ] D-2. CloudFront CDN 설정 (선택)
+
+> **CDN 설정**: CloudFront CDN 설정은 별도 문서 `cloudfront-cdn-setup-guide.md`를 참고한다.
 
 ---
 
@@ -1160,7 +982,6 @@ img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.amazonaws
 | Vercel | Hobby | $0 | Function 타임아웃 10초 제한, 상업 이용 시 Pro($20/월) 필요 |
 | Neon | Free | $0 | 0.5GB, 무제한 브랜치 |
 | Inngest Cloud | Free | $0 | 25K 이벤트/월 |
-| CloudFront | Free Tier | $0 | 1TB/월 (12개월) |
 | **MVP 합계** | | **$0/월** | |
 
 > **Hobby 플랜 주요 제한 사항**:

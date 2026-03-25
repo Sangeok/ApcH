@@ -4,7 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://podcastclipper.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://apc-h.vercel.app/";
 const SITE_NAME = "AI Podcast Clipper";
 const SITE_DESCRIPTION =
   "Automatically turn your podcast into viral short-form clips with AI. Upload once — get highlight clips with captions in minutes.";

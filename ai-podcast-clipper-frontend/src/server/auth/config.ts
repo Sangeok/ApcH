@@ -1,8 +1,6 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { comparePasswords } from "~/fsd/shared/lib/auth";
 
 import { db } from "~/server/db";
 import { authConfigEdge } from "./config.edge";
@@ -34,43 +32,6 @@ export const authConfig = {
   providers: [
     Google({
       allowDangerousEmailAccountLinking: true,
-    }),
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        const email = credentials.email as string;
-        const password = credentials.password as string;
-
-        const user = await db.user.findUnique({
-          where: {
-            email: email,
-          },
-        });
-
-        if (!user) {
-          return null;
-        }
-
-        if (!user.password) {
-          return null;
-        }
-
-        const passwordsMatch = await comparePasswords(password, user.password);
-
-        if (!passwordsMatch) {
-          return null;
-        }
-
-        return user;
-      },
     }),
   ],
   adapter: PrismaAdapter(db),

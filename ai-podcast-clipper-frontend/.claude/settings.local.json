@@ -19,7 +19,10 @@
       "Bash(npx prisma:*)",
       "Bash(npx tsc:*)",
       "Bash(npm run:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(find /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/server/auth -type f -name *.ts -o -name *.js)",
+      "Bash(find C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/widgets -type f -name *login* -o -name *signup*)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }

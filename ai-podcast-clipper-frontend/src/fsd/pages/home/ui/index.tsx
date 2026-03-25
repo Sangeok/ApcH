@@ -229,13 +229,10 @@ export default function HomePage({ isLoggedIn, email, image }: HomePageProps) {
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg" className="gap-2">
-                <Link href="/signup">
+                <Link href="/login">
                   Start free trial
                   <ArrowRight className="size-4" />
                 </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/login">Already have an account?</Link>
               </Button>
             </div>
           </section>

@@ -9,140 +9,31 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "~/fsd/shared/ui/atoms/field";
 import { GoogleIcon } from "~/fsd/shared/ui/atoms/icons/google";
-import { Input } from "~/fsd/shared/ui/atoms/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import Link from "next/link";
-import {
-  loginSchema,
-  type LoginFormValues,
-} from "~/fsd/entity/auth/model/schemas/auth";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const router = useRouter();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const onSubmit = async (data: LoginFormValues) => {
-    try {
-      setIsSubmitting(true);
-      setError(null);
-
-      const signInResult = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        setError("Invalid email or password. Please try again.");
-        return;
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      console.error("Failed to login", error);
-      setError("An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Welcome</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Sign in with your Google account to continue
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  {...register("email")}
-                />
-                {errors.email && (
-                  <FieldError>{errors.email.message}</FieldError>
-                )}
-              </Field>
-              <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <FieldError>{errors.password.message}</FieldError>
-                )}
-              </Field>
-              {error && (
-                <FieldError className="rounded-md bg-red-50 p-3 text-sm text-red-500">
-                  {error}
-                </FieldError>
-              )}
-              <Field>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Logging in..." : "Log in"}
-                </Button>
-              </Field>
-
-              <FieldSeparator>or continue with</FieldSeparator>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-              >
-                <GoogleIcon className="mr-2 size-4" />
-                Sign in with Google
-              </Button>
-
-              <FieldDescription className="text-center">
-                Don&apos;t have an account?{" "}
-                <Link href="/signup">Sign Up</Link>
-              </FieldDescription>
-            </FieldGroup>
-          </form>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          >
+            <GoogleIcon className="mr-2 size-4" />
+            Continue with Google
+          </Button>
         </CardContent>
       </Card>
     </div>
