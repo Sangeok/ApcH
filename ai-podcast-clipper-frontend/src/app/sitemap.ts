@@ -1,7 +1,7 @@
 import { type MetadataRoute } from "next";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://podcastclipper.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://podcastclipper.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // 페이지 내용이 실제로 변경될 때 이 날짜를 갱신한다.

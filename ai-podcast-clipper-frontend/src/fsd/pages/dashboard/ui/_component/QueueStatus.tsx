@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "~/fsd/shared/ui/atoms/table";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { STATUS_CONFIG } from "../../constants";

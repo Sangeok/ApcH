@@ -1,5 +1,5 @@
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://podcastclipper.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://podcastclipper.com";
 const SITE_NAME = "AI Podcast Clipper";
 
 /**

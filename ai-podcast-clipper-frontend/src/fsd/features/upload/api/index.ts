@@ -13,7 +13,6 @@ import {
 } from "~/fsd/shared/api/s3";
 import { type ActionResult, success, failure } from "~/fsd/shared/api/result";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
-import { env } from "~/env";
 import { v4 as uuidv4 } from "uuid";
 
 /**

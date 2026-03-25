@@ -2,6 +2,8 @@ import { Webhooks } from "@polar-sh/nextjs";
 import { env } from "~/env";
 import { db } from "~/server/db";
 
+export const maxDuration = 10; // Hobby 플랜 최대값. Pro 전환 시 30으로 상향 권장
+
 async function resolveUserId(
   metadataUserId: string | undefined,
   customerEmail: string | undefined,

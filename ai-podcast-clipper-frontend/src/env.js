@@ -27,6 +27,15 @@ export const env = createEnv({
     POLAR_ACCESS_TOKEN: z.string(),
     POLAR_WEBHOOK_SECRET: z.string(),
     POLAR_SERVER: z.enum(["sandbox", "production"]).optional(),
+    // Inngest (Vercel Integration이 자동 주입, 로컬에서는 불필요)
+    INNGEST_EVENT_KEY: z.string().optional(),
+    INNGEST_SIGNING_KEY: z.string().optional(),
+    // CloudFront CDN (선택)
+    CLOUDFRONT_DOMAIN: z.string().optional(),
+    CLOUDFRONT_KEY_PAIR_ID: z.string().optional(),
+    CLOUDFRONT_PRIVATE_KEY: z.string().optional(),
+    // NextAuth Production URL
+    AUTH_URL: z.string().url().optional(),
   },
 
   /**
@@ -58,6 +67,12 @@ export const env = createEnv({
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
     POLAR_WEBHOOK_SECRET: process.env.POLAR_WEBHOOK_SECRET,
     POLAR_SERVER: process.env.POLAR_SERVER,
+    INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+    INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+    CLOUDFRONT_DOMAIN: process.env.CLOUDFRONT_DOMAIN,
+    CLOUDFRONT_KEY_PAIR_ID: process.env.CLOUDFRONT_KEY_PAIR_ID,
+    CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,
+    AUTH_URL: process.env.AUTH_URL,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   },
   /**

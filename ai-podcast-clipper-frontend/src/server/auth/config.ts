@@ -5,6 +5,7 @@ import Google from "next-auth/providers/google";
 import { comparePasswords } from "~/fsd/shared/lib/auth";
 
 import { db } from "~/server/db";
+import { authConfigEdge } from "./config.edge";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -29,6 +30,7 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  ...authConfigEdge,
   providers: [
     Google({
       allowDangerousEmailAccountLinking: true,
@@ -71,9 +73,9 @@ export const authConfig = {
       },
     }),
   ],
-  session: { strategy: "jwt" },
   adapter: PrismaAdapter(db),
   callbacks: {
+    ...authConfigEdge.callbacks,
     signIn: async ({ user, account, profile }) => {
       if (account?.provider === "google") {
         if (!user.email) return false;

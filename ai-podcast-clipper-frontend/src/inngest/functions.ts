@@ -37,10 +37,18 @@ type StepRunner = {
 };
 
 export const processVideo = inngest.createFunction(
-  { id: "process-video" },
+  {
+    id: "process-video",
+    retries: 3,
+    cancelOn: [
+      {
+        event: "process-video-events/cancel",
+        match: "data.uploadedFileId",
+      },
+    ],
+  },
   {
     event: "process-video-events",
-    retries: 1,
     concurrency: {
       limit: 1,
       key: "event.data.userId",
@@ -211,7 +219,7 @@ export const processVideo = inngest.createFunction(
           });
         });
       }
-    } catch {
+    } catch (error) {
       await db.uploadedFile.update({
         where: {
           id: uploadedFileId,
@@ -220,6 +228,7 @@ export const processVideo = inngest.createFunction(
           status: "failed",
         },
       });
+      throw error; // Inngest에 에러를 다시 throw → 재시도 및 로그 기록
     }
   },
 );

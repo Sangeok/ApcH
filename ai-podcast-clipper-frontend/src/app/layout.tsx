@@ -3,11 +3,8 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
-// 빈 문자열("")도 무시하기 위해 || 연산자를 사용한다.
-// ?? (nullish coalescing)는 null/undefined만 잡고 빈 문자열은 통과시키므로
-// new URL("")이 실행되어 TypeError가 발생할 수 있다.
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://podcastclipper.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://podcastclipper.com";
 const SITE_NAME = "AI Podcast Clipper";
 const SITE_DESCRIPTION =
   "Automatically turn your podcast into viral short-form clips with AI. Upload once — get highlight clips with captions in minutes.";

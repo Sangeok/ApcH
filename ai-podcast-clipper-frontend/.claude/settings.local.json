@@ -17,7 +17,9 @@
       "Bash(ls -1 *.*)",
       "Bash(find . -maxdepth 2 -type f -name *.md)",
       "Bash(npx prisma:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "WebSearch"
     ]
   }
 }
