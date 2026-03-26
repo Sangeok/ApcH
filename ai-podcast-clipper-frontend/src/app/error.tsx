@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import { ErrorDisplay } from "~/fsd/shared/ui/error-display";
+
 export default function Error({
   error,
   reset,
@@ -7,18 +10,19 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("Root error boundary caught:", error);
+  }, [error]);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-2xl font-bold">Something went wrong</h1>
-      <p className="text-muted-foreground">
-        {error.message || "An unexpected error occurred."}
-      </p>
-      <button
-        onClick={reset}
-        className="rounded bg-primary px-4 py-2 text-primary-foreground"
-      >
-        Try again
-      </button>
-    </div>
+    <ErrorDisplay
+      title="An unexpected error occurred"
+      description="Something went wrong while loading the page. Please try again later."
+      digest={error.digest}
+      variant="full-page"
+      showRetry
+      onRetry={reset}
+      showHome
+    />
   );
 }

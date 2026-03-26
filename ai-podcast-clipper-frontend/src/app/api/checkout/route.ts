@@ -10,10 +10,12 @@ const getBaseUrl = () => {
   return env.NEXT_PUBLIC_SITE_URL ?? "https://apc-h.vercel.app";
 };
 
+const polarServer = env.POLAR_SERVER ?? "sandbox";
+
 const checkoutHandler = Checkout({
   accessToken: env.POLAR_ACCESS_TOKEN,
   successUrl: `${getBaseUrl()}/dashboard/billing?success=true&checkout_id={CHECKOUT_ID}`,
-  server: "sandbox",
+  server: polarServer,
 });
 
 export async function GET(req: NextRequest) {
@@ -23,7 +25,7 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  url.searchParams.set("metadata[userId]", session.user.id);
+  url.searchParams.set("metadata", JSON.stringify({ userId: session.user.id }));
 
   if (session.user.email) {
     url.searchParams.set("customerEmail", session.user.email);

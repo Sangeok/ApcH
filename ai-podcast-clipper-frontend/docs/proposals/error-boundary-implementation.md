@@ -23,7 +23,6 @@
 | 3 | 주요 라우트별 `error.tsx` (dashboard, upload 등) | dashboard만 존재 | 부분 충족 |
 | 4 | `app/global-error.tsx` (루트 레이아웃 에러) | 존재하나 최소 구현 | 부분 충족 |
 | 5 | 사용자 친화적 에러 메시지 및 복구 액션 | 없음 (제네릭 메시지만) | 미충족 |
-| 6 | 에러 발생 시 자동 리포팅 (Sentry 연동) | 없음 | 미충족 |
 
 ### 1.3 위험 요소
 
@@ -111,7 +110,6 @@ export default function GlobalError({
 **문제점**:
 - `error`를 `_error`로 무시 → digest 활용 불가
 - 최소 인라인 스타일만 적용 (Tailwind 사용 불가는 정상이나, 인라인 CSS로도 더 나은 UX 가능)
-- Sentry 등 에러 리포팅 훅 없음 (이 경계는 자동 계측 범위 밖이므로 명시적 호출 필요)
 
 #### `src/app/not-found.tsx` (404 Page)
 
@@ -401,7 +399,6 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error("Root error boundary caught:", error);
-    // TODO: Sentry.captureException(error);
   }, [error]);
 
   return (
@@ -427,7 +424,6 @@ export default function Error({
 **변경 사항**:
 - `_error` → `error`로 변경하여 digest 활용
 - 인라인 CSS로 디자인 개선
-- `Sentry.captureException(error)` 명시적 호출 (이 경계는 자동 계측 범위 밖)
 
 ```tsx
 "use client";
@@ -443,7 +439,6 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("Global error boundary caught:", error);
-    // TODO: Sentry.captureException(error);
   }, [error]);
 
   return (
@@ -679,7 +674,7 @@ Server Action의 에러 처리 방식은 **호출자의 유형**에 따라 다�
 따라서:
 - `getUploadedFileDetails` (Server Component에서 호출) → `throw` 유지 **적절**
 - `generateUploadUrl` (Client Component에서 호출) → `ActionResult<T>`로 변환 **필요**
-- `processVideo` (Client Component에서 호출) → `ActionResult<T>`로 변환 **필요**
+- `processVideo` (Client Component에서 호출) → 이미 `ActionResult<void>` 반환 중, **호출부에서 결과 처리 필요**
 
 ### 5.3 마이그레이션 대상
 
@@ -864,13 +859,11 @@ console.error("Failed to delete uploaded file with clips", error);
 ```typescript
 /**
  * 중앙화된 에러 로깅 유틸리티.
- * 현재는 console.error를 사용하며, Sentry 도입 시 이 파일만 수정하면 됨.
+ * 외부 에러 리포팅 서비스 도입 시 이 파일만 수정하면 됨.
  */
 export function logError(context: string, error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`[${context}] ${message}`, error);
-  // TODO: Sentry 도입 시 아래 주석 해제
-  // Sentry.captureException(error, { extra: { context } });
 }
 
 /**
@@ -883,7 +876,7 @@ export function getErrorMessage(error: unknown): string {
 ```
 
 **적용 효과**:
-- Sentry 도입 시 이 파일만 수정하면 프로젝트 전체에 자동 적용
+- 외부 에러 리포팅 서비스 도입 시 이 파일만 수정하면 프로젝트 전체에 자동 적용
 - 일관된 로그 포맷: `[context] message`
 - `getErrorMessage` 유틸리티로 `error instanceof Error ? error.message : String(error)` 중복 제거
 
@@ -908,55 +901,7 @@ import { logError, getErrorMessage } from "~/fsd/shared/lib/error-logger";
 
 ---
 
-## 7. Sentry 연동 가이드
-
-> **참고**: Sentry 설치 및 전체 설정은 `deployment-infrastructure-proposal.md` 5.3항에서 다룬다. 본 섹션은 error boundary 관점의 연동만 다룬다.
-
-### 7.1 Error Boundary 자동 계측
-
-`@sentry/nextjs`를 설치하면 App Router의 `error.tsx` 컴포넌트에서 캐치된 에러가 **자동으로 Sentry에 보고**된다. 별도 코드 추가 없이도 동작한다.
-
-### 7.2 `global-error.tsx` 명시적 호출
-
-`global-error.tsx`는 루트 레이아웃 바깥에서 동작하므로 자동 계측 범위에 포함되지 않는다. 명시적으로 `Sentry.captureException(error)`를 호출해야 한다:
-
-```tsx
-// src/app/global-error.tsx
-"use client";
-
-import * as Sentry from "@sentry/nextjs";
-import { useEffect } from "react";
-
-export default function GlobalError({ error, reset }: { ... }) {
-  useEffect(() => {
-    Sentry.captureException(error);
-  }, [error]);
-
-  return ( /* ... */ );
-}
-```
-
-### 7.3 error-logger와의 연동
-
-`src/fsd/shared/lib/error-logger.ts`의 `logError` 함수에 Sentry 호출을 추가하면, 서버 액션과 클라이언트 컴포넌트의 모든 에러가 자동 보고된다:
-
-```typescript
-import * as Sentry from "@sentry/nextjs";
-
-export function logError(context: string, error: unknown): void {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`[${context}] ${message}`, error);
-  Sentry.captureException(error, { extra: { context } });
-}
-```
-
-### 7.4 Error Digest 활용
-
-Next.js의 `error.digest`는 서버 에러의 고유 해시값이다. Sentry에서 이 값을 검색하여 특정 에러를 추적할 수 있으므로, 모든 error boundary에서 digest를 UI에 표시하고 Sentry 태그로도 전송하는 것을 권장한다.
-
----
-
-## 8. 구현 우선순위 및 일정
+## 7. 구현 우선순위 및 일정
 
 ### Phase 1: 공유 컴포넌트 생성 (0.5일)
 
@@ -1000,9 +945,9 @@ Next.js의 `error.digest`는 서버 에러의 고유 해시값이다. Sentry에�
 
 ---
 
-## 9. 영향도 분석
+## 8. 영향도 분석
 
-### 9.1 수정 대상 파일 전체 목록
+### 8.1 수정 대상 파일 전체 목록
 
 | # | 파일 경로 | 작업 유형 |
 |---|-----------|-----------|
@@ -1020,7 +965,7 @@ Next.js의 `error.digest`는 서버 에러의 고유 해시값이다. Sentry에�
 
 **신규 5개, 수정 6개, 삭제 0개**
 
-### 9.2 Breaking Changes
+### 8.2 Breaking Changes
 
 | 변경 | Breaking? | 영향 범위 |
 |------|-----------|-----------|
@@ -1029,7 +974,7 @@ Next.js의 `error.digest`는 서버 에러의 고유 해시값이다. Sentry에�
 | `processVideo` 반환값 처리 추가 | **동작 변경** | `UploadPodcast.tsx`에서 failure 시 기존에는 성공 처리되던 것이 에러 toast로 변경됨 (버그 수정) |
 | error-logger 도입 | 아님 | 기존 코드 수정 없이 새 코드부터 적용 가능 |
 
-### 9.3 FSD 레이어 규칙 준수
+### 8.3 FSD 레이어 규칙 준수
 
 | 컴포넌트 | 레이어 | import 가능한 곳 |
 |----------|--------|-----------------|
@@ -1039,13 +984,13 @@ Next.js의 `error.digest`는 서버 에러의 고유 해시값이다. Sentry에�
 
 모든 import 방향이 FSD 규칙(상위 → 하위만 허용)을 준수한다.
 
-### 9.4 롤백 계획
+### 8.4 롤백 계획
 
 - Phase별 독립 커밋으로 관리
 - ErrorDisplay 도입은 기존 error.tsx와 1:1 교체이므로 즉시 롤백 가능
 - `generateUploadUrl` 변환은 호출부까지 함께 변경하므로 단일 커밋으로 관리
 
-### 9.5 권장 커밋 전략
+### 8.5 권장 커밋 전략
 
 ```
 feat(shared): add ErrorDisplay and NotFoundDisplay components

@@ -22,45 +22,39 @@ export async function generateUploadUrl(fileInfo: {
   fileName: string;
   contentType: string;
   language: string;
-}): Promise<{
-  success: boolean;
-  signedUrl: string;
-  uploadedFileId: string;
-  key: string;
-}> {
-  const session = await auth();
+}): Promise<ActionResult<{ signedUrl: string; uploadedFileId: string; key: string }>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
 
-  if (!session) throw new Error("Unauthorized");
+  try {
+    const fileExtension = fileInfo.fileName.split(".").pop() ?? "";
+    const uniqueId = uuidv4();
+    const key = `${uniqueId}/original.${fileExtension}`;
 
-  const fileExtension = fileInfo.fileName.split(".").pop() ?? "";
-  const uniqueId = uuidv4();
-  const key = `${uniqueId}/original.${fileExtension}`;
+    const signedUrl = await generatePresignedPutUrl(
+      key,
+      fileInfo.contentType,
+      S3_CONFIG.PRESIGNED_PUT_URL_EXPIRY,
+    );
 
-  const signedUrl = await generatePresignedPutUrl(
-    key,
-    fileInfo.contentType,
-    S3_CONFIG.PRESIGNED_PUT_URL_EXPIRY,
-  );
+    const uploadedFileDbRecord = await db.uploadedFile.create({
+      data: {
+        userId: authResult.data.userId,
+        s3Key: key,
+        displayName: fileInfo.fileName,
+        uploaded: false,
+        language: fileInfo.language ?? "English",
+      },
+      select: {
+        id: true,
+      },
+    });
 
-  const uploadedFileDbRecord = await db.uploadedFile.create({
-    data: {
-      userId: session.user.id,
-      s3Key: key,
-      displayName: fileInfo.fileName,
-      uploaded: false,
-      language: fileInfo.language ?? "English",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return {
-    success: true,
-    key,
-    uploadedFileId: uploadedFileDbRecord.id,
-    signedUrl,
-  };
+    return success({ key, uploadedFileId: uploadedFileDbRecord.id, signedUrl });
+  } catch (error) {
+    console.error("Failed to generate upload URL", error);
+    return failure("Failed to generate upload URL");
+  }
 }
 
 /**

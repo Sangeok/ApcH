@@ -28,5 +28,6 @@ export const POLAR_PRODUCT_IDS = {
 } as const;
 
 export function getProductIds() {
-  return POLAR_PRODUCT_IDS.sandbox;
+  const server = (process.env.POLAR_SERVER ?? "sandbox") as keyof typeof POLAR_PRODUCT_IDS;
+  return POLAR_PRODUCT_IDS[server];
 }

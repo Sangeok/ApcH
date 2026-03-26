@@ -46,13 +46,18 @@ export default function UploadPodcast() {
 
     try {
       // client -> nextjs backend -> s3 bucket
-      const { success, signedUrl, uploadedFileId } = await generateUploadUrl({
+      const uploadResult = await generateUploadUrl({
         fileName: file.name,
         contentType: file.type,
         language: language,
       });
 
-      if (!success) throw new Error("Failed to get upload url");
+      if (!uploadResult.success) {
+        toast.error(uploadResult.error);
+        return;
+      }
+
+      const { signedUrl, uploadedFileId } = uploadResult.data;
 
       const uploadResponse = await fetch(signedUrl, {
         method: "PUT",
@@ -64,7 +69,12 @@ export default function UploadPodcast() {
 
       if (!uploadResponse.ok) throw new Error("Failed to upload file");
 
-      await processVideo(uploadedFileId, language, clipCount);
+      const processResult = await processVideo(uploadedFileId, language, clipCount);
+
+      if (!processResult.success) {
+        toast.error(processResult.error);
+        return;
+      }
 
       setFiles([]);
 
