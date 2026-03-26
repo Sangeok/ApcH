@@ -10,7 +10,25 @@
       "Bash(grep -E \"\\\\.\\(md|txt|MD|TXT|json\\)$|^d\")",
       "Bash(xargs grep:*)",
       "Bash(SKIP_ENV_VALIDATION=1 npx tsc --noEmit)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npm ls:*)",
+      "Bash(grep -r stripe /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx -l)",
+      "Bash(grep -r \"stripeCustomerId\\\\|stripe\" /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend --include=*.ts --include=*.tsx -n)",
+      "Bash(grep -r stripe ./ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "WebFetch(domain:docs.polar.sh)",
+      "WebFetch(domain:polar.sh)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:hookdeck.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(grep -r polar /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r stripe /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
+      "Bash(npm list:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx next:*)",
+      "Bash(SKIP_ENV_VALIDATION=1 npx next lint)"
     ]
   }
 }
