@@ -43,14 +43,16 @@ export default function DashboardHeader({
             >
               {credits} Credits
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="h-8 text-xs font-medium"
-            >
-              <Link href="/dashboard/billing">Buy more</Link>
-            </Button>
+            {process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED === "true" && (
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="h-8 text-xs font-medium"
+              >
+                <Link href="/dashboard/billing">Buy more</Link>
+              </Button>
+            )}
           </div>
 
           <DropdownMenu>

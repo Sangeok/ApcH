@@ -19,6 +19,13 @@ const checkoutHandler = Checkout({
 });
 
 export async function GET(req: NextRequest) {
+  if (env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED === false) {
+    return NextResponse.json(
+      { error: "Subscriptions are currently disabled" },
+      { status: 403 },
+    );
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

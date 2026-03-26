@@ -54,6 +54,10 @@ export async function getBillingData(): Promise<ActionResult<BillingPageData>> {
 export async function getCheckoutUrl(
   productId: string,
 ): Promise<ActionResult<{ url: string }>> {
+  if (process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED !== "true") {
+    return failure("Subscriptions are currently disabled");
+  }
+
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 

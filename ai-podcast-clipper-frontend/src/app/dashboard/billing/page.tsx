@@ -1,6 +1,7 @@
 import { getBillingData } from "~/fsd/features/billing/api";
 import { getProductIds } from "~/fsd/features/billing/constants";
 import { BillingPage } from "~/fsd/features/billing/ui/BillingPage";
+import { env } from "~/env";
 
 export default async function BillingRoute({
   searchParams,
@@ -23,6 +24,7 @@ export default async function BillingRoute({
       data={result.data}
       productIds={getProductIds()}
       showSuccessBanner={params.success === "true"}
+      subscriptionEnabled={env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED}
     />
   );
 }

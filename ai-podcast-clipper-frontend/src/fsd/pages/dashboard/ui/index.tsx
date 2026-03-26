@@ -45,11 +45,13 @@ export default function DashboardClient({
           Upload your podcast files and get AI-generated clips.
         </p>
       </div>
-      <div className="flex justify-end">
-        <Link href="/dashboard/billing">
-          <Button>Buy Credits</Button>
-        </Link>
-      </div>
+      {process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED === "true" && (
+        <div className="flex justify-end">
+          <Link href="/dashboard/billing">
+            <Button>Buy Credits</Button>
+          </Link>
+        </div>
+      )}
 
       <Tabs defaultValue="upload">
         <TabsList>

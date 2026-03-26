@@ -46,6 +46,10 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SUBSCRIPTION_ENABLED: z
+      .string()
+      .transform((v) => v === "true")
+      .default("false"),
   },
 
   /**
@@ -76,6 +80,7 @@ export const env = createEnv({
     CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,
     AUTH_URL: process.env.AUTH_URL,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_SUBSCRIPTION_ENABLED: process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

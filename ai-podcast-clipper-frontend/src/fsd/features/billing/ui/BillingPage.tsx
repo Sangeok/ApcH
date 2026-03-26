@@ -13,9 +13,10 @@ interface BillingPageProps {
   data: BillingPageData;
   productIds: ProductIds;
   showSuccessBanner: boolean;
+  subscriptionEnabled: boolean;
 }
 
-export function BillingPage({ data, productIds, showSuccessBanner }: BillingPageProps) {
+export function BillingPage({ data, productIds, showSuccessBanner, subscriptionEnabled }: BillingPageProps) {
   const router = useRouter();
   const [polling, setPolling] = useState(false);
 
@@ -74,23 +75,25 @@ export function BillingPage({ data, productIds, showSuccessBanner }: BillingPage
         subscription={data.subscription}
       />
 
-      <div>
-        <h2 className="mb-4 text-lg font-medium">Choose a Plan</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          <PlanCard
-            tier="free"
-            currentTier={currentTier}
-            hasActiveSubscription={!!data.subscription}
-            productIds={productIds}
-          />
-          <PlanCard
-            tier="pro"
-            currentTier={currentTier}
-            hasActiveSubscription={!!data.subscription}
-            productIds={productIds}
-          />
+      {subscriptionEnabled && (
+        <div>
+          <h2 className="mb-4 text-lg font-medium">Choose a Plan</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            <PlanCard
+              tier="free"
+              currentTier={currentTier}
+              hasActiveSubscription={!!data.subscription}
+              productIds={productIds}
+            />
+            <PlanCard
+              tier="pro"
+              currentTier={currentTier}
+              hasActiveSubscription={!!data.subscription}
+              productIds={productIds}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <OrderHistory orders={data.orders} />
     </div>
