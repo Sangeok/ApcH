@@ -106,20 +106,18 @@ export const processVideo = inngest.createFunction(
       //   → 함수 run당 최대 1회 POST 보장
 
       await step.run("trigger-modal", async () => {
-        // Layer 2: DB idempotency — 이전 시도에서 이미 트리거된 경우 스킵
-        const file = await db.uploadedFile.findUnique({
-          where: { id: uploadedFileId },
-          select: { modalTriggered: true },
-        });
-        if (file?.modalTriggered) {
-          return;
-        }
-
-        // POST 전에 플래그 설정 — 가장 보수적인 전략
-        await db.uploadedFile.update({
-          where: { id: uploadedFileId },
+        // Layer 2: Atomic DB idempotency — 단일 쿼리로 check+set
+        // TOCTOU 레이스 컨디션 제거: findUnique → update 2-쿼리 패턴 대신
+        // updateMany WHERE modalTriggered=false 조건으로 원자적 잠금
+        // 첫 실행만 count=1, 이후 delivery retry/function retry는 count=0 → 스킵
+        const result = await db.uploadedFile.updateMany({
+          where: { id: uploadedFileId, modalTriggered: false },
           data: { modalTriggered: true },
         });
+        if (result.count === 0) {
+          // 이미 다른 실행이 플래그를 설정함 → POST 스킵
+          return;
+        }
 
         // Layer 1: 2초 AbortController — Vercel maxDuration(10s) 내 완료 보장
         const controller = new AbortController();

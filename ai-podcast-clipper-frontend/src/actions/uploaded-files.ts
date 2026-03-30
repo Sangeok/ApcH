@@ -159,7 +159,7 @@ export async function reprocessUploadedFile(
       db.clip.deleteMany({ where: { uploadedFileId } }),
       db.uploadedFile.update({
         where: { id: uploadedFileId },
-        data: { status: "queued", uploaded: false },
+        data: { status: "queued", uploaded: false, modalTriggered: false },
       }),
     ]);
 

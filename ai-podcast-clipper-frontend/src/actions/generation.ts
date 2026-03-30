@@ -29,37 +29,21 @@ export async function processVideo(
     data: { language },
   });
 
-  const uploadedVideo = await db.uploadedFile.findUniqueOrThrow({
-    where: {
-      id: uploadedFileId,
-      userId: session.user.id,
-    },
-    select: {
-      uploaded: true,
-      id: true,
-      userId: true,
-    },
+  // Atomic check+set: uploaded=false → true 원자적 전환
+  const claimed = await db.uploadedFile.updateMany({
+    where: { id: uploadedFileId, userId: session.user.id, uploaded: false },
+    data: { uploaded: true },
   });
 
-  if (uploadedVideo.uploaded) return;
+  if (claimed.count === 0) return;
 
   await inngest.send({
     name: "process-video-events",
     data: {
-      uploadedFileId: uploadedVideo.id,
-      userId: uploadedVideo.userId,
+      uploadedFileId,
+      userId: session.user.id,
       language,
       clipCount,
-    },
-  });
-
-  await db.uploadedFile.update({
-    where: {
-      id: uploadedVideo.id,
-      userId: session.user.id,
-    },
-    data: {
-      uploaded: true,
     },
   });
 

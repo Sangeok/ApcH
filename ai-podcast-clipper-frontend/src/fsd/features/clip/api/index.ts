@@ -51,32 +51,25 @@ export async function processVideo(
       data: { language: lang },
     });
 
-    const uploadedVideo = await db.uploadedFile.findUniqueOrThrow({
-      where: { id: fileId, userId },
-      select: {
-        uploaded: true,
-        id: true,
-        userId: true,
-      },
+    // Atomic check+set: uploaded=false → true 원자적 전환
+    // TOCTOU 레이스 컨디션 제거 — 두 요청이 동시에 false를 읽는 것 방지
+    const claimed = await db.uploadedFile.updateMany({
+      where: { id: fileId, userId, uploaded: false },
+      data: { uploaded: true },
     });
 
-    if (uploadedVideo.uploaded) {
+    if (claimed.count === 0) {
       return failure("Video already uploaded");
     }
 
     await inngest.send({
       name: "process-video-events",
       data: {
-        uploadedFileId: uploadedVideo.id,
-        userId: uploadedVideo.userId,
+        uploadedFileId: fileId,
+        userId,
         language: lang,
         clipCount: count,
       },
-    });
-
-    await db.uploadedFile.update({
-      where: { id: uploadedVideo.id, userId },
-      data: { uploaded: true },
     });
 
     revalidatePath("/dashboard");

@@ -29,7 +29,8 @@
       "Bash(ls:*)",
       "Bash(find /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src -type f \\\\\\(-name ClipCard.tsx -o -name *UploadDetail* \\\\\\))",
       "Bash(find C:UsershamsoOneDriveDesktopgitApcHai-podcast-clipper-frontend -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
-      "Bash(find C:UsershamsoOneDriveDesktopgitApcHai-podcast-clipper-frontend -path *api* -name *.ts -o -path *api* -name *.tsx)"
+      "Bash(find C:UsershamsoOneDriveDesktopgitApcHai-podcast-clipper-frontend -path *api* -name *.ts -o -path *api* -name *.tsx)",
+      "Bash(git fetch:*)"
     ]
   }
 }
