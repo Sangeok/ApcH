@@ -95,12 +95,13 @@ export const processVideo = inngest.createFunction(
       // 문제: Modal L40S GPU 콜드 스타트(30~120초+) > Vercel maxDuration(10초)
       //   → Inngest step delivery 재시도 → trigger_video 중복 호출 → .spawn() 중복
       //
-      // Layer 1: AbortController 7초 타임아웃
-      //   → step이 항상 ~8초 이내 완료 → Vercel 타임아웃 없음 → 재시도 없음
+      // Layer 1: AbortController 2초 타임아웃 + modalRejected flag 패턴
+      //   → step이 ~3-5초 내 완료 → Vercel 타임아웃 여유 확보
+      //   → error instanceof 대신 flag로 Modal 명시적 거부만 구분 → 런타임 호환성 보장
       //   → Modal 인프라는 콜드 스타트 중에도 요청을 큐잉하므로 요청 유실 없음
       //
       // Layer 2: DB modalTriggered 플래그
-      //   → Layer 1 실패 시 (DNS 장애, Vercel 불안정 등) 방어적 보호
+      //   → 모든 경로에서 중복 POST 방지 (delivery retry, function retry 등)
 
       await step.run("trigger-modal", async () => {
         // Layer 2: DB idempotency — 이전 시도에서 이미 트리거된 경우 스킵
@@ -118,9 +119,13 @@ export const processVideo = inngest.createFunction(
           data: { modalTriggered: true },
         });
 
-        // Layer 1: 7초 AbortController — Vercel maxDuration(10초) 내에 step 완료 보장
+        // Layer 1: 2초 AbortController
+        // 기존 7초 → Vercel cold start + DB ops + 7초 = 10-15초 > maxDuration(10초)
+        // 2초면 HTTP 요청 전송에 충분 (DNS+TCP+TLS+body < 500ms)
+        // 총 step 시간: cold start(2-5s) + SDK(1s) + DB(1s) + fetch(2s) = 6-9s < 10s
+        let modalRejected = false;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
 
         try {
           const res = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
@@ -140,7 +145,8 @@ export const processVideo = inngest.createFunction(
           clearTimeout(timeoutId);
 
           if (!res.ok) {
-            // 명시적 에러 응답 → Modal이 요청을 거부 → 플래그 리셋 → 재시도 허용
+            // Modal이 명시적으로 거부 (4xx/5xx) → 플래그 리셋 → 재시도 허용
+            modalRejected = true;
             await db.uploadedFile.update({
               where: { id: uploadedFileId },
               data: { modalTriggered: false },
@@ -152,18 +158,12 @@ export const processVideo = inngest.createFunction(
           }
         } catch (error) {
           clearTimeout(timeoutId);
-          // AbortError = 7초 타임아웃 = Modal 콜드 스타트 중
-          // 요청은 Modal 인프라에 이미 큐잉됨 → 컨테이너 준비 후 처리됨
-          // 성공 반환하여 Inngest가 step을 memoize → 재시도 차단
-          if (error instanceof Error && error.name === "AbortError") {
-            return;
-          }
-          // 네트워크 에러 (요청이 Modal에 도달하지 못함) → 플래그 리셋 → 재시도 허용
-          await db.uploadedFile.update({
-            where: { id: uploadedFileId },
-            data: { modalTriggered: false },
-          });
-          throw error;
+          // Modal의 명시적 거부만 re-throw (플래그 이미 리셋됨 → Inngest 재시도 시 POST 가능)
+          if (modalRejected) throw error;
+          // timeout(AbortError), 네트워크 에러 등 → 요청은 이미 네트워크에 전송됨
+          // Modal 인프라가 큐잉 중 → 성공 처리 → step memoize → 재시도 차단
+          // 만약 요청이 미도달한 경우 → waitForEvent 1h timeout → onFailure로 안전하게 실패
+          return;
         }
       });
 
