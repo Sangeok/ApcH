@@ -95,13 +95,15 @@ export const processVideo = inngest.createFunction(
       // 문제: Modal L40S GPU 콜드 스타트(30~120초+) > Vercel maxDuration(10초)
       //   → Inngest step delivery 재시도 → trigger_video 중복 호출 → .spawn() 중복
       //
-      // Layer 1: AbortController 2초 타임아웃 + modalRejected flag 패턴
+      // Layer 1: AbortController 2초 타임아웃
       //   → step이 ~3-5초 내 완료 → Vercel 타임아웃 여유 확보
-      //   → error instanceof 대신 flag로 Modal 명시적 거부만 구분 → 런타임 호환성 보장
       //   → Modal 인프라는 콜드 스타트 중에도 요청을 큐잉하므로 요청 유실 없음
       //
       // Layer 2: DB modalTriggered 플래그
       //   → 모든 경로에서 중복 POST 방지 (delivery retry, function retry 등)
+      //
+      // Modal 거부(4xx/5xx): NonRetriableError → 함수 즉시 실패 → 재시도 없음
+      //   → 함수 run당 최대 1회 POST 보장
 
       await step.run("trigger-modal", async () => {
         // Layer 2: DB idempotency — 이전 시도에서 이미 트리거된 경우 스킵
@@ -119,11 +121,7 @@ export const processVideo = inngest.createFunction(
           data: { modalTriggered: true },
         });
 
-        // Layer 1: 2초 AbortController
-        // 기존 7초 → Vercel cold start + DB ops + 7초 = 10-15초 > maxDuration(10초)
-        // 2초면 HTTP 요청 전송에 충분 (DNS+TCP+TLS+body < 500ms)
-        // 총 step 시간: cold start(2-5s) + SDK(1s) + DB(1s) + fetch(2s) = 6-9s < 10s
-        let modalRejected = false;
+        // Layer 1: 2초 AbortController — Vercel maxDuration(10s) 내 완료 보장
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2000);
 
@@ -145,21 +143,18 @@ export const processVideo = inngest.createFunction(
           clearTimeout(timeoutId);
 
           if (!res.ok) {
-            // Modal이 명시적으로 거부 (4xx/5xx) → 플래그 리셋 → 재시도 허용
-            modalRejected = true;
-            await db.uploadedFile.update({
-              where: { id: uploadedFileId },
-              data: { modalTriggered: false },
-            });
+            // Modal 명시적 거부 (4xx/5xx) → NonRetriableError로 즉시 실패
+            // 재시도해도 같은 결과 (401: 인증, 422: 검증, 5xx: 서버 에러)
+            // DB 플래그 리셋 없음 → onFailure에서 리셋 → 사용자가 reprocess로 재시도
             const text = await res.text().catch(() => "");
-            throw new Error(
+            throw new NonRetriableError(
               `Modal trigger failed (${res.status}): ${text.slice(0, 500)}`,
             );
           }
         } catch (error) {
           clearTimeout(timeoutId);
-          // Modal의 명시적 거부만 re-throw (플래그 이미 리셋됨 → Inngest 재시도 시 POST 가능)
-          if (modalRejected) throw error;
+          // NonRetriableError(Modal 거부)만 re-throw → 함수 즉시 실패 → onFailure
+          if (error instanceof NonRetriableError) throw error;
           // timeout(AbortError), 네트워크 에러 등 → 요청은 이미 네트워크에 전송됨
           // Modal 인프라가 큐잉 중 → 성공 처리 → step memoize → 재시도 차단
           // 만약 요청이 미도달한 경우 → waitForEvent 1h timeout → onFailure로 안전하게 실패
@@ -187,10 +182,12 @@ export const processVideo = inngest.createFunction(
       }
 
       // Modal 처리 실패 (webhook에서 status: "error"로 전송)
-      // 일반 Error 사용 — 일시적 장애일 수 있으므로 재시도 허용
-      // 재시도 시 trigger-modal은 memoized → Modal 중복 호출 없음
+      // NonRetriableError 사용 — Modal이 이미 처리하고 error webhook을 보낸 상태
+      // 재시도해도 trigger-modal은 memoized이므로 새 POST는 없지만, 동일 에러 반복만 됨
       if (modalResult.data.status === "error") {
-        throw new Error(`Modal processing failed: ${modalResult.data.error}`);
+        throw new NonRetriableError(
+          `Modal processing failed: ${modalResult.data.error}`,
+        );
       }
 
       // V3: create-clips-in-db 완전 리팩터링
