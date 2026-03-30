@@ -206,18 +206,21 @@ export async function reprocessUploadedFile(
       db.clip.deleteMany({ where: { uploadedFileId } }),
       db.uploadedFile.update({
         where: { id: uploadedFileId },
-        data: { status: "queued", uploaded: false },
+        data: { status: "queued", uploaded: false, modalTriggered: false },
       }),
     ]);
 
     await removeGeneratedClipsFromS3(uploadedFile.s3Key);
 
+    // R15 수정: reprocess 경로에 clipCount 누락 → Modal Pydantic 422 에러 방지
+    // UploadedFile 스키마에 clipCount 필드 없으므로 기본값 사용
     await inngest.send({
       name: "process-video-events",
       data: {
         uploadedFileId: uploadedFile.id,
         userId: uploadedFile.userId,
         language: uploadedFile.language ?? "English",
+        clipCount: 3,
       },
     });
 
@@ -271,7 +274,11 @@ async function removeGeneratedClipsFromS3(
   options?: { includeOriginal?: boolean },
 ): Promise<void> {
   const includeOriginal = options?.includeOriginal ?? false;
-  const prefix = originalKey.split("/")[0] + "/";
+  // R21 방어적 수정: split("/")[0]은 구 형식({userId}/{uuid}/...)에서 userId만 추출 → 사용자 전체 클립 삭제 위험
+  // slice(0, -1).join("/")으로 마지막 세그먼트(파일명)를 제거하여 폴더 경로 추출
+  // 현재 형식: "uuid/original.ext" → "uuid/" (정상)
+  // 구 형식:   "userId/uuid/original.mp4" → "userId/uuid/" (구 형식 객체에서도 정상)
+  const prefix = originalKey.split("/").slice(0, -1).join("/") + "/";
 
   const allKeys = await listS3Objects(prefix);
   const filteredTargets = includeOriginal

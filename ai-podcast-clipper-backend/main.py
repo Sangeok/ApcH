@@ -21,12 +21,14 @@ import pysubs2
 import re
 
 from google import genai
+import httpx
 
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
     s3_key: str
     language: str = "Korean"
     clip_count: int
+    uploaded_file_id: str | None = None  # 비동기 패턴에서 webhook 매칭에 사용
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -671,7 +673,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     }
 
 # GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스
-@app.cls(gpu="L40S", timeout=900, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")],  volumes={mount_path: volume})
+@app.cls(gpu="L40S", timeout=1800, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")],  volumes={mount_path: volume})
 class AiPodcastClipper:
     # 컨테이너가 시작될 때 1회 실행되는 초기화 훅(모델/가중치 로드 위치)
     @modal.enter()
@@ -948,6 +950,159 @@ Transcript:
             "language": selected_language,
             "clips": clip_results,
         }
+
+    # -------------------------------------------------------------------------
+    # 비동기 패턴: trigger_video + process_video_background
+    # -------------------------------------------------------------------------
+    # V2 배포 순서: 기존 process_video 동기 엔드포인트를 유지한 채로 아래 두 메서드를
+    # 병행 추가합니다. 프론트엔드(functions.ts)가 trigger_video를 사용하도록 전환된
+    # 이후, 기존 process_video 엔드포인트는 제거해도 됩니다.
+    # -------------------------------------------------------------------------
+
+    @modal.method()
+    def process_video_background(self, s3_key: str, language: str, clip_count: int, uploaded_file_id: str):
+        """백그라운드 처리 메서드 — trigger_video에서 .spawn()으로 호출됩니다.
+        처리 완료/실패 시 모두 MODAL_WEBHOOK_CALLBACK_URL로 결과를 POST합니다.
+        """
+        webhook_url = os.environ.get("MODAL_WEBHOOK_CALLBACK_URL")
+        webhook_secret = os.environ.get("MODAL_WEBHOOK_SECRET")
+
+        run_id = str(uuid.uuid4())
+        base_dir = pathlib.Path("/tmp") / run_id
+        base_dir.mkdir(parents=True, exist_ok=True)
+        video_path = base_dir / "input.mp4"
+
+        aws_id = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+        region = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-2")
+
+        s3_client = boto3.client(
+            "s3",
+            region_name=region,
+            aws_access_key_id=aws_id,
+            aws_secret_access_key=aws_secret,
+        )
+
+        clip_results = []
+        try:
+            s3_client.download_file("ai-podcast-clipper-hamsoo", s3_key, str(video_path))
+
+            transcript_segments_json = self.transcribe_video(base_dir, video_path)
+            transcript_segments = json.loads(transcript_segments_json)
+
+            print("Identifying moments for clips...")
+            identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2)
+
+            raw = identified_moments_raws.strip()
+            if raw.startswith("```"):
+                raw = raw[len("```"):].strip()
+                if raw.lower().startswith("json"):
+                    raw = raw[4:].lstrip()
+            if raw.endswith("```"):
+                raw = raw[:-3].strip()
+
+            try:
+                clip_moments = json.loads(raw)
+            except json.JSONDecodeError:
+                print("Error: Identified moments is not valid JSON")
+                clip_moments = []
+
+            if not clip_moments or not isinstance(clip_moments, list):
+                print("Error: Identified moments is not a list")
+                clip_moments = []
+
+            print(f"Final identified moments: {clip_moments}")
+
+            MAX_CLIP_DURATION = 90
+            MIN_CLIP_DURATION = 30
+            validated_moments = []
+            for moment in clip_moments:
+                start = moment.get("start")
+                end = moment.get("end")
+                if start is None or end is None:
+                    continue
+                duration = end - start
+                if MIN_CLIP_DURATION <= duration <= MAX_CLIP_DURATION:
+                    validated_moments.append(moment)
+                else:
+                    print(f"Skipping moment ({duration:.1f}s): outside [{MIN_CLIP_DURATION}, {MAX_CLIP_DURATION}]s range")
+
+            for index, moment in enumerate(validated_moments[:clip_count]):
+                print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
+                clip_result = process_clip(
+                    base_dir, video_path, s3_key,
+                    moment["start"], moment["end"], index,
+                    transcript_segments, self.gemini_client, language,
+                )
+                clip_result["clipType"] = moment.get("type")
+                clip_result["hook"] = moment.get("hook")
+                clip_result["payoff"] = moment.get("payoff")
+                clip_results.append(clip_result)
+
+            # 성공 webhook 전송
+            if webhook_url:
+                httpx.post(
+                    webhook_url,
+                    json={
+                        "status": "ok",
+                        "uploaded_file_id": uploaded_file_id,
+                        "clips": clip_results,
+                    },
+                    headers={"Authorization": f"Bearer {webhook_secret}"},
+                    timeout=10.0,
+                )
+
+        except Exception as e:
+            print(f"[Background] Processing failed for {uploaded_file_id}: {e}")
+            # 실패 webhook 전송 — R4: GPU timeout(SIGKILL)은 except에 잡히지 않으므로
+            # timeout=1800 설정으로 SIGKILL 가능성을 최소화해야 함
+            if webhook_url:
+                try:
+                    httpx.post(
+                        webhook_url,
+                        json={
+                            "status": "error",
+                            "uploaded_file_id": uploaded_file_id,
+                            "error": str(e),
+                        },
+                        headers={"Authorization": f"Bearer {webhook_secret}"},
+                        timeout=10.0,
+                    )
+                except Exception:
+                    pass  # webhook 전송 자체 실패 → waitForEvent 1h timeout이 최후의 안전장치
+
+        finally:
+            if base_dir.exists():
+                print(f"Cleaning up temp dir: {base_dir}")
+                shutil.rmtree(base_dir, ignore_errors=True)
+
+    @modal.fastapi_endpoint(method="POST")
+    def trigger_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
+        """비동기 트리거 엔드포인트 — 즉시 accepted를 반환하고 백그라운드에서 처리합니다.
+        프론트엔드 Inngest 함수의 trigger-modal step이 이 엔드포인트를 호출합니다.
+        """
+        if token.credentials != os.environ["AUTH_TOKEN"]:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect bearer token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not request.uploaded_file_id:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="uploaded_file_id is required for async processing",
+            )
+
+        self.process_video_background.spawn(
+            s3_key=request.s3_key,
+            language=request.language,
+            clip_count=int(request.clip_count),
+            uploaded_file_id=request.uploaded_file_id,
+        )
+
+        return {"status": "accepted"}
+
 
 # 로컬에서 원격 엔드포인트를 호출해 동작을 검증하는 엔트리포인트
 @app.local_entrypoint()

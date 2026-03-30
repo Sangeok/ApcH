@@ -5133,6 +5133,7 @@ export namespace Prisma {
     s3Key: string | null
     displayName: string | null
     uploaded: boolean | null
+    modalTriggered: boolean | null
     status: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -5145,6 +5146,7 @@ export namespace Prisma {
     s3Key: string | null
     displayName: string | null
     uploaded: boolean | null
+    modalTriggered: boolean | null
     status: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -5157,6 +5159,7 @@ export namespace Prisma {
     s3Key: number
     displayName: number
     uploaded: number
+    modalTriggered: number
     status: number
     createdAt: number
     updatedAt: number
@@ -5171,6 +5174,7 @@ export namespace Prisma {
     s3Key?: true
     displayName?: true
     uploaded?: true
+    modalTriggered?: true
     status?: true
     createdAt?: true
     updatedAt?: true
@@ -5183,6 +5187,7 @@ export namespace Prisma {
     s3Key?: true
     displayName?: true
     uploaded?: true
+    modalTriggered?: true
     status?: true
     createdAt?: true
     updatedAt?: true
@@ -5195,6 +5200,7 @@ export namespace Prisma {
     s3Key?: true
     displayName?: true
     uploaded?: true
+    modalTriggered?: true
     status?: true
     createdAt?: true
     updatedAt?: true
@@ -5280,6 +5286,7 @@ export namespace Prisma {
     s3Key: string
     displayName: string | null
     uploaded: boolean
+    modalTriggered: boolean
     status: string
     createdAt: Date
     updatedAt: Date
@@ -5309,6 +5316,7 @@ export namespace Prisma {
     s3Key?: boolean
     displayName?: boolean
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -5324,6 +5332,7 @@ export namespace Prisma {
     s3Key?: boolean
     displayName?: boolean
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -5337,6 +5346,7 @@ export namespace Prisma {
     s3Key?: boolean
     displayName?: boolean
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -5350,6 +5360,7 @@ export namespace Prisma {
     s3Key?: boolean
     displayName?: boolean
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -5357,7 +5368,7 @@ export namespace Prisma {
     userId?: boolean
   }
 
-  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "language" | "userId", ExtArgs["result"]["uploadedFile"]>
+  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "modalTriggered" | "status" | "createdAt" | "updatedAt" | "language" | "userId", ExtArgs["result"]["uploadedFile"]>
   export type UploadedFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -5381,6 +5392,7 @@ export namespace Prisma {
       s3Key: string
       displayName: string | null
       uploaded: boolean
+      modalTriggered: boolean
       status: string
       createdAt: Date
       updatedAt: Date
@@ -5815,6 +5827,7 @@ export namespace Prisma {
     readonly s3Key: FieldRef<"UploadedFile", 'String'>
     readonly displayName: FieldRef<"UploadedFile", 'String'>
     readonly uploaded: FieldRef<"UploadedFile", 'Boolean'>
+    readonly modalTriggered: FieldRef<"UploadedFile", 'Boolean'>
     readonly status: FieldRef<"UploadedFile", 'String'>
     readonly createdAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly updatedAt: FieldRef<"UploadedFile", 'DateTime'>
@@ -10843,6 +10856,7 @@ export namespace Prisma {
     s3Key: 's3Key',
     displayName: 'displayName',
     uploaded: 'uploaded',
+    modalTriggered: 'modalTriggered',
     status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
@@ -11252,6 +11266,7 @@ export namespace Prisma {
     s3Key?: StringFilter<"UploadedFile"> | string
     displayName?: StringNullableFilter<"UploadedFile"> | string | null
     uploaded?: BoolFilter<"UploadedFile"> | boolean
+    modalTriggered?: BoolFilter<"UploadedFile"> | boolean
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
@@ -11266,6 +11281,7 @@ export namespace Prisma {
     s3Key?: SortOrder
     displayName?: SortOrderInput | SortOrder
     uploaded?: SortOrder
+    modalTriggered?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -11283,6 +11299,7 @@ export namespace Prisma {
     s3Key?: StringFilter<"UploadedFile"> | string
     displayName?: StringNullableFilter<"UploadedFile"> | string | null
     uploaded?: BoolFilter<"UploadedFile"> | boolean
+    modalTriggered?: BoolFilter<"UploadedFile"> | boolean
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
@@ -11297,6 +11314,7 @@ export namespace Prisma {
     s3Key?: SortOrder
     displayName?: SortOrderInput | SortOrder
     uploaded?: SortOrder
+    modalTriggered?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -11315,6 +11333,7 @@ export namespace Prisma {
     s3Key?: StringWithAggregatesFilter<"UploadedFile"> | string
     displayName?: StringNullableWithAggregatesFilter<"UploadedFile"> | string | null
     uploaded?: BoolWithAggregatesFilter<"UploadedFile"> | boolean
+    modalTriggered?: BoolWithAggregatesFilter<"UploadedFile"> | boolean
     status?: StringWithAggregatesFilter<"UploadedFile"> | string
     createdAt?: DateTimeWithAggregatesFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"UploadedFile"> | Date | string
@@ -11899,6 +11918,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -11912,6 +11932,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -11925,6 +11946,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11938,6 +11960,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11951,6 +11974,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -11963,6 +11987,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11974,6 +11999,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12690,6 +12716,7 @@ export namespace Prisma {
     s3Key?: SortOrder
     displayName?: SortOrder
     uploaded?: SortOrder
+    modalTriggered?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -12702,6 +12729,7 @@ export namespace Prisma {
     s3Key?: SortOrder
     displayName?: SortOrder
     uploaded?: SortOrder
+    modalTriggered?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -12714,6 +12742,7 @@ export namespace Prisma {
     s3Key?: SortOrder
     displayName?: SortOrder
     uploaded?: SortOrder
+    modalTriggered?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -13811,6 +13840,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -13823,6 +13853,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14030,6 +14061,7 @@ export namespace Prisma {
     s3Key?: StringFilter<"UploadedFile"> | string
     displayName?: StringNullableFilter<"UploadedFile"> | string | null
     uploaded?: BoolFilter<"UploadedFile"> | boolean
+    modalTriggered?: BoolFilter<"UploadedFile"> | boolean
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
@@ -14283,6 +14315,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14295,6 +14328,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14360,6 +14394,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -14372,6 +14407,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -14608,6 +14644,7 @@ export namespace Prisma {
     s3Key: string
     displayName?: string | null
     uploaded?: boolean
+    modalTriggered?: boolean
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14706,6 +14743,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -14718,6 +14756,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -14730,6 +14769,7 @@ export namespace Prisma {
     s3Key?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
     uploaded?: BoolFieldUpdateOperationsInput | boolean
+    modalTriggered?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

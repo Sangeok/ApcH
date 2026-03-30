@@ -28,7 +28,10 @@
       "Bash(npm list:*)",
       "Bash(npm uninstall:*)",
       "Bash(npx next:*)",
-      "Bash(SKIP_ENV_VALIDATION=1 npx next lint)"
+      "Bash(SKIP_ENV_VALIDATION=1 npx next lint)",
+      "Bash(pip show:*)",
+      "Bash(grep -E \"\\\\.tsx?$\")",
+      "Bash(grep -r @next/bundle-analyzer /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/ --include=*.json)"
     ]
   }
 }

@@ -160,6 +160,7 @@ exports.Prisma.UploadedFileScalarFieldEnum = {
   s3Key: 's3Key',
   displayName: 'displayName',
   uploaded: 'uploaded',
+  modalTriggered: 'modalTriggered',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

@@ -31,6 +31,8 @@ export const env = createEnv({
     // Inngest (Vercel Integration이 자동 주입, 로컬에서는 불필요)
     INNGEST_EVENT_KEY: z.string().optional(),
     INNGEST_SIGNING_KEY: z.string().optional(),
+    // Modal webhook secret (안전한 롤아웃: optional → 배포 확인 후 z.string()으로 변경)
+    MODAL_WEBHOOK_SECRET: z.string().optional(),
     // CloudFront CDN (선택)
     CLOUDFRONT_DOMAIN: z.string().optional(),
     CLOUDFRONT_KEY_PAIR_ID: z.string().optional(),
@@ -75,6 +77,7 @@ export const env = createEnv({
     POLAR_SERVER: process.env.POLAR_SERVER,
     INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+    MODAL_WEBHOOK_SECRET: process.env.MODAL_WEBHOOK_SECRET,
     CLOUDFRONT_DOMAIN: process.env.CLOUDFRONT_DOMAIN,
     CLOUDFRONT_KEY_PAIR_ID: process.env.CLOUDFRONT_KEY_PAIR_ID,
     CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,

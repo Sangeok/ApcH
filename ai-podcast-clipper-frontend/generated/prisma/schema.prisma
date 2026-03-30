@@ -59,14 +59,15 @@ model User {
 }
 
 model UploadedFile {
-  id          String   @id @default(cuid())
-  s3Key       String
-  displayName String?
-  uploaded    Boolean  @default(false)
-  status      String   @default("queued") // processing, processed, no credits
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  language    String   @default("English")
+  id             String   @id @default(cuid())
+  s3Key          String
+  displayName    String?
+  uploaded       Boolean  @default(false)
+  modalTriggered Boolean  @default(false)
+  status         String   @default("queued") // processing, processed, no credits
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  language       String   @default("English")
 
   clips Clip[]
 

@@ -63,6 +63,7 @@ model UploadedFile {
     s3Key String
     displayName String?
     uploaded Boolean @default(false)
+    modalTriggered Boolean @default(false)
     status String @default("queued") // processing, processed, no credits
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt 
