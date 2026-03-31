@@ -28,7 +28,17 @@
       "Bash(npm list:*)",
       "Bash(npm uninstall:*)",
       "Bash(npx next:*)",
-      "Bash(SKIP_ENV_VALIDATION=1 npx next lint)"
+      "Bash(SKIP_ENV_VALIDATION=1 npx next lint)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(git stash:*)",
+      "Bash(grep -r \"router\\\\.refresh\\\\|router\\\\.push\\\\|router\\\\.replace\" C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.tsx --include=*.ts)",
+      "Bash(grep -r \"revalidateTag\\\\|revalidatePath\\\\|router.refresh\" C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.tsx --include=*.ts)",
+      "Bash(grep -r generation C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"waitForEvent\\\\|step\\\\.wait\\\\|INNGEST\" /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r generateUploadUrl C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"PROCESS_VIDEO_ENDPOINT\\\\|AUTH_URL\" C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend --include=.env*)"
     ]
   }
 }

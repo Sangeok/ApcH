@@ -27,6 +27,8 @@ class ProcessVideoRequest(BaseModel):
     s3_key: str
     language: str = "Korean"
     clip_count: int
+    callback_url: str | None = None
+    uploaded_file_id: str | None = None
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -671,7 +673,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     }
 
 # GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스
-@app.cls(gpu="L40S", timeout=900, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")],  volumes={mount_path: volume})
+@app.cls(gpu="L40S", timeout=3600, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")],  volumes={mount_path: volume})
 class AiPodcastClipper:
     # 컨테이너가 시작될 때 1회 실행되는 초기화 훅(모델/가중치 로드 위치)
     @modal.enter()
@@ -816,16 +818,11 @@ Transcript:
         print(f"Identified moments response: ${response.text}")
         return response.text
 
-    # Modal에 배포된 FastAPI 엔드포인트로, Inngest 워커가 s3_key를 담아 POST 요청을 보내면 해당 영상을 클립으로 가공하고 결과를 S3에 업로드합니다.
+    # callback_url 유무로 비동기/동기 모드 결정
+    # - callback_url 있음 (Vercel): .spawn()으로 비동기 실행 → 즉시 응답, 완료 후 콜백
+    # - callback_url 없음 (로컬): 동기 실행 → 결과 직접 반환
     @modal.fastapi_endpoint(method="POST")
     def process_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-        s3_key = request.s3_key
-        selected_language = request.language
-        clip_count = int(request.clip_count) # clip_count is the number of clips to generate
-
-        print(f"Processing video language: {selected_language}")
-        print(f"Processing video clip count: {clip_count}")
-
         if token.credentials != os.environ["AUTH_TOKEN"]:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -833,25 +830,44 @@ Transcript:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # create temporary directory folder for the video processing
+        if request.callback_url:
+            # 비동기 모드: .spawn()으로 즉시 반환, 완료 후 callback_url로 결과 전송
+            call = self._do_process_video.spawn(
+                s3_key=request.s3_key,
+                language=request.language,
+                clip_count=int(request.clip_count),
+                callback_url=request.callback_url,
+                uploaded_file_id=request.uploaded_file_id,
+            )
+            return {"status": "accepted", "call_id": call.object_id}
+        else:
+            # 동기 모드 (로컬 개발): Modal 워커에서 동기 실행, 결과 직접 반환
+            return self._do_process_video.remote(
+                s3_key=request.s3_key,
+                language=request.language,
+                clip_count=int(request.clip_count),
+                callback_url=None,
+                uploaded_file_id=request.uploaded_file_id,
+            )
+
+    # 실제 영상 처리 (비동기 실행, 완료/실패 시 callback)
+    @modal.method()
+    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None):
+        import requests as req
+
+        clip_results = []
+
         run_id = str(uuid.uuid4())
         base_dir = pathlib.Path("/tmp") / run_id
         base_dir.mkdir(parents=True, exist_ok=True)
-
-        # download video file
         video_path = base_dir / "input.mp4"
 
-        # check AWS credentials and region
         aws_id = os.getenv("AWS_ACCESS_KEY_ID")
         aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
         region = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-2")
         if not aws_id or not aws_secret:
-            raise HTTPException(
-                status_code=500,
-                detail="AWS credentials are missing (check Modal secret).",
-            )
+            raise RuntimeError("AWS credentials are missing (check Modal secret).")
 
-        # S3 client (used for downloading original video)
         s3_client = boto3.client(
             "s3",
             region_name=region,
@@ -859,11 +875,7 @@ Transcript:
             aws_secret_access_key=aws_secret,
         )
 
-        clip_moments = []
-        clip_results = []
-
         try:
-            # download video file from S3(path : /tmp/<run_id>/input.mp4)
             s3_client.download_file("ai-podcast-clipper-hamsoo", s3_key, str(video_path))
 
             # 1. transcription
@@ -876,10 +888,8 @@ Transcript:
 
             raw = identified_moments_raws.strip()
 
-            # remove code fences and markdown
             if raw.startswith("```"):
                 raw = raw[len("```"):].strip()
-                # remove language tag like ```json
                 if raw.lower().startswith("json"):
                     raw = raw[4:].lstrip()
             if raw.endswith("```"):
@@ -913,7 +923,6 @@ Transcript:
                 else:
                     print(f"Skipping moment ({duration:.1f}s): outside [{MIN_CLIP_DURATION}, {MAX_CLIP_DURATION}]s range")
 
-            # validated_moments는 이미 engagement 순 정렬 상태
             for index, moment in enumerate(validated_moments[:clip_count]):
                 print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
 
@@ -926,7 +935,7 @@ Transcript:
                     index,
                     transcript_segments,
                     self.gemini_client,
-                    selected_language,
+                    language,
                 )
 
                 clip_result["clipType"] = moment.get("type")
@@ -935,8 +944,30 @@ Transcript:
 
                 clip_results.append(clip_result)
 
+            # 성공 콜백
+            if callback_url and uploaded_file_id:
+                req.post(callback_url, json={
+                    "uploadedFileId": uploaded_file_id,
+                    "status": "ok",
+                    "clips": clip_results,
+                }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
+
+        except Exception as e:
+            print(f"Error processing video: {e}")
+            # 실패 시에도 콜백 발송
+            if callback_url and uploaded_file_id:
+                try:
+                    req.post(callback_url, json={
+                        "uploadedFileId": uploaded_file_id,
+                        "status": "error",
+                        "error": str(e),
+                        "clips": [],
+                    }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
+                except Exception as cb_err:
+                    print(f"Failed to send error callback: {cb_err}")
+            raise
+
         finally:
-            # 정리
             if base_dir.exists():
                 print(f"Cleaning up temp dir after {base_dir}")
                 shutil.rmtree(base_dir, ignore_errors=True)
@@ -945,7 +976,7 @@ Transcript:
             "status": "ok",
             "clips_processed": len(clip_results),
             "s3_prefix": os.path.dirname(s3_key),
-            "language": selected_language,
+            "language": language,
             "clips": clip_results,
         }
 

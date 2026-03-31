@@ -25,5 +25,6 @@ datasets
 google-genai
 pysubs2
 boto3
+requests
 fastapi[standard]
 modal==1.2.1
