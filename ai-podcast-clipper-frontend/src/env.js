@@ -35,6 +35,8 @@ export const env = createEnv({
     CLOUDFRONT_DOMAIN: z.string().optional(),
     CLOUDFRONT_KEY_PAIR_ID: z.string().optional(),
     CLOUDFRONT_PRIVATE_KEY: z.string().optional(),
+    // Modal webhook callback 인증용 시크릿
+    MODAL_WEBHOOK_SECRET: z.string(),
     // NextAuth Production URL
     AUTH_URL: z.string().url().optional(),
   },
@@ -78,6 +80,7 @@ export const env = createEnv({
     CLOUDFRONT_DOMAIN: process.env.CLOUDFRONT_DOMAIN,
     CLOUDFRONT_KEY_PAIR_ID: process.env.CLOUDFRONT_KEY_PAIR_ID,
     CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,
+    MODAL_WEBHOOK_SECRET: process.env.MODAL_WEBHOOK_SECRET,
     AUTH_URL: process.env.AUTH_URL,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_SUBSCRIPTION_ENABLED: process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED,
