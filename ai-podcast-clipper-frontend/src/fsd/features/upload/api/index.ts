@@ -218,6 +218,7 @@ export async function reprocessUploadedFile(
         uploadedFileId: uploadedFile.id,
         userId: uploadedFile.userId,
         language: uploadedFile.language ?? "English",
+        clipCount: 3,
       },
     });
 

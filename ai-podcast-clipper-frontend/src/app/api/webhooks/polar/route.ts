@@ -1,5 +1,5 @@
 import { Webhooks } from "@polar-sh/nextjs";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { env } from "~/env";
 import { db } from "~/server/db";
 

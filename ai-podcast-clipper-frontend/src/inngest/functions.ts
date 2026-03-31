@@ -3,15 +3,6 @@ import { inngest } from "./client";
 import { db } from "~/server/db";
 import { listS3Objects } from "~/fsd/shared/api/s3";
 
-type ProcessVideoEvent = {
-  data: {
-    uploadedFileId: string;
-    userId: string;
-    language: string;
-    clipCount: number;
-  };
-};
-
 type ProcessVideoBackendClip = {
   index: number;
   startSeconds?: number | null;
@@ -24,22 +15,10 @@ type ProcessVideoBackendClip = {
   youtubeHashtags?: string[] | null;
 };
 
-type ProcessVideoBackendResponse = {
-  status?: string;
-  clips_planned?: number;
-  s3_prefix?: string;
-  language?: string;
-  clips?: ProcessVideoBackendClip[];
-};
-
-type StepRunner = {
-  run<T>(name: string, handler: () => Promise<T> | T): Promise<T>;
-};
-
 export const processVideo = inngest.createFunction(
   {
     id: "process-video",
-    retries: 3,
+    retries: 1,
     cancelOn: [
       {
         event: "process-video-events/cancel",
@@ -54,7 +33,7 @@ export const processVideo = inngest.createFunction(
       key: "event.data.userId",
     },
   },
-  async ({ event, step }: { event: ProcessVideoEvent; step: StepRunner }) => {
+  async ({ event, step }) => {
     const { uploadedFileId, language, clipCount } = event.data;
 
     console.log("clipCount", clipCount);
@@ -63,7 +42,6 @@ export const processVideo = inngest.createFunction(
       const { userId, credits, s3Key } = await step.run(
         "check-credits",
         async () => {
-          // Check if the uploaded file is ready for processing by fetching user ID, credits, and S3 key
           const uploadedFile = await db.uploadedFile.findUniqueOrThrow({
             where: {
               id: uploadedFileId,
@@ -99,43 +77,66 @@ export const processVideo = inngest.createFunction(
           });
         });
 
-        const modalPayload = await step.run<ProcessVideoBackendResponse | null>(
-          "call-modal-endpoint",
-          async () => {
-            const res = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
-              method: "POST",
-              body: JSON.stringify({
-                s3_key: s3Key,
-                language,
-                clip_count: clipCount,
-              }),
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
-              },
-            });
+        // NEXT_PUBLIC_SITE_URL 유무로 비동기/동기 모드 결정
+        // - Vercel (설정됨): .spawn() + callback + waitForEvent
+        // - 로컬 (미설정): 동기 처리, 결과 직접 반환
+        const callbackUrl = env.NEXT_PUBLIC_SITE_URL
+          ? `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/modal`
+          : undefined;
 
-            if (!res.ok) {
-              const text = await res.text().catch(() => "");
-              throw new Error(
-                `PROCESS_VIDEO_ENDPOINT failed (${res.status}): ${text.slice(0, 500)}`,
-              );
-            }
+        const modalResponse = await step.run("send-to-modal", async () => {
+          const res = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
+            method: "POST",
+            body: JSON.stringify({
+              s3_key: s3Key,
+              language,
+              clip_count: clipCount,
+              callback_url: callbackUrl,
+              uploaded_file_id: uploadedFileId,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
+            },
+          });
 
-            try {
-              return (await res.json()) as ProcessVideoBackendResponse;
-            } catch {
-              return null;
-            }
-          },
-        );
+          if (!res.ok) {
+            const text = await res.text().catch(() => "");
+            throw new Error(
+              `Modal dispatch failed (${res.status}): ${text.slice(0, 500)}`,
+            );
+          }
 
-        // Use clips[] from backend response if available, otherwise fallback to S3 listing
+          return (await res.json()) as Record<string, unknown>;
+        });
+
+        let backendClips: ProcessVideoBackendClip[] | undefined;
+
+        if (modalResponse.status === "accepted") {
+          // 비동기 모드 (Vercel): .spawn() 완료 → 콜백 대기
+          const modalResult = await step.waitForEvent(
+            "wait-for-modal-result",
+            {
+              event: "modal/video.processed",
+              match: "data.uploadedFileId",
+              timeout: "1h",
+            },
+          );
+
+          backendClips =
+            modalResult?.data?.status === "ok"
+              ? (modalResult.data.clips as ProcessVideoBackendClip[] | undefined)
+              : undefined;
+        } else {
+          // 동기 모드 (로컬): Modal이 처리 결과를 직접 반환
+          backendClips = modalResponse.status === "ok"
+            ? (modalResponse.clips as ProcessVideoBackendClip[] | undefined)
+            : undefined;
+        }
+
         const { clipsFound } = await step.run(
           "create-clips-in-db",
           async () => {
-            const backendClips = modalPayload?.clips;
-
             // 1) Backend metadata-based approach (primary)
             if (Array.isArray(backendClips) && backendClips.length > 0) {
               const createData = backendClips
@@ -146,7 +147,6 @@ export const processVideo = inngest.createFunction(
                   s3Key: c.s3Key!,
                   uploadedFileId,
                   userId,
-                  // These fields require corresponding columns in Prisma schema
                   startSeconds: c.startSeconds ?? null,
                   endSeconds: c.endSeconds ?? null,
                   scriptText: c.scriptText ?? null,
@@ -164,7 +164,7 @@ export const processVideo = inngest.createFunction(
               return { clipsFound: createData.length };
             }
 
-            // 2) Fallback: S3 listing-based approach
+            // 2) Fallback: S3 listing (timeout이거나 clips가 비어있을 때)
             const folderPrefix = s3Key.split("/")[0]!;
             const allKeys = await listS3Objects(folderPrefix);
 
@@ -220,16 +220,17 @@ export const processVideo = inngest.createFunction(
         });
       }
     } catch (error) {
-      await db.uploadedFile.update({
-        where: {
-          id: uploadedFileId,
-        },
-        data: {
-          status: "failed",
-        },
+      await step.run("set-status-failed", async () => {
+        await db.uploadedFile.update({
+          where: {
+            id: uploadedFileId,
+          },
+          data: {
+            status: "failed",
+          },
+        });
       });
-      throw error; // Inngest에 에러를 다시 throw → 재시도 및 로그 기록
+      throw error;
     }
   },
 );
-
