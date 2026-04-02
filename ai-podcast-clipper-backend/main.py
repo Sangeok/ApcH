@@ -818,38 +818,6 @@ Transcript:
         print(f"Identified moments response: ${response.text}")
         return response.text
 
-    # callback_url 유무로 비동기/동기 모드 결정
-    # - callback_url 있음 (Vercel): .spawn()으로 비동기 실행 → 즉시 응답, 완료 후 콜백
-    # - callback_url 없음 (로컬): 동기 실행 → 결과 직접 반환
-    @modal.fastapi_endpoint(method="POST")
-    def process_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-        if token.credentials != os.environ["AUTH_TOKEN"]:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect bearer token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        if request.callback_url:
-            # 비동기 모드: .spawn()으로 즉시 반환, 완료 후 callback_url로 결과 전송
-            call = self._do_process_video.spawn(
-                s3_key=request.s3_key,
-                language=request.language,
-                clip_count=int(request.clip_count),
-                callback_url=request.callback_url,
-                uploaded_file_id=request.uploaded_file_id,
-            )
-            return {"status": "accepted", "call_id": call.object_id}
-        else:
-            # 동기 모드 (로컬 개발): Modal 워커에서 동기 실행, 결과 직접 반환
-            return self._do_process_video.remote(
-                s3_key=request.s3_key,
-                language=request.language,
-                clip_count=int(request.clip_count),
-                callback_url=None,
-                uploaded_file_id=request.uploaded_file_id,
-            )
-
     # 실제 영상 처리 (비동기 실행, 완료/실패 시 callback)
     @modal.method()
     def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None):
@@ -980,16 +948,48 @@ Transcript:
             "clips": clip_results,
         }
 
+# 가벼운 디스패처 (GPU 없음, 모델 로딩 없음 → Cold Start 밀리초 단위)
+# AiPodcastClipper 클래스 밖에서 실행되므로 GPU 할당/WhisperX 로딩을 기다리지 않음
+@app.function(secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")], min_containers=1)
+@modal.fastapi_endpoint(method="POST")
+def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
+    if token.credentials != os.environ["AUTH_TOKEN"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect bearer token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    clipper = AiPodcastClipper()
+
+    if request.callback_url:
+        # 비동기 모드: .spawn()으로 즉시 반환, 완료 후 callback_url로 결과 전송
+        call = clipper._do_process_video.spawn(
+            s3_key=request.s3_key,
+            language=request.language,
+            clip_count=int(request.clip_count),
+            callback_url=request.callback_url,
+            uploaded_file_id=request.uploaded_file_id,
+        )
+        return {"status": "accepted", "call_id": call.object_id}
+    else:
+        # 동기 모드 (로컬 개발): Modal 워커에서 동기 실행, 결과 직접 반환
+        return clipper._do_process_video.remote(
+            s3_key=request.s3_key,
+            language=request.language,
+            clip_count=int(request.clip_count),
+            callback_url=None,
+            uploaded_file_id=request.uploaded_file_id,
+        )
+
+
 # 로컬에서 원격 엔드포인트를 호출해 동작을 검증하는 엔트리포인트
 @app.local_entrypoint()
 def main():
     import requests
 
-    # 원격 클래스 핸들 초기화
-    ai_podcast_clipper = AiPodcastClipper()
-
-    # 배포된 FastAPI 엔드포인트의 임시 URL 획득
-    url = ai_podcast_clipper.process_video.get_web_url()
+    # 배포된 FastAPI 엔드포인트의 URL 획득
+    url = process_video.get_web_url()
 
     payload = {
         "s3_key": "test2/testmin30.mp4"

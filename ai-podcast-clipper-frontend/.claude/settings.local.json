@@ -23,7 +23,8 @@
       "Bash(find /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/server/auth -type f -name *.ts -o -name *.js)",
       "Bash(find C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/widgets -type f -name *login* -o -name *signup*)",
       "Bash(npm uninstall:*)",
-      "Bash(find C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/node_modules/@polar-sh/nextjs -name *.js -maxdepth 3)"
+      "Bash(find C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/node_modules/@polar-sh/nextjs -name *.js -maxdepth 3)",
+      "Bash(find C:UsershamsoOneDriveDesktopgitApcHai-podcast-clipper-frontend -name *inngest* -o -name *modal*)"
     ]
   }
 }
