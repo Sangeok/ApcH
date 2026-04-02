@@ -238,8 +238,16 @@ export default function HomePage({ isLoggedIn, email, image }: HomePageProps) {
           </section>
         </main>
 
-        <footer className="text-muted-foreground py-10 text-center text-sm">
-          Copyright © {new Date().getFullYear()} SangEok. All rights reserved.
+        <footer className="text-muted-foreground space-y-2 py-10 text-center text-sm">
+          <div className="flex justify-center gap-4">
+            <Link href="/terms" className="hover:text-foreground underline-offset-4 hover:underline">
+              이용약관
+            </Link>
+            <Link href="/privacy" className="hover:text-foreground underline-offset-4 hover:underline">
+              개인정보 처리방침
+            </Link>
+          </div>
+          <p>Copyright © {new Date().getFullYear()} SangEok. All rights reserved.</p>
         </footer>
       </div>
     </div>
