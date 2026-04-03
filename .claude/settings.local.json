@@ -38,7 +38,10 @@
       "Bash(grep -r generation C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
       "Bash(grep -r \"waitForEvent\\\\|step\\\\.wait\\\\|INNGEST\" /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
       "Bash(grep -r generateUploadUrl C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src --include=*.ts --include=*.tsx)",
-      "Bash(grep -r \"PROCESS_VIDEO_ENDPOINT\\\\|AUTH_URL\" C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend --include=.env*)"
+      "Bash(grep -r \"PROCESS_VIDEO_ENDPOINT\\\\|AUTH_URL\" C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend --include=.env*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(gh pr:*)"
     ]
   }
 }

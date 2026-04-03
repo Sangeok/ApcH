@@ -1,35 +1,27 @@
-// src/app/dashboard/uploads/[uploadedFileId]/processing-timeline.tsx
 "use client";
 
 import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { cn } from "~/fsd/shared/lib/utils";
-
-interface TimelineLog {
-  id: string;
-  label: string;
-  createdAt: Date;
-  description?: string | null;
-  status: "queued" | "processing" | "processed" | "failed";
-}
+import type { ProcessingStatus } from "../../model/type";
 
 interface ProcessingTimelineProps {
-  status: "queued" | "processing" | "processed" | "failed";
+  status: ProcessingStatus;
   createdAt: Date;
   updatedAt: Date;
-  logs?: TimelineLog[];
 }
 
-const statusOrder: ProcessingTimelineProps["status"][] = [
+const statusOrder: ProcessingStatus[] = [
   "queued",
   "processing",
   "processed",
 ];
 
-const statusLabel: Record<ProcessingTimelineProps["status"], string> = {
+const statusLabel: Record<ProcessingStatus, string> = {
   queued: "Queued",
   processing: "Processing",
   processed: "Processed",
   failed: "Failed",
+  "no credits": "No Credits",
 };
 
 export default function ProcessingTimeline({
