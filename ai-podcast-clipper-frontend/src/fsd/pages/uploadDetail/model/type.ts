@@ -1,1 +1,1 @@
-export type ProcessingStatus = "queued" | "processing" | "processed" | "failed";
+export type ProcessingStatus = "queued" | "processing" | "processed" | "failed" | "no credits";

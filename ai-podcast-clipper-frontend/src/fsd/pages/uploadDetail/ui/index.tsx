@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import ClipDisplay from "~/fsd/widgets/clip-display/ui";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import {
@@ -11,13 +11,10 @@ import {
 } from "~/fsd/shared/ui/atoms/card";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import UploadedFileActions from "~/fsd/features/upload/ui";
-import ProcessingTimeline from "~/fsd/pages/uploadDetail/ui/_component/processing-timeline";
+import ProcessingTimeline from "~/fsd/pages/uploadDetail/ui/_component/ProcessingTimeline";
 import type { Clip } from "generated/prisma";
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
-import { toast } from "sonner";
-import { Download } from "lucide-react";
-import { Button } from "~/fsd/shared/ui/atoms/button";
 import type { ProcessingStatus } from "../model/type";
+import OriginalMediaCard from "~/fsd/pages/uploadDetail/ui/_component/OriginalMediaCard";
 
 interface UploadDetailPageProps {
   uploadedFileData: {
@@ -34,47 +31,8 @@ interface UploadDetailPageProps {
 export default function UploadDetailPage({
   uploadedFileData,
 }: UploadDetailPageProps) {
-  const { id, displayName, createdAt, updatedAt, status, clips } =
+  const { id: uploadedFileId, displayName, createdAt, updatedAt, status, clips } =
     uploadedFileData;
-
-  const uploadedFileId = id;
-
-  const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [isLoadingOriginalPlayUrl, setIsLoadingOriginalPlayUrl] =
-    useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchOriginalPlayUrl = async () => {
-      setIsLoadingOriginalPlayUrl(true);
-      try {
-        const result = await getOriginalPlayUrl(uploadedFileId);
-        if (result.success) {
-          setPlayUrl(result.data.url);
-        } else {
-          toast.error("Failed to get original play url: " + result.error);
-          console.error("Failed to get original play url: " + result.error);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        toast.error("Failed to get original play url: " + message);
-        console.error("Failed to get original play url: " + message);
-      } finally {
-        setIsLoadingOriginalPlayUrl(false);
-      }
-    };
-    void fetchOriginalPlayUrl();
-  }, [uploadedFileId]);
-
-  const handleDownload = () => {
-    if (!playUrl) return;
-
-    const link = document.createElement("a");
-    link.href = playUrl;
-    link.style.display = "none";
-    document.body.append(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
@@ -108,41 +66,11 @@ export default function UploadDetailPage({
         </Card>
 
         {/* Original media card */}
-        <Card className="from-background/70 to-background overflow-hidden rounded-2xl border bg-gradient-to-b shadow-lg lg:col-span-1">
-          <CardHeader className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-muted-foreground text-sm">Original media</p>
-              <h3 className="text-lg font-semibold">
-                {displayName ?? "Untitled"}
-              </h3>
-            </div>
-            <Badge variant="secondary" className="capitalize">
-              {status}
-            </Badge>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="overflow-hidden rounded-xl bg-black">
-              {!isLoadingOriginalPlayUrl && playUrl && (
-                <div className="flex flex-col gap-y-2">
-                  <video
-                    src={playUrl}
-                    controls
-                    preload="metadata"
-                    className="w-full rounded-md object-cover"
-                  />
-                </div>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleDownload}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button>
-          </CardContent>
-        </Card>
+        <OriginalMediaCard
+          uploadedFileId={uploadedFileId}
+          displayName={displayName}
+          status={status}
+        />
 
         {/* Processing timeline card */}
         <Card className="lg:col-span-1">
