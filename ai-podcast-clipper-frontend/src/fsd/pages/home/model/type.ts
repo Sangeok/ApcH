@@ -15,7 +15,7 @@ export type WorkflowStep = {
   detail: string;
 };
 
-export type heroHighlight = {
+export type HeroHighlight = {
   label: string;
   value: string;
   footnote: string;

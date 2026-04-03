@@ -8,9 +8,9 @@ import {
   Sparkles,
   TimerReset,
 } from "lucide-react";
-import type { FeatureCard, heroHighlight, WorkflowStep } from "../model/type";
+import type { FeatureCard, HeroHighlight, WorkflowStep } from "../model/type";
 
-export const heroHighlights: heroHighlight[] = [
+export const heroHighlights: HeroHighlight[] = [
   {
     label: "Automatic clip count",
     value: "Up to 2 per run",
@@ -26,7 +26,7 @@ export const heroHighlights: heroHighlight[] = [
     value: "Signed S3 URLs",
     footnote: "Per-user prefixes keep clips private until you share.",
   },
-] as const;
+];
 
 export const coreFeatures: FeatureCard[] = [
   {
