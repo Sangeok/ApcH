@@ -15,24 +15,27 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { STATUS_CONFIG } from "../../constants";
-import { hasStatusConfig } from "../../utils/type-guard";
+import { hasStatusConfig, type UploadedFile } from "../../model/type";
 
 interface QueueStatusProps {
-  uploadedFiles: {
-    id: string;
-    fileName: string;
-    createdAt: Date;
-    status: string;
-    clipsCount: number;
-  }[];
+  uploadedFiles: UploadedFile[];
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const config = hasStatusConfig(status) ? STATUS_CONFIG[status] : undefined;
+  return (
+    <Badge variant={config?.variant ?? "outline"}>
+      {config?.label ?? status}
+    </Badge>
+  );
 }
 
 export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const handleRefresh = async () => {
-    startTransition(async () => {
+  const handleRefresh = () => {
+    startTransition(() => {
       router.refresh();
     });
   };
@@ -65,46 +68,38 @@ export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {uploadedFiles.map((file) => {
-                  const config = hasStatusConfig(file.status)
-                    ? STATUS_CONFIG[file.status]
-                    : undefined;
-
-                  return (
-                    <TableRow className="hover:!bg-transparent" key={file.id}>
-                      <TableCell className="max-w-xs truncate font-medium">
-                        {file.fileName}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(file.createdAt).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate font-medium">
-                        <Badge variant={config?.variant ?? "outline"}>
-                          {config?.label ?? file.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate font-medium">
-                        {file.clipsCount > 0 ? (
-                          <span>
-                            {file.clipsCount} clip
-                            {file.clipsCount !== 1 ? "s" : ""}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            No clips yet
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate font-medium">
-                        <Link href={`/dashboard/uploads/${file.id}`}>
-                          <Button variant="outline" size="sm">
-                            View details
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {uploadedFiles.map((file) => (
+                  <TableRow className="hover:!bg-transparent" key={file.id}>
+                    <TableCell className="max-w-xs truncate font-medium">
+                      {file.fileName}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(file.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate font-medium">
+                      <StatusBadge status={file.status} />
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate font-medium">
+                      {file.clipsCount > 0 ? (
+                        <span>
+                          {file.clipsCount} clip
+                          {file.clipsCount !== 1 ? "s" : ""}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          No clips yet
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate font-medium">
+                      <Link href={`/dashboard/uploads/${file.id}`}>
+                        <Button variant="outline" size="sm">
+                          View details
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>

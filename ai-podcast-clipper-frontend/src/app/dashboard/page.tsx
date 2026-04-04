@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import DashboardClient from "~/fsd/pages/dashboard/ui";
+import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
@@ -23,7 +23,6 @@ export default async function DashboardPage() {
         },
         select: {
           id: true,
-          s3Key: true,
           displayName: true,
           status: true,
           createdAt: true,
@@ -34,24 +33,16 @@ export default async function DashboardPage() {
           },
         },
       },
-      clips: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
     },
   });
 
   const formattedFiles = userData.uploadedFiles.map((file) => ({
     id: file.id,
-    s3Key: file.s3Key,
     fileName: file.displayName ?? "Untitled",
     status: file.status,
     clipsCount: file._count.clips,
     createdAt: file.createdAt,
   }));
 
-  return (
-    <DashboardClient uploadedFiles={formattedFiles} clips={userData.clips} />
-  );
+  return <DashboardView uploadedFiles={formattedFiles} />;
 }

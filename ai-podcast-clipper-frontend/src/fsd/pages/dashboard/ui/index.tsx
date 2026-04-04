@@ -1,6 +1,5 @@
 "use client";
 
-import type { Clip } from "generated/prisma";
 import Link from "next/link";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -19,22 +18,13 @@ import {
 import QueueStatus from "./_component/QueueStatus";
 import UploadPodcast from "./_component/UploadPodcast";
 import UploadedFileList from "~/fsd/widgets/uploaded-file-list/ui";
+import type { UploadedFile } from "../model/type";
 
-interface DashboardClientProps {
-  uploadedFiles: {
-    id: string;
-    s3Key: string;
-    fileName: string;
-    status: string;
-    createdAt: Date;
-    clipsCount: number;
-  }[];
-  clips: Clip[];
+interface DashboardViewProps {
+  uploadedFiles: UploadedFile[];
 }
 
-export default function DashboardClient({
-  uploadedFiles,
-}: DashboardClientProps) {
+export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
   return (
     <div className="mx-auto flex max-w-5xl flex-col space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
