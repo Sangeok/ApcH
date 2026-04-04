@@ -23,3 +23,6 @@ export const CLIP_COUNT_OPTIONS = [
   { value: 3, label: "3 clips" },
   { value: 4, label: "4 clips" },
 ] as const;
+
+export const DEFAULT_LANGUAGE = SUPPORTED_LANGUAGES[0].value;
+export const DEFAULT_CLIP_COUNT = CLIP_COUNT_OPTIONS[2].value;

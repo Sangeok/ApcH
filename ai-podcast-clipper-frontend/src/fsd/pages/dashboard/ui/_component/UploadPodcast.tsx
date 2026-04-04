@@ -26,26 +26,36 @@ import {
   UPLOAD_CONFIG,
   SUPPORTED_LANGUAGES,
   CLIP_COUNT_OPTIONS,
+  DEFAULT_LANGUAGE,
+  DEFAULT_CLIP_COUNT,
 } from "~/fsd/shared/config/constants";
+
+async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
+  const response = await fetch(signedUrl, {
+    method: "PUT",
+    body: file,
+    headers: { "Content-Type": file.type },
+  });
+  if (!response.ok) throw new Error("Failed to upload file to S3");
+}
 
 export default function UploadPodcast() {
   const [files, setFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState<boolean>(false);
-  const [language, setLanguage] = useState<string>("English");
-  const [clipCount, setClipCount] = useState<number>(3);
+  const [isUploading, setIsUploading] = useState(false);
+  const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
+  const [clipCount, setClipCount] = useState<number>(DEFAULT_CLIP_COUNT);
 
-  const handleDrop = (acceptedFiles: File[]) => {
+  const handleFileDrop = (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
   };
 
   const handleUpload = async () => {
-    if (files.length === 0) return;
+    const file = files[0];
+    if (!file) return;
 
-    const file = files[0]!;
-    setUploading(true);
+    setIsUploading(true);
 
     try {
-      // client -> nextjs backend -> s3 bucket
       const uploadResult = await generateUploadUrl({
         fileName: file.name,
         contentType: file.type,
@@ -59,15 +69,7 @@ export default function UploadPodcast() {
 
       const { signedUrl, uploadedFileId } = uploadResult.data;
 
-      const uploadResponse = await fetch(signedUrl, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
-      });
-
-      if (!uploadResponse.ok) throw new Error("Failed to upload file");
+      await uploadFileToS3(file, signedUrl);
 
       const processResult = await processVideo(uploadedFileId, language, clipCount);
 
@@ -90,56 +92,54 @@ export default function UploadPodcast() {
           "There was a problem uploading your video. Please try again.",
       });
     } finally {
-      setUploading(false);
+      setIsUploading(false);
     }
   };
 
   return (
     <div>
-      {/* select file or drag and drop the file zone*/}
       <Card>
         <CardHeader>
           <CardTitle>Upload Podcast</CardTitle>
           <CardDescription>
             Upload your audio or video files to get started.
           </CardDescription>
-          <CardContent>
-            <Dropzone
-              onDrop={handleDrop}
-              maxSize={UPLOAD_CONFIG.MAX_FILE_SIZE}
-              accept={UPLOAD_CONFIG.ACCEPTED_TYPES}
-              maxFiles={1}
-              disabled={uploading}
-            >
-              {(dropzone: DropzoneState) => (
-                <div
-                  {...dropzone.getRootProps()}
-                  className={cn(
-                    "flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed p-10 text-center transition hover:cursor-pointer hover:bg-gray-200",
-                  )}
-                >
-                  <input {...dropzone.getInputProps()} />
-                  <UploadCloud className="text-muted-foreground h-12 w-12" />
-                  <p className="font-medium">
-                    Drag and drop your audio or video files here, or click to
-                    browse.
-                  </p>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    disabled={uploading}
-                    className="cursor-pointer"
-                  >
-                    Select File
-                  </Button>
-                </div>
-              )}
-            </Dropzone>
-          </CardContent>
         </CardHeader>
+        <CardContent>
+          <Dropzone
+            onDrop={handleFileDrop}
+            maxSize={UPLOAD_CONFIG.MAX_FILE_SIZE}
+            accept={UPLOAD_CONFIG.ACCEPTED_TYPES}
+            maxFiles={1}
+            disabled={isUploading}
+          >
+            {(dropzone: DropzoneState) => (
+              <div
+                {...dropzone.getRootProps()}
+                className={cn(
+                  "flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed p-10 text-center transition hover:cursor-pointer hover:bg-muted",
+                )}
+              >
+                <input {...dropzone.getInputProps()} />
+                <UploadCloud className="text-muted-foreground h-12 w-12" />
+                <p className="font-medium">
+                  Drag and drop your audio or video files here, or click to
+                  browse.
+                </p>
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={isUploading}
+                  className="cursor-pointer"
+                >
+                  Select File
+                </Button>
+              </div>
+            )}
+          </Dropzone>
+        </CardContent>
       </Card>
 
-      {/* after upload the file, show the following UI */}
       <div className="mt-4 flex items-start justify-between">
         <div className="flex">
           {files.length > 0 && (
@@ -160,7 +160,7 @@ export default function UploadPodcast() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
-                        {language !== "" ? language : "Language"}
+                        {language}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -202,10 +202,10 @@ export default function UploadPodcast() {
           )}
         </div>
         <Button
-          disabled={files.length === 0 || uploading}
+          disabled={files.length === 0 || isUploading}
           onClick={handleUpload}
         >
-          {uploading ? (
+          {isUploading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Uploading...
