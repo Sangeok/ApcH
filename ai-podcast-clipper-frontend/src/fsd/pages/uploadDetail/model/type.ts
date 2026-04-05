@@ -1,1 +1,1 @@
-export type ProcessingStatus = "queued" | "processing" | "processed" | "failed" | "no credits";
+export type { ProcessingStatus } from "~/fsd/shared/types/processing-status";

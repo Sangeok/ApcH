@@ -15,18 +15,17 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { STATUS_CONFIG } from "../../constants";
-import { hasStatusConfig, type UploadedFile } from "../../model/type";
+import type { UploadedFile } from "../../model/type";
+import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface QueueStatusProps {
   uploadedFiles: UploadedFile[];
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const config = hasStatusConfig(status) ? STATUS_CONFIG[status] : undefined;
+function StatusBadge({ status }: { status: ProcessingStatus }) {
+  const config = STATUS_CONFIG[status];
   return (
-    <Badge variant={config?.variant ?? "outline"}>
-      {config?.label ?? status}
-    </Badge>
+    <Badge variant={config.variant}>{config.label}</Badge>
   );
 }
 

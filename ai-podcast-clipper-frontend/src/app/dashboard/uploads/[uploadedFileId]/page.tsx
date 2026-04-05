@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getUploadedFileDetails } from "~/actions/uploaded-files";
 import UploadDetailPage from "~/fsd/pages/uploadDetail/ui";
+import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface UploadDetailPageProps {
   params: Promise<{ uploadedFileId: string }>;
@@ -16,5 +17,12 @@ export default async function UploadDetailPageClient({
     notFound();
   }
 
-  return <UploadDetailPage uploadedFileData={uploadedFileData} />;
+  return (
+    <UploadDetailPage
+      uploadedFileData={{
+        ...uploadedFileData,
+        status: uploadedFileData.status as ProcessingStatus,
+      }}
+    />
+  );
 }

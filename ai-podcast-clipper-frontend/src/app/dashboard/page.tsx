@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
   const formattedFiles = userData.uploadedFiles.map((file) => ({
     id: file.id,
     fileName: file.displayName ?? "Untitled",
-    status: file.status,
+    status: file.status as ProcessingStatus,
     clipsCount: file._count.clips,
     createdAt: file.createdAt,
   }));

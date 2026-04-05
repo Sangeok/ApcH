@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { cn } from "~/fsd/shared/lib/utils";
-import type { ProcessingStatus } from "../../model/type";
+import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface ProcessingTimelineProps {
   status: ProcessingStatus;
