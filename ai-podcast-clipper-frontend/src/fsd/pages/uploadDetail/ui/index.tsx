@@ -13,7 +13,7 @@ import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import UploadedFileActions from "~/fsd/features/upload/ui";
 import ProcessingTimeline from "~/fsd/pages/uploadDetail/ui/_component/ProcessingTimeline";
 import type { Clip } from "generated/prisma";
-import type { ProcessingStatus } from "../model/type";
+import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 import OriginalMediaCard from "~/fsd/pages/uploadDetail/ui/_component/OriginalMediaCard";
 
 interface UploadDetailPageProps {
@@ -22,7 +22,7 @@ interface UploadDetailPageProps {
     displayName: string | null;
     createdAt: Date;
     updatedAt: Date;
-    status: string;
+    status: ProcessingStatus;
     language: string;
     clips: Clip[];
   };
@@ -79,7 +79,7 @@ export default function UploadDetailPage({
           </CardHeader>
           <CardContent>
             <ProcessingTimeline
-              status={status as ProcessingStatus}
+              status={status}
               createdAt={new Date(createdAt)}
               updatedAt={new Date(updatedAt)}
             />

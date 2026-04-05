@@ -2,58 +2,30 @@
 
 import Link from "next/link";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import { usePlayUrl } from "~/fsd/shared/hooks/usePlayUrl";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
+import type { ActionResult } from "~/fsd/shared/api/result";
+import type { UploadedFileSummary } from "~/fsd/widgets/uploaded-file-list/model/types";
+
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 
 interface UploadedFileCardProps {
-  file: {
-    id: string;
-    fileName: string;
-    status: string;
-    createdAt: Date;
-    clipsCount: number;
-  };
+  file: UploadedFileSummary;
+  fetchPlayUrl: (id: string) => Promise<ActionResult<{ url: string }>>;
 }
 
-export function UploadedFileCard({ file }: UploadedFileCardProps) {
+export function UploadedFileCard({ file, fetchPlayUrl }: UploadedFileCardProps) {
   const detailHref = `/dashboard/uploads/${file.id}`;
-  const createdLabel = new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(file.createdAt));
-
-  const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [isLoadingOriginalPlayUrl, setIsLoadingOriginalPlayUrl] =
-    useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchOriginalPlayUrl = async () => {
-      setIsLoadingOriginalPlayUrl(true);
-      try {
-        const result = await getOriginalPlayUrl(file.id);
-        if (result.success) {
-          setPlayUrl(result.data.url);
-        } else {
-          toast.error("Failed to get original play url: " + result.error);
-          console.error("Failed to get original play url: " + result.error);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        toast.error("Failed to get original play url: " + message);
-        console.error("Failed to get original play url: " + message);
-      } finally {
-        setIsLoadingOriginalPlayUrl(false);
-      }
-    };
-    void fetchOriginalPlayUrl();
-  }, [file.id]);
+  const createdLabel = dateFormatter.format(new Date(file.createdAt));
+  const { playUrl, isLoading, error } = usePlayUrl(file.id, fetchPlayUrl);
 
   return (
     <Link href={detailHref} className="block focus:outline-none">
@@ -67,8 +39,16 @@ export function UploadedFileCard({ file }: UploadedFileCardProps) {
           </Badge>
         </CardHeader>
         <CardContent className="text-muted-foreground space-y-2 text-sm">
-          {!isLoadingOriginalPlayUrl && playUrl && (
-            <div className="flex flex-col gap-y-2">
+          {isLoading && (
+            <div className="aspect-video w-full animate-pulse rounded-md bg-muted" />
+          )}
+          {!isLoading && error && (
+            <div className="aspect-video flex items-center justify-center rounded-md bg-muted">
+              <p className="text-muted-foreground text-xs">Video unavailable</p>
+            </div>
+          )}
+          {!isLoading && playUrl && (
+            <div onClick={(e) => e.stopPropagation()}>
               <video
                 src={playUrl}
                 controls

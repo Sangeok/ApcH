@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
-import { toast } from "sonner";
+import { useOriginalPlayUrl } from "~/fsd/pages/uploadDetail/hooks/useOriginalPlayUrl";
 import { Download } from "lucide-react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
@@ -11,11 +9,12 @@ import {
   CardContent,
   CardHeader,
 } from "~/fsd/shared/ui/atoms/card";
+import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface OriginalMediaCardProps {
   uploadedFileId: string;
   displayName: string | null;
-  status: string;
+  status: ProcessingStatus;
 }
 
 export default function OriginalMediaCard({
@@ -23,30 +22,7 @@ export default function OriginalMediaCard({
   displayName,
   status,
 }: OriginalMediaCardProps) {
-  const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUrl = async () => {
-      setIsLoading(true);
-      try {
-        const result = await getOriginalPlayUrl(uploadedFileId);
-        if (result.success) {
-          setPlayUrl(result.data.url);
-        } else {
-          toast.error("Failed to get original play url: " + result.error);
-          console.error("Failed to get original play url: " + result.error);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        toast.error("Failed to get original play url: " + message);
-        console.error("Failed to get original play url: " + message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    void fetchUrl();
-  }, [uploadedFileId]);
+  const { playUrl, isLoading } = useOriginalPlayUrl(uploadedFileId);
 
   const handleDownload = () => {
     if (!playUrl) return;
@@ -74,14 +50,12 @@ export default function OriginalMediaCard({
       <CardContent className="space-y-4">
         <div className="overflow-hidden rounded-xl bg-black">
           {!isLoading && playUrl && (
-            <div className="flex flex-col gap-y-2">
-              <video
-                src={playUrl}
-                controls
-                preload="metadata"
-                className="w-full rounded-md object-cover"
-              />
-            </div>
+            <video
+              src={playUrl}
+              controls
+              preload="metadata"
+              className="w-full rounded-md object-cover"
+            />
           )}
         </div>
         <Button

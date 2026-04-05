@@ -28,7 +28,8 @@
       "Bash(ls -d \"C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/widgets\"/*)",
       "Bash(xargs -I {} basename {})",
       "Bash(ls -d \"C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/features\"/*)",
-      "Bash(ls -d \"C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/entity\"/*)"
+      "Bash(ls -d \"C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/entity\"/*)",
+      "Bash(find C:\\\\Users\\\\hamso\\\\OneDrive\\\\Desktop\\\\git\\\\ApcH\\\\ai-podcast-clipper-frontend\\\\src:*)"
     ]
   }
 }

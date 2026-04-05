@@ -19,6 +19,7 @@ import QueueStatus from "./_component/QueueStatus";
 import UploadPodcast from "./_component/UploadPodcast";
 import UploadedFileList from "~/fsd/widgets/uploaded-file-list/ui";
 import type { UploadedFile } from "../model/type";
+import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 
 interface DashboardViewProps {
   uploadedFiles: UploadedFile[];
@@ -64,7 +65,7 @@ export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UploadedFileList files={uploadedFiles} />
+              <UploadedFileList files={uploadedFiles} fetchPlayUrl={getOriginalPlayUrl} />
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,14 +1,6 @@
-import { STATUS_CONFIG } from "../constants";
+import type { UploadedFileSummary } from "~/fsd/widgets/uploaded-file-list/model/types";
+import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
-export type StatusKey = keyof typeof STATUS_CONFIG;
+export type { UploadedFileSummary as UploadedFile };
 
-export const hasStatusConfig = (status: string): status is StatusKey =>
-  status in STATUS_CONFIG;
-
-export interface UploadedFile {
-  id: string;
-  fileName: string;
-  status: string;
-  createdAt: Date;
-  clipsCount: number;
-}
+export type StatusKey = ProcessingStatus;
