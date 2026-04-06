@@ -31,9 +31,9 @@ interface ClipActionsProps {
   hasMetadata: boolean;
   onOpenScript: () => void;
   onOpenMetadata: () => void;
-  onCopyScript: () => void;
+  onCopyScript: () => void | Promise<void>;
   onDelete: (clipId: string) => Promise<ActionResult<void>>;
-  onDeleted: (clipId: string) => void;
+  onDeleteSuccess: (clipId: string) => void;
 }
 
 export function ClipActions({
@@ -46,7 +46,7 @@ export function ClipActions({
   onOpenMetadata,
   onCopyScript,
   onDelete,
-  onDeleted,
+  onDeleteSuccess,
 }: ClipActionsProps) {
   const router = useRouter();
   const [isDeleting, startDeleting] = useTransition();
@@ -67,7 +67,7 @@ export function ClipActions({
       const result = await onDelete(clip.id);
       if (result.success) {
         toast.success("Clip deleted");
-        onDeleted(clip.id);
+        onDeleteSuccess(clip.id);
       } else {
         toast.error(result.error ?? "Failed to delete clip");
         router.refresh();
