@@ -12,7 +12,75 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { YOUTUBE_DESCRIPTION_MAX_LENGTH, YOUTUBE_TITLE_MAX_LENGTH } from "~/fsd/shared/config/constants";
+import { parseJsonArray } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
+import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
+
+type CopiedField = "Title" | "Description" | "Hashtags" | "Tag" | "All metadata";
+
+interface CopyButtonProps {
+  field: CopiedField;
+  label: string;
+  value: string;
+  copiedField: CopiedField | null;
+  onCopy: (field: CopiedField, value: string) => Promise<void>;
+  disabled?: boolean;
+}
+
+function CopyButton({ field, label, value, copiedField, onCopy, disabled }: CopyButtonProps) {
+  const isCopied = copiedField === field;
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 font-semibold transition-all duration-200 hover:from-amber-500/20 hover:to-orange-500/20 hover:shadow-lg"
+      onClick={() => onCopy(field, value)}
+      disabled={disabled}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/20 to-amber-500/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      {isCopied ? (
+        <>
+          <Check className="animate-in zoom-in mr-2 h-4 w-4 duration-200" />
+          Copied!
+        </>
+      ) : (
+        <>
+          <Copy className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+          {label}
+        </>
+      )}
+    </Button>
+  );
+}
+
+interface CharacterCountBarProps {
+  label: string;
+  current: number;
+  max: number;
+}
+
+function CharacterCountBar({ label, current, max }: CharacterCountBarProps) {
+  const isOver = current > max;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold">{label}</span>
+        <span className={`text-xs font-medium tabular-nums ${isOver ? "text-red-500" : "text-muted-foreground"}`}>
+          {current}/{max}
+        </span>
+      </div>
+      <div className="bg-muted/30 h-1.5 w-full overflow-hidden rounded-full">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${isOver ? "bg-gradient-to-r from-red-500 to-red-600" : "bg-gradient-to-r from-amber-500 to-orange-500"}`}
+          style={{ width: `${Math.min((current / max) * 100, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 interface YoutubeMetadataModalProps {
   clip: Clip;
@@ -25,31 +93,22 @@ export function YoutubeMetadataModal({
   isOpen,
   onClose,
 }: YoutubeMetadataModalProps) {
-  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<CopiedField | null>(null);
 
-  const youtubeHashtags: string[] = useMemo(() => {
-    if (!clip.youtubeHashtags) return [];
-    try {
-      return JSON.parse(clip.youtubeHashtags) as string[];
-    } catch {
-      return [];
-    }
-  }, [clip.youtubeHashtags]);
+  const youtubeHashtags = useMemo(
+    () => parseJsonArray<string>(clip.youtubeHashtags),
+    [clip.youtubeHashtags],
+  );
 
-  const handleCopyMetadata = async (field: string, value: string) => {
+  const handleCopyMetadata = async (field: CopiedField, value: string) => {
     if (!value) {
       toast.error(`${field} is not available.`);
       return;
     }
-
-    try {
-      await navigator.clipboard.writeText(value);
+    const copied = await copyToClipboard(value, field.toLowerCase());
+    if (copied) {
       setCopiedField(field);
-      toast.success(`Copied ${field.toLowerCase()}.`);
       setTimeout(() => setCopiedField(null), 2000);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      toast.error(`Failed to copy: ${message}`);
     }
   };
 
@@ -84,7 +143,7 @@ export function YoutubeMetadataModal({
             "0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px -12px rgba(0,0,0,0.5)",
         }}
       >
-        {/* Header with enhanced styling */}
+        {/* Header */}
         <div className="border-border/50 animate-in fade-in slide-in-from-top relative border-b bg-gradient-to-br from-amber-500/5 via-transparent to-transparent p-5 delay-75 duration-300">
           <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           <div className="relative flex items-start justify-between gap-4">
@@ -113,7 +172,7 @@ export function YoutubeMetadataModal({
           </div>
         </div>
 
-        {/* Content area with improved spacing */}
+        {/* Content */}
         <div className="animate-in fade-in flex-1 overflow-auto p-5 delay-150 duration-300">
           <Tabs defaultValue="title" className="w-full">
             <TabsList className="bg-muted/30 grid w-full grid-cols-3 gap-1.5 rounded-xl p-1.5 backdrop-blur-sm">
@@ -145,35 +204,11 @@ export function YoutubeMetadataModal({
               value="title"
               className="animate-in fade-in slide-in-from-bottom-2 mt-6 space-y-4 duration-300"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">Title</span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-medium tabular-nums ${
-                        (clip.youtubeTitle?.length ?? 0) > 100
-                          ? "text-red-500"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {clip.youtubeTitle?.length ?? 0}/100
-                    </span>
-                  </div>
-                </div>
-                {/* Progress bar */}
-                <div className="bg-muted/30 h-1.5 w-full overflow-hidden rounded-full">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      (clip.youtubeTitle?.length ?? 0) > 100
-                        ? "bg-gradient-to-r from-red-500 to-red-600"
-                        : "bg-gradient-to-r from-amber-500 to-orange-500"
-                    }`}
-                    style={{
-                      width: `${Math.min(((clip.youtubeTitle?.length ?? 0) / 100) * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
+              <CharacterCountBar
+                label="Title"
+                current={clip.youtubeTitle?.length ?? 0}
+                max={YOUTUBE_TITLE_MAX_LENGTH}
+              />
               <div className="group border-border/50 from-muted/30 to-muted/10 hover:border-border relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 backdrop-blur-sm transition-all duration-200">
                 <p className="text-sm leading-relaxed">
                   {clip.youtubeTitle ?? (
@@ -183,27 +218,13 @@ export function YoutubeMetadataModal({
                   )}
                 </p>
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 font-semibold transition-all duration-200 hover:from-amber-500/20 hover:to-orange-500/20 hover:shadow-lg"
-                onClick={() =>
-                  handleCopyMetadata("Title", clip.youtubeTitle ?? "")
-                }
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/20 to-amber-500/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                {copiedField === "Title" ? (
-                  <>
-                    <Check className="animate-in zoom-in mr-2 h-4 w-4 duration-200" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                    Copy Title
-                  </>
-                )}
-              </Button>
+              <CopyButton
+                field="Title"
+                label="Copy Title"
+                value={clip.youtubeTitle ?? ""}
+                copiedField={copiedField}
+                onCopy={handleCopyMetadata}
+              />
             </TabsContent>
 
             {/* Description Tab */}
@@ -211,35 +232,11 @@ export function YoutubeMetadataModal({
               value="description"
               className="animate-in fade-in slide-in-from-bottom-2 mt-6 space-y-4 duration-300"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">Description</span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-medium tabular-nums ${
-                        (clip.youtubeDescription?.length ?? 0) > 5000
-                          ? "text-red-500"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {clip.youtubeDescription?.length ?? 0}/5000
-                    </span>
-                  </div>
-                </div>
-                {/* Progress bar */}
-                <div className="bg-muted/30 h-1.5 w-full overflow-hidden rounded-full">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      (clip.youtubeDescription?.length ?? 0) > 5000
-                        ? "bg-gradient-to-r from-red-500 to-red-600"
-                        : "bg-gradient-to-r from-amber-500 to-orange-500"
-                    }`}
-                    style={{
-                      width: `${Math.min(((clip.youtubeDescription?.length ?? 0) / 5000) * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
+              <CharacterCountBar
+                label="Description"
+                current={clip.youtubeDescription?.length ?? 0}
+                max={YOUTUBE_DESCRIPTION_MAX_LENGTH}
+              />
               <div className="group border-border/50 from-muted/30 to-muted/10 hover:border-border relative max-h-64 overflow-auto rounded-xl border bg-gradient-to-br p-4 backdrop-blur-sm transition-all duration-200">
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
                   {clip.youtubeDescription ?? (
@@ -251,30 +248,13 @@ export function YoutubeMetadataModal({
                 {/* Fade overlay at bottom */}
                 <div className="from-muted/30 pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t to-transparent" />
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 font-semibold transition-all duration-200 hover:from-amber-500/20 hover:to-orange-500/20 hover:shadow-lg"
-                onClick={() =>
-                  handleCopyMetadata(
-                    "Description",
-                    clip.youtubeDescription ?? "",
-                  )
-                }
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/20 to-amber-500/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                {copiedField === "Description" ? (
-                  <>
-                    <Check className="animate-in zoom-in mr-2 h-4 w-4 duration-200" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                    Copy Description
-                  </>
-                )}
-              </Button>
+              <CopyButton
+                field="Description"
+                label="Copy Description"
+                value={clip.youtubeDescription ?? ""}
+                copiedField={copiedField}
+                onCopy={handleCopyMetadata}
+              />
             </TabsContent>
 
             {/* Hashtags Tab */}
@@ -292,7 +272,7 @@ export function YoutubeMetadataModal({
                   youtubeHashtags.map((tag, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleCopyMetadata(`Tag`, tag)}
+                      onClick={() => handleCopyMetadata("Tag", tag)}
                       className="group animate-clipcard-hashtag-fade-in border-border/50 from-background/80 to-background/60 relative overflow-hidden rounded-full border bg-gradient-to-br px-4 py-2 text-sm font-medium backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-amber-500/30 hover:bg-gradient-to-br hover:from-amber-500/10 hover:to-orange-500/10 hover:shadow-md active:scale-95"
                       style={{
                         animationDelay: `${idx * 30}ms`,
@@ -308,33 +288,19 @@ export function YoutubeMetadataModal({
                   </span>
                 )}
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 font-semibold transition-all duration-200 hover:from-amber-500/20 hover:to-orange-500/20 hover:shadow-lg"
-                onClick={() =>
-                  handleCopyMetadata("Hashtags", youtubeHashtags.join(" "))
-                }
+              <CopyButton
+                field="Hashtags"
+                label="Copy All Hashtags"
+                value={youtubeHashtags.join(" ")}
+                copiedField={copiedField}
+                onCopy={handleCopyMetadata}
                 disabled={youtubeHashtags.length === 0}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/20 to-amber-500/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                {copiedField === "Hashtags" ? (
-                  <>
-                    <Check className="animate-in zoom-in mr-2 h-4 w-4 duration-200" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                    Copy All Hashtags
-                  </>
-                )}
-              </Button>
+              />
             </TabsContent>
           </Tabs>
         </div>
 
-        {/* Footer with enhanced styling */}
+        {/* Footer */}
         <div className="border-border/50 from-background/80 to-background/60 animate-in fade-in slide-in-from-bottom border-t bg-gradient-to-br p-5 backdrop-blur-sm delay-200 duration-300">
           <div className="flex items-center justify-between gap-3">
             <Button

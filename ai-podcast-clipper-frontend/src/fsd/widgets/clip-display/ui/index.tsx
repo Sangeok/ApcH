@@ -29,7 +29,7 @@ export default function ClipDisplay({ clips }: ClipDisplayProps) {
             key={clip.id}
             clip={clip}
             onDelete={deleteClip}
-            onDeleted={removeClipOptimistic}
+            onDeleteSuccess={removeClipOptimistic}
           />
         );
       })}

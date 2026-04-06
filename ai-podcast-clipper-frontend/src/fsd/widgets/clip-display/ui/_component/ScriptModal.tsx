@@ -4,6 +4,7 @@ import type { Clip } from "generated/prisma";
 import { Copy, X } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import { toast } from "sonner";
+import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 
 interface ScriptModalProps {
@@ -48,17 +49,7 @@ export function ScriptModal({ clip, isOpen, onClose }: ScriptModalProps) {
       toast.error("Script is not available yet.");
       return;
     }
-
-    try {
-      if (!navigator?.clipboard?.writeText) {
-        throw new Error("Clipboard API not available");
-      }
-      await navigator.clipboard.writeText(scriptText);
-      toast.success("Copied script.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      toast.error("Failed to copy script: " + message);
-    }
+    await copyToClipboard(scriptText, "script");
   };
 
   const formatTimestamp = (seconds: number | null | undefined) => {
