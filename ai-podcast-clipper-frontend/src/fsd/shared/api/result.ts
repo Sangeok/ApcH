@@ -20,20 +20,3 @@ export function failure(error: string): ActionResult<never> {
   return { success: false, error };
 }
 
-/**
- * Type guard for success results
- */
-export function isSuccess<T>(
-  result: ActionResult<T>,
-): result is { success: true; data: T } {
-  return result.success;
-}
-
-/**
- * Type guard for failure results
- */
-export function isFailure<T>(
-  result: ActionResult<T>,
-): result is { success: false; error: string } {
-  return !result.success;
-}
