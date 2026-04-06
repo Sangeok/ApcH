@@ -41,7 +41,10 @@
       "Bash(grep -r \"PROCESS_VIDEO_ENDPOINT\\\\|AUTH_URL\" C:/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend --include=.env*)",
       "Bash(git add:*)",
       "Bash(git commit -m ':*)",
-      "Bash(gh pr:*)"
+      "Bash(gh pr:*)",
+      "Bash(grep -E \"^[^/]*\\(/[^/]*\\)?$\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(xargs -I {} grep -l \"export.*from\" {})"
     ]
   }
 }
