@@ -20,6 +20,9 @@ export function BillingPage({ data, productIds, showSuccessBanner, subscriptionE
   const router = useRouter();
   const [polling, setPolling] = useState(false);
 
+  const POLLING_INTERVAL_MS = 2_000;
+  const POLLING_TIMEOUT_MS = 30_000;
+
   // Poll for subscription data when redirected from checkout but data not yet available
   useEffect(() => {
     if (!showSuccessBanner || data.subscription) return;
@@ -27,15 +30,15 @@ export function BillingPage({ data, productIds, showSuccessBanner, subscriptionE
     setPolling(true);
     let elapsed = 0;
     const interval = setInterval(() => {
-      elapsed += 2000;
-      if (elapsed > 30000) {
+      elapsed += POLLING_INTERVAL_MS;
+      if (elapsed > POLLING_TIMEOUT_MS) {
         clearInterval(interval);
         setPolling(false);
         toast.error("Subscription update is taking longer than expected. Please refresh the page.");
         return;
       }
       router.refresh();
-    }, 2000);
+    }, POLLING_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [showSuccessBanner, data.subscription, router]);

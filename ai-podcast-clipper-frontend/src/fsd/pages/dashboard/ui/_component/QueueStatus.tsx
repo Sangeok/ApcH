@@ -15,11 +15,11 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { STATUS_CONFIG } from "../../constants";
-import type { UploadedFile } from "../../model/type";
+import type { UploadedFileSummary } from "../../model/types";
 import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface QueueStatusProps {
-  uploadedFiles: UploadedFile[];
+  uploadedFiles: UploadedFileSummary[];
 }
 
 function StatusBadge({ status }: { status: ProcessingStatus }) {

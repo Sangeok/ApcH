@@ -11,10 +11,10 @@ import {
 } from "~/fsd/shared/ui/atoms/card";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import UploadedFileActions from "~/fsd/features/upload/ui";
-import ProcessingTimeline from "~/fsd/pages/uploadDetail/ui/_component/ProcessingTimeline";
+import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
 import type { Clip } from "generated/prisma";
 import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
-import OriginalMediaCard from "~/fsd/pages/uploadDetail/ui/_component/OriginalMediaCard";
+import OriginalMediaCard from "~/fsd/pages/upload-detail/ui/_component/OriginalMediaCard";
 
 interface UploadDetailPageProps {
   uploadedFileData: {

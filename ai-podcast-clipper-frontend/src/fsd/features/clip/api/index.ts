@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { inngest } from "~/inngest/client";
 import {
@@ -93,17 +92,15 @@ export async function processVideo(
 export async function getClipPlayUrl(
   clipId: string,
 ): Promise<ActionResult<{ url: string }>> {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return failure("Unauthorized");
-  }
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
 
   try {
     const clip = await db.clip.findUniqueOrThrow({
       where: {
         id: clipId,
-        userId: session.user.id,
+        userId,
       },
     });
 
@@ -125,14 +122,13 @@ export async function getClipPlayUrl(
 export async function deleteClip(
   clipId: string,
 ): Promise<ActionResult<void>> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return failure("Unauthorized");
-  }
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
 
   try {
     const clip = await db.clip.findUniqueOrThrow({
-      where: { id: clipId, userId: session.user.id },
+      where: { id: clipId, userId },
       select: { id: true, s3Key: true },
     });
 

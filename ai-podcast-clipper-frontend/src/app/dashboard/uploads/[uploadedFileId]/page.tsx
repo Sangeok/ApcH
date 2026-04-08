@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { getUploadedFileDetails } from "~/actions/uploaded-files";
-import UploadDetailPage from "~/fsd/pages/uploadDetail/ui";
+import { getUploadedFileDetails } from "~/fsd/features/upload/api";
+import UploadDetailPage from "~/fsd/pages/upload-detail/ui";
 import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface UploadDetailPageProps {

@@ -55,9 +55,7 @@ export function PlanCard({
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <span className="text-3xl font-bold">
-            {tier === "free" ? "$0" : "$9.99"}
-          </span>
+          <span className="text-3xl font-bold">{plan.price}</span>
           {tier !== "free" && (
             <span className="text-muted-foreground">/month</span>
           )}
@@ -96,7 +94,7 @@ export function PlanCard({
                   productIds && handleSubscribe(productIds.pro_yearly)
                 }
               >
-                {isPending ? "Redirecting..." : "Subscribe Yearly ($99.99/yr)"}
+                {isPending ? "Redirecting..." : `Subscribe Yearly (${plan.yearlyPrice})`}
               </Button>
             )}
           </>

@@ -1,13 +1,11 @@
 import { UploadedFileCard } from "./_component/UploadedFileCard";
 import type { UploadedFileSummary } from "../model/types";
-import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface UploadedFileListProps {
   files: UploadedFileSummary[];
-  fetchPlayUrl: (id: string) => Promise<ActionResult<{ url: string }>>;
 }
 
-export default function UploadedFileList({ files, fetchPlayUrl }: UploadedFileListProps) {
+export default function UploadedFileList({ files }: UploadedFileListProps) {
   const hasNoFiles = files.length === 0;
 
   if (hasNoFiles) {
@@ -21,7 +19,7 @@ export default function UploadedFileList({ files, fetchPlayUrl }: UploadedFileLi
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {files.map((file) => (
-        <UploadedFileCard key={file.id} file={file} fetchPlayUrl={fetchPlayUrl} />
+        <UploadedFileCard key={file.id} file={file} />
       ))}
     </div>
   );

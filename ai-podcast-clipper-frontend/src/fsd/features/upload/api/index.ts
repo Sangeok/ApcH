@@ -91,14 +91,13 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
 export async function getOriginalPlayUrl(
   uploadedFileId: string,
 ): Promise<ActionResult<{ url: string }>> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return failure("Unauthorized");
-  }
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
 
   try {
     const uploadedFile = await db.uploadedFile.findUniqueOrThrow({
-      where: { id: uploadedFileId, userId: session.user.id },
+      where: { id: uploadedFileId, userId },
       select: { s3Key: true },
     });
 
@@ -180,14 +179,13 @@ export async function deleteUploadedFileWithClips(
 export async function reprocessUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return failure("Unauthorized");
-  }
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+  const { userId } = authResult.data;
 
   try {
     const uploadedFile = await db.uploadedFile.findFirstOrThrow({
-      where: { id: uploadedFileId, userId: session.user.id },
+      where: { id: uploadedFileId, userId },
       select: {
         id: true,
         userId: true,
@@ -232,35 +230,6 @@ export async function reprocessUploadedFile(
   } catch (error) {
     console.error("Failed to reprocess file", error);
     return failure("Failed to reprocess file");
-  }
-}
-
-/**
- * Generate presigned URL for uploading to S3
- * @deprecated generateUploadUrl 함수를 사용하세요. 이 함수는 다음 버전에서 제거됩니다.
- */
-export async function getPresignedUploadUrl(
-  fileName: string,
-  contentType: string,
-  _userId: string,
-  fileId: string,
-): Promise<ActionResult<{ url: string; s3Key: string }>> {
-  const authResult = await requireAuth();
-  if (!authResult.success) return authResult;
-  const { userId } = authResult.data;
-
-  try {
-    const s3Key = `${userId}/${fileId}/original.mp4`;
-    const url = await generatePresignedPutUrl(
-      s3Key,
-      contentType,
-      S3_CONFIG.PRESIGNED_PUT_URL_EXPIRY,
-    );
-
-    return success({ url, s3Key });
-  } catch (error) {
-    console.error("Failed to generate presigned upload URL", error);
-    return failure("Failed to generate presigned upload URL");
   }
 }
 

@@ -19,9 +19,7 @@ import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Loader2, UploadCloud } from "lucide-react";
 import { useState } from "react";
-import { generateUploadUrl } from "~/fsd/features/upload/api";
-import { processVideo } from "~/fsd/features/clip/api";
-import { toast } from "sonner";
+import { useUploadPodcast } from "~/fsd/pages/dashboard/hooks/useUploadPodcast";
 import {
   UPLOAD_CONFIG,
   SUPPORTED_LANGUAGES,
@@ -30,20 +28,11 @@ import {
   DEFAULT_CLIP_COUNT,
 } from "~/fsd/shared/config/constants";
 
-async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
-  const response = await fetch(signedUrl, {
-    method: "PUT",
-    body: file,
-    headers: { "Content-Type": file.type },
-  });
-  if (!response.ok) throw new Error("Failed to upload file to S3");
-}
-
 export default function UploadPodcast() {
   const [files, setFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
   const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
   const [clipCount, setClipCount] = useState<number>(DEFAULT_CLIP_COUNT);
+  const { upload, isUploading } = useUploadPodcast();
 
   const handleFileDrop = (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
@@ -52,48 +41,8 @@ export default function UploadPodcast() {
   const handleUpload = async () => {
     const file = files[0];
     if (!file) return;
-
-    setIsUploading(true);
-
-    try {
-      const uploadResult = await generateUploadUrl({
-        fileName: file.name,
-        contentType: file.type,
-        language: language,
-      });
-
-      if (!uploadResult.success) {
-        toast.error(uploadResult.error);
-        return;
-      }
-
-      const { signedUrl, uploadedFileId } = uploadResult.data;
-
-      await uploadFileToS3(file, signedUrl);
-
-      const processResult = await processVideo(uploadedFileId, language, clipCount);
-
-      if (!processResult.success) {
-        toast.error(processResult.error);
-        return;
-      }
-
-      setFiles([]);
-
-      toast.success("Video uploaded successfully", {
-        description:
-          "Your video has been scheduled for processing. Check the status below",
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error("Failed to upload video", error);
-      toast.error("Failed to upload video", {
-        description:
-          "There was a problem uploading your video. Please try again.",
-      });
-    } finally {
-      setIsUploading(false);
-    }
+    const success = await upload(file, language, clipCount);
+    if (success) setFiles([]);
   };
 
   return (

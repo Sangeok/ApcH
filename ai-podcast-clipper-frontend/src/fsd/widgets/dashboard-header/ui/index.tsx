@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
+import { env } from "~/env";
 
 interface DashboardHeaderProps {
   credits: number;
@@ -43,7 +44,7 @@ export default function DashboardHeader({
             >
               {credits} Credits
             </Badge>
-            {process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED === "true" && (
+            {env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED && (
               <Button
                 variant="outline"
                 size="sm"

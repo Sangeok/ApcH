@@ -1,6 +1,7 @@
 "use client";
 
-import { useOriginalPlayUrl } from "~/fsd/pages/uploadDetail/hooks/useOriginalPlayUrl";
+import { useOriginalPlayUrl } from "~/fsd/shared/hooks/useOriginalPlayUrl";
+import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Download } from "lucide-react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
@@ -26,12 +27,7 @@ export default function OriginalMediaCard({
 
   const handleDownload = () => {
     if (!playUrl) return;
-    const link = document.createElement("a");
-    link.href = playUrl;
-    link.style.display = "none";
-    document.body.append(link);
-    link.click();
-    document.body.removeChild(link);
+    triggerDownload(playUrl);
   };
 
   return (

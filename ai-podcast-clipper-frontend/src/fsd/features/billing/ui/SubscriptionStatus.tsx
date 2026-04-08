@@ -16,6 +16,13 @@ import { cancelSubscription } from "~/fsd/features/billing/api";
 import { PLAN_TIERS } from "~/fsd/features/billing/constants";
 import type { SubscriptionInfo } from "~/fsd/features/billing/model/types";
 
+function getStatusDisplay(sub: SubscriptionInfo | null) {
+  if (!sub) return { label: "None", variant: "secondary" as const };
+  if (sub.cancelAtPeriodEnd) return { label: "Canceling", variant: "destructive" as const };
+  if (sub.status === "active") return { label: "Active", variant: "default" as const };
+  return { label: sub.status, variant: "secondary" as const };
+}
+
 interface SubscriptionStatusProps {
   credits: number;
   subscription: SubscriptionInfo | null;
@@ -46,17 +53,7 @@ export function SubscriptionStatus({
     ? PLAN_TIERS[subscription.planTier]?.name ?? subscription.planTier
     : "Free";
 
-  const statusLabel = subscription?.cancelAtPeriodEnd
-    ? "Canceling"
-    : subscription?.status === "active"
-      ? "Active"
-      : subscription?.status ?? "None";
-
-  const statusVariant = subscription?.cancelAtPeriodEnd
-    ? "destructive"
-    : subscription?.status === "active"
-      ? "default"
-      : "secondary";
+  const { label: statusLabel, variant: statusVariant } = getStatusDisplay(subscription);
 
   return (
     <Card>
