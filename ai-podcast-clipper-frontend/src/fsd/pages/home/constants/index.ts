@@ -8,7 +8,7 @@ import {
   Sparkles,
   TimerReset,
 } from "lucide-react";
-import type { FeatureCard, HeroHighlight, WorkflowStep } from "../model/type";
+import type { FeatureCard, HeroHighlight, WorkflowStep } from "../model/types";
 
 export const heroHighlights: HeroHighlight[] = [
   {

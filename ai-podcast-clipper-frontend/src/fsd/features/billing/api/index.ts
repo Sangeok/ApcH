@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "~/server/db";
+import { env } from "~/env";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { success, failure } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";
@@ -54,7 +55,7 @@ export async function getBillingData(): Promise<ActionResult<BillingPageData>> {
 export async function getCheckoutUrl(
   productId: string,
 ): Promise<ActionResult<{ url: string }>> {
-  if (process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED !== "true") {
+  if (!env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED) {
     return failure("Subscriptions are currently disabled");
   }
 

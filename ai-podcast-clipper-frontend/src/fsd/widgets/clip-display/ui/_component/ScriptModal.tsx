@@ -49,7 +49,12 @@ export function ScriptModal({ clip, isOpen, onClose }: ScriptModalProps) {
       toast.error("Script is not available yet.");
       return;
     }
-    await copyToClipboard(scriptText, "script");
+    const result = await copyToClipboard(scriptText);
+    if (result.success) {
+      toast.success("Copied script.");
+    } else {
+      toast.error(`Failed to copy script: ${result.error}`);
+    }
   };
 
   const formatTimestamp = (seconds: number | null | undefined) => {

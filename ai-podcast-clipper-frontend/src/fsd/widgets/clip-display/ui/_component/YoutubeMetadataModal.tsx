@@ -105,10 +105,12 @@ export function YoutubeMetadataModal({
       toast.error(`${field} is not available.`);
       return;
     }
-    const copied = await copyToClipboard(value, field.toLowerCase());
-    if (copied) {
+    const result = await copyToClipboard(value);
+    if (result.success) {
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
+    } else {
+      toast.error(`Failed to copy ${field.toLowerCase()}: ${result.error}`);
     }
   };
 

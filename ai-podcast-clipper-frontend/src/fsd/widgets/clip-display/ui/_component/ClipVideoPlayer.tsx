@@ -3,13 +3,22 @@ import { Loader2, Play } from "lucide-react";
 interface ClipVideoPlayerProps {
   src: string | null;
   isLoading: boolean;
+  error?: string | null;
 }
 
-export function ClipVideoPlayer({ src, isLoading }: ClipVideoPlayerProps) {
+export function ClipVideoPlayer({ src, isLoading, error }: ClipVideoPlayerProps) {
   if (isLoading) {
     return (
       <div className="bg-muted flex h-full w-full items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!src && error) {
+    return (
+      <div className="bg-muted flex h-full w-full items-center justify-center">
+        <p className="text-muted-foreground text-xs">Video unavailable</p>
       </div>
     );
   }

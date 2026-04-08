@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -53,13 +54,7 @@ export function ClipActions({
 
   const handleDownload = () => {
     if (!playUrl) return;
-
-    const link = document.createElement("a");
-    link.href = playUrl;
-    link.style.display = "none";
-    document.body.append(link);
-    link.click();
-    document.body.removeChild(link);
+    triggerDownload(playUrl);
   };
 
   const handleDelete = () => {

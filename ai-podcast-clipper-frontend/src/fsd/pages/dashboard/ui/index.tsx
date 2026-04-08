@@ -18,11 +18,11 @@ import {
 import QueueStatus from "./_component/QueueStatus";
 import UploadPodcast from "./_component/UploadPodcast";
 import UploadedFileList from "~/fsd/widgets/uploaded-file-list/ui";
-import type { UploadedFile } from "../model/type";
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import { env } from "~/env";
+import type { UploadedFileSummary } from "../model/types";
 
 interface DashboardViewProps {
-  uploadedFiles: UploadedFile[];
+  uploadedFiles: UploadedFileSummary[];
 }
 
 export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
@@ -36,7 +36,7 @@ export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
           Upload your podcast files and get AI-generated clips.
         </p>
       </div>
-      {process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED === "true" && (
+      {env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED && (
         <div className="flex justify-end">
           <Link href="/dashboard/billing">
             <Button>Buy Credits</Button>
@@ -65,7 +65,7 @@ export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UploadedFileList files={uploadedFiles} fetchPlayUrl={getOriginalPlayUrl} />
+              <UploadedFileList files={uploadedFiles} />
             </CardContent>
           </Card>
         </TabsContent>

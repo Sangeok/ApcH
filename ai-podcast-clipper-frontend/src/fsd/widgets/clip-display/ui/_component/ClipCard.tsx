@@ -19,7 +19,7 @@ interface ClipCardProps {
 }
 
 export default function ClipCard({ clip, onDelete, onDeleteSuccess }: ClipCardProps) {
-  const { playUrl, isLoading } = useClipPlayUrl(clip.id);
+  const { playUrl, isLoading, error } = useClipPlayUrl(clip.id);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
 
@@ -40,12 +40,17 @@ export default function ClipCard({ clip, onDelete, onDeleteSuccess }: ClipCardPr
       toast.error("Script is not available yet.");
       return;
     }
-    await copyToClipboard(scriptText, "script");
+    const result = await copyToClipboard(scriptText);
+    if (result.success) {
+      toast.success("Copied script.");
+    } else {
+      toast.error(`Failed to copy script: ${result.error}`);
+    }
   };
 
   return (
     <div className="flex max-w-52 flex-col gap-2">
-      <ClipVideoPlayer src={playUrl} isLoading={isLoading} />
+      <ClipVideoPlayer src={playUrl} isLoading={isLoading} error={error} />
       <ClipActions
         clip={clip}
         playUrl={playUrl}
