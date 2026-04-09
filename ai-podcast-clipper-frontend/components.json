@@ -13,8 +13,8 @@
   "iconLibrary": "lucide",
   "aliases": {
     "components": "~/components",
-    "utils": "~/lib/utils",
-    "ui": "~/components/ui",
+    "utils": "~/fsd/shared/lib/utils",
+    "ui": "~/fsd/shared/ui/atoms",
     "lib": "~/lib",
     "hooks": "~/hooks"
   },
