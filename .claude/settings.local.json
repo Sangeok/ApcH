@@ -44,7 +44,14 @@
       "Bash(gh pr:*)",
       "Bash(grep -E \"^[^/]*\\(/[^/]*\\)?$\")",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(xargs -I {} grep -l \"export.*from\" {})"
+      "Bash(xargs -I {} grep -l \"export.*from\" {})",
+      "Bash([ -f .gitattributes ])",
+      "Bash(ls -d /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/widgets/*/)",
+      "Bash(ls -d /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipper-frontend/src/fsd/pages/*/)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('react:', p.dependencies?.react, 'next:', p.dependencies?.next, 'react-dom:', p.dependencies?.['react-dom']\\)\")",
+      "Bash(head -20 src/app/dashboard/uploads/[uploadedFileId]/page.tsx)",
+      "Bash(grep -r \"use-dialog\\\\|Dialog\\\\|dialog\" src/fsd/widgets/clip-display/ui/_component/*.tsx)",
+      "Bash(npx shadcn@latest add sheet --yes)"
     ]
   }
 }

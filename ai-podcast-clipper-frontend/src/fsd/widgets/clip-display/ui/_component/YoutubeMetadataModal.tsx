@@ -1,6 +1,5 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import type { Clip } from "generated/prisma";
 import {
   Check,
@@ -15,6 +14,11 @@ import { toast } from "sonner";
 import { YOUTUBE_DESCRIPTION_MAX_LENGTH, YOUTUBE_TITLE_MAX_LENGTH } from "~/fsd/shared/config/constants";
 import { parseJsonArray } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/fsd/shared/ui/atoms/tabs";
+import {
+  Sheet,
+  SheetContent,
+} from "~/fsd/shared/ui/atoms/sheet";
 import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
 
 type CopiedField = "Title" | "Description" | "Hashtags" | "Tag" | "All metadata";
@@ -126,27 +130,20 @@ export function YoutubeMetadataModal({
     await handleCopyMetadata("All metadata", allText);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 duration-200">
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-md"
-        onClick={onClose}
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="YouTube Metadata Panel"
-        className="border-border/50 from-background/95 to-background animate-in slide-in-from-bottom md:animate-in md:slide-in-from-right absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border bg-gradient-to-b shadow-2xl backdrop-blur-xl duration-300 md:inset-y-0 md:right-0 md:bottom-auto md:mx-0 md:h-full md:max-w-md md:rounded-none md:rounded-l-3xl"
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        overlayClassName="bg-gradient-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-md"
+        className="flex w-full max-w-md flex-col gap-0 overflow-hidden p-0"
         style={{
           boxShadow:
             "0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px -12px rgba(0,0,0,0.5)",
         }}
       >
         {/* Header */}
-        <div className="border-border/50 animate-in fade-in slide-in-from-top relative border-b bg-gradient-to-br from-amber-500/5 via-transparent to-transparent p-5 delay-75 duration-300">
+        <div className="border-border/50 relative border-b bg-gradient-to-br from-amber-500/5 via-transparent to-transparent p-5">
           <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           <div className="relative flex items-start justify-between gap-4">
             <div className="flex-1 space-y-1.5">
@@ -175,26 +172,26 @@ export function YoutubeMetadataModal({
         </div>
 
         {/* Content */}
-        <div className="animate-in fade-in flex-1 overflow-auto p-5 delay-150 duration-300">
+        <div className="flex-1 overflow-auto p-5">
           <Tabs defaultValue="title" className="w-full">
-            <TabsList className="bg-muted/30 grid w-full grid-cols-3 gap-1.5 rounded-xl p-1.5 backdrop-blur-sm">
+            <TabsList className="bg-muted/30 grid h-auto w-full grid-cols-3 gap-1.5 rounded-xl p-1.5 backdrop-blur-sm">
               <TabsTrigger
                 value="title"
-                className="data-[state=active]:bg-background data-[state=active]:text-foreground rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:shadow-sm"
+                className="h-auto data-[state=active]:bg-background data-[state=active]:text-foreground rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:shadow-sm"
               >
                 <Type className="mr-1.5 h-3.5 w-3.5" />
                 Title
               </TabsTrigger>
               <TabsTrigger
                 value="description"
-                className="data-[state=active]:bg-background data-[state=active]:text-foreground rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:shadow-sm"
+                className="h-auto data-[state=active]:bg-background data-[state=active]:text-foreground rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:shadow-sm"
               >
                 <FileText className="mr-1.5 h-3.5 w-3.5" />
                 Desc
               </TabsTrigger>
               <TabsTrigger
                 value="hashtags"
-                className="data-[state=active]:bg-background data-[state=active]:text-foreground rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:shadow-sm"
+                className="h-auto data-[state=active]:bg-background data-[state=active]:text-foreground rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:shadow-sm"
               >
                 <Hash className="mr-1.5 h-3.5 w-3.5" />
                 Tags
@@ -204,7 +201,7 @@ export function YoutubeMetadataModal({
             {/* Title Tab */}
             <TabsContent
               value="title"
-              className="animate-in fade-in slide-in-from-bottom-2 mt-6 space-y-4 duration-300"
+              className="mt-4 space-y-4"
             >
               <CharacterCountBar
                 label="Title"
@@ -232,7 +229,7 @@ export function YoutubeMetadataModal({
             {/* Description Tab */}
             <TabsContent
               value="description"
-              className="animate-in fade-in slide-in-from-bottom-2 mt-6 space-y-4 duration-300"
+              className="mt-4 space-y-4"
             >
               <CharacterCountBar
                 label="Description"
@@ -262,7 +259,7 @@ export function YoutubeMetadataModal({
             {/* Hashtags Tab */}
             <TabsContent
               value="hashtags"
-              className="animate-in fade-in slide-in-from-bottom-2 mt-6 space-y-4 duration-300"
+              className="mt-4 space-y-4"
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold">
@@ -303,7 +300,7 @@ export function YoutubeMetadataModal({
         </div>
 
         {/* Footer */}
-        <div className="border-border/50 from-background/80 to-background/60 animate-in fade-in slide-in-from-bottom border-t bg-gradient-to-br p-5 backdrop-blur-sm delay-200 duration-300">
+        <div className="border-border/50 from-background/80 to-background/60 border-t bg-gradient-to-br p-5 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-3">
             <Button
               variant="outline"
@@ -334,7 +331,7 @@ export function YoutubeMetadataModal({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 }
