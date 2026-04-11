@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
-import { useOriginalPlayUrl } from "~/fsd/shared/hooks/useOriginalPlayUrl";
+import { usePlayUrl } from "~/fsd/shared/hooks/usePlayUrl";
+import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import {
   Card,
   CardContent,
@@ -23,7 +24,7 @@ interface UploadedFileCardProps {
 export function UploadedFileCard({ file }: UploadedFileCardProps) {
   const detailHref = `/dashboard/uploads/${file.id}`;
   const createdLabel = dateFormatter.format(new Date(file.createdAt));
-  const { playUrl, isLoading, error } = useOriginalPlayUrl(file.id);
+  const { playUrl, isLoading, error } = usePlayUrl(file.id, getOriginalPlayUrl);
 
   return (
     <Link href={detailHref} className="block focus:outline-none">

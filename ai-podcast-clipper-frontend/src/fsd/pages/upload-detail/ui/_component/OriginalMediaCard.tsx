@@ -1,6 +1,7 @@
 "use client";
 
-import { useOriginalPlayUrl } from "~/fsd/shared/hooks/useOriginalPlayUrl";
+import { usePlayUrl } from "~/fsd/shared/hooks/usePlayUrl";
+import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Download } from "lucide-react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
@@ -23,7 +24,7 @@ export default function OriginalMediaCard({
   displayName,
   status,
 }: OriginalMediaCardProps) {
-  const { playUrl, isLoading } = useOriginalPlayUrl(uploadedFileId);
+  const { playUrl, isLoading } = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
 
   const handleDownload = () => {
     if (!playUrl) return;
