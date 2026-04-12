@@ -10,7 +10,6 @@ import {
   MoreHorizontal,
   Trash,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
@@ -49,7 +48,6 @@ export function ClipActions({
   onDelete,
   onDeleteSuccess,
 }: ClipActionsProps) {
-  const router = useRouter();
   const [isDeleting, startDeleting] = useTransition();
 
   const handleDownload = () => {
@@ -59,13 +57,14 @@ export function ClipActions({
 
   const handleDelete = () => {
     startDeleting(async () => {
+      onDeleteSuccess(clip.id);
+
       const result = await onDelete(clip.id);
+      
       if (result.success) {
         toast.success("Clip deleted");
-        onDeleteSuccess(clip.id);
       } else {
         toast.error(result.error ?? "Failed to delete clip");
-        router.refresh();
       }
     });
   };
