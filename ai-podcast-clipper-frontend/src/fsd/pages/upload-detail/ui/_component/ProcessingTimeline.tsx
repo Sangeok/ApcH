@@ -4,25 +4,34 @@ import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { cn } from "~/fsd/shared/lib/utils";
 import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
+type StepKey = "queued" | "processing" | "processed";
+
 interface ProcessingTimelineProps {
   status: ProcessingStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const statusOrder: ProcessingStatus[] = [
-  "queued",
-  "processing",
-  "processed",
+const STEPS: { key: StepKey; label: string }[] = [
+  { key: "queued", label: "Queued" },
+  { key: "processing", label: "Processing" },
+  { key: "processed", label: "Processed" },
 ];
 
-const statusLabel: Record<ProcessingStatus, string> = {
-  queued: "Queued",
-  processing: "Processing",
-  processed: "Processed",
-  failed: "Failed",
-  "no credits": "No Credits",
-};
+function isStepCompleted(step: StepKey, status: ProcessingStatus): boolean {
+  switch (status) {
+    case "queued":
+      return step === "queued";
+    case "processing":
+      return step === "queued" || step === "processing";
+    case "processed":
+      return true;
+    case "failed":
+      return step === "queued" || step === "processing";
+    case "no credits":
+      return step === "queued";
+  }
+}
 
 export default function ProcessingTimeline({
   status,
@@ -30,47 +39,40 @@ export default function ProcessingTimeline({
   updatedAt,
 }: ProcessingTimelineProps) {
   return (
-    <div className="space-y-6">
-      <ol className="space-y-4">
-        {statusOrder.map((step) => {
-          const isCompleted =
-            status === "failed"
-              ? step === "queued" || step === "processing"
-              : statusOrder.indexOf(step) <= statusOrder.indexOf(status);
-          const isCurrent = status === step;
+    <ol className="space-y-4">
+      {STEPS.map(({ key, label }) => {
+        const completed = isStepCompleted(key, status);
+        const timestamp = key === "queued" ? createdAt : updatedAt;
 
-          return (
-            <li key={step} className="flex items-start gap-3">
-              <div
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full border",
-                  isCompleted ? "border-primary bg-primary/10" : "border-muted",
-                )}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 className="text-primary h-4 w-4" />
-                ) : (
-                  <Clock className="text-muted-foreground h-4 w-4" />
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">{statusLabel[step]}</p>
-                <p className="text-muted-foreground text-sm">
-                  {step === "queued"
-                    ? new Date(createdAt).toLocaleString()
-                    : new Date(updatedAt).toLocaleString()}
+        return (
+          <li key={key} className="flex items-start gap-3">
+            <div
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full border",
+                completed ? "border-primary bg-primary/10" : "border-muted",
+              )}
+            >
+              {completed ? (
+                <CheckCircle2 className="text-primary h-4 w-4" />
+              ) : (
+                <Clock className="text-muted-foreground h-4 w-4" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="font-medium">{label}</p>
+              <p className="text-muted-foreground text-sm">
+                {timestamp.toLocaleString()}
+              </p>
+              {key === "processing" && status === "failed" && (
+                <p className="text-destructive mt-1 flex items-center gap-2 text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  Failed
                 </p>
-                {isCurrent && status === "failed" && (
-                  <p className="text-destructive mt-1 flex items-center gap-2 text-sm">
-                    <AlertTriangle className="h-4 w-4" />
-                    Failed
-                  </p>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
