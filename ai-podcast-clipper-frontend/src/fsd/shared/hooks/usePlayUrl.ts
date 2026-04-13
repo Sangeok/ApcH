@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { ActionResult } from "~/fsd/shared/api/result";
 
+interface UsePlayUrlOptions {
+  enabled?: boolean;
+}
+
 interface UsePlayUrlReturn {
   playUrl: string | null;
   isLoading: boolean;
@@ -12,18 +16,23 @@ interface UsePlayUrlReturn {
 export function usePlayUrl(
   id: string,
   fetcher: (id: string) => Promise<ActionResult<{ url: string }>>,
+  options?: UsePlayUrlOptions,
 ): UsePlayUrlReturn {
+  const enabled = options?.enabled ?? true;
   const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
 
   useEffect(() => {
+    if (!enabled) return;
+
     let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+
     const fetchUrl = async () => {
-      setIsLoading(true);
-      setError(null);
       try {
         const result = await fetcherRef.current(id);
         if (cancelled) return;
@@ -43,7 +52,7 @@ export function usePlayUrl(
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, enabled]);
 
   return { playUrl, isLoading, error };
 }
