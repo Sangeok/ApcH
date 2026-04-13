@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useOptimistic } from "react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -26,6 +27,11 @@ interface DashboardViewProps {
 }
 
 export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
+  const [optimisticFiles, addOptimisticFile] = useOptimistic(
+    uploadedFiles,
+    (state, newFile: UploadedFileSummary) => [newFile, ...state],
+  );
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
@@ -51,8 +57,8 @@ export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
         </TabsList>
 
         <TabsContent value="upload">
-          <UploadPodcast />
-          <QueueStatus uploadedFiles={uploadedFiles} />
+          <UploadPodcast onOptimisticAdd={addOptimisticFile} />
+          <QueueStatus uploadedFiles={optimisticFiles} />
         </TabsContent>
 
         <TabsContent value="my-clips">
