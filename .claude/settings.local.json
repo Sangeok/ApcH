@@ -51,7 +51,9 @@
       "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('react:', p.dependencies?.react, 'next:', p.dependencies?.next, 'react-dom:', p.dependencies?.['react-dom']\\)\")",
       "Bash(head -20 src/app/dashboard/uploads/[uploadedFileId]/page.tsx)",
       "Bash(grep -r \"use-dialog\\\\|Dialog\\\\|dialog\" src/fsd/widgets/clip-display/ui/_component/*.tsx)",
-      "Bash(npx shadcn@latest add sheet --yes)"
+      "Bash(npx shadcn@latest add sheet --yes)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('react:', p.dependencies.react || p.devDependencies?.react\\); console.log\\('sonner:', p.dependencies.sonner || p.devDependencies?.sonner\\); console.log\\('next:', p.dependencies.next || p.devDependencies?.next\\);\")",
+      "Skill(dev-doc-review)"
     ]
   }
 }

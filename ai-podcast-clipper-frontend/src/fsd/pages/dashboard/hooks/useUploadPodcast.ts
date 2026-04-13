@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import { generateUploadUrl } from "~/fsd/features/upload/api";
 import { processVideo } from "~/fsd/features/clip/api";
+import type { UploadedFileSummary } from "~/fsd/pages/dashboard/model/types";
 
 async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
   const response = await fetch(signedUrl, {
@@ -14,54 +15,68 @@ async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
   if (!response.ok) throw new Error("Failed to upload file to S3");
 }
 
-export function useUploadPodcast() {
-  const [isUploading, setIsUploading] = useState(false);
+interface UseUploadPodcastOptions {
+  onOptimisticAdd: (file: UploadedFileSummary) => void;
+  onSuccess?: () => void;
+}
 
-  const upload = async (
-    file: File,
-    language: string,
-    clipCount: number,
-  ): Promise<boolean> => {
-    setIsUploading(true);
-    try {
-      const uploadResult = await generateUploadUrl({
+export function useUploadPodcast({ onOptimisticAdd, onSuccess }: UseUploadPodcastOptions) {
+  const [isUploading, startUploading] = useTransition();
+
+  const upload = (file: File, language: string, clipCount: number) => {
+    startUploading(async () => {
+      const optimisticFile: UploadedFileSummary = {
+        id: `optimistic-${Date.now()}`,
         fileName: file.name,
-        contentType: file.type,
-        language,
-      });
-      if (!uploadResult.success) {
-        toast.error(uploadResult.error);
-        return false;
+        status: "queued",
+        createdAt: new Date(),
+        clipsCount: 0,
+      };
+      onOptimisticAdd(optimisticFile);
+
+      const toastId = toast.loading("Preparing upload...");
+
+      try {
+        const uploadResult = await generateUploadUrl({
+          fileName: file.name,
+          contentType: file.type,
+          language,
+        });
+        if (!uploadResult.success) {
+          toast.error(uploadResult.error, { id: toastId });
+          return;
+        }
+
+        toast.loading("Uploading file to server...", { id: toastId });
+        await uploadFileToS3(file, uploadResult.data.signedUrl);
+
+        toast.loading("Scheduling processing...", { id: toastId });
+        const processResult = await processVideo(
+          uploadResult.data.uploadedFileId,
+          language,
+          clipCount,
+        );
+        if (!processResult.success) {
+          toast.error(processResult.error, { id: toastId });
+          return;
+        }
+
+        toast.success("Video uploaded successfully", {
+          id: toastId,
+          description:
+            "Your video has been scheduled for processing. Check the status below",
+          duration: 5000,
+        });
+        onSuccess?.();
+      } catch (error) {
+        console.error("Failed to upload video", error);
+        toast.error("Failed to upload video", {
+          id: toastId,
+          description:
+            "There was a problem uploading your video. Please try again.",
+        });
       }
-
-      await uploadFileToS3(file, uploadResult.data.signedUrl);
-
-      const processResult = await processVideo(
-        uploadResult.data.uploadedFileId,
-        language,
-        clipCount,
-      );
-      if (!processResult.success) {
-        toast.error(processResult.error);
-        return false;
-      }
-
-      toast.success("Video uploaded successfully", {
-        description:
-          "Your video has been scheduled for processing. Check the status below",
-        duration: 5000,
-      });
-      return true;
-    } catch (error) {
-      console.error("Failed to upload video", error);
-      toast.error("Failed to upload video", {
-        description:
-          "There was a problem uploading your video. Please try again.",
-      });
-      return false;
-    } finally {
-      setIsUploading(false);
-    }
+    });
   };
 
   return { upload, isUploading };

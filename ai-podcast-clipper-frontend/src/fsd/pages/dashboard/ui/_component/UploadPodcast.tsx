@@ -27,22 +27,29 @@ import {
   DEFAULT_LANGUAGE,
   DEFAULT_CLIP_COUNT,
 } from "~/fsd/shared/config/constants";
+import type { UploadedFileSummary } from "../../model/types";
 
-export default function UploadPodcast() {
+interface UploadPodcastProps {
+  onOptimisticAdd: (file: UploadedFileSummary) => void;
+}
+
+export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
   const [clipCount, setClipCount] = useState<number>(DEFAULT_CLIP_COUNT);
-  const { upload, isUploading } = useUploadPodcast();
+  const { upload, isUploading } = useUploadPodcast({
+    onOptimisticAdd,
+    onSuccess: () => setFiles([]),
+  });
 
   const handleFileDrop = (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     const file = files[0];
     if (!file) return;
-    const success = await upload(file, language, clipCount);
-    if (success) setFiles([]);
+    upload(file, language, clipCount);
   };
 
   return (
