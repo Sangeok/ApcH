@@ -69,7 +69,7 @@ export function UploadedFileCard({ file }: UploadedFileCardProps) {
         )}
         {shouldPlay && playUrl && (
           <video
-            ref={(el) => { void el?.play().catch(() => {}); }}
+            ref={(el) => { void el?.play().catch(() => undefined); }}
             src={playUrl}
             controls
             playsInline
