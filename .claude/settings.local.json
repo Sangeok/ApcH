@@ -56,7 +56,8 @@
       "Skill(dev-doc-review)",
       "Bash(cd /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipger-frontend)",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(echo \"EXIT_CODE:$?\")"
+      "Bash(echo \"EXIT_CODE:$?\")",
+      "Bash(pnpm tsc:*)"
     ]
   }
 }
