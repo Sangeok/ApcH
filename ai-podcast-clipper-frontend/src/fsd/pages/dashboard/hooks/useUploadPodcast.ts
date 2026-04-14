@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { generateUploadUrl } from "~/fsd/features/upload/api";
+import { generateUploadUrl, deleteUploadedFileWithClips } from "~/fsd/features/upload/api";
 import { processVideo } from "~/fsd/features/clip/api";
 import type { UploadedFileSummary } from "~/fsd/pages/dashboard/model/types";
 
@@ -35,6 +35,7 @@ export function useUploadPodcast({ onOptimisticAdd, onSuccess }: UseUploadPodcas
       onOptimisticAdd(optimisticFile);
 
       const toastId = toast.loading("Preparing upload...");
+      let createdFileId: string | null = null;
 
       try {
         const uploadResult = await generateUploadUrl({
@@ -47,12 +48,14 @@ export function useUploadPodcast({ onOptimisticAdd, onSuccess }: UseUploadPodcas
           return;
         }
 
+        createdFileId = uploadResult.data.uploadedFileId;
+
         toast.loading("Uploading file to server...", { id: toastId });
         await uploadFileToS3(file, uploadResult.data.signedUrl);
 
         toast.loading("Scheduling processing...", { id: toastId });
         const processResult = await processVideo(
-          uploadResult.data.uploadedFileId,
+          createdFileId,
           language,
           clipCount,
         );
@@ -61,6 +64,7 @@ export function useUploadPodcast({ onOptimisticAdd, onSuccess }: UseUploadPodcas
           return;
         }
 
+        createdFileId = null;
         toast.success("Video uploaded successfully", {
           id: toastId,
           description:
@@ -75,6 +79,10 @@ export function useUploadPodcast({ onOptimisticAdd, onSuccess }: UseUploadPodcas
           description:
             "There was a problem uploading your video. Please try again.",
         });
+      } finally {
+        if (createdFileId) {
+          await deleteUploadedFileWithClips(createdFileId).catch(console.error);
+        }
       }
     });
   };
