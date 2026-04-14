@@ -19,15 +19,12 @@ export function useMetadataClipboard(clip: Clip) {
     [clip.youtubeHashtags],
   );
 
-  // copiedField가 설정되면 COPY_FEEDBACK_DELAY_MS 후 자동 초기화.
-  // useEffect cleanup으로 언마운트 시 타이머 누수를 방지한다.
   useEffect(() => {
     if (copiedField === null) return;
     const timer = setTimeout(() => setCopiedField(null), COPY_FEEDBACK_DELAY_MS);
     return () => clearTimeout(timer);
   }, [copiedField]);
 
-  // React Compiler 미활성화 환경에서 함수 참조를 안정화한다.
   const handleCopyMetadata = useCallback(
     async (field: CopiedField, value: string) => {
       if (!value) {
