@@ -1,8 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db } from "~/server/db";
 import { inngest } from "~/inngest/client";
+import { deleteClipRecord, findClipById } from "~/fsd/entities/clip";
+import {
+  findUploadedFileForProcessTrigger,
+  setUploadedFileUploaded,
+  updateUploadedFileLanguage,
+} from "~/fsd/entities/uploaded-file";
 import {
   generatePresignedGetUrl,
   deleteS3Object,
@@ -45,19 +50,9 @@ export async function processVideo(
 
   try {
     // Update language for consistency
-    await db.uploadedFile.update({
-      where: { id: fileId, userId },
-      data: { language: lang },
-    });
+    await updateUploadedFileLanguage(fileId, userId, lang);
 
-    const uploadedVideo = await db.uploadedFile.findUniqueOrThrow({
-      where: { id: fileId, userId },
-      select: {
-        uploaded: true,
-        id: true,
-        userId: true,
-      },
-    });
+    const uploadedVideo = await findUploadedFileForProcessTrigger(fileId, userId);
 
     if (uploadedVideo.uploaded) {
       return failure("Video already uploaded");
@@ -73,10 +68,7 @@ export async function processVideo(
       },
     });
 
-    await db.uploadedFile.update({
-      where: { id: uploadedVideo.id, userId },
-      data: { uploaded: true },
-    });
+    await setUploadedFileUploaded(uploadedVideo.id, true, { userId });
 
     revalidatePath("/dashboard");
     return success(undefined);
@@ -97,12 +89,7 @@ export async function getClipPlayUrl(
   const { userId } = authResult.data;
 
   try {
-    const clip = await db.clip.findUniqueOrThrow({
-      where: {
-        id: clipId,
-        userId,
-      },
-    });
+    const clip = await findClipById(clipId, userId);
 
     const signedUrl = await generatePresignedGetUrl(
       clip.s3Key,
@@ -127,10 +114,7 @@ export async function deleteClip(
   const { userId } = authResult.data;
 
   try {
-    const clip = await db.clip.findUniqueOrThrow({
-      where: { id: clipId, userId },
-      select: { id: true, s3Key: true },
-    });
+    const clip = await findClipById(clipId, userId);
 
     // Delete clip from S3
     await deleteS3Object(clip.s3Key);
@@ -158,7 +142,7 @@ export async function deleteClip(
     }
 
     // Delete clip from database
-    await db.clip.delete({ where: { id: clip.id } });
+    await deleteClipRecord(clip.id);
     revalidatePath("/dashboard");
 
     return success(undefined);

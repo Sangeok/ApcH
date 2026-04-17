@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
+import type { ProcessingStatus } from "~/fsd/entities/uploaded-file";
 import { getUploadedFileDetails } from "~/fsd/features/upload/api";
 import UploadDetailPage from "~/fsd/pages/upload-detail/ui";
-import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface UploadDetailPageProps {
   params: Promise<{ uploadedFileId: string }>;

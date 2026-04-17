@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
-import { coreFeatures } from "../../constants";
+import { coreFeatures } from "../../config";
 
 export default function FeaturesSection() {
   return (

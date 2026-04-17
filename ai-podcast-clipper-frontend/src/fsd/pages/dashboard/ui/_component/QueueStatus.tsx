@@ -14,9 +14,9 @@ import Link from "next/link";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { STATUS_CONFIG } from "../../constants";
+import type { ProcessingStatus } from "~/fsd/entities/uploaded-file";
+import { STATUS_CONFIG } from "../../config";
 import type { UploadedFileSummary } from "../../model/types";
-import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface QueueStatusProps {
   uploadedFiles: UploadedFileSummary[];

@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Play } from "lucide-react";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
-import { usePlayUrl } from "~/fsd/shared/hooks/usePlayUrl";
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import {
   Card,
   CardContent,

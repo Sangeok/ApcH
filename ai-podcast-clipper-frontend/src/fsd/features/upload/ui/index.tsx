@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   deleteUploadedFileWithClips,
   reprocessUploadedFile,
-} from "~/fsd/features/upload/api";
+} from "../api";
 import { Loader2, Trash2, RefreshCw, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "~/fsd/shared/api/result";

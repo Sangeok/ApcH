@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
+import { signInWithGoogle } from "~/fsd/features/auth";
 import { GoogleIcon } from "~/fsd/shared/ui/atoms/icons/google";
-import { signIn } from "next-auth/react";
 
 export default function LoginForm({
   className,
@@ -29,7 +29,7 @@ export default function LoginForm({
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            onClick={() => void signInWithGoogle()}
           >
             <GoogleIcon className="mr-2 size-4" />
             Continue with Google

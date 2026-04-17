@@ -1,6 +1,11 @@
 import { env } from "~/env";
+import { createClipsBulk } from "~/fsd/entities/clip";
+import {
+  findUploadedFileProcessingContext,
+  updateUploadedFileStatus,
+} from "~/fsd/entities/uploaded-file";
+import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";
 import { inngest } from "./client";
-import { db } from "~/server/db";
 import { listS3Objects } from "~/fsd/shared/api/s3";
 
 type ProcessVideoBackendClip = {
@@ -41,40 +46,12 @@ export const processVideo = inngest.createFunction(
     try {
       const { userId, credits, s3Key } = await step.run(
         "check-credits",
-        async () => {
-          const uploadedFile = await db.uploadedFile.findUniqueOrThrow({
-            where: {
-              id: uploadedFileId,
-            },
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  credits: true,
-                },
-              },
-              s3Key: true,
-            },
-          });
-
-          return {
-            userId: uploadedFile.user.id,
-            credits: uploadedFile.user.credits,
-            s3Key: uploadedFile.s3Key,
-          };
-        },
+        () => findUploadedFileProcessingContext(uploadedFileId),
       );
 
       if (credits > 0) {
         await step.run("set-status-processing", async () => {
-          await db.uploadedFile.update({
-            where: {
-              id: uploadedFileId,
-            },
-            data: {
-              status: "processing",
-            },
-          });
+          await updateUploadedFileStatus(uploadedFileId, "processing");
         });
 
         // NEXT_PUBLIC_SITE_URL 유무로 비동기/동기 모드 결정
@@ -158,7 +135,7 @@ export const processVideo = inngest.createFunction(
                 }));
 
               if (createData.length > 0) {
-                await db.clip.createMany({ data: createData });
+                await createClipsBulk(createData);
               }
 
               return { clipsFound: createData.length };
@@ -176,13 +153,13 @@ export const processVideo = inngest.createFunction(
             );
 
             if (clipKeys.length > 0) {
-              await db.clip.createMany({
-                data: clipKeys.map((clipKey) => ({
+              await createClipsBulk(
+                clipKeys.map((clipKey) => ({
                   s3Key: clipKey,
                   uploadedFileId,
                   userId,
                 })),
-              });
+              );
             }
 
             return { clipsFound: clipKeys.length };
@@ -190,45 +167,20 @@ export const processVideo = inngest.createFunction(
         );
 
         await step.run("deduct-credits", async () => {
-          await db.$executeRaw`
-            UPDATE "User"
-            SET "credits" = GREATEST("credits" - ${clipsFound}, 0)
-            WHERE "id" = ${userId}
-          `;
+          await decrementUserCreditsFloorZero(userId, clipsFound);
         });
 
         await step.run("set-status-processed", async () => {
-          await db.uploadedFile.update({
-            where: {
-              id: uploadedFileId,
-            },
-            data: {
-              status: "processed",
-            },
-          });
+          await updateUploadedFileStatus(uploadedFileId, "processed");
         });
       } else {
         await step.run("set-status-no-credits", async () => {
-          await db.uploadedFile.update({
-            where: {
-              id: uploadedFileId,
-            },
-            data: {
-              status: "no credits",
-            },
-          });
+          await updateUploadedFileStatus(uploadedFileId, "no credits");
         });
       }
     } catch (error) {
       await step.run("set-status-failed", async () => {
-        await db.uploadedFile.update({
-          where: {
-            id: uploadedFileId,
-          },
-          data: {
-            status: "failed",
-          },
-        });
+        await updateUploadedFileStatus(uploadedFileId, "failed");
       });
       throw error;
     }

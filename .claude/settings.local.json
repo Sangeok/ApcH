@@ -57,7 +57,10 @@
       "Bash(cd /c/Users/hamso/OneDrive/Desktop/git/ApcH/ai-podcast-clipger-frontend)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(echo \"EXIT_CODE:$?\")",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "WebFetch(domain:apc-h.vercel.app)",
+      "Bash(curl -sI \"https://apc-h.vercel.app/\")",
+      "Bash(curl -s \"https://apc-h.vercel.app/\")"
     ]
   }
 }

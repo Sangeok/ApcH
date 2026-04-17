@@ -1,8 +1,8 @@
 import { type Metadata } from "next";
+import { getHomeUserProfile } from "~/fsd/entities/user";
 import HomePage from "~/fsd/pages/home/ui";
 import { generateWebApplicationJsonLd } from "~/fsd/shared/lib/seo";
 import { auth } from "~/server/auth";
-import { db } from "~/server/db";
 
 export const metadata: Metadata = {
   title: "Turn Your Podcast into Short-Form Clips with AI",
@@ -28,15 +28,7 @@ export default async function Home() {
   let image: string | null = null;
 
   if (userId) {
-    const user = await db.user.findUniqueOrThrow({
-      where: {
-        id: userId,
-      },
-      select: {
-        email: true,
-        image: true,
-      },
-    });
+    const user = await getHomeUserProfile(userId);
 
     email = user.email;
     image = user.image;

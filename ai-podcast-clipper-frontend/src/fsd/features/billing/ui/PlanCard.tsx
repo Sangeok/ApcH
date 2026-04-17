@@ -12,8 +12,8 @@ import {
 } from "~/fsd/shared/ui/atoms/card";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { getCheckoutUrl } from "~/fsd/features/billing/api";
-import { PLAN_TIERS } from "~/fsd/features/billing/constants";
-import type { PlanTier, ProductIds } from "~/fsd/features/billing/constants";
+import { PLAN_TIERS } from "../config";
+import type { PlanTier, ProductIds } from "../config";
 
 interface PlanCardProps {
   tier: PlanTier;
