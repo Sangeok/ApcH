@@ -1,22 +1,12 @@
 import { Webhooks } from "@polar-sh/nextjs";
 import type { NextRequest } from "next/server";
 import { env } from "~/env";
-import { db } from "~/server/db";
+import { handleOrderCreated } from "~/fsd/features/handle-order-created";
+import { handleSubscriptionActive } from "~/fsd/features/handle-subscription-active";
+import { handleSubscriptionCanceled } from "~/fsd/features/handle-subscription-canceled";
+import { handleSubscriptionUpdated } from "~/fsd/features/handle-subscription-updated";
 
-export const maxDuration = 10; // Hobby 플랜 최대값. Pro 전환 시 30으로 상향 권장
-
-async function resolveUserId(
-  metadataUserId: string | undefined,
-  customerEmail: string | undefined,
-): Promise<string | null> {
-  if (metadataUserId) return metadataUserId;
-  if (!customerEmail) return null;
-  const user = await db.user.findUnique({
-    where: { email: customerEmail },
-    select: { id: true },
-  });
-  return user?.id ?? null;
-}
+export const maxDuration = 10;
 
 const webhooksHandler = Webhooks({
   webhookSecret:
@@ -25,86 +15,52 @@ const webhooksHandler = Webhooks({
       : env.POLAR_WEBHOOK_SECRET_DEV,
 
   onSubscriptionCreated: async () => {
-    // Subscription created but may not be active yet — no action needed
+    // Subscription creation alone is not actionable until it becomes active.
   },
 
   onSubscriptionActive: async (payload) => {
     try {
       const { data } = payload;
-      console.log("[polar:subscription.active] id:", data.id, "metadata:", JSON.stringify(data.metadata), "customer:", data.customer?.email);
-
-      const userId = await resolveUserId(
-        data.metadata?.userId as string | undefined,
+      console.log(
+        "[polar:subscription.active] id:",
+        data.id,
+        "metadata:",
+        JSON.stringify(data.metadata),
+        "customer:",
         data.customer?.email,
       );
-      if (!userId) {
-        console.error("[polar:subscription.active] userId resolution failed — metadata:", JSON.stringify(data.metadata), "email:", data.customer?.email);
+
+      const tier = data.product?.metadata?.tier as string | undefined;
+      const monthlyCredits = Number(data.product?.metadata?.monthlyCredits) || 0;
+
+      const result = await handleSubscriptionActive({
+        subscriptionId: data.id,
+        productId: data.productId,
+        customerId: data.customerId,
+        customerEmail: data.customer?.email,
+        metadataUserId: data.metadata?.userId as string | undefined,
+        tier,
+        monthlyCredits,
+        currentPeriodStart: new Date(data.currentPeriodStart),
+        currentPeriodEnd: new Date(data.currentPeriodEnd),
+        recurringInterval: data.recurringInterval ?? "month",
+      });
+
+      if (!result.ok) {
+        console.error(
+          "[polar:subscription.active] userId resolution failed",
+          JSON.stringify(data.metadata),
+          data.customer?.email,
+        );
         return;
       }
 
-      const tier = data.product?.metadata?.tier as string | undefined;
-      const monthlyCredits =
-        Number(data.product?.metadata?.monthlyCredits) || 0;
-
-      // 1. Check existing subscriptions (idempotency + userId @unique conflict prevention)
-      const existingByPolarId = await db.subscription.findUnique({
-        where: { polarSubscriptionId: data.id },
-      });
-      const existingByUser = await db.subscription.findUnique({
-        where: { userId },
-      });
-
-      const isNewSubscription = !existingByPolarId;
-
-      // 2. Remove old subscription if user has one with different polarSubscriptionId (plan switch)
-      if (existingByUser && existingByUser.polarSubscriptionId !== data.id) {
-        await db.subscription.delete({
-          where: { userId },
-        });
-      }
-
-      // 3. Upsert subscription
-      await db.subscription.upsert({
-        where: { polarSubscriptionId: data.id },
-        create: {
-          polarSubscriptionId: data.id,
-          userId,
-          polarProductId: data.productId,
-          planTier: tier ?? "pro",
-          status: "active",
-          recurringInterval: data.recurringInterval ?? "month",
-          monthlyCredits,
-          currentPeriodStart: new Date(data.currentPeriodStart),
-          currentPeriodEnd: new Date(data.currentPeriodEnd),
-        },
-        update: {
-          status: "active",
-          planTier: tier ?? "pro",
-          monthlyCredits,
-          currentPeriodStart: new Date(data.currentPeriodStart),
-          currentPeriodEnd: new Date(data.currentPeriodEnd),
-          cancelAtPeriodEnd: false,
-          canceledAt: null,
-        },
-      });
-
-      // 4. Credit recharge (only for new subscriptions — skip on duplicate events)
-      if (isNewSubscription) {
-        await db.user.update({
-          where: { id: userId },
-          data: {
-            credits: { increment: monthlyCredits },
-            polarCustomerId: data.customerId,
-          },
-        });
-      } else {
-        await db.user.update({
-          where: { id: userId },
-          data: { polarCustomerId: data.customerId },
-        });
-      }
-
-      console.log("[polar:subscription.active] success — userId:", userId, "tier:", tier, "credits:", monthlyCredits);
+      console.log(
+        "[polar:subscription.active] success",
+        result.userId,
+        tier,
+        monthlyCredits,
+      );
     } catch (error) {
       console.error("[polar:subscription.active] error:", error);
       throw error;
@@ -116,49 +72,28 @@ const webhooksHandler = Webhooks({
       const { data } = payload;
       console.log("[polar:subscription.updated] id:", data.id, "status:", data.status);
 
-      const subscription = await db.subscription.findUnique({
-        where: { polarSubscriptionId: data.id },
+      const tier = data.product?.metadata?.tier as string | undefined;
+      const monthlyCredits = Number(data.product?.metadata?.monthlyCredits) || 0;
+
+      const result = await handleSubscriptionUpdated({
+        subscriptionId: data.id,
+        productId: data.productId,
+        status: data.status,
+        tier,
+        monthlyCredits,
+        currentPeriodStart: new Date(data.currentPeriodStart),
+        currentPeriodEnd: new Date(data.currentPeriodEnd),
+        recurringInterval: data.recurringInterval ?? undefined,
+        cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? false,
+        canceledAt: data.canceledAt ? new Date(data.canceledAt) : null,
       });
-      if (!subscription) {
+
+      if (!result.ok) {
         console.error("[polar:subscription.updated] subscription not found:", data.id);
         return;
       }
 
-      const tier = data.product?.metadata?.tier as string | undefined;
-      const monthlyCredits =
-        Number(data.product?.metadata?.monthlyCredits) || 0;
-
-      // Detect period renewal for credit recharge
-      const periodChanged =
-        subscription.currentPeriodEnd.getTime() !==
-        new Date(data.currentPeriodEnd).getTime();
-
-      if (periodChanged && data.status === "active") {
-        await db.user.update({
-          where: { id: subscription.userId },
-          data: {
-            credits: { increment: monthlyCredits },
-          },
-        });
-      }
-
-      await db.subscription.update({
-        where: { polarSubscriptionId: data.id },
-        data: {
-          status: data.status,
-          planTier: tier ?? subscription.planTier,
-          polarProductId: data.productId,
-          monthlyCredits,
-          recurringInterval:
-            data.recurringInterval ?? subscription.recurringInterval,
-          currentPeriodStart: new Date(data.currentPeriodStart),
-          currentPeriodEnd: new Date(data.currentPeriodEnd),
-          cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? false,
-          canceledAt: data.canceledAt ? new Date(data.canceledAt) : null,
-        },
-      });
-
-      console.log("[polar:subscription.updated] success — id:", data.id);
+      console.log("[polar:subscription.updated] success:", data.id);
     } catch (error) {
       console.error("[polar:subscription.updated] error:", error);
       throw error;
@@ -170,24 +105,17 @@ const webhooksHandler = Webhooks({
       const { data } = payload;
       console.log("[polar:subscription.canceled] id:", data.id);
 
-      const subscription = await db.subscription.findUnique({
-        where: { polarSubscriptionId: data.id },
+      const result = await handleSubscriptionCanceled({
+        subscriptionId: data.id,
+        canceledAt: data.canceledAt ? new Date(data.canceledAt) : null,
       });
-      if (!subscription) {
+
+      if (!result.ok) {
         console.error("[polar:subscription.canceled] subscription not found:", data.id);
         return;
       }
 
-      await db.subscription.update({
-        where: { polarSubscriptionId: data.id },
-        data: {
-          status: "canceled",
-          canceledAt: data.canceledAt ? new Date(data.canceledAt) : new Date(),
-          cancelAtPeriodEnd: true,
-        },
-      });
-
-      console.log("[polar:subscription.canceled] success — id:", data.id);
+      console.log("[polar:subscription.canceled] success:", data.id);
     } catch (error) {
       console.error("[polar:subscription.canceled] error:", error);
       throw error;
@@ -197,34 +125,35 @@ const webhooksHandler = Webhooks({
   onOrderCreated: async (payload) => {
     try {
       const { data } = payload;
-      console.log("[polar:order.created] id:", data.id, "metadata:", JSON.stringify(data.metadata), "customer:", data.customer?.email);
-
-      const userId = await resolveUserId(
-        data.metadata?.userId as string | undefined,
+      console.log(
+        "[polar:order.created] id:",
+        data.id,
+        "metadata:",
+        JSON.stringify(data.metadata),
+        "customer:",
         data.customer?.email,
       );
-      if (!userId) {
-        console.error("[polar:order.created] userId resolution failed — metadata:", JSON.stringify(data.metadata), "email:", data.customer?.email);
+
+      const result = await handleOrderCreated({
+        orderId: data.id,
+        productName: data.product?.name ?? "Unknown",
+        amount: data.totalAmount ?? 0,
+        currency: data.currency ?? "usd",
+        status: "completed",
+        customerEmail: data.customer?.email,
+        metadataUserId: data.metadata?.userId as string | undefined,
+      });
+
+      if (!result.ok) {
+        console.error(
+          "[polar:order.created] userId resolution failed",
+          JSON.stringify(data.metadata),
+          data.customer?.email,
+        );
         return;
       }
 
-      const existingOrder = await db.order.findUnique({
-        where: { polarOrderId: data.id },
-      });
-      if (existingOrder) return;
-
-      await db.order.create({
-        data: {
-          polarOrderId: data.id,
-          userId,
-          productName: data.product?.name ?? "Unknown",
-          amount: data.totalAmount ?? 0,
-          currency: data.currency ?? "usd",
-          status: "completed",
-        },
-      });
-
-      console.log("[polar:order.created] success — userId:", userId, "orderId:", data.id);
+      console.log("[polar:order.created] success:", result.userId, data.id);
     } catch (error) {
       console.error("[polar:order.created] error:", error);
       throw error;
@@ -233,15 +162,21 @@ const webhooksHandler = Webhooks({
 });
 
 export async function POST(request: NextRequest) {
-  console.log("[polar:webhook] incoming request —", request.method, request.url);
-  console.log("[polar:webhook] headers — webhook-id:", request.headers.get("webhook-id"), "webhook-signature:", request.headers.get("webhook-signature")?.slice(0, 20) + "...");
+  console.log("[polar:webhook] incoming request", request.method, request.url);
+  console.log(
+    "[polar:webhook] headers",
+    "webhook-id:",
+    request.headers.get("webhook-id"),
+    "webhook-signature:",
+    request.headers.get("webhook-signature")?.slice(0, 20) + "...",
+  );
 
   const response = await webhooksHandler(request);
 
   console.log("[polar:webhook] response status:", response.status);
   if (response.status !== 200) {
     const body = await response.clone().text();
-    console.error("[polar:webhook] failed — status:", response.status, "body:", body);
+    console.error("[polar:webhook] failed:", response.status, body);
   }
 
   return response;

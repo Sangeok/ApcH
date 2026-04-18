@@ -32,7 +32,9 @@
       "Bash(find C:\\\\Users\\\\hamso\\\\OneDrive\\\\Desktop\\\\git\\\\ApcH\\\\ai-podcast-clipper-frontend\\\\src:*)",
       "Bash(wc:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Skill(dev-doc-review)",
+      "Bash(npm ls *)"
     ]
   }
 }

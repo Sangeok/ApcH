@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { PlanCard } from "./PlanCard";
 import { SubscriptionStatus } from "./SubscriptionStatus";
 import { OrderHistory } from "./OrderHistory";
-import type { BillingPageData } from "~/fsd/features/billing/model/types";
-import type { ProductIds } from "~/fsd/features/billing/constants";
+import type { ProductIds } from "../config";
+import type { BillingPageData } from "../model/types";
 
 interface BillingPageProps {
   data: BillingPageData;

@@ -1,5 +1,5 @@
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
-import { workflowSteps } from "../../constants";
+import { workflowSteps } from "../../config";
 
 export default function WorkflowSection() {
   return (

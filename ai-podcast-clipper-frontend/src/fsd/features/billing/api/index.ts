@@ -1,12 +1,13 @@
 "use server";
 
-import { db } from "~/server/db";
 import { env } from "~/env";
+import { findSubscriptionByUserId, updateSubscriptionByPolarId } from "~/fsd/entities/subscription";
+import { getBillingUserSnapshot } from "~/fsd/entities/user";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { success, failure } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";
-import type { BillingPageData } from "~/fsd/features/billing/model/types";
-import type { PlanTier } from "~/fsd/features/billing/constants";
+import type { PlanTier } from "../config";
+import type { BillingPageData } from "../model/types";
 
 export async function getBillingData(): Promise<ActionResult<BillingPageData>> {
   const authResult = await requireAuth();
@@ -14,17 +15,7 @@ export async function getBillingData(): Promise<ActionResult<BillingPageData>> {
 
   const { userId } = authResult.data;
 
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: {
-      credits: true,
-      subscription: true,
-      orders: {
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      },
-    },
-  });
+  const user = await getBillingUserSnapshot(userId);
 
   if (!user) return failure("User not found");
 
@@ -77,9 +68,7 @@ export async function cancelSubscription(): Promise<ActionResult<void>> {
 
   const { userId } = authResult.data;
 
-  const subscription = await db.subscription.findUnique({
-    where: { userId },
-  });
+  const subscription = await findSubscriptionByUserId(userId);
 
   if (!subscription) return failure("Active subscription not found");
 
@@ -97,12 +86,9 @@ export async function cancelSubscription(): Promise<ActionResult<void>> {
   }
 
   // Optimistic local DB update — don't wait for webhook
-  await db.subscription.update({
-    where: { userId },
-    data: {
-      cancelAtPeriodEnd: true,
-      canceledAt: new Date(),
-    },
+  await updateSubscriptionByPolarId(subscription.polarSubscriptionId, {
+    cancelAtPeriodEnd: true,
+    canceledAt: new Date(),
   });
 
   return success(undefined);

@@ -1,8 +1,8 @@
 "use client";
 
 import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import type { ProcessingStatus } from "~/fsd/entities/uploaded-file";
 import { cn } from "~/fsd/shared/lib/utils";
-import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 type StepKey = "queued" | "processing" | "processed";
 

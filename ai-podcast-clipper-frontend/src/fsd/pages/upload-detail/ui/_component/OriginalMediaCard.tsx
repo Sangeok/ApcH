@@ -1,7 +1,8 @@
 "use client";
 
-import { usePlayUrl } from "~/fsd/shared/hooks/usePlayUrl";
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import type { ProcessingStatus } from "~/fsd/entities/uploaded-file";
+import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Download } from "lucide-react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
@@ -11,7 +12,6 @@ import {
   CardContent,
   CardHeader,
 } from "~/fsd/shared/ui/atoms/card";
-import type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
 
 interface OriginalMediaCardProps {
   uploadedFileId: string;

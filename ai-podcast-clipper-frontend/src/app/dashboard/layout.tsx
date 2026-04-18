@@ -1,9 +1,9 @@
 import { type Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getDashboardHeaderUser } from "~/fsd/entities/user";
 import { Toaster } from "~/fsd/shared/ui/atoms/sonner";
 import DashboardHeader from "~/fsd/widgets/dashboard-header/ui";
 import { auth } from "~/server/auth";
-import { db } from "~/server/db";
 
 export const metadata: Metadata = {
   robots: {
@@ -23,16 +23,7 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const user = await db.user.findUniqueOrThrow({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      email: true,
-      credits: true,
-      image: true,
-    },
-  });
+  const user = await getDashboardHeaderUser(session.user.id);
 
   return (
     <div className="flex min-h-screen flex-col">

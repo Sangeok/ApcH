@@ -4,6 +4,17 @@ import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { inngest } from "~/inngest/client";
+import { deleteClipsByUploadedFileId } from "~/fsd/entities/clip";
+import {
+  createUploadedFile,
+  deleteUploadedFileRecord,
+  findUploadedFileForDeletion,
+  findUploadedFileForReprocess,
+  findUploadedFileS3Key,
+  getUploadedFileDetailsById,
+  setUploadedFileUploaded,
+  updateUploadedFileStatus,
+} from "~/fsd/entities/uploaded-file";
 import {
   generatePresignedGetUrl,
   generatePresignedPutUrl,
@@ -37,17 +48,12 @@ export async function generateUploadUrl(fileInfo: {
       S3_CONFIG.PRESIGNED_PUT_URL_EXPIRY,
     );
 
-    const uploadedFileDbRecord = await db.uploadedFile.create({
-      data: {
-        userId: authResult.data.userId,
-        s3Key: key,
-        displayName: fileInfo.fileName,
-        uploaded: false,
-        language: fileInfo.language ?? "English",
-      },
-      select: {
-        id: true,
-      },
+    const uploadedFileDbRecord = await createUploadedFile({
+      userId: authResult.data.userId,
+      s3Key: key,
+      displayName: fileInfo.fileName,
+      uploaded: false,
+      language: fileInfo.language ?? "English",
     });
 
     return success({ key, uploadedFileId: uploadedFileDbRecord.id, signedUrl });
@@ -67,22 +73,7 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
     throw new Error("Unauthorized");
   }
 
-  const uploadedFile = await db.uploadedFile.findUniqueOrThrow({
-    where: { id: uploadedFileId, userId: session.user.id },
-    select: {
-      id: true,
-      displayName: true,
-      createdAt: true,
-      updatedAt: true,
-      status: true,
-      language: true,
-      clips: {
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
-
-  return uploadedFile;
+  return getUploadedFileDetailsById(uploadedFileId, session.user.id);
 }
 
 /**
@@ -96,10 +87,7 @@ export async function getOriginalPlayUrl(
   const { userId } = authResult.data;
 
   try {
-    const uploadedFile = await db.uploadedFile.findUniqueOrThrow({
-      where: { id: uploadedFileId, userId },
-      select: { s3Key: true },
-    });
+    const uploadedFile = await findUploadedFileS3Key(uploadedFileId, userId);
 
     const signedUrl = await generatePresignedGetUrl(
       uploadedFile.s3Key,
@@ -124,9 +112,7 @@ export async function deleteUploadedFile(
   const { userId } = authResult.data;
 
   try {
-    await db.uploadedFile.delete({
-      where: { id: uploadedFileId, userId },
-    });
+    await deleteUploadedFileRecord(uploadedFileId, userId);
     revalidatePath("/dashboard");
     return success(undefined);
   } catch (error) {
@@ -146,10 +132,7 @@ export async function deleteUploadedFileWithClips(
   const { userId } = authResult.data;
 
   try {
-    const uploadedFile = await db.uploadedFile.findUnique({
-      where: { id: uploadedFileId, userId },
-      select: { s3Key: true },
-    });
+    const uploadedFile = await findUploadedFileForDeletion(uploadedFileId, userId);
 
     if (!uploadedFile) {
       return failure("Uploaded file not found");
@@ -159,10 +142,10 @@ export async function deleteUploadedFileWithClips(
       includeOriginal: true,
     });
 
-    await db.$transaction([
-      db.clip.deleteMany({ where: { uploadedFileId } }),
-      db.uploadedFile.delete({ where: { id: uploadedFileId, userId } }),
-    ]);
+    await db.$transaction(async (tx) => {
+      await deleteClipsByUploadedFileId(uploadedFileId, { tx });
+      await deleteUploadedFileRecord(uploadedFileId, userId, { tx });
+    });
 
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
@@ -184,29 +167,17 @@ export async function reprocessUploadedFile(
   const { userId } = authResult.data;
 
   try {
-    const uploadedFile = await db.uploadedFile.findFirstOrThrow({
-      where: { id: uploadedFileId, userId },
-      select: {
-        id: true,
-        userId: true,
-        status: true,
-        uploaded: true,
-        s3Key: true,
-        language: true,
-      },
-    });
+    const uploadedFile = await findUploadedFileForReprocess(uploadedFileId, userId);
 
     if (["queued", "processing"].includes(uploadedFile.status)) {
       return failure("Already processing");
     }
 
-    await db.$transaction([
-      db.clip.deleteMany({ where: { uploadedFileId } }),
-      db.uploadedFile.update({
-        where: { id: uploadedFileId },
-        data: { status: "queued", uploaded: false },
-      }),
-    ]);
+    await db.$transaction(async (tx) => {
+      await deleteClipsByUploadedFileId(uploadedFileId, { tx });
+      await updateUploadedFileStatus(uploadedFileId, "queued", { tx });
+      await setUploadedFileUploaded(uploadedFileId, false, { tx });
+    });
 
     await removeGeneratedClipsFromS3(uploadedFile.s3Key);
 
@@ -220,10 +191,7 @@ export async function reprocessUploadedFile(
       },
     });
 
-    await db.uploadedFile.update({
-      where: { id: uploadedFileId },
-      data: { uploaded: true },
-    });
+    await setUploadedFileUploaded(uploadedFileId, true);
 
     revalidatePath("/dashboard");
     return success(undefined);

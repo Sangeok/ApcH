@@ -3,7 +3,8 @@
 import type { Clip } from "generated/prisma";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useClipPlayUrl } from "~/fsd/shared/hooks/useClipPlayUrl";
+import { getClipPlayUrl } from "~/fsd/features/clip/api";
+import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
 import { parseJsonArray } from "~/fsd/shared/lib/utils";
 import { ClipActions } from "./ClipActions";
@@ -19,7 +20,7 @@ interface ClipCardProps {
 }
 
 export default function ClipCard({ clip, onDelete, onDeleteSuccess }: ClipCardProps) {
-  const { playUrl, isLoading, error } = useClipPlayUrl(clip.id);
+  const { playUrl, isLoading, error } = usePlayUrl(clip.id, getClipPlayUrl);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
 

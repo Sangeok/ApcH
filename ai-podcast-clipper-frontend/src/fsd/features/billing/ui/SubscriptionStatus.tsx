@@ -13,8 +13,8 @@ import {
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import { cancelSubscription } from "~/fsd/features/billing/api";
-import { PLAN_TIERS } from "~/fsd/features/billing/constants";
-import type { SubscriptionInfo } from "~/fsd/features/billing/model/types";
+import { PLAN_TIERS } from "../config";
+import type { SubscriptionInfo } from "../model/types";
 
 function getStatusDisplay(sub: SubscriptionInfo | null) {
   if (!sub) return { label: "None", variant: "secondary" as const };

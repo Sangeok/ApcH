@@ -1,1 +1,1 @@
-export type { ProcessingStatus } from "~/fsd/shared/types/processing-status";
+export type { ProcessingStatus } from "~/fsd/entities/uploaded-file";

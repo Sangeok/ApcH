@@ -1,7 +1,7 @@
 import { CustomerPortal } from "@polar-sh/nextjs";
 import { env } from "~/env";
+import { getUserPolarCustomerId } from "~/fsd/entities/user";
 import { auth } from "~/server/auth";
-import { db } from "~/server/db";
 
 export const GET = CustomerPortal({
   accessToken: env.POLAR_ACCESS_TOKEN,
@@ -9,12 +9,7 @@ export const GET = CustomerPortal({
     const session = await auth();
     if (!session?.user?.id) return "";
 
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: { polarCustomerId: true },
-    });
-
-    return user?.polarCustomerId ?? "";
+    return getUserPolarCustomerId(session.user.id);
   },
   server: "sandbox",
 });

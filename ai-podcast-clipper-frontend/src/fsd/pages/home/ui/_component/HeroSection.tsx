@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
-import { heroHighlights } from "../../constants";
+import { heroHighlights } from "../../config";
 
 export default function HeroSection() {
   return (

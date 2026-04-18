@@ -1,4 +1,4 @@
-import type { PlanTier } from "~/fsd/features/billing/constants";
+import type { PlanTier } from "../config";
 
 export type SubscriptionInfo = {
   id: string;

@@ -48,7 +48,9 @@ export function usePlayUrl(
         if (!cancelled) setIsLoading(false);
       }
     };
+
     void fetchUrl();
+
     return () => {
       cancelled = true;
     };

@@ -1,6 +1,5 @@
 import { getBillingData } from "~/fsd/features/billing/api";
-import { getProductIds } from "~/fsd/features/billing/constants";
-import { BillingPage } from "~/fsd/features/billing/ui/BillingPage";
+import { BillingPage, getProductIds } from "~/fsd/features/billing";
 import { env } from "~/env";
 
 export default async function BillingRoute({
