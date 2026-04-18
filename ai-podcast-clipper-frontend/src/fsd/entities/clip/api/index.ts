@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Prisma } from "generated/prisma";
+import { Prisma } from "generated/prisma";
 import { db } from "~/server/db";
 
 type DbClient = Prisma.TransactionClient | typeof db;
