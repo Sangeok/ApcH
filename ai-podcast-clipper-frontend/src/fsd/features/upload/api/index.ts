@@ -175,7 +175,7 @@ export async function reprocessUploadedFile(
 
     await db.$transaction(async (tx) => {
       await deleteClipsByUploadedFileId(uploadedFileId, { tx });
-      await updateUploadedFileStatus(uploadedFileId, "queued", { tx });
+      await updateUploadedFileStatus(uploadedFileId, "queued", { tx, processingStartedAt: null });
       await setUploadedFileUploaded(uploadedFileId, false, { tx });
     });
 

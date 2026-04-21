@@ -51,7 +51,9 @@ export const processVideo = inngest.createFunction(
 
       if (credits > 0) {
         await step.run("set-status-processing", async () => {
-          await updateUploadedFileStatus(uploadedFileId, "processing");
+          await updateUploadedFileStatus(uploadedFileId, "processing", {
+            processingStartedAt: new Date(),
+          });
         });
 
         // NEXT_PUBLIC_SITE_URL 유무로 비동기/동기 모드 결정

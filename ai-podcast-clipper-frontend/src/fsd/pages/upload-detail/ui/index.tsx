@@ -22,6 +22,7 @@ interface UploadDetailPageProps {
     displayName: string | null;
     createdAt: Date;
     updatedAt: Date;
+    processingStartedAt: Date | null;
     status: ProcessingStatus;
     language: string;
     clips: Clip[];
@@ -31,7 +32,7 @@ interface UploadDetailPageProps {
 export default function UploadDetailPage({
   uploadedFileData,
 }: UploadDetailPageProps) {
-  const { id: uploadedFileId, displayName, createdAt, updatedAt, status, clips } =
+  const { id: uploadedFileId, displayName, createdAt, updatedAt, processingStartedAt, status, clips } =
     uploadedFileData;
 
   return (
@@ -81,6 +82,7 @@ export default function UploadDetailPage({
             <ProcessingTimeline
               status={status}
               createdAt={new Date(createdAt)}
+              processingStartedAt={processingStartedAt ? new Date(processingStartedAt) : null}
               updatedAt={new Date(updatedAt)}
             />
           </CardContent>
