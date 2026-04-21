@@ -26,11 +26,11 @@ interface UploadedFileCardProps {
 export function UploadedFileCard({ file }: UploadedFileCardProps) {
   const detailHref = `/dashboard/uploads/${file.id}`;
   const createdLabel = dateFormatter.format(new Date(file.createdAt));
-  const [shouldPlay, setShouldPlay] = useState(false);
+  const [isPlaybackRequested, setIsPlaybackRequested] = useState(false);
   const { playUrl, error } = usePlayUrl(
     file.id,
     getOriginalPlayUrl,
-    { enabled: shouldPlay },
+    { enabled: isPlaybackRequested },
   );
 
   return (
@@ -49,25 +49,25 @@ export function UploadedFileCard({ file }: UploadedFileCardProps) {
         </Badge>
       </CardHeader>
       <CardContent className="text-muted-foreground space-y-2 text-sm">
-        {!shouldPlay && (
+        {!isPlaybackRequested && (
           <button
             type="button"
             aria-label="영상 재생"
-            onClick={() => setShouldPlay(true)}
-            className="aspect-video w-full rounded-md bg-muted flex items-center justify-center hover:bg-muted/80 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => setIsPlaybackRequested(true)}
+            className="cursor-pointer aspect-video w-full rounded-md bg-muted flex items-center justify-center hover:bg-muted/80 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Play className="h-8 w-8 text-muted-foreground" />
           </button>
         )}
-        {shouldPlay && !playUrl && !error && (
+        {isPlaybackRequested && !playUrl && !error && (
           <div className="aspect-video w-full animate-pulse rounded-md bg-muted" />
         )}
-        {shouldPlay && error && (
+        {isPlaybackRequested && error && (
           <div className="aspect-video flex items-center justify-center rounded-md bg-muted">
             <p className="text-muted-foreground text-xs">Video unavailable</p>
           </div>
         )}
-        {shouldPlay && playUrl && (
+        {isPlaybackRequested && playUrl && (
           <video
             ref={(el) => { void el?.play().catch(() => undefined); }}
             src={playUrl}

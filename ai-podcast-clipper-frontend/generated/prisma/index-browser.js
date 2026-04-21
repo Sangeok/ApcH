@@ -163,6 +163,7 @@ exports.Prisma.UploadedFileScalarFieldEnum = {
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  processingStartedAt: 'processingStartedAt',
   language: 'language',
   userId: 'userId'
 };

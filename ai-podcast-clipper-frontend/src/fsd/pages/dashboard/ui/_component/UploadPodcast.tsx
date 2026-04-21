@@ -19,7 +19,7 @@ import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Loader2, UploadCloud } from "lucide-react";
 import { useState } from "react";
-import { useUploadPodcast } from "~/fsd/pages/dashboard/hooks/useUploadPodcast";
+import { useUploadPodcast } from "~/fsd/pages/dashboard/model/useUploadPodcast";
 import {
   UPLOAD_CONFIG,
   SUPPORTED_LANGUAGES,

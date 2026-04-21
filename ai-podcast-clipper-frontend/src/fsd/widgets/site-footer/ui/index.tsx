@@ -8,13 +8,13 @@ export default function SiteFooter() {
           href="/terms"
           className="hover:text-foreground underline-offset-4 hover:underline"
         >
-          이용약관
+          Terms of Service
         </Link>
         <Link
           href="/privacy"
           className="hover:text-foreground underline-offset-4 hover:underline"
         >
-          개인정보 처리방침
+          Privacy Policy
         </Link>
       </div>
       <p>Copyright &copy; {new Date().getFullYear()} SangEok. All rights reserved.</p>

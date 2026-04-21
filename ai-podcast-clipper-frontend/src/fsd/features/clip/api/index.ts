@@ -26,12 +26,12 @@ export async function processVideo(
   language: string,
   clipCount: number,
 ): Promise<ActionResult<void>> {
-  // Step 1: 인증 체크
+  // Step 1: check authentication
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
   const { userId } = authResult.data;
 
-  // Step 2: 입력 검증
+  // Step 2: validate input
   const validated = processVideoSchema.safeParse({
     uploadedFileId,
     language,

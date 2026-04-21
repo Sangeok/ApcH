@@ -63,9 +63,10 @@ model UploadedFile {
     s3Key String
     displayName String?
     uploaded Boolean @default(false)
-    status String @default("queued") // processing, processed, no credits
+    status String @default("queued") // queued, processing, processed, failed, no credits
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt 
+    updatedAt DateTime @updatedAt
+    processingStartedAt DateTime?
     language String @default("English")
 
     clips Clip[]

@@ -9,6 +9,7 @@ type StepKey = "queued" | "processing" | "processed";
 interface ProcessingTimelineProps {
   status: ProcessingStatus;
   createdAt: Date;
+  processingStartedAt: Date | null;
   updatedAt: Date;
 }
 
@@ -36,13 +37,19 @@ function isStepCompleted(step: StepKey, status: ProcessingStatus): boolean {
 export default function ProcessingTimeline({
   status,
   createdAt,
+  processingStartedAt,
   updatedAt,
 }: ProcessingTimelineProps) {
   return (
     <ol className="space-y-4">
       {STEPS.map(({ key, label }) => {
         const completed = isStepCompleted(key, status);
-        const timestamp = key === "queued" ? createdAt : updatedAt;
+        const timestamp =
+          key === "queued"
+            ? createdAt
+            : key === "processing"
+              ? (processingStartedAt ?? updatedAt)
+              : updatedAt;
 
         return (
           <li key={key} className="flex items-start gap-3">

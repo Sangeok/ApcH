@@ -68,6 +68,7 @@ export async function getUploadedFileDetailsById(
       displayName: true,
       createdAt: true,
       updatedAt: true,
+      processingStartedAt: true,
       status: true,
       language: true,
       clips: {
@@ -152,11 +153,16 @@ export async function findUploadedFileProcessingContext(uploadedFileId: string) 
 export async function updateUploadedFileStatus(
   uploadedFileId: string,
   status: ProcessingStatus,
-  options?: { tx?: Prisma.TransactionClient },
+  options?: { tx?: Prisma.TransactionClient; processingStartedAt?: Date | null },
 ) {
   return getClient(options?.tx).uploadedFile.update({
     where: { id: uploadedFileId },
-    data: { status },
+    data: {
+      status,
+      ...(options?.processingStartedAt !== undefined
+        ? { processingStartedAt: options.processingStartedAt }
+        : {}),
+    },
   });
 }
 
