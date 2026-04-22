@@ -134,7 +134,7 @@ async function createProcessingAttempt(
         { tx, now },
       );
 
-      return success(undefined);
+      return success();
     });
 
     if (!scheduled.success) {
@@ -156,7 +156,7 @@ async function createProcessingAttempt(
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
 
-  return success(undefined);
+  return success();
 }
 
 export async function generateUploadUrl(fileInfo: {
@@ -217,7 +217,7 @@ export async function confirmUploadCompleted(
       return failure("Uploaded source object was not found");
     }
 
-    return success(undefined);
+    return success();
   } catch (error) {
     console.error("Failed to confirm upload completion", error);
     return failure("Failed to confirm upload completion");
@@ -380,7 +380,7 @@ export async function deleteUploadedFileWithClips(
 
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
-    return success(undefined);
+    return success();
   } catch (error) {
     console.error("Failed to delete uploaded file with clips", error);
     return failure("Failed to delete uploaded file with clips");

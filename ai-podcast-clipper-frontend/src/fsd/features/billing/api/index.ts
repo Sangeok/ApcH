@@ -91,5 +91,5 @@ export async function cancelSubscription(): Promise<ActionResult<void>> {
     canceledAt: new Date(),
   });
 
-  return success(undefined);
+  return success();
 }
