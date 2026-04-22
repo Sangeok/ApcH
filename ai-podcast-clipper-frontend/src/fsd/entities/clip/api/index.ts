@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Prisma } from "generated/prisma";
+import type { Prisma } from "generated/prisma";
 import { db } from "~/server/db";
 
 type DbClient = Prisma.TransactionClient | typeof db;
@@ -17,11 +17,14 @@ export async function createClipsBulk(
     return { count: 0 };
   }
 
-  return getClient(options?.tx).clip.createMany({ data });
+  return getClient(options?.tx).clip.createMany({
+    data,
+    skipDuplicates: true,
+  });
 }
 
 export async function findClipById(clipId: string, userId: string) {
-  return db.clip.findUniqueOrThrow({
+  return db.clip.findFirstOrThrow({
     where: {
       id: clipId,
       userId,
@@ -29,6 +32,13 @@ export async function findClipById(clipId: string, userId: string) {
     select: {
       id: true,
       s3Key: true,
+      processingAttempt: true,
+      uploadedFile: {
+        select: {
+          id: true,
+          lastSuccessfulAttempt: true,
+        },
+      },
     },
   });
 }

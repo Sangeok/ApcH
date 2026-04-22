@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import type { ProcessingStatus } from "~/fsd/entities/uploaded-file";
 import { getUploadedFileDetails } from "~/fsd/features/upload/api";
 import UploadDetailPage from "~/fsd/pages/upload-detail/ui";
 
@@ -17,12 +16,5 @@ export default async function UploadDetailPageClient({
     notFound();
   }
 
-  return (
-    <UploadDetailPage
-      uploadedFileData={{
-        ...uploadedFileData,
-        status: uploadedFileData.status as ProcessingStatus,
-      }}
-    />
-  );
+  return <UploadDetailPage uploadedFileData={uploadedFileData} />;
 }

@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useOptimistic } from "react";
+import { env } from "~/env";
+import type {
+  RecoverableUploadDraftSummary,
+  UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file/model/types";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -16,17 +21,20 @@ import {
   TabsList,
   TabsTrigger,
 } from "~/fsd/shared/ui/atoms/tabs";
-import QueueStatus from "./_component/QueueStatus";
-import UploadPodcast from "./_component/UploadPodcast";
 import UploadedFileList from "~/fsd/widgets/uploaded-file-list/ui";
-import { env } from "~/env";
-import type { UploadedFileSummary } from "../model/types";
+import QueueStatus from "./_component/QueueStatus";
+import RecoverableUploadDrafts from "./_component/RecoverableUploadDrafts";
+import UploadPodcast from "./_component/UploadPodcast";
 
 interface DashboardViewProps {
   uploadedFiles: UploadedFileSummary[];
+  recoverableDrafts: RecoverableUploadDraftSummary[];
 }
 
-export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
+export default function DashboardView({
+  uploadedFiles,
+  recoverableDrafts,
+}: DashboardViewProps) {
   const [optimisticFiles, addOptimisticFile] = useOptimistic(
     uploadedFiles,
     (state, newFile: UploadedFileSummary) => [newFile, ...state],
@@ -56,8 +64,9 @@ export default function DashboardView({ uploadedFiles }: DashboardViewProps) {
           <TabsTrigger value="my-clips">My Clips</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload">
+        <TabsContent value="upload" className="space-y-6">
           <UploadPodcast onOptimisticAdd={addOptimisticFile} />
+          <RecoverableUploadDrafts drafts={recoverableDrafts} />
           <QueueStatus uploadedFiles={optimisticFiles} />
         </TabsContent>
 

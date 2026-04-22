@@ -1,1 +1,1 @@
-export type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
+export type { UploadedFileSummary } from "~/fsd/entities/uploaded-file/model/types";

@@ -1,59 +1,200 @@
 "use server";
 
+import { Prisma } from "generated/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { inngest } from "~/inngest/client";
 import { deleteClipsByUploadedFileId } from "~/fsd/entities/clip";
 import {
+  createProcessingDispatch,
+  dispatchPendingProcessingRequests,
+} from "~/fsd/entities/processing-dispatch";
+import {
+  HiddenUploadDraftError,
+  confirmUploadedFileSource,
   createUploadedFile,
   deleteUploadedFileRecord,
   findUploadedFileForDeletion,
   findUploadedFileForReprocess,
+  findUploadedFileLifecycleState,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
-  setUploadedFileUploaded,
-  updateUploadedFileStatus,
+  getUploadedFilePrefix,
+  isActiveProcessingStatus,
+  listRecoverableUploadDraftsByUserId,
 } from "~/fsd/entities/uploaded-file";
 import {
+  deleteS3Object,
+  deleteS3Objects,
   generatePresignedGetUrl,
   generatePresignedPutUrl,
   listS3Objects,
-  deleteS3Objects,
+  objectExists,
   S3_CONFIG,
 } from "~/fsd/shared/api/s3";
-import { type ActionResult, success, failure } from "~/fsd/shared/api/result";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
+import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
 import { v4 as uuidv4 } from "uuid";
+import {
+  generateUploadUrlSchema,
+  isSupportedClipCount,
+  requestProcessingAttemptSchema,
+} from "../model/schemas";
 
-/**
- * Generate presigned upload URL and create DB record
- */
+async function nudgeProcessingDispatch(): Promise<void> {
+  try {
+    await dispatchPendingProcessingRequests(1);
+  } catch (error) {
+    console.error("Best-effort processing dispatch nudge failed", error);
+  }
+}
+
+async function deleteUploadedFileAssets(s3Key: string): Promise<void> {
+  const prefix = `${getUploadedFilePrefix(s3Key)}/`;
+  const keys = await listS3Objects(prefix);
+
+  if (keys.length > 0) {
+    await deleteS3Objects(keys);
+    return;
+  }
+
+  if (await objectExists(s3Key)) {
+    await deleteS3Object(s3Key);
+  }
+}
+
+async function createProcessingAttempt(
+  uploadedFileId: string,
+  userId: string,
+  allowedStatuses: string[],
+): Promise<ActionResult<void>> {
+  try {
+    const now = new Date();
+    const scheduled = await db.$transaction(async (tx) => {
+      const uploadedFile = await tx.uploadedFile.findFirst({
+        where: { id: uploadedFileId, userId },
+        select: {
+          id: true,
+          userId: true,
+          status: true,
+          uploaded: true,
+          currentAttempt: true,
+          targetClipCount: true,
+        },
+      });
+
+      if (!uploadedFile) {
+        return failure("Uploaded file not found");
+      }
+
+      if (!uploadedFile.uploaded) {
+        return failure("Source upload has not been confirmed");
+      }
+
+      if (!isSupportedClipCount(uploadedFile.targetClipCount)) {
+        return failure("Stored clip count is no longer supported");
+      }
+
+      if (!allowedStatuses.includes(uploadedFile.status)) {
+        if (isActiveProcessingStatus(uploadedFile.status as never)) {
+          return failure("Processing has already been requested");
+        }
+
+        return failure("This file cannot be scheduled right now");
+      }
+
+      const nextAttempt = uploadedFile.currentAttempt + 1;
+      const claimed = await tx.uploadedFile.updateMany({
+        where: {
+          id: uploadedFileId,
+          userId,
+          uploaded: true,
+          status: {
+            in: allowedStatuses,
+          },
+          currentAttempt: uploadedFile.currentAttempt,
+        },
+        data: {
+          status: "pending_enqueue",
+          enqueueRequestedAt: now,
+          queuedAt: null,
+          processingStartedAt: null,
+          terminalStatusAt: null,
+          failureCode: null,
+          currentAttempt: nextAttempt,
+        },
+      });
+
+      if (claimed.count !== 1) {
+        return failure("Processing has already been requested");
+      }
+
+      await createProcessingDispatch(
+        {
+          uploadedFileId,
+          attempt: nextAttempt,
+        },
+        { tx, now },
+      );
+
+      return success(undefined);
+    });
+
+    if (!scheduled.success) {
+      return scheduled;
+    }
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return failure("Processing has already been requested");
+    }
+
+    console.error("Failed to create processing attempt", error);
+    return failure("Failed to schedule processing");
+  }
+
+  await nudgeProcessingDispatch();
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
+
+  return success(undefined);
+}
+
 export async function generateUploadUrl(fileInfo: {
   fileName: string;
   contentType: string;
   language: string;
+  clipCount: number;
 }): Promise<ActionResult<{ signedUrl: string; uploadedFileId: string; key: string }>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
+  const validated = generateUploadUrlSchema.safeParse(fileInfo);
+
+  if (!validated.success) {
+    return failure(validated.error.issues[0]?.message ?? "Invalid upload request");
+  }
+
   try {
-    const fileExtension = fileInfo.fileName.split(".").pop() ?? "";
+    const { fileName, contentType, language, clipCount } = validated.data;
+    const fileExtension = fileName.split(".").pop() ?? "";
     const uniqueId = uuidv4();
     const key = `${uniqueId}/original.${fileExtension}`;
 
     const signedUrl = await generatePresignedPutUrl(
       key,
-      fileInfo.contentType,
+      contentType,
       S3_CONFIG.PRESIGNED_PUT_URL_EXPIRY,
     );
 
     const uploadedFileDbRecord = await createUploadedFile({
       userId: authResult.data.userId,
       s3Key: key,
-      displayName: fileInfo.fileName,
-      uploaded: false,
-      language: fileInfo.language ?? "English",
+      displayName: fileName,
+      language,
+      targetClipCount: clipCount,
     });
 
     return success({ key, uploadedFileId: uploadedFileDbRecord.id, signedUrl });
@@ -63,9 +204,112 @@ export async function generateUploadUrl(fileInfo: {
   }
 }
 
-/**
- * Get uploaded file details with clips
- */
+export async function confirmUploadCompleted(
+  uploadedFileId: string,
+): Promise<ActionResult<void>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  try {
+    const lifecycle = await findUploadedFileLifecycleState(
+      uploadedFileId,
+      authResult.data.userId,
+    );
+
+    if (lifecycle.uploaded) {
+      return success(undefined);
+    }
+
+    if (!(await objectExists(lifecycle.s3Key))) {
+      return failure("Uploaded source object was not found");
+    }
+
+    await confirmUploadedFileSource(uploadedFileId, authResult.data.userId);
+    return success(undefined);
+  } catch (error) {
+    console.error("Failed to confirm upload completion", error);
+    return failure("Failed to confirm upload completion");
+  }
+}
+
+export async function reconcileUploadConfirmation(
+  uploadedFileId: string,
+) {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  try {
+    const lifecycle = await findUploadedFileLifecycleState(
+      uploadedFileId,
+      authResult.data.userId,
+    );
+
+    if (
+      !lifecycle.uploaded &&
+      lifecycle.status === "upload_pending" &&
+      (await objectExists(lifecycle.s3Key))
+    ) {
+      const confirmed = await confirmUploadedFileSource(
+        uploadedFileId,
+        authResult.data.userId,
+      );
+
+      return success(confirmed);
+    }
+
+    return success({
+      status: lifecycle.status as never,
+      uploaded: lifecycle.uploaded,
+      currentAttempt: lifecycle.currentAttempt,
+    });
+  } catch (error) {
+    console.error("Failed to reconcile upload confirmation", error);
+    return failure("Failed to reconcile upload confirmation");
+  }
+}
+
+export async function reconcileProcessingRequest(uploadedFileId: string) {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  try {
+    const lifecycle = await findUploadedFileLifecycleState(
+      uploadedFileId,
+      authResult.data.userId,
+    );
+
+    if (lifecycle.status === "pending_enqueue") {
+      await nudgeProcessingDispatch();
+    }
+
+    return success({
+      status: lifecycle.status as never,
+      uploaded: lifecycle.uploaded,
+      currentAttempt: lifecycle.currentAttempt,
+    });
+  } catch (error) {
+    console.error("Failed to reconcile processing request", error);
+    return failure("Failed to reconcile processing request");
+  }
+}
+
+export async function requestProcessingAttempt(
+  uploadedFileId: string,
+): Promise<ActionResult<void>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  const validated = requestProcessingAttemptSchema.safeParse({ uploadedFileId });
+
+  if (!validated.success) {
+    return failure(validated.error.issues[0]?.message ?? "Invalid request");
+  }
+
+  return createProcessingAttempt(uploadedFileId, authResult.data.userId, [
+    "upload_pending",
+  ]);
+}
+
 export async function getUploadedFileDetails(uploadedFileId: string) {
   const session = await auth();
 
@@ -73,21 +317,28 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
     throw new Error("Unauthorized");
   }
 
-  return getUploadedFileDetailsById(uploadedFileId, session.user.id);
+  try {
+    return await getUploadedFileDetailsById(uploadedFileId, session.user.id);
+  } catch (error) {
+    if (error instanceof HiddenUploadDraftError) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
-/**
- * Get presigned URL for downloading original video
- */
 export async function getOriginalPlayUrl(
   uploadedFileId: string,
 ): Promise<ActionResult<{ url: string }>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
-  const { userId } = authResult.data;
 
   try {
-    const uploadedFile = await findUploadedFileS3Key(uploadedFileId, userId);
+    const uploadedFile = await findUploadedFileS3Key(
+      uploadedFileId,
+      authResult.data.userId,
+    );
 
     const signedUrl = await generatePresignedGetUrl(
       uploadedFile.s3Key,
@@ -101,50 +352,39 @@ export async function getOriginalPlayUrl(
   }
 }
 
-/**
- * Delete uploaded file record (DB only)
- */
 export async function deleteUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
-  const authResult = await requireAuth();
-  if (!authResult.success) return authResult;
-  const { userId } = authResult.data;
-
-  try {
-    await deleteUploadedFileRecord(uploadedFileId, userId);
-    revalidatePath("/dashboard");
-    return success(undefined);
-  } catch (error) {
-    console.error("Failed to delete uploaded file", error);
-    return failure("Failed to delete uploaded file");
-  }
+  return deleteUploadedFileWithClips(uploadedFileId);
 }
 
-/**
- * Delete uploaded file with all clips (DB + S3)
- */
 export async function deleteUploadedFileWithClips(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
-  const { userId } = authResult.data;
 
   try {
-    const uploadedFile = await findUploadedFileForDeletion(uploadedFileId, userId);
+    const uploadedFile = await findUploadedFileForDeletion(
+      uploadedFileId,
+      authResult.data.userId,
+    );
 
     if (!uploadedFile) {
       return failure("Uploaded file not found");
     }
 
-    await removeGeneratedClipsFromS3(uploadedFile.s3Key, {
-      includeOriginal: true,
-    });
+    if (isActiveProcessingStatus(uploadedFile.status as never)) {
+      return failure("Active uploads cannot be deleted");
+    }
+
+    await deleteUploadedFileAssets(uploadedFile.s3Key);
 
     await db.$transaction(async (tx) => {
       await deleteClipsByUploadedFileId(uploadedFileId, { tx });
-      await deleteUploadedFileRecord(uploadedFileId, userId, { tx });
+      await deleteUploadedFileRecord(uploadedFileId, authResult.data.userId, {
+        tx,
+      });
     });
 
     revalidatePath("/dashboard");
@@ -156,67 +396,47 @@ export async function deleteUploadedFileWithClips(
   }
 }
 
-/**
- * Reprocess uploaded file (delete clips and trigger new processing)
- */
 export async function reprocessUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
-  const { userId } = authResult.data;
 
   try {
-    const uploadedFile = await findUploadedFileForReprocess(uploadedFileId, userId);
+    const uploadedFile = await findUploadedFileForReprocess(
+      uploadedFileId,
+      authResult.data.userId,
+    );
 
-    if (["queued", "processing"].includes(uploadedFile.status)) {
+    if (isActiveProcessingStatus(uploadedFile.status as never)) {
       return failure("Already processing");
     }
 
-    await db.$transaction(async (tx) => {
-      await deleteClipsByUploadedFileId(uploadedFileId, { tx });
-      await updateUploadedFileStatus(uploadedFileId, "queued", { tx, processingStartedAt: null });
-      await setUploadedFileUploaded(uploadedFileId, false, { tx });
-    });
+    if (!uploadedFile.uploaded) {
+      return failure("Source upload has not been confirmed");
+    }
 
-    await removeGeneratedClipsFromS3(uploadedFile.s3Key);
-
-    await inngest.send({
-      name: "process-video-events",
-      data: {
-        uploadedFileId: uploadedFile.id,
-        userId: uploadedFile.userId,
-        language: uploadedFile.language ?? "English",
-        clipCount: 3,
-      },
-    });
-
-    await setUploadedFileUploaded(uploadedFileId, true);
-
-    revalidatePath("/dashboard");
-    return success(undefined);
+    return createProcessingAttempt(uploadedFileId, authResult.data.userId, [
+      "processed",
+      "failed",
+      "no credits",
+    ]);
   } catch (error) {
     console.error("Failed to reprocess file", error);
     return failure("Failed to reprocess file");
   }
 }
 
-/**
- * Helper: Remove generated clips from S3
- */
-async function removeGeneratedClipsFromS3(
-  originalKey: string,
-  options?: { includeOriginal?: boolean },
-): Promise<void> {
-  const includeOriginal = options?.includeOriginal ?? false;
-  const prefix = originalKey.split("/")[0] + "/";
+export async function listRecoverableUploads() {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
 
-  const allKeys = await listS3Objects(prefix);
-  const filteredTargets = includeOriginal
-    ? allKeys
-    : allKeys.filter((key) => !key.endsWith("original.mp4"));
-
-  if (filteredTargets.length === 0) return;
-
-  await deleteS3Objects(filteredTargets);
+  try {
+    return success(
+      await listRecoverableUploadDraftsByUserId(authResult.data.userId),
+    );
+  } catch (error) {
+    console.error("Failed to load recoverable uploads", error);
+    return failure("Failed to load recoverable uploads");
+  }
 }

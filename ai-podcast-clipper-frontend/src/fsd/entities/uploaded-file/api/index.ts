@@ -3,7 +3,12 @@ import "server-only";
 import type { Prisma } from "generated/prisma";
 import { db } from "~/server/db";
 import type { ProcessingStatus } from "../model/processing-status";
-import type { UploadedFileSummary } from "../model/types";
+import type {
+  RecoverableUploadDraftSummary,
+  UploadedFileDetail,
+  UploadedFileSummary,
+  UploadLifecycleState,
+} from "../model/types";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 
@@ -11,18 +16,39 @@ function getClient(tx?: Prisma.TransactionClient): DbClient {
   return tx ?? db;
 }
 
+function toNonHiddenStatus(status: string): Exclude<ProcessingStatus, "upload_pending"> {
+  if (status === "upload_pending") {
+    throw new HiddenUploadDraftError();
+  }
+
+  return status as Exclude<ProcessingStatus, "upload_pending">;
+}
+
+export class HiddenUploadDraftError extends Error {
+  constructor() {
+    super("Hidden upload draft");
+    this.name = "HiddenUploadDraftError";
+  }
+}
+
 export async function createUploadedFile(
   data: {
     userId: string;
     s3Key: string;
     displayName: string | null;
-    uploaded: boolean;
     language: string;
+    targetClipCount: number;
   },
   options?: { tx?: Prisma.TransactionClient },
 ) {
   return getClient(options?.tx).uploadedFile.create({
-    data,
+    data: {
+      ...data,
+      uploaded: false,
+      status: "upload_pending",
+      currentAttempt: 0,
+      lastSuccessfulAttempt: 0,
+    },
     select: { id: true },
   });
 }
@@ -33,58 +59,159 @@ export async function listUploadedFileSummariesByUserId(
   const files = await db.uploadedFile.findMany({
     where: {
       userId,
-      uploaded: true,
+      status: {
+        not: "upload_pending",
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
     select: {
       id: true,
       displayName: true,
       status: true,
       createdAt: true,
-      _count: {
-        select: {
-          clips: true,
+      lastSuccessfulAttempt: true,
+    },
+  });
+
+  const fileIds = files.map((file) => file.id);
+
+  const groupedCounts = fileIds.length
+    ? await db.clip.groupBy({
+        by: ["uploadedFileId", "processingAttempt"],
+        where: {
+          uploadedFileId: {
+            in: fileIds,
+          },
         },
-      },
+        _count: {
+          _all: true,
+        },
+      })
+    : [];
+
+  const countsByAttempt = new Map(
+    groupedCounts.map((group) => [
+      `${group.uploadedFileId ?? ""}:${group.processingAttempt}`,
+      group._count._all,
+    ]),
+  );
+
+  return files.map((file) => ({
+    id: file.id,
+    fileName: file.displayName ?? "Untitled",
+    status: toNonHiddenStatus(file.status),
+    createdAt: file.createdAt,
+    visibleClipsCount:
+      file.lastSuccessfulAttempt > 0
+        ? (countsByAttempt.get(`${file.id}:${file.lastSuccessfulAttempt}`) ?? 0)
+        : 0,
+  }));
+}
+
+export async function listRecoverableUploadDraftsByUserId(
+  userId: string,
+): Promise<RecoverableUploadDraftSummary[]> {
+  const files = await db.uploadedFile.findMany({
+    where: {
+      userId,
+      status: "upload_pending",
+      uploaded: true,
+    },
+    orderBy: {
+      sourceUploadedAt: "desc",
+    },
+    select: {
+      id: true,
+      displayName: true,
+      language: true,
+      targetClipCount: true,
+      createdAt: true,
+      sourceUploadedAt: true,
     },
   });
 
   return files.map((file) => ({
     id: file.id,
     fileName: file.displayName ?? "Untitled",
-    status: file.status as ProcessingStatus,
-    clipsCount: file._count.clips,
+    language: file.language,
+    targetClipCount: file.targetClipCount,
     createdAt: file.createdAt,
+    sourceUploadedAt: file.sourceUploadedAt,
   }));
 }
 
 export async function getUploadedFileDetailsById(
   uploadedFileId: string,
   userId: string,
-) {
-  return db.uploadedFile.findUniqueOrThrow({
+): Promise<UploadedFileDetail> {
+  const file = await db.uploadedFile.findFirstOrThrow({
     where: { id: uploadedFileId, userId },
     select: {
       id: true,
       displayName: true,
       createdAt: true,
-      updatedAt: true,
-      processingStartedAt: true,
       status: true,
       language: true,
-      clips: {
-        orderBy: { createdAt: "desc" },
-      },
+      targetClipCount: true,
+      failureCode: true,
+      enqueueRequestedAt: true,
+      queuedAt: true,
+      processingStartedAt: true,
+      terminalStatusAt: true,
+      currentAttempt: true,
+      lastSuccessfulAttempt: true,
     },
   });
+
+  if (file.status === "upload_pending") {
+    throw new HiddenUploadDraftError();
+  }
+
+  const clips =
+    file.lastSuccessfulAttempt > 0
+      ? await db.clip.findMany({
+          where: {
+            uploadedFileId: file.id,
+            processingAttempt: file.lastSuccessfulAttempt,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        })
+      : [];
+
+  return {
+    ...file,
+    status: toNonHiddenStatus(file.status),
+    clips,
+  };
 }
 
 export async function findUploadedFileS3Key(
   uploadedFileId: string,
   userId: string,
 ) {
-  return db.uploadedFile.findUniqueOrThrow({
+  return db.uploadedFile.findFirstOrThrow({
     where: { id: uploadedFileId, userId },
     select: { s3Key: true },
+  });
+}
+
+export async function findUploadedFileLifecycleState(
+  uploadedFileId: string,
+  userId: string,
+) {
+  return db.uploadedFile.findFirstOrThrow({
+    where: { id: uploadedFileId, userId },
+    select: {
+      status: true,
+      uploaded: true,
+      currentAttempt: true,
+      s3Key: true,
+      sourceUploadedAt: true,
+    },
   });
 }
 
@@ -92,22 +219,32 @@ export async function findUploadedFileForDeletion(
   uploadedFileId: string,
   userId: string,
 ) {
-  return db.uploadedFile.findUnique({
+  return db.uploadedFile.findFirst({
     where: { id: uploadedFileId, userId },
-    select: { s3Key: true },
+    select: {
+      id: true,
+      s3Key: true,
+      status: true,
+      uploaded: true,
+    },
   });
 }
 
-export async function findUploadedFileForProcessTrigger(
+export async function findUploadedFileForProcessRequest(
   uploadedFileId: string,
   userId: string,
 ) {
-  return db.uploadedFile.findUniqueOrThrow({
+  return db.uploadedFile.findFirstOrThrow({
     where: { id: uploadedFileId, userId },
     select: {
-      uploaded: true,
       id: true,
       userId: true,
+      s3Key: true,
+      status: true,
+      uploaded: true,
+      currentAttempt: true,
+      targetClipCount: true,
+      language: true,
     },
   });
 }
@@ -125,35 +262,216 @@ export async function findUploadedFileForReprocess(
       uploaded: true,
       s3Key: true,
       language: true,
+      currentAttempt: true,
+      targetClipCount: true,
     },
   });
 }
 
-export async function findUploadedFileProcessingContext(uploadedFileId: string) {
-  const uploadedFile = await db.uploadedFile.findUniqueOrThrow({
-    where: { id: uploadedFileId },
+export async function findUploadedFileProcessingContext(
+  uploadedFileId: string,
+  attempt: number,
+) {
+  return db.uploadedFile.findFirst({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+    },
     select: {
+      userId: true,
+      s3Key: true,
+      language: true,
+      status: true,
+      processingStartedAt: true,
+      targetClipCount: true,
       user: {
         select: {
-          id: true,
           credits: true,
         },
       },
-      s3Key: true,
+    },
+  });
+}
+
+export async function confirmUploadedFileSource(
+  uploadedFileId: string,
+  userId: string,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+): Promise<UploadLifecycleState> {
+  const now = options?.now ?? new Date();
+  const client = getClient(options?.tx);
+
+  await client.uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      userId,
+      status: "upload_pending",
+      uploaded: false,
+    },
+    data: {
+      uploaded: true,
+      sourceUploadedAt: now,
+    },
+  });
+
+  const state = await client.uploadedFile.findFirstOrThrow({
+    where: { id: uploadedFileId, userId },
+    select: {
+      status: true,
+      uploaded: true,
+      currentAttempt: true,
     },
   });
 
   return {
-    userId: uploadedFile.user.id,
-    credits: uploadedFile.user.credits,
-    s3Key: uploadedFile.s3Key,
+    status: state.status as ProcessingStatus,
+    uploaded: state.uploaded,
+    currentAttempt: state.currentAttempt,
   };
+}
+
+export async function confirmUploadedFileSourceById(
+  uploadedFileId: string,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+) {
+  const now = options?.now ?? new Date();
+
+  return getClient(options?.tx).uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      status: "upload_pending",
+      uploaded: false,
+    },
+    data: {
+      uploaded: true,
+      sourceUploadedAt: now,
+    },
+  });
+}
+
+export async function markUploadedFileQueuedFromDispatch(
+  uploadedFileId: string,
+  attempt: number,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+) {
+  const now = options?.now ?? new Date();
+
+  return getClient(options?.tx).uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: "pending_enqueue",
+    },
+    data: {
+      status: "queued",
+      queuedAt: now,
+    },
+  });
+}
+
+export async function startUploadedFileProcessingAttempt(
+  uploadedFileId: string,
+  attempt: number,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+) {
+  const now = options?.now ?? new Date();
+
+  return getClient(options?.tx).uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: "queued",
+      processingStartedAt: null,
+    },
+    data: {
+      status: "processing",
+      processingStartedAt: now,
+    },
+  });
+}
+
+export async function markUploadedFileAttemptProcessed(
+  uploadedFileId: string,
+  attempt: number,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+) {
+  const now = options?.now ?? new Date();
+
+  return getClient(options?.tx).uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: "processing",
+    },
+    data: {
+      status: "processed",
+      terminalStatusAt: now,
+      lastSuccessfulAttempt: attempt,
+      failureCode: null,
+    },
+  });
+}
+
+export async function markUploadedFileAttemptFailed(
+  uploadedFileId: string,
+  attempt: number,
+  failureCode: string,
+  options?: {
+    tx?: Prisma.TransactionClient;
+    now?: Date;
+    statuses?: ProcessingStatus[];
+  },
+) {
+  const now = options?.now ?? new Date();
+  const statuses = options?.statuses ?? ["pending_enqueue", "queued", "processing"];
+
+  return getClient(options?.tx).uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: {
+        in: statuses,
+      },
+    },
+    data: {
+      status: "failed",
+      terminalStatusAt: now,
+      failureCode,
+    },
+  });
+}
+
+export async function markUploadedFileAttemptNoCredits(
+  uploadedFileId: string,
+  attempt: number,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+) {
+  const now = options?.now ?? new Date();
+
+  return getClient(options?.tx).uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: "queued",
+    },
+    data: {
+      status: "no credits",
+      terminalStatusAt: now,
+      failureCode: null,
+    },
+  });
 }
 
 export async function updateUploadedFileStatus(
   uploadedFileId: string,
   status: ProcessingStatus,
-  options?: { tx?: Prisma.TransactionClient; processingStartedAt?: Date | null },
+  options?: {
+    tx?: Prisma.TransactionClient;
+    processingStartedAt?: Date | null;
+    queuedAt?: Date | null;
+    terminalStatusAt?: Date | null;
+    failureCode?: string | null;
+  },
 ) {
   return getClient(options?.tx).uploadedFile.update({
     where: { id: uploadedFileId },
@@ -161,6 +479,13 @@ export async function updateUploadedFileStatus(
       status,
       ...(options?.processingStartedAt !== undefined
         ? { processingStartedAt: options.processingStartedAt }
+        : {}),
+      ...(options?.queuedAt !== undefined ? { queuedAt: options.queuedAt } : {}),
+      ...(options?.terminalStatusAt !== undefined
+        ? { terminalStatusAt: options.terminalStatusAt }
+        : {}),
+      ...(options?.failureCode !== undefined
+        ? { failureCode: options.failureCode }
         : {}),
     },
   });
@@ -173,7 +498,7 @@ export async function updateUploadedFileLanguage(
   options?: { tx?: Prisma.TransactionClient },
 ) {
   return getClient(options?.tx).uploadedFile.update({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId },
     data: { language },
   });
 }
@@ -181,15 +506,87 @@ export async function updateUploadedFileLanguage(
 export async function setUploadedFileUploaded(
   uploadedFileId: string,
   uploaded: boolean,
-  options?: { userId?: string; tx?: Prisma.TransactionClient },
+  options?: { tx?: Prisma.TransactionClient },
 ) {
-  const where = options?.userId
-    ? { id: uploadedFileId, userId: options.userId }
-    : { id: uploadedFileId };
-
   return getClient(options?.tx).uploadedFile.update({
-    where,
+    where: { id: uploadedFileId },
     data: { uploaded },
+  });
+}
+
+export async function findStaleProcessingUploadedFiles(staleBefore: Date) {
+  return db.uploadedFile.findMany({
+    where: {
+      status: "processing",
+      processingStartedAt: {
+        lt: staleBefore,
+      },
+    },
+    select: {
+      id: true,
+      currentAttempt: true,
+    },
+  });
+}
+
+export async function findRawUploadDraftsForPromotion(limit = 50) {
+  return db.uploadedFile.findMany({
+    where: {
+      status: "upload_pending",
+      uploaded: false,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: limit,
+    select: {
+      id: true,
+      s3Key: true,
+    },
+  });
+}
+
+export async function findStaleRawUploadDrafts(staleBefore: Date, limit = 50) {
+  return db.uploadedFile.findMany({
+    where: {
+      status: "upload_pending",
+      uploaded: false,
+      createdAt: {
+        lt: staleBefore,
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: limit,
+    select: {
+      id: true,
+      s3Key: true,
+    },
+  });
+}
+
+export async function findStaleRecoverableUploadDrafts(
+  staleBefore: Date,
+  limit = 50,
+) {
+  return db.uploadedFile.findMany({
+    where: {
+      status: "upload_pending",
+      uploaded: true,
+      sourceUploadedAt: {
+        lt: staleBefore,
+      },
+    },
+    orderBy: {
+      sourceUploadedAt: "asc",
+    },
+    take: limit,
+    select: {
+      id: true,
+      userId: true,
+      s3Key: true,
+    },
   });
 }
 
@@ -198,7 +595,22 @@ export async function deleteUploadedFileRecord(
   userId: string,
   options?: { tx?: Prisma.TransactionClient },
 ) {
-  return getClient(options?.tx).uploadedFile.delete({
+  const result = await getClient(options?.tx).uploadedFile.deleteMany({
     where: { id: uploadedFileId, userId },
+  });
+
+  if (result.count === 0) {
+    throw new Error("Uploaded file not found");
+  }
+
+  return result;
+}
+
+export async function deleteUploadedFileRecordById(
+  uploadedFileId: string,
+  options?: { tx?: Prisma.TransactionClient },
+) {
+  return getClient(options?.tx).uploadedFile.delete({
+    where: { id: uploadedFileId },
   });
 }
