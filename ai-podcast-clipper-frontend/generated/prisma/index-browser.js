@@ -163,14 +163,23 @@ exports.Prisma.UploadedFileScalarFieldEnum = {
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  sourceUploadedAt: 'sourceUploadedAt',
+  enqueueRequestedAt: 'enqueueRequestedAt',
+  queuedAt: 'queuedAt',
   processingStartedAt: 'processingStartedAt',
+  terminalStatusAt: 'terminalStatusAt',
+  currentAttempt: 'currentAttempt',
+  lastSuccessfulAttempt: 'lastSuccessfulAttempt',
+  failureCode: 'failureCode',
   language: 'language',
+  targetClipCount: 'targetClipCount',
   userId: 'userId'
 };
 
 exports.Prisma.ClipScalarFieldEnum = {
   id: 'id',
   s3Key: 's3Key',
+  processingAttempt: 'processingAttempt',
   startSeconds: 'startSeconds',
   endSeconds: 'endSeconds',
   scriptText: 'scriptText',
@@ -181,6 +190,20 @@ exports.Prisma.ClipScalarFieldEnum = {
   youtubeHashtags: 'youtubeHashtags',
   uploadedFileId: 'uploadedFileId',
   userId: 'userId'
+};
+
+exports.Prisma.ProcessingDispatchScalarFieldEnum = {
+  id: 'id',
+  uploadedFileId: 'uploadedFileId',
+  attempt: 'attempt',
+  status: 'status',
+  dispatchCount: 'dispatchCount',
+  lastError: 'lastError',
+  dispatchedAt: 'dispatchedAt',
+  nextRetryAt: 'nextRetryAt',
+  lockedAt: 'lockedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SubscriptionScalarFieldEnum = {
@@ -239,6 +262,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   UploadedFile: 'UploadedFile',
   Clip: 'Clip',
+  ProcessingDispatch: 'ProcessingDispatch',
   Subscription: 'Subscription',
   Order: 'Order',
   VerificationToken: 'VerificationToken'

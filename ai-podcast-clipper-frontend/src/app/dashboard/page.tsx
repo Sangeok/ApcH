@@ -1,7 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { listUploadedFileSummariesByUserId } from "~/fsd/entities/uploaded-file";
+import {
+  listRecoverableUploadDraftsByUserId,
+  listUploadedFileSummariesByUserId,
+} from "~/fsd/entities/uploaded-file";
 import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
 
@@ -12,7 +15,15 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const uploadedFiles = await listUploadedFileSummariesByUserId(session.user.id);
+  const [uploadedFiles, recoverableDrafts] = await Promise.all([
+    listUploadedFileSummariesByUserId(session.user.id),
+    listRecoverableUploadDraftsByUserId(session.user.id),
+  ]);
 
-  return <DashboardView uploadedFiles={uploadedFiles} />;
+  return (
+    <DashboardView
+      uploadedFiles={uploadedFiles}
+      recoverableDrafts={recoverableDrafts}
+    />
+  );
 }

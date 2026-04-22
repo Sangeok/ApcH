@@ -41,65 +41,94 @@ model Session {
 }
 
 model User {
-    id               String    @id @default(cuid())
-    name             String?
-    email            String    @unique
-    emailVerified    DateTime?
-    password         String?
-    credits          Int       @default(3)
-    polarCustomerId  String?   @unique
-    image            String?
-    accounts         Account[]
-    sessions         Session[]
+    id              String    @id @default(cuid())
+    name            String?
+    email           String    @unique
+    emailVerified   DateTime?
+    password        String?
+    credits         Int       @default(3)
+    polarCustomerId String?   @unique
+    image           String?
+    accounts        Account[]
+    sessions        Session[]
 
-    uploadedFiles    UploadedFile[]
-    clips            Clip[]
-    subscription     Subscription?
-    orders           Order[]
+    uploadedFiles UploadedFile[]
+    clips         Clip[]
+    subscription  Subscription?
+    orders        Order[]
 }
 
 model UploadedFile {
-    id String @id @default(cuid())
-    s3Key String
-    displayName String?
-    uploaded Boolean @default(false)
-    status String @default("queued") // queued, processing, processed, failed, no credits
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    processingStartedAt DateTime?
-    language String @default("English")
+    id                    String   @id @default(cuid())
+    s3Key                 String
+    displayName           String?
+    uploaded              Boolean  @default(false)
+    status                String   @default("upload_pending") // upload_pending, pending_enqueue, queued, processing, processed, failed, no credits
+    createdAt             DateTime @default(now())
+    updatedAt             DateTime @updatedAt
+    sourceUploadedAt      DateTime?
+    enqueueRequestedAt    DateTime?
+    queuedAt              DateTime?
+    processingStartedAt   DateTime?
+    terminalStatusAt      DateTime?
+    currentAttempt        Int      @default(0)
+    lastSuccessfulAttempt Int      @default(0)
+    failureCode           String?
+    language              String   @default("English")
+    targetClipCount       Int      @default(3)
+    userId                String
 
-    clips Clip[]
+    clips      Clip[]
+    dispatches ProcessingDispatch[]
 
-    // 관계 정의 필드
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    // 외래키
-    userId String
 
     @@index([s3Key])
 }
 
 model Clip {
-    id String @id @default(cuid())
-    s3Key String
+    id                String   @id @default(cuid())
+    s3Key             String
+    processingAttempt Int      @default(1)
 
     startSeconds Float?
-    endSeconds Float?
-    scriptText String?
+    endSeconds   Float?
+    scriptText   String?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    youtubeTitle       String?   // YouTube 제목 (100자 제한)
-    youtubeDescription String?   // YouTube 설명 (5000자 제한)
-    youtubeHashtags    String?   // 해시태그 JSON 배열 문자열
+    youtubeTitle       String?
+    youtubeDescription String?
+    youtubeHashtags    String?
 
-    uploadedFile UploadedFile? @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
+    uploadedFile   UploadedFile? @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
     uploadedFileId String?
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String
+
+    @@index([uploadedFileId, processingAttempt])
+    @@unique([uploadedFileId, processingAttempt, s3Key])
+}
+
+model ProcessingDispatch {
+    id             String   @id @default(cuid())
+    uploadedFileId String
+    attempt        Int
+    status         String   @default("pending") // pending, sending, sent, retryable_failed, dead_letter
+    dispatchCount  Int      @default(0)
+    lastError      String?
+    dispatchedAt   DateTime?
+    nextRetryAt    DateTime?
+    lockedAt       DateTime?
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    uploadedFile UploadedFile @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
+
+    @@unique([uploadedFileId, attempt])
+    @@index([status, nextRetryAt])
 }
 
 model Subscription {
@@ -122,14 +151,14 @@ model Subscription {
 }
 
 model Order {
-    id              String   @id @default(cuid())
-    polarOrderId    String   @unique
-    userId          String
-    productName     String
-    amount          Int
-    currency        String   @default("usd")
-    status          String   @default("completed")
-    createdAt       DateTime @default(now())
+    id           String   @id @default(cuid())
+    polarOrderId String   @unique
+    userId       String
+    productName  String
+    amount       Int
+    currency     String   @default("usd")
+    status       String   @default("completed")
+    createdAt    DateTime @default(now())
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

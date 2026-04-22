@@ -1,7 +1,13 @@
 "use client";
 
+import { useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
-import ClipDisplay from "~/fsd/widgets/clip-display/ui";
+import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
+import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
+import { STATUS_CONFIG } from "~/fsd/pages/dashboard/config";
+import { UploadedFileActions } from "~/fsd/features/upload";
+import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import {
   Card,
@@ -10,30 +16,46 @@ import {
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
-import { UploadedFileActions } from "~/fsd/features/upload";
-import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
-import type { Clip } from "generated/prisma";
-import type { ProcessingStatus } from "~/fsd/entities/uploaded-file";
-import OriginalMediaCard from "~/fsd/pages/upload-detail/ui/_component/OriginalMediaCard";
+import ClipDisplay from "~/fsd/widgets/clip-display/ui";
+import OriginalMediaCard from "./_component/OriginalMediaCard";
 
 interface UploadDetailPageProps {
-  uploadedFileData: {
-    id: string;
-    displayName: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    processingStartedAt: Date | null;
-    status: ProcessingStatus;
-    language: string;
-    clips: Clip[];
-  };
+  uploadedFileData: UploadedFileDetail;
 }
 
 export default function UploadDetailPage({
   uploadedFileData,
 }: UploadDetailPageProps) {
-  const { id: uploadedFileId, displayName, createdAt, updatedAt, processingStartedAt, status, clips } =
-    uploadedFileData;
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const {
+    id: uploadedFileId,
+    displayName,
+    createdAt,
+    status,
+    clips,
+    enqueueRequestedAt,
+    queuedAt,
+    processingStartedAt,
+    terminalStatusAt,
+    failureCode,
+    targetClipCount,
+  } = uploadedFileData;
+  const statusConfig = STATUS_CONFIG[status];
+
+  useEffect(() => {
+    if (!isActiveProcessingStatus(status)) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      startTransition(() => {
+        router.refresh();
+      });
+    }, 7_500);
+
+    return () => window.clearInterval(intervalId);
+  }, [router, startTransition, status]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
@@ -46,34 +68,35 @@ export default function UploadDetailPage({
           <div className="text-muted-foreground mt-2 flex items-center gap-2 text-sm">
             <span>{new Date(createdAt).toLocaleString()}</span>
             <Separator orientation="vertical" className="h-4" />
-            <Badge variant="outline">{status}</Badge>
+            <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
           </div>
         </div>
-        <UploadedFileActions uploadedFileId={uploadedFileId} />
+        <UploadedFileActions uploadedFileId={uploadedFileId} status={status} />
       </header>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Summary card */}
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Summary</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Clips generated</span>
+              <span className="text-muted-foreground">Visible clips</span>
               <span className="font-medium">{clips.length}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Target clip count</span>
+              <span className="font-medium">{targetClipCount}</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Original media card */}
         <OriginalMediaCard
           uploadedFileId={uploadedFileId}
           displayName={displayName}
           status={status}
         />
 
-        {/* Processing timeline card */}
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Processing timeline</CardTitle>
@@ -81,15 +104,16 @@ export default function UploadDetailPage({
           <CardContent>
             <ProcessingTimeline
               status={status}
-              createdAt={new Date(createdAt)}
-              processingStartedAt={processingStartedAt ? new Date(processingStartedAt) : null}
-              updatedAt={new Date(updatedAt)}
+              enqueueRequestedAt={enqueueRequestedAt}
+              queuedAt={queuedAt}
+              processingStartedAt={processingStartedAt}
+              terminalStatusAt={terminalStatusAt}
+              failureCode={failureCode}
             />
           </CardContent>
         </Card>
       </section>
 
-      {/* Generated clips section */}
       <section className="bg-card rounded-xl border">
         <div className="flex items-center justify-between border-b px-6 py-4">
           <div>
@@ -103,10 +127,10 @@ export default function UploadDetailPage({
         </div>
         <div className="px-6 py-6">
           <Suspense
-            fallback={<p className="text-muted-foreground">Loading clips…</p>}
+            fallback={<p className="text-muted-foreground">Loading clips...</p>}
           >
             {clips.length > 0 ? (
-              <ClipDisplay clips={clips} />
+              <ClipDisplay clips={clips} allowDelete={false} />
             ) : (
               <p className="text-muted-foreground text-center">
                 No clips generated yet

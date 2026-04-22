@@ -15,11 +15,17 @@ import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface ClipCardProps {
   clip: Clip;
+  allowDelete: boolean;
   onDelete: (clipId: string) => Promise<ActionResult<void>>;
   onDeleteSuccess: (clipId: string) => void;
 }
 
-export default function ClipCard({ clip, onDelete, onDeleteSuccess }: ClipCardProps) {
+export default function ClipCard({
+  clip,
+  allowDelete,
+  onDelete,
+  onDeleteSuccess,
+}: ClipCardProps) {
   const { playUrl, isLoading, error } = usePlayUrl(clip.id, getClipPlayUrl);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
@@ -61,6 +67,7 @@ export default function ClipCard({ clip, onDelete, onDeleteSuccess }: ClipCardPr
         onOpenScript={() => setIsScriptOpen(true)}
         onOpenMetadata={() => setIsMetadataOpen(true)}
         onCopyScript={handleCopyScript}
+        allowDelete={allowDelete}
         onDelete={onDelete}
         onDeleteSuccess={onDeleteSuccess}
       />

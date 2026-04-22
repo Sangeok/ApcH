@@ -2,14 +2,18 @@
 
 import type { Clip } from "generated/prisma";
 import { useOptimistic } from "react";
-import ClipCard from "./_component/ClipCard";
 import { deleteClip } from "~/fsd/features/clip/api";
+import ClipCard from "./_component/ClipCard";
 
 interface ClipDisplayProps {
   clips: Clip[];
+  allowDelete?: boolean;
 }
 
-export default function ClipDisplay({ clips }: ClipDisplayProps) {
+export default function ClipDisplay({
+  clips,
+  allowDelete = true,
+}: ClipDisplayProps) {
   const [optimisticClips, removeClipOptimistic] = useOptimistic(
     clips,
     (state, clipId: string) => state.filter((clip) => clip.id !== clipId),
@@ -23,16 +27,15 @@ export default function ClipDisplay({ clips }: ClipDisplayProps) {
 
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-      {optimisticClips.map((clip) => {
-        return (
-          <ClipCard
-            key={clip.id}
-            clip={clip}
-            onDelete={deleteClip}
-            onDeleteSuccess={removeClipOptimistic}
-          />
-        );
-      })}
+      {optimisticClips.map((clip) => (
+        <ClipCard
+          key={clip.id}
+          clip={clip}
+          allowDelete={allowDelete}
+          onDelete={deleteClip}
+          onDeleteSuccess={removeClipOptimistic}
+        />
+      ))}
     </div>
   );
 }

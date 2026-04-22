@@ -1,7 +1,8 @@
 "use client";
 
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
-import type { ProcessingStatus } from "~/fsd/entities/uploaded-file";
+import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
+import { STATUS_CONFIG } from "~/fsd/pages/dashboard/config";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Download } from "lucide-react";
@@ -16,7 +17,7 @@ import {
 interface OriginalMediaCardProps {
   uploadedFileId: string;
   displayName: string | null;
-  status: ProcessingStatus;
+  status: Exclude<ProcessingStatus, "upload_pending">;
 }
 
 export default function OriginalMediaCard({
@@ -25,6 +26,7 @@ export default function OriginalMediaCard({
   status,
 }: OriginalMediaCardProps) {
   const { playUrl, isLoading } = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
+  const statusConfig = STATUS_CONFIG[status];
 
   const handleDownload = () => {
     if (!playUrl) return;
@@ -40,8 +42,8 @@ export default function OriginalMediaCard({
             {displayName ?? "Untitled"}
           </h3>
         </div>
-        <Badge variant="secondary" className="capitalize">
-          {status}
+        <Badge variant={statusConfig.variant}>
+          {statusConfig.label}
         </Badge>
       </CardHeader>
       <CardContent className="space-y-4">

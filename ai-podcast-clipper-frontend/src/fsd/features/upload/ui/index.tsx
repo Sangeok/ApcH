@@ -1,6 +1,11 @@
 "use client";
 
+import { Loader2, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
+import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
+import type { ActionResult } from "~/fsd/shared/api/result";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -13,9 +18,6 @@ import {
   deleteUploadedFileWithClips,
   reprocessUploadedFile,
 } from "../api";
-import { Loader2, Trash2, RefreshCw, MoreHorizontal } from "lucide-react";
-import { useRouter } from "next/navigation";
-import type { ActionResult } from "~/fsd/shared/api/result";
 
 type RunOptions = {
   action: () => Promise<ActionResult<void>>;
@@ -38,10 +40,12 @@ const runAction = ({
 
   startTransition(async () => {
     const result = await action();
+
     if (!result.success) {
       toast.error(result.error ?? "Request failed");
       return;
     }
+
     toast.success(successMessage);
     onSuccess?.();
   });
@@ -49,22 +53,24 @@ const runAction = ({
 
 interface UploadedFileActionsProps {
   uploadedFileId: string;
+  status: ProcessingStatus;
 }
 
 export default function UploadedFileActions({
   uploadedFileId,
+  status,
 }: UploadedFileActionsProps) {
   const router = useRouter();
   const [isReprocessing, startReprocessTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
-
+  const isActive = isActiveProcessingStatus(status);
   const anyPending = isReprocessing || isDeleting;
 
   const handleReprocess = () => {
     runAction({
       action: () => reprocessUploadedFile(uploadedFileId),
       successMessage: "Reprocessing started",
-      onSuccess: () => router.push("/dashboard"),
+      onSuccess: () => router.refresh(),
       startTransition: startReprocessTransition,
     });
   };
@@ -72,7 +78,7 @@ export default function UploadedFileActions({
   const handleDelete = () => {
     runAction({
       action: () => deleteUploadedFileWithClips(uploadedFileId),
-      successMessage: "Original File and clips deleted",
+      successMessage: "Original file and clips deleted",
       confirmationMessage:
         "Are you sure you want to delete the file and all associated clips?",
       onSuccess: () => router.push("/dashboard"),
@@ -82,7 +88,11 @@ export default function UploadedFileActions({
 
   return (
     <div className="flex items-center gap-2">
-      <Button variant="outline" disabled={anyPending} onClick={handleReprocess}>
+      <Button
+        variant="outline"
+        disabled={anyPending || isActive}
+        onClick={handleReprocess}
+      >
         {isReprocessing ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
@@ -92,7 +102,7 @@ export default function UploadedFileActions({
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" disabled={anyPending}>
+          <Button variant="secondary" disabled={anyPending || isActive}>
             {isDeleting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -105,6 +115,7 @@ export default function UploadedFileActions({
           <DropdownMenuItem
             className="text-destructive"
             onClick={handleDelete}
+            disabled={isActive}
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete detail

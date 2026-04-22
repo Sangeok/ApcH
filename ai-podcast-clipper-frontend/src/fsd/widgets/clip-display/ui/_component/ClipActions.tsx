@@ -7,11 +7,13 @@ import {
   FileText,
   Hash,
   Loader2,
+  Lock,
   MoreHorizontal,
   Trash,
 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import type { ActionResult } from "~/fsd/shared/api/result";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -21,7 +23,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
-import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface ClipActionsProps {
   clip: Clip;
@@ -29,6 +30,7 @@ interface ClipActionsProps {
   isLoading: boolean;
   hasScript: boolean;
   hasMetadata: boolean;
+  allowDelete: boolean;
   onOpenScript: () => void;
   onOpenMetadata: () => void;
   onCopyScript: () => void | Promise<void>;
@@ -42,6 +44,7 @@ export function ClipActions({
   isLoading,
   hasScript,
   hasMetadata,
+  allowDelete,
   onOpenScript,
   onOpenMetadata,
   onCopyScript,
@@ -56,11 +59,16 @@ export function ClipActions({
   };
 
   const handleDelete = () => {
+    if (!allowDelete) {
+      toast.error("Visible clips cannot be deleted");
+      return;
+    }
+
     startDeleting(async () => {
       onDeleteSuccess(clip.id);
 
       const result = await onDelete(clip.id);
-      
+
       if (result.success) {
         toast.success("Clip deleted");
       } else {
@@ -123,16 +131,18 @@ export function ClipActions({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={isDeleting || !allowDelete}
               variant="destructive"
               className="cursor-pointer"
             >
               {isDeleting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
+              ) : allowDelete ? (
                 <Trash className="mr-2 h-4 w-4" />
+              ) : (
+                <Lock className="mr-2 h-4 w-4" />
               )}
-              Delete
+              {allowDelete ? "Delete" : "Delete disabled"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

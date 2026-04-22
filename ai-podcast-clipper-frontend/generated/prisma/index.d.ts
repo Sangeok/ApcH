@@ -39,6 +39,11 @@ export type UploadedFile = $Result.DefaultSelection<Prisma.$UploadedFilePayload>
  */
 export type Clip = $Result.DefaultSelection<Prisma.$ClipPayload>
 /**
+ * Model ProcessingDispatch
+ * 
+ */
+export type ProcessingDispatch = $Result.DefaultSelection<Prisma.$ProcessingDispatchPayload>
+/**
  * Model Subscription
  * 
  */
@@ -221,6 +226,16 @@ export class PrismaClient<
     * ```
     */
   get clip(): Prisma.ClipDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.processingDispatch`: Exposes CRUD operations for the **ProcessingDispatch** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProcessingDispatches
+    * const processingDispatches = await prisma.processingDispatch.findMany()
+    * ```
+    */
+  get processingDispatch(): Prisma.ProcessingDispatchDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.subscription`: Exposes CRUD operations for the **Subscription** model.
@@ -697,6 +712,7 @@ export namespace Prisma {
     User: 'User',
     UploadedFile: 'UploadedFile',
     Clip: 'Clip',
+    ProcessingDispatch: 'ProcessingDispatch',
     Subscription: 'Subscription',
     Order: 'Order',
     VerificationToken: 'VerificationToken'
@@ -718,7 +734,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "account" | "session" | "user" | "uploadedFile" | "clip" | "subscription" | "order" | "verificationToken"
+      modelProps: "account" | "session" | "user" | "uploadedFile" | "clip" | "processingDispatch" | "subscription" | "order" | "verificationToken"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1092,6 +1108,80 @@ export namespace Prisma {
           }
         }
       }
+      ProcessingDispatch: {
+        payload: Prisma.$ProcessingDispatchPayload<ExtArgs>
+        fields: Prisma.ProcessingDispatchFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProcessingDispatchFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProcessingDispatchFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>
+          }
+          findFirst: {
+            args: Prisma.ProcessingDispatchFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProcessingDispatchFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>
+          }
+          findMany: {
+            args: Prisma.ProcessingDispatchFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>[]
+          }
+          create: {
+            args: Prisma.ProcessingDispatchCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>
+          }
+          createMany: {
+            args: Prisma.ProcessingDispatchCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProcessingDispatchCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>[]
+          }
+          delete: {
+            args: Prisma.ProcessingDispatchDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>
+          }
+          update: {
+            args: Prisma.ProcessingDispatchUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProcessingDispatchDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProcessingDispatchUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProcessingDispatchUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>[]
+          }
+          upsert: {
+            args: Prisma.ProcessingDispatchUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProcessingDispatchPayload>
+          }
+          aggregate: {
+            args: Prisma.ProcessingDispatchAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProcessingDispatch>
+          }
+          groupBy: {
+            args: Prisma.ProcessingDispatchGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProcessingDispatchGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProcessingDispatchCountArgs<ExtArgs>
+            result: $Utils.Optional<ProcessingDispatchCountAggregateOutputType> | number
+          }
+        }
+      }
       Subscription: {
         payload: Prisma.$SubscriptionPayload<ExtArgs>
         fields: Prisma.SubscriptionFieldRefs
@@ -1415,6 +1505,7 @@ export namespace Prisma {
     user?: UserOmit
     uploadedFile?: UploadedFileOmit
     clip?: ClipOmit
+    processingDispatch?: ProcessingDispatchOmit
     subscription?: SubscriptionOmit
     order?: OrderOmit
     verificationToken?: VerificationTokenOmit
@@ -1566,10 +1657,12 @@ export namespace Prisma {
 
   export type UploadedFileCountOutputType = {
     clips: number
+    dispatches: number
   }
 
   export type UploadedFileCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFileCountOutputTypeCountClipsArgs
+    dispatches?: boolean | UploadedFileCountOutputTypeCountDispatchesArgs
   }
 
   // Custom InputTypes
@@ -1588,6 +1681,13 @@ export namespace Prisma {
    */
   export type UploadedFileCountOutputTypeCountClipsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ClipWhereInput
+  }
+
+  /**
+   * UploadedFileCountOutputType without action
+   */
+  export type UploadedFileCountOutputTypeCountDispatchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProcessingDispatchWhereInput
   }
 
 
@@ -5124,8 +5224,22 @@ export namespace Prisma {
 
   export type AggregateUploadedFile = {
     _count: UploadedFileCountAggregateOutputType | null
+    _avg: UploadedFileAvgAggregateOutputType | null
+    _sum: UploadedFileSumAggregateOutputType | null
     _min: UploadedFileMinAggregateOutputType | null
     _max: UploadedFileMaxAggregateOutputType | null
+  }
+
+  export type UploadedFileAvgAggregateOutputType = {
+    currentAttempt: number | null
+    lastSuccessfulAttempt: number | null
+    targetClipCount: number | null
+  }
+
+  export type UploadedFileSumAggregateOutputType = {
+    currentAttempt: number | null
+    lastSuccessfulAttempt: number | null
+    targetClipCount: number | null
   }
 
   export type UploadedFileMinAggregateOutputType = {
@@ -5136,8 +5250,16 @@ export namespace Prisma {
     status: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    sourceUploadedAt: Date | null
+    enqueueRequestedAt: Date | null
+    queuedAt: Date | null
     processingStartedAt: Date | null
+    terminalStatusAt: Date | null
+    currentAttempt: number | null
+    lastSuccessfulAttempt: number | null
+    failureCode: string | null
     language: string | null
+    targetClipCount: number | null
     userId: string | null
   }
 
@@ -5149,8 +5271,16 @@ export namespace Prisma {
     status: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    sourceUploadedAt: Date | null
+    enqueueRequestedAt: Date | null
+    queuedAt: Date | null
     processingStartedAt: Date | null
+    terminalStatusAt: Date | null
+    currentAttempt: number | null
+    lastSuccessfulAttempt: number | null
+    failureCode: string | null
     language: string | null
+    targetClipCount: number | null
     userId: string | null
   }
 
@@ -5162,12 +5292,32 @@ export namespace Prisma {
     status: number
     createdAt: number
     updatedAt: number
+    sourceUploadedAt: number
+    enqueueRequestedAt: number
+    queuedAt: number
     processingStartedAt: number
+    terminalStatusAt: number
+    currentAttempt: number
+    lastSuccessfulAttempt: number
+    failureCode: number
     language: number
+    targetClipCount: number
     userId: number
     _all: number
   }
 
+
+  export type UploadedFileAvgAggregateInputType = {
+    currentAttempt?: true
+    lastSuccessfulAttempt?: true
+    targetClipCount?: true
+  }
+
+  export type UploadedFileSumAggregateInputType = {
+    currentAttempt?: true
+    lastSuccessfulAttempt?: true
+    targetClipCount?: true
+  }
 
   export type UploadedFileMinAggregateInputType = {
     id?: true
@@ -5177,8 +5327,16 @@ export namespace Prisma {
     status?: true
     createdAt?: true
     updatedAt?: true
+    sourceUploadedAt?: true
+    enqueueRequestedAt?: true
+    queuedAt?: true
     processingStartedAt?: true
+    terminalStatusAt?: true
+    currentAttempt?: true
+    lastSuccessfulAttempt?: true
+    failureCode?: true
     language?: true
+    targetClipCount?: true
     userId?: true
   }
 
@@ -5190,8 +5348,16 @@ export namespace Prisma {
     status?: true
     createdAt?: true
     updatedAt?: true
+    sourceUploadedAt?: true
+    enqueueRequestedAt?: true
+    queuedAt?: true
     processingStartedAt?: true
+    terminalStatusAt?: true
+    currentAttempt?: true
+    lastSuccessfulAttempt?: true
+    failureCode?: true
     language?: true
+    targetClipCount?: true
     userId?: true
   }
 
@@ -5203,8 +5369,16 @@ export namespace Prisma {
     status?: true
     createdAt?: true
     updatedAt?: true
+    sourceUploadedAt?: true
+    enqueueRequestedAt?: true
+    queuedAt?: true
     processingStartedAt?: true
+    terminalStatusAt?: true
+    currentAttempt?: true
+    lastSuccessfulAttempt?: true
+    failureCode?: true
     language?: true
+    targetClipCount?: true
     userId?: true
     _all?: true
   }
@@ -5247,6 +5421,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: UploadedFileAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UploadedFileSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: UploadedFileMinAggregateInputType
@@ -5277,6 +5463,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: UploadedFileCountAggregateInputType | true
+    _avg?: UploadedFileAvgAggregateInputType
+    _sum?: UploadedFileSumAggregateInputType
     _min?: UploadedFileMinAggregateInputType
     _max?: UploadedFileMaxAggregateInputType
   }
@@ -5289,10 +5477,20 @@ export namespace Prisma {
     status: string
     createdAt: Date
     updatedAt: Date
+    sourceUploadedAt: Date | null
+    enqueueRequestedAt: Date | null
+    queuedAt: Date | null
     processingStartedAt: Date | null
+    terminalStatusAt: Date | null
+    currentAttempt: number
+    lastSuccessfulAttempt: number
+    failureCode: string | null
     language: string
+    targetClipCount: number
     userId: string
     _count: UploadedFileCountAggregateOutputType | null
+    _avg: UploadedFileAvgAggregateOutputType | null
+    _sum: UploadedFileSumAggregateOutputType | null
     _min: UploadedFileMinAggregateOutputType | null
     _max: UploadedFileMaxAggregateOutputType | null
   }
@@ -5319,10 +5517,19 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    sourceUploadedAt?: boolean
+    enqueueRequestedAt?: boolean
+    queuedAt?: boolean
     processingStartedAt?: boolean
+    terminalStatusAt?: boolean
+    currentAttempt?: boolean
+    lastSuccessfulAttempt?: boolean
+    failureCode?: boolean
     language?: boolean
+    targetClipCount?: boolean
     userId?: boolean
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
+    dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | UploadedFileCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5335,8 +5542,16 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    sourceUploadedAt?: boolean
+    enqueueRequestedAt?: boolean
+    queuedAt?: boolean
     processingStartedAt?: boolean
+    terminalStatusAt?: boolean
+    currentAttempt?: boolean
+    lastSuccessfulAttempt?: boolean
+    failureCode?: boolean
     language?: boolean
+    targetClipCount?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5349,8 +5564,16 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    sourceUploadedAt?: boolean
+    enqueueRequestedAt?: boolean
+    queuedAt?: boolean
     processingStartedAt?: boolean
+    terminalStatusAt?: boolean
+    currentAttempt?: boolean
+    lastSuccessfulAttempt?: boolean
+    failureCode?: boolean
     language?: boolean
+    targetClipCount?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5363,14 +5586,23 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    sourceUploadedAt?: boolean
+    enqueueRequestedAt?: boolean
+    queuedAt?: boolean
     processingStartedAt?: boolean
+    terminalStatusAt?: boolean
+    currentAttempt?: boolean
+    lastSuccessfulAttempt?: boolean
+    failureCode?: boolean
     language?: boolean
+    targetClipCount?: boolean
     userId?: boolean
   }
 
-  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "processingStartedAt" | "language" | "userId", ExtArgs["result"]["uploadedFile"]>
+  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "userId", ExtArgs["result"]["uploadedFile"]>
   export type UploadedFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
+    dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | UploadedFileCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -5385,6 +5617,7 @@ export namespace Prisma {
     name: "UploadedFile"
     objects: {
       clips: Prisma.$ClipPayload<ExtArgs>[]
+      dispatches: Prisma.$ProcessingDispatchPayload<ExtArgs>[]
       user: Prisma.$UserPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -5395,8 +5628,16 @@ export namespace Prisma {
       status: string
       createdAt: Date
       updatedAt: Date
+      sourceUploadedAt: Date | null
+      enqueueRequestedAt: Date | null
+      queuedAt: Date | null
       processingStartedAt: Date | null
+      terminalStatusAt: Date | null
+      currentAttempt: number
+      lastSuccessfulAttempt: number
+      failureCode: string | null
       language: string
+      targetClipCount: number
       userId: string
     }, ExtArgs["result"]["uploadedFile"]>
     composites: {}
@@ -5793,6 +6034,7 @@ export namespace Prisma {
   export interface Prisma__UploadedFileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     clips<T extends UploadedFile$clipsArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$clipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    dispatches<T extends UploadedFile$dispatchesArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$dispatchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -5830,8 +6072,16 @@ export namespace Prisma {
     readonly status: FieldRef<"UploadedFile", 'String'>
     readonly createdAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly updatedAt: FieldRef<"UploadedFile", 'DateTime'>
+    readonly sourceUploadedAt: FieldRef<"UploadedFile", 'DateTime'>
+    readonly enqueueRequestedAt: FieldRef<"UploadedFile", 'DateTime'>
+    readonly queuedAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly processingStartedAt: FieldRef<"UploadedFile", 'DateTime'>
+    readonly terminalStatusAt: FieldRef<"UploadedFile", 'DateTime'>
+    readonly currentAttempt: FieldRef<"UploadedFile", 'Int'>
+    readonly lastSuccessfulAttempt: FieldRef<"UploadedFile", 'Int'>
+    readonly failureCode: FieldRef<"UploadedFile", 'String'>
     readonly language: FieldRef<"UploadedFile", 'String'>
+    readonly targetClipCount: FieldRef<"UploadedFile", 'Int'>
     readonly userId: FieldRef<"UploadedFile", 'String'>
   }
     
@@ -6253,6 +6503,30 @@ export namespace Prisma {
   }
 
   /**
+   * UploadedFile.dispatches
+   */
+  export type UploadedFile$dispatchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    where?: ProcessingDispatchWhereInput
+    orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
+    cursor?: ProcessingDispatchWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProcessingDispatchScalarFieldEnum | ProcessingDispatchScalarFieldEnum[]
+  }
+
+  /**
    * UploadedFile without action
    */
   export type UploadedFileDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6284,11 +6558,13 @@ export namespace Prisma {
   }
 
   export type ClipAvgAggregateOutputType = {
+    processingAttempt: number | null
     startSeconds: number | null
     endSeconds: number | null
   }
 
   export type ClipSumAggregateOutputType = {
+    processingAttempt: number | null
     startSeconds: number | null
     endSeconds: number | null
   }
@@ -6296,6 +6572,7 @@ export namespace Prisma {
   export type ClipMinAggregateOutputType = {
     id: string | null
     s3Key: string | null
+    processingAttempt: number | null
     startSeconds: number | null
     endSeconds: number | null
     scriptText: string | null
@@ -6311,6 +6588,7 @@ export namespace Prisma {
   export type ClipMaxAggregateOutputType = {
     id: string | null
     s3Key: string | null
+    processingAttempt: number | null
     startSeconds: number | null
     endSeconds: number | null
     scriptText: string | null
@@ -6326,6 +6604,7 @@ export namespace Prisma {
   export type ClipCountAggregateOutputType = {
     id: number
     s3Key: number
+    processingAttempt: number
     startSeconds: number
     endSeconds: number
     scriptText: number
@@ -6341,11 +6620,13 @@ export namespace Prisma {
 
 
   export type ClipAvgAggregateInputType = {
+    processingAttempt?: true
     startSeconds?: true
     endSeconds?: true
   }
 
   export type ClipSumAggregateInputType = {
+    processingAttempt?: true
     startSeconds?: true
     endSeconds?: true
   }
@@ -6353,6 +6634,7 @@ export namespace Prisma {
   export type ClipMinAggregateInputType = {
     id?: true
     s3Key?: true
+    processingAttempt?: true
     startSeconds?: true
     endSeconds?: true
     scriptText?: true
@@ -6368,6 +6650,7 @@ export namespace Prisma {
   export type ClipMaxAggregateInputType = {
     id?: true
     s3Key?: true
+    processingAttempt?: true
     startSeconds?: true
     endSeconds?: true
     scriptText?: true
@@ -6383,6 +6666,7 @@ export namespace Prisma {
   export type ClipCountAggregateInputType = {
     id?: true
     s3Key?: true
+    processingAttempt?: true
     startSeconds?: true
     endSeconds?: true
     scriptText?: true
@@ -6485,6 +6769,7 @@ export namespace Prisma {
   export type ClipGroupByOutputType = {
     id: string
     s3Key: string
+    processingAttempt: number
     startSeconds: number | null
     endSeconds: number | null
     scriptText: string | null
@@ -6519,6 +6804,7 @@ export namespace Prisma {
   export type ClipSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     s3Key?: boolean
+    processingAttempt?: boolean
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
@@ -6536,6 +6822,7 @@ export namespace Prisma {
   export type ClipSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     s3Key?: boolean
+    processingAttempt?: boolean
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
@@ -6553,6 +6840,7 @@ export namespace Prisma {
   export type ClipSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     s3Key?: boolean
+    processingAttempt?: boolean
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
@@ -6570,6 +6858,7 @@ export namespace Prisma {
   export type ClipSelectScalar = {
     id?: boolean
     s3Key?: boolean
+    processingAttempt?: boolean
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
@@ -6582,7 +6871,7 @@ export namespace Prisma {
     userId?: boolean
   }
 
-  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "startSeconds" | "endSeconds" | "scriptText" | "createdAt" | "updatedAt" | "youtubeTitle" | "youtubeDescription" | "youtubeHashtags" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
+  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "processingAttempt" | "startSeconds" | "endSeconds" | "scriptText" | "createdAt" | "updatedAt" | "youtubeTitle" | "youtubeDescription" | "youtubeHashtags" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
   export type ClipInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6605,6 +6894,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       s3Key: string
+      processingAttempt: number
       startSeconds: number | null
       endSeconds: number | null
       scriptText: string | null
@@ -7042,6 +7332,7 @@ export namespace Prisma {
   interface ClipFieldRefs {
     readonly id: FieldRef<"Clip", 'String'>
     readonly s3Key: FieldRef<"Clip", 'String'>
+    readonly processingAttempt: FieldRef<"Clip", 'Int'>
     readonly startSeconds: FieldRef<"Clip", 'Float'>
     readonly endSeconds: FieldRef<"Clip", 'Float'>
     readonly scriptText: FieldRef<"Clip", 'String'>
@@ -7482,6 +7773,1180 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ClipInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProcessingDispatch
+   */
+
+  export type AggregateProcessingDispatch = {
+    _count: ProcessingDispatchCountAggregateOutputType | null
+    _avg: ProcessingDispatchAvgAggregateOutputType | null
+    _sum: ProcessingDispatchSumAggregateOutputType | null
+    _min: ProcessingDispatchMinAggregateOutputType | null
+    _max: ProcessingDispatchMaxAggregateOutputType | null
+  }
+
+  export type ProcessingDispatchAvgAggregateOutputType = {
+    attempt: number | null
+    dispatchCount: number | null
+  }
+
+  export type ProcessingDispatchSumAggregateOutputType = {
+    attempt: number | null
+    dispatchCount: number | null
+  }
+
+  export type ProcessingDispatchMinAggregateOutputType = {
+    id: string | null
+    uploadedFileId: string | null
+    attempt: number | null
+    status: string | null
+    dispatchCount: number | null
+    lastError: string | null
+    dispatchedAt: Date | null
+    nextRetryAt: Date | null
+    lockedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProcessingDispatchMaxAggregateOutputType = {
+    id: string | null
+    uploadedFileId: string | null
+    attempt: number | null
+    status: string | null
+    dispatchCount: number | null
+    lastError: string | null
+    dispatchedAt: Date | null
+    nextRetryAt: Date | null
+    lockedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProcessingDispatchCountAggregateOutputType = {
+    id: number
+    uploadedFileId: number
+    attempt: number
+    status: number
+    dispatchCount: number
+    lastError: number
+    dispatchedAt: number
+    nextRetryAt: number
+    lockedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ProcessingDispatchAvgAggregateInputType = {
+    attempt?: true
+    dispatchCount?: true
+  }
+
+  export type ProcessingDispatchSumAggregateInputType = {
+    attempt?: true
+    dispatchCount?: true
+  }
+
+  export type ProcessingDispatchMinAggregateInputType = {
+    id?: true
+    uploadedFileId?: true
+    attempt?: true
+    status?: true
+    dispatchCount?: true
+    lastError?: true
+    dispatchedAt?: true
+    nextRetryAt?: true
+    lockedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProcessingDispatchMaxAggregateInputType = {
+    id?: true
+    uploadedFileId?: true
+    attempt?: true
+    status?: true
+    dispatchCount?: true
+    lastError?: true
+    dispatchedAt?: true
+    nextRetryAt?: true
+    lockedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProcessingDispatchCountAggregateInputType = {
+    id?: true
+    uploadedFileId?: true
+    attempt?: true
+    status?: true
+    dispatchCount?: true
+    lastError?: true
+    dispatchedAt?: true
+    nextRetryAt?: true
+    lockedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ProcessingDispatchAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProcessingDispatch to aggregate.
+     */
+    where?: ProcessingDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProcessingDispatches to fetch.
+     */
+    orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProcessingDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProcessingDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProcessingDispatches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProcessingDispatches
+    **/
+    _count?: true | ProcessingDispatchCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProcessingDispatchAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProcessingDispatchSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProcessingDispatchMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProcessingDispatchMaxAggregateInputType
+  }
+
+  export type GetProcessingDispatchAggregateType<T extends ProcessingDispatchAggregateArgs> = {
+        [P in keyof T & keyof AggregateProcessingDispatch]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProcessingDispatch[P]>
+      : GetScalarType<T[P], AggregateProcessingDispatch[P]>
+  }
+
+
+
+
+  export type ProcessingDispatchGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProcessingDispatchWhereInput
+    orderBy?: ProcessingDispatchOrderByWithAggregationInput | ProcessingDispatchOrderByWithAggregationInput[]
+    by: ProcessingDispatchScalarFieldEnum[] | ProcessingDispatchScalarFieldEnum
+    having?: ProcessingDispatchScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProcessingDispatchCountAggregateInputType | true
+    _avg?: ProcessingDispatchAvgAggregateInputType
+    _sum?: ProcessingDispatchSumAggregateInputType
+    _min?: ProcessingDispatchMinAggregateInputType
+    _max?: ProcessingDispatchMaxAggregateInputType
+  }
+
+  export type ProcessingDispatchGroupByOutputType = {
+    id: string
+    uploadedFileId: string
+    attempt: number
+    status: string
+    dispatchCount: number
+    lastError: string | null
+    dispatchedAt: Date | null
+    nextRetryAt: Date | null
+    lockedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ProcessingDispatchCountAggregateOutputType | null
+    _avg: ProcessingDispatchAvgAggregateOutputType | null
+    _sum: ProcessingDispatchSumAggregateOutputType | null
+    _min: ProcessingDispatchMinAggregateOutputType | null
+    _max: ProcessingDispatchMaxAggregateOutputType | null
+  }
+
+  type GetProcessingDispatchGroupByPayload<T extends ProcessingDispatchGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProcessingDispatchGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProcessingDispatchGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProcessingDispatchGroupByOutputType[P]>
+            : GetScalarType<T[P], ProcessingDispatchGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProcessingDispatchSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    status?: boolean
+    dispatchCount?: boolean
+    lastError?: boolean
+    dispatchedAt?: boolean
+    nextRetryAt?: boolean
+    lockedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["processingDispatch"]>
+
+  export type ProcessingDispatchSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    status?: boolean
+    dispatchCount?: boolean
+    lastError?: boolean
+    dispatchedAt?: boolean
+    nextRetryAt?: boolean
+    lockedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["processingDispatch"]>
+
+  export type ProcessingDispatchSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    status?: boolean
+    dispatchCount?: boolean
+    lastError?: boolean
+    dispatchedAt?: boolean
+    nextRetryAt?: boolean
+    lockedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["processingDispatch"]>
+
+  export type ProcessingDispatchSelectScalar = {
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    status?: boolean
+    dispatchCount?: boolean
+    lastError?: boolean
+    dispatchedAt?: boolean
+    nextRetryAt?: boolean
+    lockedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ProcessingDispatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "status" | "dispatchCount" | "lastError" | "dispatchedAt" | "nextRetryAt" | "lockedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["processingDispatch"]>
+  export type ProcessingDispatchInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }
+  export type ProcessingDispatchIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }
+  export type ProcessingDispatchIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }
+
+  export type $ProcessingDispatchPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProcessingDispatch"
+    objects: {
+      uploadedFile: Prisma.$UploadedFilePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      uploadedFileId: string
+      attempt: number
+      status: string
+      dispatchCount: number
+      lastError: string | null
+      dispatchedAt: Date | null
+      nextRetryAt: Date | null
+      lockedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["processingDispatch"]>
+    composites: {}
+  }
+
+  type ProcessingDispatchGetPayload<S extends boolean | null | undefined | ProcessingDispatchDefaultArgs> = $Result.GetResult<Prisma.$ProcessingDispatchPayload, S>
+
+  type ProcessingDispatchCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProcessingDispatchFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProcessingDispatchCountAggregateInputType | true
+    }
+
+  export interface ProcessingDispatchDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProcessingDispatch'], meta: { name: 'ProcessingDispatch' } }
+    /**
+     * Find zero or one ProcessingDispatch that matches the filter.
+     * @param {ProcessingDispatchFindUniqueArgs} args - Arguments to find a ProcessingDispatch
+     * @example
+     * // Get one ProcessingDispatch
+     * const processingDispatch = await prisma.processingDispatch.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProcessingDispatchFindUniqueArgs>(args: SelectSubset<T, ProcessingDispatchFindUniqueArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ProcessingDispatch that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProcessingDispatchFindUniqueOrThrowArgs} args - Arguments to find a ProcessingDispatch
+     * @example
+     * // Get one ProcessingDispatch
+     * const processingDispatch = await prisma.processingDispatch.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProcessingDispatchFindUniqueOrThrowArgs>(args: SelectSubset<T, ProcessingDispatchFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProcessingDispatch that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProcessingDispatchFindFirstArgs} args - Arguments to find a ProcessingDispatch
+     * @example
+     * // Get one ProcessingDispatch
+     * const processingDispatch = await prisma.processingDispatch.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProcessingDispatchFindFirstArgs>(args?: SelectSubset<T, ProcessingDispatchFindFirstArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProcessingDispatch that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProcessingDispatchFindFirstOrThrowArgs} args - Arguments to find a ProcessingDispatch
+     * @example
+     * // Get one ProcessingDispatch
+     * const processingDispatch = await prisma.processingDispatch.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProcessingDispatchFindFirstOrThrowArgs>(args?: SelectSubset<T, ProcessingDispatchFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ProcessingDispatches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProcessingDispatchFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProcessingDispatches
+     * const processingDispatches = await prisma.processingDispatch.findMany()
+     * 
+     * // Get first 10 ProcessingDispatches
+     * const processingDispatches = await prisma.processingDispatch.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const processingDispatchWithIdOnly = await prisma.processingDispatch.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProcessingDispatchFindManyArgs>(args?: SelectSubset<T, ProcessingDispatchFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ProcessingDispatch.
+     * @param {ProcessingDispatchCreateArgs} args - Arguments to create a ProcessingDispatch.
+     * @example
+     * // Create one ProcessingDispatch
+     * const ProcessingDispatch = await prisma.processingDispatch.create({
+     *   data: {
+     *     // ... data to create a ProcessingDispatch
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProcessingDispatchCreateArgs>(args: SelectSubset<T, ProcessingDispatchCreateArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ProcessingDispatches.
+     * @param {ProcessingDispatchCreateManyArgs} args - Arguments to create many ProcessingDispatches.
+     * @example
+     * // Create many ProcessingDispatches
+     * const processingDispatch = await prisma.processingDispatch.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProcessingDispatchCreateManyArgs>(args?: SelectSubset<T, ProcessingDispatchCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProcessingDispatches and returns the data saved in the database.
+     * @param {ProcessingDispatchCreateManyAndReturnArgs} args - Arguments to create many ProcessingDispatches.
+     * @example
+     * // Create many ProcessingDispatches
+     * const processingDispatch = await prisma.processingDispatch.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProcessingDispatches and only return the `id`
+     * const processingDispatchWithIdOnly = await prisma.processingDispatch.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProcessingDispatchCreateManyAndReturnArgs>(args?: SelectSubset<T, ProcessingDispatchCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ProcessingDispatch.
+     * @param {ProcessingDispatchDeleteArgs} args - Arguments to delete one ProcessingDispatch.
+     * @example
+     * // Delete one ProcessingDispatch
+     * const ProcessingDispatch = await prisma.processingDispatch.delete({
+     *   where: {
+     *     // ... filter to delete one ProcessingDispatch
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProcessingDispatchDeleteArgs>(args: SelectSubset<T, ProcessingDispatchDeleteArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ProcessingDispatch.
+     * @param {ProcessingDispatchUpdateArgs} args - Arguments to update one ProcessingDispatch.
+     * @example
+     * // Update one ProcessingDispatch
+     * const processingDispatch = await prisma.processingDispatch.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProcessingDispatchUpdateArgs>(args: SelectSubset<T, ProcessingDispatchUpdateArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ProcessingDispatches.
+     * @param {ProcessingDispatchDeleteManyArgs} args - Arguments to filter ProcessingDispatches to delete.
+     * @example
+     * // Delete a few ProcessingDispatches
+     * const { count } = await prisma.processingDispatch.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProcessingDispatchDeleteManyArgs>(args?: SelectSubset<T, ProcessingDispatchDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProcessingDispatches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProcessingDispatchUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProcessingDispatches
+     * const processingDispatch = await prisma.processingDispatch.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProcessingDispatchUpdateManyArgs>(args: SelectSubset<T, ProcessingDispatchUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProcessingDispatches and returns the data updated in the database.
+     * @param {ProcessingDispatchUpdateManyAndReturnArgs} args - Arguments to update many ProcessingDispatches.
+     * @example
+     * // Update many ProcessingDispatches
+     * const processingDispatch = await prisma.processingDispatch.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProcessingDispatches and only return the `id`
+     * const processingDispatchWithIdOnly = await prisma.processingDispatch.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProcessingDispatchUpdateManyAndReturnArgs>(args: SelectSubset<T, ProcessingDispatchUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ProcessingDispatch.
+     * @param {ProcessingDispatchUpsertArgs} args - Arguments to update or create a ProcessingDispatch.
+     * @example
+     * // Update or create a ProcessingDispatch
+     * const processingDispatch = await prisma.processingDispatch.upsert({
+     *   create: {
+     *     // ... data to create a ProcessingDispatch
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProcessingDispatch we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProcessingDispatchUpsertArgs>(args: SelectSubset<T, ProcessingDispatchUpsertArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ProcessingDispatches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProcessingDispatchCountArgs} args - Arguments to filter ProcessingDispatches to count.
+     * @example
+     * // Count the number of ProcessingDispatches
+     * const count = await prisma.processingDispatch.count({
+     *   where: {
+     *     // ... the filter for the ProcessingDispatches we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProcessingDispatchCountArgs>(
+      args?: Subset<T, ProcessingDispatchCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProcessingDispatchCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProcessingDispatch.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProcessingDispatchAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProcessingDispatchAggregateArgs>(args: Subset<T, ProcessingDispatchAggregateArgs>): Prisma.PrismaPromise<GetProcessingDispatchAggregateType<T>>
+
+    /**
+     * Group by ProcessingDispatch.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProcessingDispatchGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProcessingDispatchGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProcessingDispatchGroupByArgs['orderBy'] }
+        : { orderBy?: ProcessingDispatchGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProcessingDispatchGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProcessingDispatchGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProcessingDispatch model
+   */
+  readonly fields: ProcessingDispatchFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProcessingDispatch.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProcessingDispatchClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    uploadedFile<T extends UploadedFileDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFileDefaultArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProcessingDispatch model
+   */
+  interface ProcessingDispatchFieldRefs {
+    readonly id: FieldRef<"ProcessingDispatch", 'String'>
+    readonly uploadedFileId: FieldRef<"ProcessingDispatch", 'String'>
+    readonly attempt: FieldRef<"ProcessingDispatch", 'Int'>
+    readonly status: FieldRef<"ProcessingDispatch", 'String'>
+    readonly dispatchCount: FieldRef<"ProcessingDispatch", 'Int'>
+    readonly lastError: FieldRef<"ProcessingDispatch", 'String'>
+    readonly dispatchedAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly nextRetryAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly lockedAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly createdAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly updatedAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProcessingDispatch findUnique
+   */
+  export type ProcessingDispatchFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which ProcessingDispatch to fetch.
+     */
+    where: ProcessingDispatchWhereUniqueInput
+  }
+
+  /**
+   * ProcessingDispatch findUniqueOrThrow
+   */
+  export type ProcessingDispatchFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which ProcessingDispatch to fetch.
+     */
+    where: ProcessingDispatchWhereUniqueInput
+  }
+
+  /**
+   * ProcessingDispatch findFirst
+   */
+  export type ProcessingDispatchFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which ProcessingDispatch to fetch.
+     */
+    where?: ProcessingDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProcessingDispatches to fetch.
+     */
+    orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProcessingDispatches.
+     */
+    cursor?: ProcessingDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProcessingDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProcessingDispatches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProcessingDispatches.
+     */
+    distinct?: ProcessingDispatchScalarFieldEnum | ProcessingDispatchScalarFieldEnum[]
+  }
+
+  /**
+   * ProcessingDispatch findFirstOrThrow
+   */
+  export type ProcessingDispatchFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which ProcessingDispatch to fetch.
+     */
+    where?: ProcessingDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProcessingDispatches to fetch.
+     */
+    orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProcessingDispatches.
+     */
+    cursor?: ProcessingDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProcessingDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProcessingDispatches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProcessingDispatches.
+     */
+    distinct?: ProcessingDispatchScalarFieldEnum | ProcessingDispatchScalarFieldEnum[]
+  }
+
+  /**
+   * ProcessingDispatch findMany
+   */
+  export type ProcessingDispatchFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which ProcessingDispatches to fetch.
+     */
+    where?: ProcessingDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProcessingDispatches to fetch.
+     */
+    orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProcessingDispatches.
+     */
+    cursor?: ProcessingDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProcessingDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProcessingDispatches.
+     */
+    skip?: number
+    distinct?: ProcessingDispatchScalarFieldEnum | ProcessingDispatchScalarFieldEnum[]
+  }
+
+  /**
+   * ProcessingDispatch create
+   */
+  export type ProcessingDispatchCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProcessingDispatch.
+     */
+    data: XOR<ProcessingDispatchCreateInput, ProcessingDispatchUncheckedCreateInput>
+  }
+
+  /**
+   * ProcessingDispatch createMany
+   */
+  export type ProcessingDispatchCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProcessingDispatches.
+     */
+    data: ProcessingDispatchCreateManyInput | ProcessingDispatchCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProcessingDispatch createManyAndReturn
+   */
+  export type ProcessingDispatchCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * The data used to create many ProcessingDispatches.
+     */
+    data: ProcessingDispatchCreateManyInput | ProcessingDispatchCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProcessingDispatch update
+   */
+  export type ProcessingDispatchUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProcessingDispatch.
+     */
+    data: XOR<ProcessingDispatchUpdateInput, ProcessingDispatchUncheckedUpdateInput>
+    /**
+     * Choose, which ProcessingDispatch to update.
+     */
+    where: ProcessingDispatchWhereUniqueInput
+  }
+
+  /**
+   * ProcessingDispatch updateMany
+   */
+  export type ProcessingDispatchUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProcessingDispatches.
+     */
+    data: XOR<ProcessingDispatchUpdateManyMutationInput, ProcessingDispatchUncheckedUpdateManyInput>
+    /**
+     * Filter which ProcessingDispatches to update
+     */
+    where?: ProcessingDispatchWhereInput
+    /**
+     * Limit how many ProcessingDispatches to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProcessingDispatch updateManyAndReturn
+   */
+  export type ProcessingDispatchUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * The data used to update ProcessingDispatches.
+     */
+    data: XOR<ProcessingDispatchUpdateManyMutationInput, ProcessingDispatchUncheckedUpdateManyInput>
+    /**
+     * Filter which ProcessingDispatches to update
+     */
+    where?: ProcessingDispatchWhereInput
+    /**
+     * Limit how many ProcessingDispatches to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProcessingDispatch upsert
+   */
+  export type ProcessingDispatchUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProcessingDispatch to update in case it exists.
+     */
+    where: ProcessingDispatchWhereUniqueInput
+    /**
+     * In case the ProcessingDispatch found by the `where` argument doesn't exist, create a new ProcessingDispatch with this data.
+     */
+    create: XOR<ProcessingDispatchCreateInput, ProcessingDispatchUncheckedCreateInput>
+    /**
+     * In case the ProcessingDispatch was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProcessingDispatchUpdateInput, ProcessingDispatchUncheckedUpdateInput>
+  }
+
+  /**
+   * ProcessingDispatch delete
+   */
+  export type ProcessingDispatchDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    /**
+     * Filter which ProcessingDispatch to delete.
+     */
+    where: ProcessingDispatchWhereUniqueInput
+  }
+
+  /**
+   * ProcessingDispatch deleteMany
+   */
+  export type ProcessingDispatchDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProcessingDispatches to delete
+     */
+    where?: ProcessingDispatchWhereInput
+    /**
+     * Limit how many ProcessingDispatches to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProcessingDispatch without action
+   */
+  export type ProcessingDispatchDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
   }
 
 
@@ -10859,8 +12324,16 @@ export namespace Prisma {
     status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    sourceUploadedAt: 'sourceUploadedAt',
+    enqueueRequestedAt: 'enqueueRequestedAt',
+    queuedAt: 'queuedAt',
     processingStartedAt: 'processingStartedAt',
+    terminalStatusAt: 'terminalStatusAt',
+    currentAttempt: 'currentAttempt',
+    lastSuccessfulAttempt: 'lastSuccessfulAttempt',
+    failureCode: 'failureCode',
     language: 'language',
+    targetClipCount: 'targetClipCount',
     userId: 'userId'
   };
 
@@ -10870,6 +12343,7 @@ export namespace Prisma {
   export const ClipScalarFieldEnum: {
     id: 'id',
     s3Key: 's3Key',
+    processingAttempt: 'processingAttempt',
     startSeconds: 'startSeconds',
     endSeconds: 'endSeconds',
     scriptText: 'scriptText',
@@ -10883,6 +12357,23 @@ export namespace Prisma {
   };
 
   export type ClipScalarFieldEnum = (typeof ClipScalarFieldEnum)[keyof typeof ClipScalarFieldEnum]
+
+
+  export const ProcessingDispatchScalarFieldEnum: {
+    id: 'id',
+    uploadedFileId: 'uploadedFileId',
+    attempt: 'attempt',
+    status: 'status',
+    dispatchCount: 'dispatchCount',
+    lastError: 'lastError',
+    dispatchedAt: 'dispatchedAt',
+    nextRetryAt: 'nextRetryAt',
+    lockedAt: 'lockedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ProcessingDispatchScalarFieldEnum = (typeof ProcessingDispatchScalarFieldEnum)[keyof typeof ProcessingDispatchScalarFieldEnum]
 
 
   export const SubscriptionScalarFieldEnum: {
@@ -11269,10 +12760,19 @@ export namespace Prisma {
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
+    sourceUploadedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    enqueueRequestedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    queuedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     processingStartedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    terminalStatusAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    currentAttempt?: IntFilter<"UploadedFile"> | number
+    lastSuccessfulAttempt?: IntFilter<"UploadedFile"> | number
+    failureCode?: StringNullableFilter<"UploadedFile"> | string | null
     language?: StringFilter<"UploadedFile"> | string
+    targetClipCount?: IntFilter<"UploadedFile"> | number
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
+    dispatches?: ProcessingDispatchListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -11284,10 +12784,19 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    sourceUploadedAt?: SortOrderInput | SortOrder
+    enqueueRequestedAt?: SortOrderInput | SortOrder
+    queuedAt?: SortOrderInput | SortOrder
     processingStartedAt?: SortOrderInput | SortOrder
+    terminalStatusAt?: SortOrderInput | SortOrder
+    currentAttempt?: SortOrder
+    lastSuccessfulAttempt?: SortOrder
+    failureCode?: SortOrderInput | SortOrder
     language?: SortOrder
+    targetClipCount?: SortOrder
     userId?: SortOrder
     clips?: ClipOrderByRelationAggregateInput
+    dispatches?: ProcessingDispatchOrderByRelationAggregateInput
     user?: UserOrderByWithRelationInput
   }
 
@@ -11302,10 +12811,19 @@ export namespace Prisma {
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
+    sourceUploadedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    enqueueRequestedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    queuedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     processingStartedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    terminalStatusAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    currentAttempt?: IntFilter<"UploadedFile"> | number
+    lastSuccessfulAttempt?: IntFilter<"UploadedFile"> | number
+    failureCode?: StringNullableFilter<"UploadedFile"> | string | null
     language?: StringFilter<"UploadedFile"> | string
+    targetClipCount?: IntFilter<"UploadedFile"> | number
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
+    dispatches?: ProcessingDispatchListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
@@ -11317,12 +12835,22 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    sourceUploadedAt?: SortOrderInput | SortOrder
+    enqueueRequestedAt?: SortOrderInput | SortOrder
+    queuedAt?: SortOrderInput | SortOrder
     processingStartedAt?: SortOrderInput | SortOrder
+    terminalStatusAt?: SortOrderInput | SortOrder
+    currentAttempt?: SortOrder
+    lastSuccessfulAttempt?: SortOrder
+    failureCode?: SortOrderInput | SortOrder
     language?: SortOrder
+    targetClipCount?: SortOrder
     userId?: SortOrder
     _count?: UploadedFileCountOrderByAggregateInput
+    _avg?: UploadedFileAvgOrderByAggregateInput
     _max?: UploadedFileMaxOrderByAggregateInput
     _min?: UploadedFileMinOrderByAggregateInput
+    _sum?: UploadedFileSumOrderByAggregateInput
   }
 
   export type UploadedFileScalarWhereWithAggregatesInput = {
@@ -11336,8 +12864,16 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"UploadedFile"> | string
     createdAt?: DateTimeWithAggregatesFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"UploadedFile"> | Date | string
+    sourceUploadedAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
+    enqueueRequestedAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
+    queuedAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
     processingStartedAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
+    terminalStatusAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
+    currentAttempt?: IntWithAggregatesFilter<"UploadedFile"> | number
+    lastSuccessfulAttempt?: IntWithAggregatesFilter<"UploadedFile"> | number
+    failureCode?: StringNullableWithAggregatesFilter<"UploadedFile"> | string | null
     language?: StringWithAggregatesFilter<"UploadedFile"> | string
+    targetClipCount?: IntWithAggregatesFilter<"UploadedFile"> | number
     userId?: StringWithAggregatesFilter<"UploadedFile"> | string
   }
 
@@ -11347,6 +12883,7 @@ export namespace Prisma {
     NOT?: ClipWhereInput | ClipWhereInput[]
     id?: StringFilter<"Clip"> | string
     s3Key?: StringFilter<"Clip"> | string
+    processingAttempt?: IntFilter<"Clip"> | number
     startSeconds?: FloatNullableFilter<"Clip"> | number | null
     endSeconds?: FloatNullableFilter<"Clip"> | number | null
     scriptText?: StringNullableFilter<"Clip"> | string | null
@@ -11364,6 +12901,7 @@ export namespace Prisma {
   export type ClipOrderByWithRelationInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    processingAttempt?: SortOrder
     startSeconds?: SortOrderInput | SortOrder
     endSeconds?: SortOrderInput | SortOrder
     scriptText?: SortOrderInput | SortOrder
@@ -11380,10 +12918,12 @@ export namespace Prisma {
 
   export type ClipWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    uploadedFileId_processingAttempt_s3Key?: ClipUploadedFileIdProcessingAttemptS3KeyCompoundUniqueInput
     AND?: ClipWhereInput | ClipWhereInput[]
     OR?: ClipWhereInput[]
     NOT?: ClipWhereInput | ClipWhereInput[]
     s3Key?: StringFilter<"Clip"> | string
+    processingAttempt?: IntFilter<"Clip"> | number
     startSeconds?: FloatNullableFilter<"Clip"> | number | null
     endSeconds?: FloatNullableFilter<"Clip"> | number | null
     scriptText?: StringNullableFilter<"Clip"> | string | null
@@ -11396,11 +12936,12 @@ export namespace Prisma {
     userId?: StringFilter<"Clip"> | string
     uploadedFile?: XOR<UploadedFileNullableScalarRelationFilter, UploadedFileWhereInput> | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "id">
+  }, "id" | "uploadedFileId_processingAttempt_s3Key">
 
   export type ClipOrderByWithAggregationInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    processingAttempt?: SortOrder
     startSeconds?: SortOrderInput | SortOrder
     endSeconds?: SortOrderInput | SortOrder
     scriptText?: SortOrderInput | SortOrder
@@ -11424,6 +12965,7 @@ export namespace Prisma {
     NOT?: ClipScalarWhereWithAggregatesInput | ClipScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Clip"> | string
     s3Key?: StringWithAggregatesFilter<"Clip"> | string
+    processingAttempt?: IntWithAggregatesFilter<"Clip"> | number
     startSeconds?: FloatNullableWithAggregatesFilter<"Clip"> | number | null
     endSeconds?: FloatNullableWithAggregatesFilter<"Clip"> | number | null
     scriptText?: StringNullableWithAggregatesFilter<"Clip"> | string | null
@@ -11434,6 +12976,94 @@ export namespace Prisma {
     youtubeHashtags?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     uploadedFileId?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     userId?: StringWithAggregatesFilter<"Clip"> | string
+  }
+
+  export type ProcessingDispatchWhereInput = {
+    AND?: ProcessingDispatchWhereInput | ProcessingDispatchWhereInput[]
+    OR?: ProcessingDispatchWhereInput[]
+    NOT?: ProcessingDispatchWhereInput | ProcessingDispatchWhereInput[]
+    id?: StringFilter<"ProcessingDispatch"> | string
+    uploadedFileId?: StringFilter<"ProcessingDispatch"> | string
+    attempt?: IntFilter<"ProcessingDispatch"> | number
+    status?: StringFilter<"ProcessingDispatch"> | string
+    dispatchCount?: IntFilter<"ProcessingDispatch"> | number
+    lastError?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    dispatchedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    nextRetryAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    lockedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    createdAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    updatedAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
+  }
+
+  export type ProcessingDispatchOrderByWithRelationInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    status?: SortOrder
+    dispatchCount?: SortOrder
+    lastError?: SortOrderInput | SortOrder
+    dispatchedAt?: SortOrderInput | SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    lockedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    uploadedFile?: UploadedFileOrderByWithRelationInput
+  }
+
+  export type ProcessingDispatchWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    uploadedFileId_attempt?: ProcessingDispatchUploadedFileIdAttemptCompoundUniqueInput
+    AND?: ProcessingDispatchWhereInput | ProcessingDispatchWhereInput[]
+    OR?: ProcessingDispatchWhereInput[]
+    NOT?: ProcessingDispatchWhereInput | ProcessingDispatchWhereInput[]
+    uploadedFileId?: StringFilter<"ProcessingDispatch"> | string
+    attempt?: IntFilter<"ProcessingDispatch"> | number
+    status?: StringFilter<"ProcessingDispatch"> | string
+    dispatchCount?: IntFilter<"ProcessingDispatch"> | number
+    lastError?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    dispatchedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    nextRetryAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    lockedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    createdAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    updatedAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
+  }, "id" | "uploadedFileId_attempt">
+
+  export type ProcessingDispatchOrderByWithAggregationInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    status?: SortOrder
+    dispatchCount?: SortOrder
+    lastError?: SortOrderInput | SortOrder
+    dispatchedAt?: SortOrderInput | SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    lockedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ProcessingDispatchCountOrderByAggregateInput
+    _avg?: ProcessingDispatchAvgOrderByAggregateInput
+    _max?: ProcessingDispatchMaxOrderByAggregateInput
+    _min?: ProcessingDispatchMinOrderByAggregateInput
+    _sum?: ProcessingDispatchSumOrderByAggregateInput
+  }
+
+  export type ProcessingDispatchScalarWhereWithAggregatesInput = {
+    AND?: ProcessingDispatchScalarWhereWithAggregatesInput | ProcessingDispatchScalarWhereWithAggregatesInput[]
+    OR?: ProcessingDispatchScalarWhereWithAggregatesInput[]
+    NOT?: ProcessingDispatchScalarWhereWithAggregatesInput | ProcessingDispatchScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
+    uploadedFileId?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
+    attempt?: IntWithAggregatesFilter<"ProcessingDispatch"> | number
+    status?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
+    dispatchCount?: IntWithAggregatesFilter<"ProcessingDispatch"> | number
+    lastError?: StringNullableWithAggregatesFilter<"ProcessingDispatch"> | string | null
+    dispatchedAt?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
+    nextRetryAt?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
+    lockedAt?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ProcessingDispatch"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ProcessingDispatch"> | Date | string
   }
 
   export type SubscriptionWhereInput = {
@@ -11921,9 +13551,18 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -11935,10 +13574,19 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
     userId: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileUpdateInput = {
@@ -11949,9 +13597,18 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -11963,10 +13620,19 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileCreateManyInput = {
@@ -11977,8 +13643,16 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
     userId: string
   }
 
@@ -11990,8 +13664,16 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
   }
 
   export type UploadedFileUncheckedUpdateManyInput = {
@@ -12002,14 +13684,23 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ClipCreateInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -12025,6 +13716,7 @@ export namespace Prisma {
   export type ClipUncheckedCreateInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -12040,6 +13732,7 @@ export namespace Prisma {
   export type ClipUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12055,6 +13748,7 @@ export namespace Prisma {
   export type ClipUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12070,6 +13764,7 @@ export namespace Prisma {
   export type ClipCreateManyInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -12085,6 +13780,7 @@ export namespace Prisma {
   export type ClipUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12098,6 +13794,7 @@ export namespace Prisma {
   export type ClipUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12108,6 +13805,103 @@ export namespace Prisma {
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ProcessingDispatchCreateInput = {
+    id?: string
+    attempt: number
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    uploadedFile: UploadedFileCreateNestedOneWithoutDispatchesInput
+  }
+
+  export type ProcessingDispatchUncheckedCreateInput = {
+    id?: string
+    uploadedFileId: string
+    attempt: number
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProcessingDispatchUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutDispatchesNestedInput
+  }
+
+  export type ProcessingDispatchUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProcessingDispatchCreateManyInput = {
+    id?: string
+    uploadedFileId: string
+    attempt: number
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProcessingDispatchUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProcessingDispatchUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SubscriptionCreateInput = {
@@ -12711,6 +14505,16 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type ProcessingDispatchListRelationFilter = {
+    every?: ProcessingDispatchWhereInput
+    some?: ProcessingDispatchWhereInput
+    none?: ProcessingDispatchWhereInput
+  }
+
+  export type ProcessingDispatchOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UploadedFileCountOrderByAggregateInput = {
     id?: SortOrder
     s3Key?: SortOrder
@@ -12719,9 +14523,23 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    sourceUploadedAt?: SortOrder
+    enqueueRequestedAt?: SortOrder
+    queuedAt?: SortOrder
     processingStartedAt?: SortOrder
+    terminalStatusAt?: SortOrder
+    currentAttempt?: SortOrder
+    lastSuccessfulAttempt?: SortOrder
+    failureCode?: SortOrder
     language?: SortOrder
+    targetClipCount?: SortOrder
     userId?: SortOrder
+  }
+
+  export type UploadedFileAvgOrderByAggregateInput = {
+    currentAttempt?: SortOrder
+    lastSuccessfulAttempt?: SortOrder
+    targetClipCount?: SortOrder
   }
 
   export type UploadedFileMaxOrderByAggregateInput = {
@@ -12732,8 +14550,16 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    sourceUploadedAt?: SortOrder
+    enqueueRequestedAt?: SortOrder
+    queuedAt?: SortOrder
     processingStartedAt?: SortOrder
+    terminalStatusAt?: SortOrder
+    currentAttempt?: SortOrder
+    lastSuccessfulAttempt?: SortOrder
+    failureCode?: SortOrder
     language?: SortOrder
+    targetClipCount?: SortOrder
     userId?: SortOrder
   }
 
@@ -12745,9 +14571,23 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    sourceUploadedAt?: SortOrder
+    enqueueRequestedAt?: SortOrder
+    queuedAt?: SortOrder
     processingStartedAt?: SortOrder
+    terminalStatusAt?: SortOrder
+    currentAttempt?: SortOrder
+    lastSuccessfulAttempt?: SortOrder
+    failureCode?: SortOrder
     language?: SortOrder
+    targetClipCount?: SortOrder
     userId?: SortOrder
+  }
+
+  export type UploadedFileSumOrderByAggregateInput = {
+    currentAttempt?: SortOrder
+    lastSuccessfulAttempt?: SortOrder
+    targetClipCount?: SortOrder
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -12774,9 +14614,16 @@ export namespace Prisma {
     isNot?: UploadedFileWhereInput | null
   }
 
+  export type ClipUploadedFileIdProcessingAttemptS3KeyCompoundUniqueInput = {
+    uploadedFileId: string
+    processingAttempt: number
+    s3Key: string
+  }
+
   export type ClipCountOrderByAggregateInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    processingAttempt?: SortOrder
     startSeconds?: SortOrder
     endSeconds?: SortOrder
     scriptText?: SortOrder
@@ -12790,6 +14637,7 @@ export namespace Prisma {
   }
 
   export type ClipAvgOrderByAggregateInput = {
+    processingAttempt?: SortOrder
     startSeconds?: SortOrder
     endSeconds?: SortOrder
   }
@@ -12797,6 +14645,7 @@ export namespace Prisma {
   export type ClipMaxOrderByAggregateInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    processingAttempt?: SortOrder
     startSeconds?: SortOrder
     endSeconds?: SortOrder
     scriptText?: SortOrder
@@ -12812,6 +14661,7 @@ export namespace Prisma {
   export type ClipMinOrderByAggregateInput = {
     id?: SortOrder
     s3Key?: SortOrder
+    processingAttempt?: SortOrder
     startSeconds?: SortOrder
     endSeconds?: SortOrder
     scriptText?: SortOrder
@@ -12825,6 +14675,7 @@ export namespace Prisma {
   }
 
   export type ClipSumOrderByAggregateInput = {
+    processingAttempt?: SortOrder
     startSeconds?: SortOrder
     endSeconds?: SortOrder
   }
@@ -12843,6 +14694,68 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type UploadedFileScalarRelationFilter = {
+    is?: UploadedFileWhereInput
+    isNot?: UploadedFileWhereInput
+  }
+
+  export type ProcessingDispatchUploadedFileIdAttemptCompoundUniqueInput = {
+    uploadedFileId: string
+    attempt: number
+  }
+
+  export type ProcessingDispatchCountOrderByAggregateInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    status?: SortOrder
+    dispatchCount?: SortOrder
+    lastError?: SortOrder
+    dispatchedAt?: SortOrder
+    nextRetryAt?: SortOrder
+    lockedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProcessingDispatchAvgOrderByAggregateInput = {
+    attempt?: SortOrder
+    dispatchCount?: SortOrder
+  }
+
+  export type ProcessingDispatchMaxOrderByAggregateInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    status?: SortOrder
+    dispatchCount?: SortOrder
+    lastError?: SortOrder
+    dispatchedAt?: SortOrder
+    nextRetryAt?: SortOrder
+    lockedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProcessingDispatchMinOrderByAggregateInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    status?: SortOrder
+    dispatchCount?: SortOrder
+    lastError?: SortOrder
+    dispatchedAt?: SortOrder
+    nextRetryAt?: SortOrder
+    lockedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProcessingDispatchSumOrderByAggregateInput = {
+    attempt?: SortOrder
+    dispatchCount?: SortOrder
   }
 
   export type SubscriptionCountOrderByAggregateInput = {
@@ -13277,6 +15190,13 @@ export namespace Prisma {
     connect?: ClipWhereUniqueInput | ClipWhereUniqueInput[]
   }
 
+  export type ProcessingDispatchCreateNestedManyWithoutUploadedFileInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutUploadedFileInput, ProcessingDispatchUncheckedCreateWithoutUploadedFileInput> | ProcessingDispatchCreateWithoutUploadedFileInput[] | ProcessingDispatchUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutUploadedFileInput | ProcessingDispatchCreateOrConnectWithoutUploadedFileInput[]
+    createMany?: ProcessingDispatchCreateManyUploadedFileInputEnvelope
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutUploadedFilesInput = {
     create?: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>
     connectOrCreate?: UserCreateOrConnectWithoutUploadedFilesInput
@@ -13288,6 +15208,13 @@ export namespace Prisma {
     connectOrCreate?: ClipCreateOrConnectWithoutUploadedFileInput | ClipCreateOrConnectWithoutUploadedFileInput[]
     createMany?: ClipCreateManyUploadedFileInputEnvelope
     connect?: ClipWhereUniqueInput | ClipWhereUniqueInput[]
+  }
+
+  export type ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutUploadedFileInput, ProcessingDispatchUncheckedCreateWithoutUploadedFileInput> | ProcessingDispatchCreateWithoutUploadedFileInput[] | ProcessingDispatchUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutUploadedFileInput | ProcessingDispatchCreateOrConnectWithoutUploadedFileInput[]
+    createMany?: ProcessingDispatchCreateManyUploadedFileInputEnvelope
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -13306,6 +15233,20 @@ export namespace Prisma {
     update?: ClipUpdateWithWhereUniqueWithoutUploadedFileInput | ClipUpdateWithWhereUniqueWithoutUploadedFileInput[]
     updateMany?: ClipUpdateManyWithWhereWithoutUploadedFileInput | ClipUpdateManyWithWhereWithoutUploadedFileInput[]
     deleteMany?: ClipScalarWhereInput | ClipScalarWhereInput[]
+  }
+
+  export type ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutUploadedFileInput, ProcessingDispatchUncheckedCreateWithoutUploadedFileInput> | ProcessingDispatchCreateWithoutUploadedFileInput[] | ProcessingDispatchUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutUploadedFileInput | ProcessingDispatchCreateOrConnectWithoutUploadedFileInput[]
+    upsert?: ProcessingDispatchUpsertWithWhereUniqueWithoutUploadedFileInput | ProcessingDispatchUpsertWithWhereUniqueWithoutUploadedFileInput[]
+    createMany?: ProcessingDispatchCreateManyUploadedFileInputEnvelope
+    set?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    disconnect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    delete?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    update?: ProcessingDispatchUpdateWithWhereUniqueWithoutUploadedFileInput | ProcessingDispatchUpdateWithWhereUniqueWithoutUploadedFileInput[]
+    updateMany?: ProcessingDispatchUpdateManyWithWhereWithoutUploadedFileInput | ProcessingDispatchUpdateManyWithWhereWithoutUploadedFileInput[]
+    deleteMany?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
   }
 
   export type UserUpdateOneRequiredWithoutUploadedFilesNestedInput = {
@@ -13328,6 +15269,20 @@ export namespace Prisma {
     update?: ClipUpdateWithWhereUniqueWithoutUploadedFileInput | ClipUpdateWithWhereUniqueWithoutUploadedFileInput[]
     updateMany?: ClipUpdateManyWithWhereWithoutUploadedFileInput | ClipUpdateManyWithWhereWithoutUploadedFileInput[]
     deleteMany?: ClipScalarWhereInput | ClipScalarWhereInput[]
+  }
+
+  export type ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutUploadedFileInput, ProcessingDispatchUncheckedCreateWithoutUploadedFileInput> | ProcessingDispatchCreateWithoutUploadedFileInput[] | ProcessingDispatchUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutUploadedFileInput | ProcessingDispatchCreateOrConnectWithoutUploadedFileInput[]
+    upsert?: ProcessingDispatchUpsertWithWhereUniqueWithoutUploadedFileInput | ProcessingDispatchUpsertWithWhereUniqueWithoutUploadedFileInput[]
+    createMany?: ProcessingDispatchCreateManyUploadedFileInputEnvelope
+    set?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    disconnect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    delete?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    update?: ProcessingDispatchUpdateWithWhereUniqueWithoutUploadedFileInput | ProcessingDispatchUpdateWithWhereUniqueWithoutUploadedFileInput[]
+    updateMany?: ProcessingDispatchUpdateManyWithWhereWithoutUploadedFileInput | ProcessingDispatchUpdateManyWithWhereWithoutUploadedFileInput[]
+    deleteMany?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
   }
 
   export type UploadedFileCreateNestedOneWithoutClipsInput = {
@@ -13366,6 +15321,20 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutClipsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutClipsInput, UserUpdateWithoutClipsInput>, UserUncheckedUpdateWithoutClipsInput>
+  }
+
+  export type UploadedFileCreateNestedOneWithoutDispatchesInput = {
+    create?: XOR<UploadedFileCreateWithoutDispatchesInput, UploadedFileUncheckedCreateWithoutDispatchesInput>
+    connectOrCreate?: UploadedFileCreateOrConnectWithoutDispatchesInput
+    connect?: UploadedFileWhereUniqueInput
+  }
+
+  export type UploadedFileUpdateOneRequiredWithoutDispatchesNestedInput = {
+    create?: XOR<UploadedFileCreateWithoutDispatchesInput, UploadedFileUncheckedCreateWithoutDispatchesInput>
+    connectOrCreate?: UploadedFileCreateOrConnectWithoutDispatchesInput
+    upsert?: UploadedFileUpsertWithoutDispatchesInput
+    connect?: UploadedFileWhereUniqueInput
+    update?: XOR<XOR<UploadedFileUpdateToOneWithWhereWithoutDispatchesInput, UploadedFileUpdateWithoutDispatchesInput>, UploadedFileUncheckedUpdateWithoutDispatchesInput>
   }
 
   export type UserCreateNestedOneWithoutSubscriptionInput = {
@@ -13843,9 +15812,18 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileUncheckedCreateWithoutUserInput = {
@@ -13856,9 +15834,18 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutUserInput = {
@@ -13874,6 +15861,7 @@ export namespace Prisma {
   export type ClipCreateWithoutUserInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -13888,6 +15876,7 @@ export namespace Prisma {
   export type ClipUncheckedCreateWithoutUserInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -14064,8 +16053,16 @@ export namespace Prisma {
     status?: StringFilter<"UploadedFile"> | string
     createdAt?: DateTimeFilter<"UploadedFile"> | Date | string
     updatedAt?: DateTimeFilter<"UploadedFile"> | Date | string
+    sourceUploadedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    enqueueRequestedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    queuedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     processingStartedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    terminalStatusAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    currentAttempt?: IntFilter<"UploadedFile"> | number
+    lastSuccessfulAttempt?: IntFilter<"UploadedFile"> | number
+    failureCode?: StringNullableFilter<"UploadedFile"> | string | null
     language?: StringFilter<"UploadedFile"> | string
+    targetClipCount?: IntFilter<"UploadedFile"> | number
     userId?: StringFilter<"UploadedFile"> | string
   }
 
@@ -14091,6 +16088,7 @@ export namespace Prisma {
     NOT?: ClipScalarWhereInput | ClipScalarWhereInput[]
     id?: StringFilter<"Clip"> | string
     s3Key?: StringFilter<"Clip"> | string
+    processingAttempt?: IntFilter<"Clip"> | number
     startSeconds?: FloatNullableFilter<"Clip"> | number | null
     endSeconds?: FloatNullableFilter<"Clip"> | number | null
     scriptText?: StringNullableFilter<"Clip"> | string | null
@@ -14179,6 +16177,7 @@ export namespace Prisma {
   export type ClipCreateWithoutUploadedFileInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -14193,6 +16192,7 @@ export namespace Prisma {
   export type ClipUncheckedCreateWithoutUploadedFileInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -14211,6 +16211,42 @@ export namespace Prisma {
 
   export type ClipCreateManyUploadedFileInputEnvelope = {
     data: ClipCreateManyUploadedFileInput | ClipCreateManyUploadedFileInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ProcessingDispatchCreateWithoutUploadedFileInput = {
+    id?: string
+    attempt: number
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProcessingDispatchUncheckedCreateWithoutUploadedFileInput = {
+    id?: string
+    attempt: number
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProcessingDispatchCreateOrConnectWithoutUploadedFileInput = {
+    where: ProcessingDispatchWhereUniqueInput
+    create: XOR<ProcessingDispatchCreateWithoutUploadedFileInput, ProcessingDispatchUncheckedCreateWithoutUploadedFileInput>
+  }
+
+  export type ProcessingDispatchCreateManyUploadedFileInputEnvelope = {
+    data: ProcessingDispatchCreateManyUploadedFileInput | ProcessingDispatchCreateManyUploadedFileInput[]
     skipDuplicates?: boolean
   }
 
@@ -14267,6 +16303,39 @@ export namespace Prisma {
     data: XOR<ClipUpdateManyMutationInput, ClipUncheckedUpdateManyWithoutUploadedFileInput>
   }
 
+  export type ProcessingDispatchUpsertWithWhereUniqueWithoutUploadedFileInput = {
+    where: ProcessingDispatchWhereUniqueInput
+    update: XOR<ProcessingDispatchUpdateWithoutUploadedFileInput, ProcessingDispatchUncheckedUpdateWithoutUploadedFileInput>
+    create: XOR<ProcessingDispatchCreateWithoutUploadedFileInput, ProcessingDispatchUncheckedCreateWithoutUploadedFileInput>
+  }
+
+  export type ProcessingDispatchUpdateWithWhereUniqueWithoutUploadedFileInput = {
+    where: ProcessingDispatchWhereUniqueInput
+    data: XOR<ProcessingDispatchUpdateWithoutUploadedFileInput, ProcessingDispatchUncheckedUpdateWithoutUploadedFileInput>
+  }
+
+  export type ProcessingDispatchUpdateManyWithWhereWithoutUploadedFileInput = {
+    where: ProcessingDispatchScalarWhereInput
+    data: XOR<ProcessingDispatchUpdateManyMutationInput, ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileInput>
+  }
+
+  export type ProcessingDispatchScalarWhereInput = {
+    AND?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
+    OR?: ProcessingDispatchScalarWhereInput[]
+    NOT?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
+    id?: StringFilter<"ProcessingDispatch"> | string
+    uploadedFileId?: StringFilter<"ProcessingDispatch"> | string
+    attempt?: IntFilter<"ProcessingDispatch"> | number
+    status?: StringFilter<"ProcessingDispatch"> | string
+    dispatchCount?: IntFilter<"ProcessingDispatch"> | number
+    lastError?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    dispatchedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    nextRetryAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    lockedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    createdAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    updatedAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+  }
+
   export type UserUpsertWithoutUploadedFilesInput = {
     update: XOR<UserUpdateWithoutUploadedFilesInput, UserUncheckedUpdateWithoutUploadedFilesInput>
     create: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>
@@ -14318,8 +16387,17 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -14331,9 +16409,18 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
     userId: string
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutClipsInput = {
@@ -14397,8 +16484,17 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
+    dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -14410,9 +16506,18 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UserUpsertWithoutClipsInput = {
@@ -14456,6 +16561,110 @@ export namespace Prisma {
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UploadedFileCreateWithoutDispatchesInput = {
+    id?: string
+    s3Key: string
+    displayName?: string | null
+    uploaded?: boolean
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
+    processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
+    language?: string
+    targetClipCount?: number
+    clips?: ClipCreateNestedManyWithoutUploadedFileInput
+    user: UserCreateNestedOneWithoutUploadedFilesInput
+  }
+
+  export type UploadedFileUncheckedCreateWithoutDispatchesInput = {
+    id?: string
+    s3Key: string
+    displayName?: string | null
+    uploaded?: boolean
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
+    processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
+    language?: string
+    targetClipCount?: number
+    userId: string
+    clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
+  }
+
+  export type UploadedFileCreateOrConnectWithoutDispatchesInput = {
+    where: UploadedFileWhereUniqueInput
+    create: XOR<UploadedFileCreateWithoutDispatchesInput, UploadedFileUncheckedCreateWithoutDispatchesInput>
+  }
+
+  export type UploadedFileUpsertWithoutDispatchesInput = {
+    update: XOR<UploadedFileUpdateWithoutDispatchesInput, UploadedFileUncheckedUpdateWithoutDispatchesInput>
+    create: XOR<UploadedFileCreateWithoutDispatchesInput, UploadedFileUncheckedCreateWithoutDispatchesInput>
+    where?: UploadedFileWhereInput
+  }
+
+  export type UploadedFileUpdateToOneWithWhereWithoutDispatchesInput = {
+    where?: UploadedFileWhereInput
+    data: XOR<UploadedFileUpdateWithoutDispatchesInput, UploadedFileUncheckedUpdateWithoutDispatchesInput>
+  }
+
+  export type UploadedFileUpdateWithoutDispatchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    uploaded?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
+    clips?: ClipUpdateManyWithoutUploadedFileNestedInput
+    user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
+  }
+
+  export type UploadedFileUncheckedUpdateWithoutDispatchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    uploaded?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
+    clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UserCreateWithoutSubscriptionInput = {
@@ -14647,13 +16856,22 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
     processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
     language?: string
+    targetClipCount?: number
   }
 
   export type ClipCreateManyUserInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -14746,9 +16964,18 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileUncheckedUpdateWithoutUserInput = {
@@ -14759,9 +16986,18 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileUncheckedUpdateManyWithoutUserInput = {
@@ -14772,13 +17008,22 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
   }
 
   export type ClipUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14793,6 +17038,7 @@ export namespace Prisma {
   export type ClipUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14807,6 +17053,7 @@ export namespace Prisma {
   export type ClipUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14851,6 +17098,7 @@ export namespace Prisma {
   export type ClipCreateManyUploadedFileInput = {
     id?: string
     s3Key: string
+    processingAttempt?: number
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
@@ -14862,9 +17110,23 @@ export namespace Prisma {
     userId: string
   }
 
+  export type ProcessingDispatchCreateManyUploadedFileInput = {
+    id?: string
+    attempt: number
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ClipUpdateWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14879,6 +17141,7 @@ export namespace Prisma {
   export type ClipUncheckedUpdateWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14893,6 +17156,7 @@ export namespace Prisma {
   export type ClipUncheckedUpdateManyWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14902,6 +17166,45 @@ export namespace Prisma {
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ProcessingDispatchUpdateWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProcessingDispatchUncheckedUpdateWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

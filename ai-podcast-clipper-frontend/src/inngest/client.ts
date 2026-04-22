@@ -19,16 +19,23 @@ type Events = {
       userId: string;
       language: string;
       clipCount: number;
+      attempt: number;
+      outputPrefix: string;
+      matchKey: string;
     };
   };
   "process-video-events/cancel": {
     data: {
       uploadedFileId: string;
+      attempt: number;
+      matchKey: string;
     };
   };
   "modal/video.processed": {
     data: {
       uploadedFileId: string;
+      attempt: number;
+      matchKey: string;
       status: string;
       clips?: ProcessVideoBackendClip[];
       error?: string;
@@ -36,7 +43,6 @@ type Events = {
   };
 };
 
-// Create a client to send and receive events
 export const inngest = new Inngest({
   id: "ai-podcast-clipper-frontend",
   schemas: new EventSchemas().fromRecord<Events>(),
