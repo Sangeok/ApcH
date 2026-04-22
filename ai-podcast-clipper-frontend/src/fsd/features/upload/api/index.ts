@@ -49,7 +49,7 @@ async function nudgeProcessingDispatch(): Promise<void> {
   }
 }
 
-async function deleteUploadedFileAssets(s3Key: string): Promise<void> {
+async function deleteUploadedFileS3Assets(s3Key: string): Promise<void> {
   const prefix = `${getUploadedFilePrefix(s3Key)}/`;
   const keys = await listS3Objects(prefix);
 
@@ -58,9 +58,7 @@ async function deleteUploadedFileAssets(s3Key: string): Promise<void> {
     return;
   }
 
-  if (await objectExists(s3Key)) {
-    await deleteS3Object(s3Key);
-  }
+  await deleteS3Object(s3Key);
 }
 
 async function createProcessingAttempt(
@@ -378,7 +376,7 @@ export async function deleteUploadedFileWithClips(
       return failure("Active uploads cannot be deleted");
     }
 
-    await deleteUploadedFileAssets(uploadedFile.s3Key);
+    await deleteUploadedFileS3Assets(uploadedFile.s3Key);
 
     await db.$transaction(async (tx) => {
       await deleteClipsByUploadedFileId(uploadedFileId, { tx });
