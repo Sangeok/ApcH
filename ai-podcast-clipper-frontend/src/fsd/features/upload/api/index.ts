@@ -11,15 +11,15 @@ import {
 } from "~/fsd/entities/processing-dispatch";
 import {
   HiddenUploadDraftError,
-  confirmUploadedFileSource,
+  confirmUploadedFileSourceIfObjectExists,
   createUploadedFile,
   deleteUploadedFileRecord,
   findUploadedFileForDeletion,
   findUploadedFileForReprocess,
-  findUploadedFileLifecycleState,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
   getUploadedFilePrefix,
+  getUploadedFileProcessingRequestState,
   isActiveProcessingStatus,
   listRecoverableUploadDraftsByUserId,
 } from "~/fsd/entities/uploaded-file";
@@ -29,7 +29,6 @@ import {
   generatePresignedGetUrl,
   generatePresignedPutUrl,
   listS3Objects,
-  objectExists,
   S3_CONFIG,
 } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
@@ -209,20 +208,15 @@ export async function confirmUploadCompleted(
   if (!authResult.success) return authResult;
 
   try {
-    const lifecycle = await findUploadedFileLifecycleState(
+    const confirmation = await confirmUploadedFileSourceIfObjectExists(
       uploadedFileId,
       authResult.data.userId,
     );
 
-    if (lifecycle.uploaded) {
-      return success(undefined);
-    }
-
-    if (!(await objectExists(lifecycle.s3Key))) {
+    if (confirmation.status === "missing_object") {
       return failure("Uploaded source object was not found");
     }
 
-    await confirmUploadedFileSource(uploadedFileId, authResult.data.userId);
     return success(undefined);
   } catch (error) {
     console.error("Failed to confirm upload completion", error);
@@ -237,28 +231,27 @@ export async function reconcileUploadConfirmation(
   if (!authResult.success) return authResult;
 
   try {
-    const lifecycle = await findUploadedFileLifecycleState(
+    const confirmationState = await getUploadedFileProcessingRequestState(
       uploadedFileId,
       authResult.data.userId,
     );
 
     if (
-      !lifecycle.uploaded &&
-      lifecycle.status === "upload_pending" &&
-      (await objectExists(lifecycle.s3Key))
+      !confirmationState.uploaded &&
+      confirmationState.status === "upload_pending"
     ) {
-      const confirmed = await confirmUploadedFileSource(
+      const confirmed = await confirmUploadedFileSourceIfObjectExists(
         uploadedFileId,
         authResult.data.userId,
       );
 
-      return success(confirmed);
+      return success(confirmed.state);
     }
 
     return success({
-      status: lifecycle.status as never,
-      uploaded: lifecycle.uploaded,
-      currentAttempt: lifecycle.currentAttempt,
+      status: confirmationState.status as never,
+      uploaded: confirmationState.uploaded,
+      currentAttempt: confirmationState.currentAttempt,
     });
   } catch (error) {
     console.error("Failed to reconcile upload confirmation", error);
@@ -271,19 +264,19 @@ export async function reconcileProcessingRequest(uploadedFileId: string) {
   if (!authResult.success) return authResult;
 
   try {
-    const lifecycle = await findUploadedFileLifecycleState(
+    const requestState = await getUploadedFileProcessingRequestState(
       uploadedFileId,
       authResult.data.userId,
     );
 
-    if (lifecycle.status === "pending_enqueue") {
+    if (requestState.status === "pending_enqueue") {
       await nudgeProcessingDispatch();
     }
 
     return success({
-      status: lifecycle.status as never,
-      uploaded: lifecycle.uploaded,
-      currentAttempt: lifecycle.currentAttempt,
+      status: requestState.status as never,
+      uploaded: requestState.uploaded,
+      currentAttempt: requestState.currentAttempt,
     });
   } catch (error) {
     console.error("Failed to reconcile processing request", error);
