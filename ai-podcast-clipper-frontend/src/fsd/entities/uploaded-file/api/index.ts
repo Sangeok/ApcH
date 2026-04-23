@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Prisma } from "generated/prisma";
 import { db } from "~/server/db";
+import { objectExists } from "~/fsd/shared/api/s3";
 import type { ProcessingStatus } from "../model/processing-status";
 import type {
   RecoverableUploadDraftSummary,
@@ -11,9 +12,56 @@ import type {
 } from "../model/types";
 
 type DbClient = Prisma.TransactionClient | typeof db;
+type UploadedFileSourceState = {
+  status: string;
+  uploaded: boolean;
+  currentAttempt: number;
+  s3Key: string;
+};
 
 function getClient(tx?: Prisma.TransactionClient): DbClient {
   return tx ?? db;
+}
+
+function toUploadLifecycleState(
+  state: Pick<UploadedFileSourceState, "status" | "uploaded" | "currentAttempt">,
+): UploadLifecycleState {
+  return {
+    status: state.status as ProcessingStatus,
+    uploaded: state.uploaded,
+    currentAttempt: state.currentAttempt,
+  };
+}
+
+async function findUploadedFileSourceState(
+  uploadedFileId: string,
+  userId: string,
+  options?: { tx?: Prisma.TransactionClient },
+): Promise<UploadedFileSourceState> {
+  return getClient(options?.tx).uploadedFile.findFirstOrThrow({
+    where: { id: uploadedFileId, userId },
+    select: {
+      status: true,
+      uploaded: true,
+      currentAttempt: true,
+      s3Key: true,
+    },
+  });
+}
+
+async function findUploadedFileSourceStateById(
+  uploadedFileId: string,
+  options?: { tx?: Prisma.TransactionClient },
+): Promise<UploadedFileSourceState | null> {
+  return getClient(options?.tx).uploadedFile.findFirst({
+    where: { id: uploadedFileId },
+    select: {
+      status: true,
+      uploaded: true,
+      currentAttempt: true,
+      s3Key: true,
+    },
+  });
 }
 
 function toNonHiddenStatus(status: string): Exclude<ProcessingStatus, "upload_pending"> {
@@ -199,20 +247,11 @@ export async function findUploadedFileS3Key(
   });
 }
 
-export async function findUploadedFileLifecycleState(
+export async function getUploadedFileProcessingRequestState(
   uploadedFileId: string,
   userId: string,
 ) {
-  return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      status: true,
-      uploaded: true,
-      currentAttempt: true,
-      s3Key: true,
-      sourceUploadedAt: true,
-    },
-  });
+  return findUploadedFileSourceState(uploadedFileId, userId);
 }
 
 export async function findUploadedFileForDeletion(
@@ -293,7 +332,7 @@ export async function findUploadedFileProcessingContext(
   });
 }
 
-export async function confirmUploadedFileSource(
+async function confirmUploadedFileSourceUnchecked(
   uploadedFileId: string,
   userId: string,
   options?: { tx?: Prisma.TransactionClient; now?: Date },
@@ -330,7 +369,7 @@ export async function confirmUploadedFileSource(
   };
 }
 
-export async function confirmUploadedFileSourceById(
+async function confirmUploadedFileSourceByIdUnchecked(
   uploadedFileId: string,
   options?: { tx?: Prisma.TransactionClient; now?: Date },
 ) {
@@ -347,6 +386,85 @@ export async function confirmUploadedFileSourceById(
       sourceUploadedAt: now,
     },
   });
+}
+
+export async function confirmUploadedFileSourceIfObjectExists(
+  uploadedFileId: string,
+  userId: string,
+): Promise<
+  | { status: "confirmed"; state: UploadLifecycleState }
+  | { status: "missing_object"; state: UploadLifecycleState }
+> {
+  const currentState = await findUploadedFileSourceState(uploadedFileId, userId);
+
+  if (currentState.uploaded) {
+    return {
+      status: "confirmed",
+      state: toUploadLifecycleState(currentState),
+    };
+  }
+
+  if (!(await objectExists(currentState.s3Key))) {
+    return {
+      status: "missing_object",
+      state: toUploadLifecycleState(currentState),
+    };
+  }
+
+  const confirmedState = await confirmUploadedFileSourceUnchecked(
+    uploadedFileId,
+    userId,
+  );
+
+  if (!confirmedState.uploaded) {
+    throw new Error("Uploaded file source could not be confirmed");
+  }
+
+  return {
+    status: "confirmed",
+    state: confirmedState,
+  };
+}
+
+export async function confirmUploadedFileSourceByIdIfObjectExists(
+  uploadedFileId: string,
+): Promise<
+  | { status: "confirmed"; confirmedNow: boolean }
+  | { status: "missing_object" }
+  | { status: "not_found" }
+  | { status: "skipped" }
+> {
+  const currentState = await findUploadedFileSourceStateById(uploadedFileId);
+
+  if (!currentState) {
+    return { status: "not_found" };
+  }
+
+  if (currentState.uploaded) {
+    return { status: "confirmed", confirmedNow: false };
+  }
+
+  if (!(await objectExists(currentState.s3Key))) {
+    return { status: "missing_object" };
+  }
+
+  const result = await confirmUploadedFileSourceByIdUnchecked(uploadedFileId);
+
+  if (result.count === 1) {
+    return { status: "confirmed", confirmedNow: true };
+  }
+
+  const refreshedState = await findUploadedFileSourceStateById(uploadedFileId);
+
+  if (!refreshedState) {
+    return { status: "not_found" };
+  }
+
+  if (refreshedState.uploaded) {
+    return { status: "confirmed", confirmedNow: false };
+  }
+
+  return { status: "skipped" };
 }
 
 export async function markUploadedFileQueuedFromDispatch(

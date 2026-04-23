@@ -50,7 +50,7 @@ export async function deleteClip(
     await deleteClipRecord(clip.id);
 
     revalidatePath("/dashboard");
-    return success(undefined);
+    return success();
   } catch (error) {
     console.error("Failed to delete clip", error);
     return failure("Failed to delete clip");

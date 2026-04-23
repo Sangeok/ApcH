@@ -11,15 +11,15 @@ import {
 } from "~/fsd/entities/processing-dispatch";
 import {
   HiddenUploadDraftError,
-  confirmUploadedFileSource,
+  confirmUploadedFileSourceIfObjectExists,
   createUploadedFile,
   deleteUploadedFileRecord,
   findUploadedFileForDeletion,
   findUploadedFileForReprocess,
-  findUploadedFileLifecycleState,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
   getUploadedFilePrefix,
+  getUploadedFileProcessingRequestState,
   isActiveProcessingStatus,
   listRecoverableUploadDraftsByUserId,
 } from "~/fsd/entities/uploaded-file";
@@ -29,7 +29,6 @@ import {
   generatePresignedGetUrl,
   generatePresignedPutUrl,
   listS3Objects,
-  objectExists,
   S3_CONFIG,
 } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
@@ -49,7 +48,7 @@ async function nudgeProcessingDispatch(): Promise<void> {
   }
 }
 
-async function deleteUploadedFileAssets(s3Key: string): Promise<void> {
+async function deleteUploadedFileS3Assets(s3Key: string): Promise<void> {
   const prefix = `${getUploadedFilePrefix(s3Key)}/`;
   const keys = await listS3Objects(prefix);
 
@@ -58,9 +57,7 @@ async function deleteUploadedFileAssets(s3Key: string): Promise<void> {
     return;
   }
 
-  if (await objectExists(s3Key)) {
-    await deleteS3Object(s3Key);
-  }
+  await deleteS3Object(s3Key);
 }
 
 async function createProcessingAttempt(
@@ -137,7 +134,7 @@ async function createProcessingAttempt(
         { tx, now },
       );
 
-      return success(undefined);
+      return success();
     });
 
     if (!scheduled.success) {
@@ -159,7 +156,7 @@ async function createProcessingAttempt(
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
 
-  return success(undefined);
+  return success();
 }
 
 export async function generateUploadUrl(fileInfo: {
@@ -211,21 +208,16 @@ export async function confirmUploadCompleted(
   if (!authResult.success) return authResult;
 
   try {
-    const lifecycle = await findUploadedFileLifecycleState(
+    const confirmation = await confirmUploadedFileSourceIfObjectExists(
       uploadedFileId,
       authResult.data.userId,
     );
 
-    if (lifecycle.uploaded) {
-      return success(undefined);
-    }
-
-    if (!(await objectExists(lifecycle.s3Key))) {
+    if (confirmation.status === "missing_object") {
       return failure("Uploaded source object was not found");
     }
 
-    await confirmUploadedFileSource(uploadedFileId, authResult.data.userId);
-    return success(undefined);
+    return success();
   } catch (error) {
     console.error("Failed to confirm upload completion", error);
     return failure("Failed to confirm upload completion");
@@ -239,28 +231,27 @@ export async function reconcileUploadConfirmation(
   if (!authResult.success) return authResult;
 
   try {
-    const lifecycle = await findUploadedFileLifecycleState(
+    const confirmationState = await getUploadedFileProcessingRequestState(
       uploadedFileId,
       authResult.data.userId,
     );
 
     if (
-      !lifecycle.uploaded &&
-      lifecycle.status === "upload_pending" &&
-      (await objectExists(lifecycle.s3Key))
+      !confirmationState.uploaded &&
+      confirmationState.status === "upload_pending"
     ) {
-      const confirmed = await confirmUploadedFileSource(
+      const confirmed = await confirmUploadedFileSourceIfObjectExists(
         uploadedFileId,
         authResult.data.userId,
       );
 
-      return success(confirmed);
+      return success(confirmed.state);
     }
 
     return success({
-      status: lifecycle.status as never,
-      uploaded: lifecycle.uploaded,
-      currentAttempt: lifecycle.currentAttempt,
+      status: confirmationState.status as never,
+      uploaded: confirmationState.uploaded,
+      currentAttempt: confirmationState.currentAttempt,
     });
   } catch (error) {
     console.error("Failed to reconcile upload confirmation", error);
@@ -273,19 +264,19 @@ export async function reconcileProcessingRequest(uploadedFileId: string) {
   if (!authResult.success) return authResult;
 
   try {
-    const lifecycle = await findUploadedFileLifecycleState(
+    const requestState = await getUploadedFileProcessingRequestState(
       uploadedFileId,
       authResult.data.userId,
     );
 
-    if (lifecycle.status === "pending_enqueue") {
+    if (requestState.status === "pending_enqueue") {
       await nudgeProcessingDispatch();
     }
 
     return success({
-      status: lifecycle.status as never,
-      uploaded: lifecycle.uploaded,
-      currentAttempt: lifecycle.currentAttempt,
+      status: requestState.status as never,
+      uploaded: requestState.uploaded,
+      currentAttempt: requestState.currentAttempt,
     });
   } catch (error) {
     console.error("Failed to reconcile processing request", error);
@@ -378,7 +369,7 @@ export async function deleteUploadedFileWithClips(
       return failure("Active uploads cannot be deleted");
     }
 
-    await deleteUploadedFileAssets(uploadedFile.s3Key);
+    await deleteUploadedFileS3Assets(uploadedFile.s3Key);
 
     await db.$transaction(async (tx) => {
       await deleteClipsByUploadedFileId(uploadedFileId, { tx });
@@ -389,7 +380,7 @@ export async function deleteUploadedFileWithClips(
 
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
-    return success(undefined);
+    return success();
   } catch (error) {
     console.error("Failed to delete uploaded file with clips", error);
     return failure("Failed to delete uploaded file with clips");

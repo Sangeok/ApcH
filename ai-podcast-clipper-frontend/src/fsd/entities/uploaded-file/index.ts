@@ -1,7 +1,7 @@
 export {
   HiddenUploadDraftError,
-  confirmUploadedFileSource,
-  confirmUploadedFileSourceById,
+  confirmUploadedFileSourceByIdIfObjectExists,
+  confirmUploadedFileSourceIfObjectExists,
   createUploadedFile,
   deleteUploadedFileRecordById,
   deleteUploadedFileRecord,
@@ -12,7 +12,7 @@ export {
   findUploadedFileForDeletion,
   findUploadedFileForProcessRequest,
   findUploadedFileForReprocess,
-  findUploadedFileLifecycleState,
+  getUploadedFileProcessingRequestState,
   findUploadedFileProcessingContext,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,

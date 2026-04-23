@@ -2,7 +2,7 @@ import { env } from "~/env";
 import { createClipsBulk } from "~/fsd/entities/clip";
 import { dispatchPendingProcessingRequests } from "~/fsd/entities/processing-dispatch";
 import {
-  confirmUploadedFileSourceById,
+  confirmUploadedFileSourceByIdIfObjectExists,
   deleteUploadedFileRecordById,
   findRawUploadDraftsForPromotion,
   findStaleProcessingUploadedFiles,
@@ -44,12 +44,11 @@ async function promoteRecoverableUploadDrafts(limit = 25): Promise<number> {
 
   for (const draft of drafts) {
     try {
-      if (!(await objectExists(draft.s3Key))) {
-        continue;
-      }
+      const result = await confirmUploadedFileSourceByIdIfObjectExists(draft.id);
 
-      const result = await confirmUploadedFileSourceById(draft.id);
-      promoted += result.count;
+      if (result.status === "confirmed" && result.confirmedNow) {
+        promoted += 1;
+      }
     } catch (error) {
       console.error("Failed to promote recoverable upload draft", error);
     }
@@ -65,8 +64,13 @@ async function cleanupStaleRawUploadDrafts(limit = 25): Promise<number> {
 
   for (const draft of drafts) {
     try {
-      if (await objectExists(draft.s3Key)) {
-        await confirmUploadedFileSourceById(draft.id);
+      const result = await confirmUploadedFileSourceByIdIfObjectExists(draft.id);
+
+      if (result.status === "confirmed" || result.status === "skipped") {
+        continue;
+      }
+
+      if (result.status === "not_found") {
         continue;
       }
 

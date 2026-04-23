@@ -9,8 +9,14 @@ export type ActionResult<T = void> =
 /**
  * Creates a success result
  */
-export function success<T>(data: T): ActionResult<T> {
-  return { success: true, data };
+export function success(): ActionResult<void>;
+export function success<T>(data: T): ActionResult<T>;
+export function success<T>(...args: [] | [T]): ActionResult<T | void> {
+  if (args.length === 0) {
+    return { success: true, data: undefined };
+  }
+
+  return { success: true, data: args[0] };
 }
 
 /**
