@@ -498,7 +498,7 @@ export const processingDispatchSweep = inngest.createFunction(
 
 export const uploadDraftSweep = inngest.createFunction(
   { id: "upload-draft-sweep" },
-  { cron: "* * * * *" },
+  { cron: "*/10 * * * *" },
   async () => {
     const [promoted, cleanedRaw, cleanedRecoverable] = await Promise.all([
       promoteRecoverableUploadDrafts(),
@@ -516,7 +516,7 @@ export const uploadDraftSweep = inngest.createFunction(
 
 export const staleProcessingSweep = inngest.createFunction(
   { id: "stale-processing-sweep" },
-  { cron: "* * * * *" },
+  { cron: "*/15 * * * *" },
   async () => {
     return {
       recovered: await recoverStaleProcessingAttempts(),
