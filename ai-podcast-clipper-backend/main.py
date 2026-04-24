@@ -27,6 +27,8 @@ class ProcessVideoRequest(BaseModel):
     s3_key: str
     language: str = "Korean"
     clip_count: int
+    attempt: int | None = None
+    output_prefix: str | None = None
     callback_url: str | None = None
     uploaded_file_id: str | None = None
 
@@ -554,9 +556,9 @@ def generate_youtube_metadata(script_text: str, language: str, gemini_client) ->
         print(f"Metadata generation error: {e}")
         return default_metadata
 
-def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str):
+def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str, output_prefix: str | None = None):
     clip_name = f"clip_{clip_index}"
-    s3_key_dir = os.path.dirname(s3_key)
+    s3_key_dir = (output_prefix or os.path.dirname(s3_key)).strip("/")
     print(f"Processing clip: {clip_name}")
 
     clip_dir = base_dir / clip_name
@@ -820,7 +822,7 @@ Transcript:
 
     # 실제 영상 처리 (비동기 실행, 완료/실패 시 callback)
     @modal.method()
-    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None):
+    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None):
         import requests as req
 
         clip_results = []
@@ -904,6 +906,7 @@ Transcript:
                     transcript_segments,
                     self.gemini_client,
                     language,
+                    output_prefix,
                 )
 
                 clip_result["clipType"] = moment.get("type")
@@ -916,6 +919,7 @@ Transcript:
             if callback_url and uploaded_file_id:
                 req.post(callback_url, json={
                     "uploadedFileId": uploaded_file_id,
+                    "attempt": attempt,
                     "status": "ok",
                     "clips": clip_results,
                 }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
@@ -927,6 +931,7 @@ Transcript:
                 try:
                     req.post(callback_url, json={
                         "uploadedFileId": uploaded_file_id,
+                        "attempt": attempt,
                         "status": "error",
                         "error": str(e),
                         "clips": [],
@@ -943,7 +948,7 @@ Transcript:
         return {
             "status": "ok",
             "clips_processed": len(clip_results),
-            "s3_prefix": os.path.dirname(s3_key),
+            "s3_prefix": output_prefix or os.path.dirname(s3_key),
             "language": language,
             "clips": clip_results,
         }
@@ -970,6 +975,8 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             clip_count=int(request.clip_count),
             callback_url=request.callback_url,
             uploaded_file_id=request.uploaded_file_id,
+            attempt=request.attempt,
+            output_prefix=request.output_prefix,
         )
         return {"status": "accepted", "call_id": call.object_id}
     else:
@@ -980,6 +987,8 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             clip_count=int(request.clip_count),
             callback_url=None,
             uploaded_file_id=request.uploaded_file_id,
+            attempt=request.attempt,
+            output_prefix=request.output_prefix,
         )
 
 
