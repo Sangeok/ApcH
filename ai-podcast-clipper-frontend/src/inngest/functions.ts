@@ -35,7 +35,23 @@ type ProcessVideoBackendClip = {
 };
 
 function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unexpected backend failure";
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  if (error && typeof error === "object") {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return "Unexpected backend failure";
+    }
+  }
+
+  return "Unexpected backend failure";
 }
 
 async function promoteRecoverableUploadDrafts(limit = 25): Promise<number> {
@@ -219,15 +235,29 @@ export const processVideo = inngest.createFunction(
       let backendClips: ProcessVideoBackendClip[] | undefined;
 
       if (modalResponse.status === "accepted") {
+        if (!callbackUrl) {
+          throw new Error(
+            "Modal accepted async processing, but NEXT_PUBLIC_SITE_URL is not configured for callbacks",
+          );
+        }
+
         const modalResult = await step.waitForEvent("wait-for-modal-result", {
           event: "modal/video.processed",
           match: "data.matchKey",
           timeout: "1h",
         });
 
-        if (modalResult?.data.status !== "ok") {
+        if (!modalResult) {
           throw new Error(
-            toErrorMessage(modalResult?.data.error ?? "Modal processing timed out"),
+            "Modal processing timed out while waiting for modal/video.processed",
+          );
+        }
+
+        if (modalResult.data.status !== "ok") {
+          throw new Error(
+            `Modal callback reported status "${modalResult.data.status}": ${toErrorMessage(
+              modalResult.data.error ?? "Unknown modal callback error",
+            )}`,
           );
         }
 
