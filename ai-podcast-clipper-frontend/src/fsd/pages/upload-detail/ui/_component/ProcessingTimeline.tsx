@@ -94,6 +94,8 @@ function getFailureLabel(failureCode: string | null): string | null {
       return "Backend processing failed";
     case "no_clips_generated":
       return "No clips were generated";
+    case "incomplete_clips_generated":
+      return "Only some requested clips were generated";
     default:
       return null;
   }

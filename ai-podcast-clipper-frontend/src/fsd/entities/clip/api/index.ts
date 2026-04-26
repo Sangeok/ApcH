@@ -23,6 +23,90 @@ export async function createClipsBulk(
   });
 }
 
+export async function countClipsByUploadedFileAttemptS3Keys(
+  uploadedFileId: string,
+  processingAttempt: number,
+  s3Keys: string[],
+  options?: { tx?: Prisma.TransactionClient },
+) {
+  if (s3Keys.length === 0) {
+    return 0;
+  }
+
+  return getClient(options?.tx).clip.count({
+    where: {
+      uploadedFileId,
+      processingAttempt,
+      s3Key: {
+        in: s3Keys,
+      },
+    },
+  });
+}
+
+type ClipMetadataPatch = {
+  s3Key?: string | null;
+  startSeconds?: number | null;
+  endSeconds?: number | null;
+  scriptText?: string | null;
+  youtubeTitle?: string | null;
+  youtubeDescription?: string | null;
+  youtubeHashtags?: string[] | null;
+};
+
+function getClipMetadataUpdateData(
+  clip: ClipMetadataPatch,
+): Prisma.ClipUpdateManyMutationInput {
+  return {
+    ...(clip.startSeconds != null ? { startSeconds: clip.startSeconds } : {}),
+    ...(clip.endSeconds != null ? { endSeconds: clip.endSeconds } : {}),
+    ...(clip.scriptText != null ? { scriptText: clip.scriptText } : {}),
+    ...(clip.youtubeTitle != null ? { youtubeTitle: clip.youtubeTitle } : {}),
+    ...(clip.youtubeDescription != null
+      ? { youtubeDescription: clip.youtubeDescription }
+      : {}),
+    ...(clip.youtubeHashtags != null
+      ? { youtubeHashtags: JSON.stringify(clip.youtubeHashtags) }
+      : {}),
+  };
+}
+
+export async function updateClipMetadataFromBackendClips(
+  args: {
+    uploadedFileId: string;
+    processingAttempt: number;
+    clips: ClipMetadataPatch[];
+  },
+  options?: { tx?: Prisma.TransactionClient },
+) {
+  let updated = 0;
+
+  for (const clip of args.clips) {
+    if (typeof clip.s3Key !== "string" || clip.s3Key.length === 0) {
+      continue;
+    }
+
+    const data = getClipMetadataUpdateData(clip);
+
+    if (Object.keys(data).length === 0) {
+      continue;
+    }
+
+    const result = await getClient(options?.tx).clip.updateMany({
+      where: {
+        uploadedFileId: args.uploadedFileId,
+        processingAttempt: args.processingAttempt,
+        s3Key: clip.s3Key,
+      },
+      data,
+    });
+
+    updated += result.count;
+  }
+
+  return { updated };
+}
+
 export async function findClipById(clipId: string, userId: string) {
   return db.clip.findFirstOrThrow({
     where: {

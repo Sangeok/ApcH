@@ -1,5 +1,10 @@
+import type { Prisma } from "generated/prisma";
 import { env } from "~/env";
-import { createClipsBulk } from "~/fsd/entities/clip";
+import {
+  countClipsByUploadedFileAttemptS3Keys,
+  createClipsBulk,
+  updateClipMetadataFromBackendClips,
+} from "~/fsd/entities/clip";
 import { dispatchPendingProcessingRequests } from "~/fsd/entities/processing-dispatch";
 import {
   confirmUploadedFileSourceByIdIfObjectExists,
@@ -8,7 +13,6 @@ import {
   findStaleProcessingUploadedFiles,
   findStaleRawUploadDrafts,
   findStaleRecoverableUploadDrafts,
-  getUploadedFilePrefix,
   findUploadedFileProcessingContext,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
@@ -25,6 +29,7 @@ import { inngest } from "./client";
 
 const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
+const MODAL_METADATA_GRACE_INTERVAL = "2m";
 
 type ProcessVideoBackendClip = {
   index: number;
@@ -36,6 +41,25 @@ type ProcessVideoBackendClip = {
   youtubeTitle?: string | null;
   youtubeDescription?: string | null;
   youtubeHashtags?: string[] | null;
+};
+
+type RawProcessVideoBackendClip = {
+  index?: number | string;
+  startSeconds?: number | null;
+  start_seconds?: number | null;
+  endSeconds?: number | null;
+  end_seconds?: number | null;
+  s3Key?: string | null;
+  s3_key?: string | null;
+  scriptText?: string | null;
+  script_text?: string | null;
+  language?: string | null;
+  youtubeTitle?: string | null;
+  youtube_title?: string | null;
+  youtubeDescription?: string | null;
+  youtube_description?: string | null;
+  youtubeHashtags?: string[] | null;
+  youtube_hashtags?: string[] | null;
 };
 
 function toErrorMessage(error: unknown): string {
@@ -68,55 +92,109 @@ function isSuccessfulModalStatus(status: unknown): boolean {
   );
 }
 
-async function findGeneratedClipKeys(
-  outputPrefix: string,
-  uploadedFilePrefix: string,
-): Promise<string[]> {
-  const [attemptClipCandidates, rootClipCandidates] = await Promise.all([
-    listS3Objects(`${outputPrefix}/`),
-    outputPrefix === uploadedFilePrefix
-      ? Promise.resolve<string[]>([])
-      : listS3Objects(`${uploadedFilePrefix}/`),
-  ]);
+function toStrictNonNegativeInteger(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
 
-  return Array.from(
-    new Set([
-      ...attemptClipCandidates.filter(
-        (key) =>
-          key.startsWith(`${outputPrefix}/clip_`) && key.endsWith(".mp4"),
-      ),
-      ...rootClipCandidates.filter(
-        (key) =>
-          key.startsWith(`${uploadedFilePrefix}/clip_`) && key.endsWith(".mp4"),
-      ),
-    ]),
-  );
+  if (typeof value === "string") {
+    const normalized = value.trim();
+
+    if (!/^\d+$/.test(normalized)) {
+      return null;
+    }
+
+    const parsed = Number(normalized);
+    return Number.isSafeInteger(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function normalizeBackendClip(clip: unknown): ProcessVideoBackendClip | null {
+  if (!clip || typeof clip !== "object") {
+    return null;
+  }
+
+  const rawClip = clip as RawProcessVideoBackendClip;
+  const index = toStrictNonNegativeInteger(rawClip.index);
+
+  if (index === null) {
+    return null;
+  }
+
+  return {
+    index,
+    startSeconds: rawClip.startSeconds ?? rawClip.start_seconds ?? null,
+    endSeconds: rawClip.endSeconds ?? rawClip.end_seconds ?? null,
+    s3Key: rawClip.s3Key ?? rawClip.s3_key ?? null,
+    scriptText: rawClip.scriptText ?? rawClip.script_text ?? null,
+    language: rawClip.language ?? null,
+    youtubeTitle: rawClip.youtubeTitle ?? rawClip.youtube_title ?? null,
+    youtubeDescription:
+      rawClip.youtubeDescription ?? rawClip.youtube_description ?? null,
+    youtubeHashtags:
+      rawClip.youtubeHashtags ?? rawClip.youtube_hashtags ?? null,
+  };
+}
+
+function normalizeBackendClips(
+  clips: unknown,
+): ProcessVideoBackendClip[] | undefined {
+  if (!Array.isArray(clips)) {
+    return undefined;
+  }
+
+  return clips
+    .map(normalizeBackendClip)
+    .filter((clip): clip is ProcessVideoBackendClip => clip !== null);
+}
+
+async function findAttemptGeneratedClipKeys(
+  outputPrefix: string,
+): Promise<string[]> {
+  const clipCandidates = await listS3Objects(`${outputPrefix}/`);
+
+  return clipCandidates
+    .filter(
+      (key) => key.startsWith(`${outputPrefix}/clip_`) && key.endsWith(".mp4"),
+    )
+    .sort();
 }
 
 async function persistGeneratedClips(args: {
   backendClips?: ProcessVideoBackendClip[];
   outputPrefix: string;
-  uploadedFilePrefix: string;
   uploadedFileId: string;
   userId: string;
   attempt: number;
+  expectedClipCount: number;
 }): Promise<{ clipsFound: number }> {
   const {
     backendClips,
     outputPrefix,
-    uploadedFilePrefix,
     uploadedFileId,
     userId,
     attempt,
+    expectedClipCount,
   } = args;
 
-  if (Array.isArray(backendClips) && backendClips.length > 0) {
-    const createData = backendClips
-      .filter(
-        (clip): clip is ProcessVideoBackendClip & { s3Key: string } =>
-          typeof clip.s3Key === "string" && clip.s3Key.length > 0,
-      )
-      .map((clip) => ({
+  const attemptClipKeys = await findAttemptGeneratedClipKeys(outputPrefix);
+  const cappedClipKeys = attemptClipKeys.slice(0, expectedClipCount);
+  const allowedClipKeys = new Set(cappedClipKeys);
+  const createDataByS3Key = new Map<string, Prisma.ClipCreateManyInput>();
+
+  if (Array.isArray(backendClips)) {
+    for (const clip of backendClips) {
+      if (
+        typeof clip.s3Key !== "string" ||
+        clip.s3Key.length === 0 ||
+        !allowedClipKeys.has(clip.s3Key)
+      ) {
+        continue;
+      }
+
+      createDataByS3Key.set(clip.s3Key, {
         s3Key: clip.s3Key,
         uploadedFileId,
         userId,
@@ -129,38 +207,55 @@ async function persistGeneratedClips(args: {
         youtubeHashtags: clip.youtubeHashtags
           ? JSON.stringify(clip.youtubeHashtags)
           : null,
-      }));
-
-    if (createData.length > 0) {
-      await createClipsBulk(createData);
-      return { clipsFound: createData.length };
+      });
     }
   }
 
-  const clipKeys = await findGeneratedClipKeys(
-    outputPrefix,
-    uploadedFilePrefix,
-  );
+  for (const clipKey of cappedClipKeys) {
+    if (createDataByS3Key.has(clipKey)) {
+      continue;
+    }
 
-  if (clipKeys.length > 0) {
-    await createClipsBulk(
-      clipKeys.map((clipKey) => ({
-        s3Key: clipKey,
-        uploadedFileId,
-        userId,
-        processingAttempt: attempt,
-      })),
-    );
+    createDataByS3Key.set(clipKey, {
+      s3Key: clipKey,
+      uploadedFileId,
+      userId,
+      processingAttempt: attempt,
+    });
   }
 
-  return { clipsFound: clipKeys.length };
+  await createClipsBulk([...createDataByS3Key.values()]);
+
+  const metadataClips = Array.isArray(backendClips)
+    ? backendClips.filter(
+        (clip): clip is ProcessVideoBackendClip & { s3Key: string } =>
+          typeof clip.s3Key === "string" &&
+          clip.s3Key.length > 0 &&
+          allowedClipKeys.has(clip.s3Key),
+      )
+    : [];
+
+  if (metadataClips.length > 0) {
+    await updateClipMetadataFromBackendClips({
+      uploadedFileId,
+      processingAttempt: attempt,
+      clips: metadataClips,
+    });
+  }
+
+  const dbClipCount = await countClipsByUploadedFileAttemptS3Keys(
+    uploadedFileId,
+    attempt,
+    cappedClipKeys,
+  );
+
+  return {
+    clipsFound: Math.min(dbClipCount, expectedClipCount),
+  };
 }
 
-async function countGeneratedClipKeys(
-  outputPrefix: string,
-  uploadedFilePrefix: string,
-): Promise<number> {
-  return (await findGeneratedClipKeys(outputPrefix, uploadedFilePrefix)).length;
+async function countGeneratedClipKeys(outputPrefix: string): Promise<number> {
+  return (await findAttemptGeneratedClipKeys(outputPrefix)).length;
 }
 
 async function promoteRecoverableUploadDrafts(limit = 25): Promise<number> {
@@ -317,7 +412,6 @@ export const processVideo = inngest.createFunction(
       const callbackUrl = env.NEXT_PUBLIC_SITE_URL
         ? `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/modal`
         : undefined;
-      const uploadedFilePrefix = getUploadedFilePrefix(context.s3Key);
 
       const modalResponse = await step.run("send-to-modal", async () => {
         const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
@@ -349,77 +443,120 @@ export const processVideo = inngest.createFunction(
 
       let backendClips: ProcessVideoBackendClip[] | undefined;
       let backendFailureMessage: string | null = null;
+      let generatedClipsDetected = false;
+      let modalCallbackReceived = false;
+      let generatedClipCount = 0;
+      const shouldWaitForCallback = modalResponse.status === "accepted";
 
-      if (modalResponse.status === "accepted") {
-        if (!callbackUrl) {
-          throw new Error(
-            "Modal accepted async processing, but NEXT_PUBLIC_SITE_URL is not configured for callbacks",
-          );
+      function applyModalPayload(args: {
+        status: unknown;
+        error?: unknown;
+        clips?: unknown;
+        source: "modal-response" | "modal-callback";
+      }) {
+        modalCallbackReceived = true;
+
+        if (!isSuccessfulModalStatus(args.status)) {
+          backendFailureMessage = `Modal ${args.source} reported status "${String(args.status)}": ${toErrorMessage(
+            args.error ?? "Unknown modal processing error",
+          )}`;
+          return;
         }
 
-        let generatedClipsDetected = false;
+        backendClips = normalizeBackendClips(args.clips);
+      }
 
-        for (
-          let pollAttempt = 1;
-          pollAttempt <= MODAL_RESULT_MAX_POLLS;
-          pollAttempt++
-        ) {
+      if (shouldWaitForCallback && !callbackUrl) {
+        throw new Error(
+          "Modal accepted async processing, but NEXT_PUBLIC_SITE_URL is not configured for callbacks",
+        );
+      }
+
+      if (!shouldWaitForCallback) {
+        applyModalPayload({
+          status: modalResponse.status,
+          error: modalResponse.error,
+          clips: modalResponse.clips,
+          source: "modal-response",
+        });
+      }
+
+      for (
+        let pollAttempt = 1;
+        pollAttempt <= MODAL_RESULT_MAX_POLLS;
+        pollAttempt++
+      ) {
+        if (shouldWaitForCallback && !modalCallbackReceived) {
           const waitStepId =
             pollAttempt === 1
               ? "wait-for-modal-result"
               : `wait-for-modal-result-${pollAttempt}`;
-          const modalResult = await step.waitForEvent(
-            waitStepId,
-            {
-              event: "modal/video.processed",
-              match: "data.matchKey",
-              timeout: MODAL_RESULT_POLL_INTERVAL,
-            },
-          );
 
-          if (!modalResult) {
-            const generatedClipCount = await step.run(
-              `check-generated-clips-${pollAttempt}`,
-              async () =>
-                countGeneratedClipKeys(outputPrefix, uploadedFilePrefix),
+          const modalResult = await step.waitForEvent(waitStepId, {
+            event: "modal/video.processed",
+            match: "data.matchKey",
+            timeout: MODAL_RESULT_POLL_INTERVAL,
+          });
+
+          if (modalResult) {
+            applyModalPayload({
+              status: modalResult.data.status,
+              error: modalResult.data.error,
+              clips: modalResult.data.clips,
+              source: "modal-callback",
+            });
+          }
+        } else if (pollAttempt > 1) {
+          await step.sleep(
+            `wait-for-generated-clips-${pollAttempt}`,
+            MODAL_RESULT_POLL_INTERVAL,
+          );
+        }
+
+        generatedClipCount = await step.run(
+          `check-generated-clips-${pollAttempt}`,
+          async () => countGeneratedClipKeys(outputPrefix),
+        );
+
+        if (generatedClipCount >= clipCount) {
+          if (!modalCallbackReceived) {
+            const metadataResult = await step.waitForEvent(
+              "wait-for-modal-metadata-after-s3-complete",
+              {
+                event: "modal/video.processed",
+                match: "data.matchKey",
+                timeout: MODAL_METADATA_GRACE_INTERVAL,
+              },
             );
 
-            if (generatedClipCount > 0) {
-              generatedClipsDetected = true;
-              break;
+            if (metadataResult) {
+              applyModalPayload({
+                status: metadataResult.data.status,
+                error: metadataResult.data.error,
+                clips: metadataResult.data.clips,
+                source: "modal-callback",
+              });
             }
-
-            continue;
           }
 
-          if (!isSuccessfulModalStatus(modalResult.data.status)) {
-            backendFailureMessage = `Modal callback reported status "${modalResult.data.status}": ${toErrorMessage(
-              modalResult.data.error ?? "Unknown modal callback error",
-            )}`;
-          } else {
-            backendClips = modalResult.data.clips as
-              | ProcessVideoBackendClip[]
-              | undefined;
-          }
-
+          generatedClipsDetected = true;
           break;
         }
 
-        if (
-          !backendClips &&
-          !backendFailureMessage &&
-          !generatedClipsDetected
-        ) {
-          backendFailureMessage =
-            "Modal processing timed out while waiting for modal/video.processed or generated S3 clips";
+        if (backendFailureMessage) {
+          break;
         }
-      } else if (isSuccessfulModalStatus(modalResponse.status)) {
-        backendClips = modalResponse.clips as
-          | ProcessVideoBackendClip[]
-          | undefined;
-      } else {
-        backendFailureMessage = toErrorMessage(
-          modalResponse.error ?? "Modal processing failed",
+      }
+
+      if (!generatedClipsDetected && !backendFailureMessage) {
+        console.warn(
+          "Timed out before expected generated clips were detected",
+          {
+            uploadedFileId,
+            attempt,
+            generatedClipCount,
+            expectedClipCount: clipCount,
+          },
         );
       }
 
@@ -429,13 +566,20 @@ export const processVideo = inngest.createFunction(
           return persistGeneratedClips({
             backendClips,
             outputPrefix,
-            uploadedFilePrefix,
             uploadedFileId,
             userId: context.userId,
             attempt,
+            expectedClipCount: clipCount,
           });
         },
       );
+
+      if (backendFailureMessage && clipsFound >= clipCount) {
+        console.warn(
+          "Modal reported failure after expected clips were generated",
+          backendFailureMessage,
+        );
+      }
 
       if (backendFailureMessage && clipsFound === 0) {
         throw new Error(backendFailureMessage);
@@ -455,6 +599,27 @@ export const processVideo = inngest.createFunction(
         });
 
         return { skipped: false, status: "no_clips_generated" };
+      }
+
+      if (clipsFound < clipCount) {
+        await step.run("mark-incomplete-clips-generated", async () => {
+          await markUploadedFileAttemptFailed(
+            uploadedFileId,
+            attempt,
+            "incomplete_clips_generated",
+            {
+              now: new Date(),
+              statuses: ["processing"],
+            },
+          );
+        });
+
+        return {
+          skipped: false,
+          status: "incomplete_clips_generated",
+          clipsFound,
+          expectedClips: clipCount,
+        };
       }
 
       await step.run("deduct-credits", async () => {
