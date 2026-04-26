@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
 import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
 import { STATUS_CONFIG } from "~/fsd/pages/dashboard/config";
-import { UploadedFileActions } from "~/fsd/features/upload";
+import {
+  UploadedFileActions,
+  uploadedFileDetailQueryOptions,
+} from "~/fsd/features/upload";
 import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import {
@@ -23,11 +25,29 @@ interface UploadDetailPageProps {
   uploadedFileData: UploadedFileDetail;
 }
 
+const POLLING_INTERVAL_MS = 7_500;
+
 export default function UploadDetailPage({
   uploadedFileData,
 }: UploadDetailPageProps) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
+  const shouldRefetchWhileProcessing = (
+    statusToCheck?: UploadedFileDetail["status"],
+  ) => isActiveProcessingStatus(statusToCheck ?? uploadedFileData.status);
+
+  const { data: liveUploadedFileData } = useQuery({
+    ...uploadedFileDetailQueryOptions(uploadedFileData.id),
+    initialData: uploadedFileData,
+    staleTime: POLLING_INTERVAL_MS,
+    refetchInterval: (query) =>
+      shouldRefetchWhileProcessing(query.state.data?.status)
+        ? POLLING_INTERVAL_MS
+        : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: (query) =>
+      shouldRefetchWhileProcessing(query.state.data?.status) ? "always" : false,
+    refetchOnReconnect: (query) =>
+      shouldRefetchWhileProcessing(query.state.data?.status) ? "always" : false,
+  });
   const {
     id: uploadedFileId,
     displayName,
@@ -40,22 +60,8 @@ export default function UploadDetailPage({
     terminalStatusAt,
     failureCode,
     targetClipCount,
-  } = uploadedFileData;
+  } = liveUploadedFileData;
   const statusConfig = STATUS_CONFIG[status];
-
-  useEffect(() => {
-    if (!isActiveProcessingStatus(status)) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      startTransition(() => {
-        router.refresh();
-      });
-    }, 7_500);
-
-    return () => window.clearInterval(intervalId);
-  }, [router, startTransition, status]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">

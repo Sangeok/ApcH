@@ -27,7 +27,11 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader email={user.email} credits={user.credits} image={user.image} />
+      <DashboardHeader
+        email={user.email}
+        credits={user.credits}
+        image={user.image}
+      />
       <main className="container mx-auto flex-1 py-6">{children}</main>
       <Toaster />
     </div>
