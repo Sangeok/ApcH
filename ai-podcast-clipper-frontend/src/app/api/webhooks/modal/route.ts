@@ -1,4 +1,5 @@
 import { env } from "~/env";
+import { updateClipMetadataFromBackendClips } from "~/fsd/entities/clip";
 import { getProcessingMatchKey } from "~/fsd/entities/uploaded-file";
 import { inngest } from "~/inngest/client";
 
@@ -15,7 +16,7 @@ interface ModalWebhookClip {
 }
 
 interface RawModalWebhookClip {
-  index?: number;
+  index?: number | string;
   startSeconds?: number | null;
   start_seconds?: number | null;
   endSeconds?: number | null;
@@ -70,13 +71,40 @@ function toWebhookErrorMessage(error: unknown): string | undefined {
   }
 }
 
+function toStrictNonNegativeInteger(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim();
+
+    if (!/^\d+$/.test(normalized)) {
+      return null;
+    }
+
+    const parsed = Number(normalized);
+    return Number.isSafeInteger(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function toStrictPositiveInteger(value: unknown): number | null {
+  const parsed = toStrictNonNegativeInteger(value);
+
+  return parsed !== null && parsed > 0 ? parsed : null;
+}
+
 function normalizeClip(rawClip: RawModalWebhookClip): ModalWebhookClip | null {
-  if (typeof rawClip.index !== "number") {
+  const index = toStrictNonNegativeInteger(rawClip.index);
+
+  if (index === null) {
     return null;
   }
 
   return {
-    index: rawClip.index,
+    index,
     startSeconds: rawClip.startSeconds ?? rawClip.start_seconds ?? null,
     endSeconds: rawClip.endSeconds ?? rawClip.end_seconds ?? null,
     s3Key: rawClip.s3Key ?? rawClip.s3_key ?? null,
@@ -90,17 +118,16 @@ function normalizeClip(rawClip: RawModalWebhookClip): ModalWebhookClip | null {
   };
 }
 
-function normalizeBody(rawBody: RawModalWebhookBody): NormalizedModalWebhookBody | null {
+function normalizeBody(
+  rawBody: RawModalWebhookBody,
+): NormalizedModalWebhookBody | null {
   const uploadedFileId = rawBody.uploadedFileId ?? rawBody.uploaded_file_id;
-  const attempt =
-    typeof rawBody.attempt === "number"
-      ? rawBody.attempt
-      : Number.parseInt(String(rawBody.attempt ?? ""), 10);
+  const attempt = toStrictPositiveInteger(rawBody.attempt);
 
   if (
     typeof uploadedFileId !== "string" ||
     uploadedFileId.length === 0 ||
-    !Number.isInteger(attempt) ||
+    attempt === null ||
     typeof rawBody.status !== "string" ||
     rawBody.status.length === 0
   ) {
@@ -145,6 +172,18 @@ export async function POST(req: Request) {
       error: body.error,
     },
   });
+
+  if (body.clips && body.clips.length > 0) {
+    try {
+      await updateClipMetadataFromBackendClips({
+        uploadedFileId: body.uploadedFileId,
+        processingAttempt: body.attempt,
+        clips: body.clips,
+      });
+    } catch (error) {
+      console.error("Failed to reconcile modal clip metadata", error);
+    }
+  }
 
   return new Response("OK", { status: 200 });
 }

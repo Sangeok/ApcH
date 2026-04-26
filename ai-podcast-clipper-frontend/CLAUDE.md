@@ -119,7 +119,7 @@ Managed via `@t3-oss/env-nextjs` in `src/env.js`:
 ### S3 Key Patterns
 
 - Original upload: `{userId}/{uuid}/original.mp4`
-- Generated clips: `{userId}/{uuid}/clip_{n}.mp4`
+- Generated clips: `{uploadPrefix}/attempt-{attempt}/clip_{index}.mp4`
 - Presigned URLs expire in 3600 seconds
 
 ### Authentication Patterns
