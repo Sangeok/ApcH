@@ -14,10 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 import { toast } from "sonner";
-import {
-  deleteUploadedFileWithClips,
-  reprocessUploadedFile,
-} from "../api";
+import { deleteUploadedFileWithClips } from "../api";
+import { useReprocessUploadedFile } from "../model/use-reprocess-uploaded-file";
 
 type RunOptions = {
   action: () => Promise<ActionResult<void>>;
@@ -61,17 +59,19 @@ export default function UploadedFileActions({
   status,
 }: UploadedFileActionsProps) {
   const router = useRouter();
-  const [isReprocessing, startReprocessTransition] = useTransition();
+  const reprocessMutation = useReprocessUploadedFile(uploadedFileId);
   const [isDeleting, startDeleteTransition] = useTransition();
   const isActive = isActiveProcessingStatus(status);
-  const anyPending = isReprocessing || isDeleting;
+  const anyPending = reprocessMutation.isPending || isDeleting;
 
   const handleReprocess = () => {
-    runAction({
-      action: () => reprocessUploadedFile(uploadedFileId),
-      successMessage: "Reprocessing started",
-      onSuccess: () => router.refresh(),
-      startTransition: startReprocessTransition,
+    reprocessMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success("Reprocessing started");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
     });
   };
 
@@ -93,7 +93,7 @@ export default function UploadedFileActions({
         disabled={anyPending || isActive}
         onClick={handleReprocess}
       >
-        {isReprocessing ? (
+        {reprocessMutation.isPending ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <RefreshCw className="mr-2 h-4 w-4" />
