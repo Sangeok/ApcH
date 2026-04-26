@@ -41,7 +41,7 @@
     "class-variance-authority": "^0.7.1",
     "client-only": "^0.0.1",
     "clsx": "^2.1.1",
-    "inngest": "^3.45.1",
+    "inngest": "^3.54.0",
     "lucide-react": "^0.553.0",
     "next": "15.5.7",
     "next-auth": "5.0.0-beta.25",
