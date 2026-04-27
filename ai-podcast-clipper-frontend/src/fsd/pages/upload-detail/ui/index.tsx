@@ -112,7 +112,7 @@ export default function UploadDetailPage({
             fallback={<p className="text-muted-foreground">Loading clips...</p>}
           >
             {clips.length > 0 ? (
-              <ClipDisplay clips={clips} allowDelete={false} />
+              <ClipDisplay clips={clips} />
             ) : (
               <p className="text-muted-foreground text-center">
                 No clips generated yet
