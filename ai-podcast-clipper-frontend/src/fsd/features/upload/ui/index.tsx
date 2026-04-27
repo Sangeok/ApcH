@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 import { toast } from "sonner";
-import { deleteUploadedFileWithClips } from "../api";
+import { deleteUploadedFile } from "../api";
 import { useReprocessUploadedFile } from "../model/use-reprocess-uploaded-file";
 
 type RunOptions = {
@@ -77,7 +77,7 @@ export default function UploadedFileActions({
 
   const handleDelete = () => {
     runAction({
-      action: () => deleteUploadedFileWithClips(uploadedFileId),
+      action: () => deleteUploadedFile(uploadedFileId),
       successMessage: "Original file and clips deleted",
       confirmationMessage:
         "Are you sure you want to delete the file and all associated clips?",

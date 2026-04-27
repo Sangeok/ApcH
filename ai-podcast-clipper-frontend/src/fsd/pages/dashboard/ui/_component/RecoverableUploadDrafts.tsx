@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, RotateCcw, Trash2 } from "lucide-react";
 import {
-  deleteUploadedFileWithClips,
+  deleteUploadedFile,
   requestProcessingAttempt,
 } from "~/fsd/features/upload/api";
 import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file/model/types";
@@ -53,7 +53,7 @@ export default function RecoverableUploadDrafts({
 
   const handleDiscard = (uploadedFileId: string) => {
     startTransition(async () => {
-      const result = await deleteUploadedFileWithClips(uploadedFileId);
+      const result = await deleteUploadedFile(uploadedFileId);
 
       if (!result.success) {
         toast.error(result.error ?? "Failed to discard upload");
