@@ -346,7 +346,7 @@ export async function getOriginalPlayUrl(
 }
 
 // Delete an uploaded file and all associated S3 assets.
-// Throws an error for active uploads.
+// Returns a failure for active uploads.
 export async function deleteUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
@@ -368,12 +368,7 @@ export async function deleteUploadedFile(
     }
 
     await deleteUploadedFileS3Assets(uploadedFile.s3Key);
-
-    await db.$transaction(async (tx) => {
-      await deleteUploadedFileRecord(uploadedFileId, authResult.data.userId, {
-        tx,
-      });
-    });
+    await deleteUploadedFileRecord(uploadedFileId, authResult.data.userId);
 
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
