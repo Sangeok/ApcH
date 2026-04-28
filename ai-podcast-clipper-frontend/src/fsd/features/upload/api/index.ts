@@ -11,7 +11,7 @@ import {
 import {
   HiddenUploadDraftError,
   confirmUploadedFileSourceIfObjectExists,
-  createUploadedFile,
+  createUploadDraft,
   deleteUploadedFileRecord,
   findUploadedFileForDeletion,
   findUploadedFileForReprocess,
@@ -34,9 +34,9 @@ import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
 import { v4 as uuidv4 } from "uuid";
 import {
-  generateUploadUrlSchema,
   isSupportedClipCount,
-  requestProcessingAttemptSchema,
+  prepareUploadSchema,
+  scheduleUploadedFileProcessingSchema,
 } from "../model/schemas";
 
 async function nudgeProcessingDispatch(): Promise<void> {
@@ -159,7 +159,8 @@ async function createProcessingAttempt(
   return success();
 }
 
-export async function generateUploadUrl(fileInfo: {
+// Prepares an upload by creating a draft record and a presigned S3 PUT URL.
+export async function prepareUpload(fileInfo: {
   fileName: string;
   contentType: string;
   language: string;
@@ -168,7 +169,7 @@ export async function generateUploadUrl(fileInfo: {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
-  const validated = generateUploadUrlSchema.safeParse(fileInfo);
+  const validated = prepareUploadSchema.safeParse(fileInfo);
 
   if (!validated.success) {
     return failure(validated.error.issues[0]?.message ?? "Invalid upload request");
@@ -186,7 +187,7 @@ export async function generateUploadUrl(fileInfo: {
       S3_CONFIG.PRESIGNED_PUT_URL_EXPIRY,
     );
 
-    const uploadedFileDbRecord = await createUploadedFile({
+    const uploadDraft = await createUploadDraft({
       userId: authResult.data.userId,
       s3Key: key,
       displayName: fileName,
@@ -194,7 +195,7 @@ export async function generateUploadUrl(fileInfo: {
       targetClipCount: clipCount,
     });
 
-    return success({ key, uploadedFileId: uploadedFileDbRecord.id, signedUrl });
+    return success({ key, uploadedFileId: uploadDraft.id, signedUrl });
   } catch (error) {
     console.error("Failed to generate upload URL", error);
     return failure("Failed to generate upload URL");
@@ -284,13 +285,16 @@ export async function reconcileProcessingRequest(uploadedFileId: string) {
   }
 }
 
-export async function requestProcessingAttempt(
+// Schedules a confirmed source upload for its initial processing attempt.
+export async function scheduleUploadedFileProcessing(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
-  const validated = requestProcessingAttemptSchema.safeParse({ uploadedFileId });
+  const validated = scheduleUploadedFileProcessingSchema.safeParse({
+    uploadedFileId,
+  });
 
   if (!validated.success) {
     return failure(validated.error.issues[0]?.message ?? "Invalid request");

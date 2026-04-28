@@ -79,23 +79,18 @@ export class HiddenUploadDraftError extends Error {
   }
 }
 
-export async function createUploadedFile(
-  data: {
-    userId: string;
-    s3Key: string;
-    displayName: string | null;
-    language: string;
-    targetClipCount: number;
-  },
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.create({
+export async function createUploadDraft(data: {
+  userId: string;
+  s3Key: string;
+  displayName: string | null;
+  language: string;
+  targetClipCount: number;
+}) {
+  return db.uploadedFile.create({
     data: {
       ...data,
       uploaded: false,
       status: "upload_pending",
-      currentAttempt: 0,
-      lastSuccessfulAttempt: 0,
     },
     select: { id: true },
   });

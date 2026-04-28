@@ -2,7 +2,7 @@ export {
   HiddenUploadDraftError,
   confirmUploadedFileSourceByIdIfObjectExists,
   confirmUploadedFileSourceIfObjectExists,
-  createUploadedFile,
+  createUploadDraft,
   deleteUploadedFileRecordById,
   deleteUploadedFileRecord,
   findRawUploadDraftsForPromotion,

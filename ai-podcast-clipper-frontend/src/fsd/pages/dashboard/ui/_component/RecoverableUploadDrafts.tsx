@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, RotateCcw, Trash2 } from "lucide-react";
 import {
   deleteUploadedFile,
-  requestProcessingAttempt,
+  scheduleUploadedFileProcessing,
 } from "~/fsd/features/upload/api";
 import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file/model/types";
 import { Button } from "~/fsd/shared/ui/atoms/button";
@@ -39,7 +39,7 @@ export default function RecoverableUploadDrafts({
 
   const handleResume = (uploadedFileId: string) => {
     startTransition(async () => {
-      const result = await requestProcessingAttempt(uploadedFileId);
+      const result = await scheduleUploadedFileProcessing(uploadedFileId);
 
       if (!result.success) {
         toast.error(result.error ?? "Failed to resume processing");

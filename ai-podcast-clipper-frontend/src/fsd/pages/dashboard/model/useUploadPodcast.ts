@@ -5,10 +5,10 @@ import { toast } from "sonner";
 import {
   confirmUploadCompleted,
   deleteUploadedFile,
-  generateUploadUrl,
+  prepareUpload,
   reconcileProcessingRequest,
   reconcileUploadConfirmation,
-  requestProcessingAttempt,
+  scheduleUploadedFileProcessing,
 } from "~/fsd/features/upload/api";
 import type { UploadedFileSummary } from "~/fsd/pages/dashboard/model/types";
 
@@ -51,7 +51,7 @@ export function useUploadPodcast({
       let canAutoDeleteDraft = true;
 
       try {
-        const uploadResult = await generateUploadUrl({
+        const uploadResult = await prepareUpload({
           fileName: file.name,
           contentType: file.type,
           language,
@@ -86,7 +86,7 @@ export function useUploadPodcast({
         }
 
         toast.loading("Scheduling processing...", { id: toastId });
-        const processResult = await requestProcessingAttempt(createdFileId);
+        const processResult = await scheduleUploadedFileProcessing(createdFileId);
 
         if (!processResult.success) {
           const reconcileResult = await reconcileProcessingRequest(createdFileId);
