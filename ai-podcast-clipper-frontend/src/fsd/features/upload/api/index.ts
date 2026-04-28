@@ -14,7 +14,6 @@ import {
   createUploadDraft,
   deleteUploadedFileRecord,
   findUploadedFileForDeletion,
-  findUploadedFileForReprocess,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
   getUploadedFilePrefix,
@@ -383,35 +382,18 @@ export async function deleteUploadedFile(
   }
 }
 
+// Schedules a new processing attempt for a processed, failed, or no-credit upload.
 export async function reprocessUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
-  try {
-    const uploadedFile = await findUploadedFileForReprocess(
-      uploadedFileId,
-      authResult.data.userId,
-    );
-
-    if (isActiveProcessingStatus(uploadedFile.status as never)) {
-      return failure("Already processing");
-    }
-
-    if (!uploadedFile.uploaded) {
-      return failure("Source upload has not been confirmed");
-    }
-
-    return createProcessingAttempt(uploadedFileId, authResult.data.userId, [
-      "processed",
-      "failed",
-      "no credits",
-    ]);
-  } catch (error) {
-    console.error("Failed to reprocess file", error);
-    return failure("Failed to reprocess file");
-  }
+  return createProcessingAttempt(uploadedFileId, authResult.data.userId, [
+    "processed",
+    "failed",
+    "no credits",
+  ]);
 }
 
 export async function listRecoverableUploads() {

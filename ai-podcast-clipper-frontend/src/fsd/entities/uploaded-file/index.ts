@@ -11,7 +11,6 @@ export {
   findStaleRecoverableUploadDrafts,
   findUploadedFileForDeletion,
   findUploadedFileForProcessRequest,
-  findUploadedFileForReprocess,
   getUploadedFileProcessingRequestState,
   findUploadedFileProcessingContext,
   findUploadedFileS3Key,

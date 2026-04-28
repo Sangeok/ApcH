@@ -79,6 +79,7 @@ export class HiddenUploadDraftError extends Error {
   }
 }
 
+// Creates a pending upload draft used to track and recover a direct S3 upload.
 export async function createUploadDraft(data: {
   userId: string;
   s3Key: string;
@@ -279,25 +280,6 @@ export async function findUploadedFileForProcessRequest(
       currentAttempt: true,
       targetClipCount: true,
       language: true,
-    },
-  });
-}
-
-export async function findUploadedFileForReprocess(
-  uploadedFileId: string,
-  userId: string,
-) {
-  return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      id: true,
-      userId: true,
-      status: true,
-      uploaded: true,
-      s3Key: true,
-      language: true,
-      currentAttempt: true,
-      targetClipCount: true,
     },
   });
 }
