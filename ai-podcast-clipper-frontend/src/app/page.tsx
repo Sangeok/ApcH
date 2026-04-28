@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     alternateLocale: "ko_KR",
     siteName: SITE_NAME,
-    title: "AI Podcast Clipper - Upload Once, Get Highlight Clips",
+    title: "AI Podcast Clipper",
     description:
       "AI automatically detects podcast highlights and creates captioned vertical clips in minutes.",
     url: absoluteSiteUrl("/"),
