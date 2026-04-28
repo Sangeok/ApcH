@@ -47,6 +47,7 @@ async function nudgeProcessingDispatch(): Promise<void> {
   }
 }
 
+ // Delete all S3 objects under this upload's prefix.
 async function deleteUploadedFileS3Assets(s3Key: string): Promise<void> {
   const prefix = `${getUploadedFilePrefix(s3Key)}/`;
   const keys = await listS3Objects(prefix);
@@ -300,6 +301,7 @@ export async function requestProcessingAttempt(
   ]);
 }
 
+// Fetch the current user's upload details, returning null for hidden upload drafts.
 export async function getUploadedFileDetails(uploadedFileId: string) {
   const session = await auth();
 
@@ -318,6 +320,7 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
   }
 }
 
+// Generate a short-lived S3 URL for playing the current user's uploaded source file.
 export async function getOriginalPlayUrl(
   uploadedFileId: string,
 ): Promise<ActionResult<{ url: string }>> {
@@ -342,6 +345,8 @@ export async function getOriginalPlayUrl(
   }
 }
 
+// Delete an uploaded file and all associated S3 assets.
+// Throws an error for active uploads.
 export async function deleteUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
