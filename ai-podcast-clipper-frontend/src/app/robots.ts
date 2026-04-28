@@ -1,7 +1,5 @@
 import { type MetadataRoute } from "next";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://apc-h.vercel.app/";
+import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -12,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/dashboard", "/api/", "/login"],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    sitemap: absoluteSiteUrl("/sitemap.xml"),
   };
 }

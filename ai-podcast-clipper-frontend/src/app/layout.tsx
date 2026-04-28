@@ -2,13 +2,13 @@ import "~/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  absoluteSiteUrl,
+} from "~/fsd/shared/lib/site";
 import Providers from "./providers";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://apc-h.vercel.app/";
-const SITE_NAME = "AI Podcast Clipper";
-const SITE_DESCRIPTION =
-  "Automatically turn your podcast into viral short-form clips with AI. Upload once — get highlight clips with captions in minutes.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -36,24 +36,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     alternateLocale: "ko_KR",
-    url: SITE_URL,
+    url: absoluteSiteUrl("/"),
     siteName: SITE_NAME,
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: SITE_NAME,
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -67,7 +58,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: SITE_URL,
+    canonical: absoluteSiteUrl("/"),
   },
 };
 

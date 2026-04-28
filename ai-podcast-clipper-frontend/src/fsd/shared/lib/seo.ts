@@ -1,9 +1,12 @@
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://apc-h.vercel.app/";
-const SITE_NAME = "AI Podcast Clipper";
+import {
+  OG_IMAGE_PATH,
+  SITE_NAME,
+  SITE_URL,
+  absoluteSiteUrl,
+} from "~/fsd/shared/lib/site";
 
 /**
- * WebApplication JSON-LD — 홈페이지용
+ * WebApplication JSON-LD for the landing page.
  * @see https://schema.org/WebApplication
  */
 export function generateWebApplicationJsonLd() {
@@ -30,6 +33,6 @@ export function generateWebApplicationJsonLd() {
       "AWS S3 Secure Storage",
       "Dashboard Review Loop",
     ],
-    screenshot: `${SITE_URL}/og-image.png`,
+    screenshot: absoluteSiteUrl(OG_IMAGE_PATH),
   };
 }
