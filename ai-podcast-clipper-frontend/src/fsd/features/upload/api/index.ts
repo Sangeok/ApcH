@@ -4,7 +4,6 @@ import { Prisma } from "generated/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { deleteClipsByUploadedFileId } from "~/fsd/entities/clip";
 import {
   createProcessingDispatch,
   dispatchPendingProcessingRequests,
@@ -346,12 +345,6 @@ export async function getOriginalPlayUrl(
 export async function deleteUploadedFile(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
-  return deleteUploadedFileWithClips(uploadedFileId);
-}
-
-export async function deleteUploadedFileWithClips(
-  uploadedFileId: string,
-): Promise<ActionResult<void>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
@@ -372,7 +365,6 @@ export async function deleteUploadedFileWithClips(
     await deleteUploadedFileS3Assets(uploadedFile.s3Key);
 
     await db.$transaction(async (tx) => {
-      await deleteClipsByUploadedFileId(uploadedFileId, { tx });
       await deleteUploadedFileRecord(uploadedFileId, authResult.data.userId, {
         tx,
       });
@@ -382,8 +374,8 @@ export async function deleteUploadedFileWithClips(
     revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
     return success();
   } catch (error) {
-    console.error("Failed to delete uploaded file with clips", error);
-    return failure("Failed to delete uploaded file with clips");
+    console.error("Failed to delete uploaded file", error);
+    return failure("Failed to delete uploaded file");
   }
 }
 

@@ -135,12 +135,3 @@ export async function deleteClipRecord(
     where: { id: clipId },
   });
 }
-
-export async function deleteClipsByUploadedFileId(
-  uploadedFileId: string,
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).clip.deleteMany({
-    where: { uploadedFileId },
-  });
-}

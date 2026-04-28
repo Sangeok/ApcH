@@ -60,7 +60,8 @@
       "Bash(pnpm tsc:*)",
       "WebFetch(domain:apc-h.vercel.app)",
       "Bash(curl -sI \"https://apc-h.vercel.app/\")",
-      "Bash(curl -s \"https://apc-h.vercel.app/\")"
+      "Bash(curl -s \"https://apc-h.vercel.app/\")",
+      "WebFetch(domain:feature-sliced.design)"
     ]
   }
 }

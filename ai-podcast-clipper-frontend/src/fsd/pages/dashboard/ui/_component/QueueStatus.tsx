@@ -4,11 +4,9 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useTransition } from "react";
-import {
-  isActiveProcessingStatus,
-  type ProcessingStatus,
-} from "~/fsd/entities/uploaded-file/model/processing-status";
-import { Badge } from "~/fsd/shared/ui/atoms/badge";
+import { ACTIVE_UPLOAD_POLLING_INTERVAL_MS } from "~/fsd/entities/uploaded-file/model/polling";
+import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
+import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Table,
@@ -18,17 +16,10 @@ import {
   TableHeader,
   TableRow,
 } from "~/fsd/shared/ui/atoms/table";
-import { STATUS_CONFIG } from "../../config";
 import type { UploadedFileSummary } from "../../model/types";
 
 interface QueueStatusProps {
   uploadedFiles: UploadedFileSummary[];
-}
-
-function StatusBadge({ status }: { status: ProcessingStatus }) {
-  const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
-
-  return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
 export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
@@ -53,7 +44,7 @@ export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
       startTransition(() => {
         router.refresh();
       });
-    }, 7_500);
+    }, ACTIVE_UPLOAD_POLLING_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
   }, [hasActiveUpload, router, startTransition]);
@@ -89,6 +80,7 @@ export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
           </TableHeader>
           <TableBody>
             {uploadedFiles.map((file) => {
+              // Optimistic rows use temporary IDs until the server returns a real file ID.
               const isOptimistic = file.id.startsWith("optimistic-");
 
               return (
@@ -100,7 +92,7 @@ export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
                     {new Date(file.createdAt).toLocaleString()}
                   </TableCell>
                   <TableCell className="max-w-xs truncate font-medium">
-                    <StatusBadge status={file.status} />
+                    <UploadedFileStatusBadge status={file.status} />
                   </TableCell>
                   <TableCell className="max-w-xs truncate font-medium">
                     {file.visibleClipsCount > 0 ? (

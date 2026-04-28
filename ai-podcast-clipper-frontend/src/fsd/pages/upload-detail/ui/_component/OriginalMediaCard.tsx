@@ -2,17 +2,12 @@
 
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import { STATUS_CONFIG } from "~/fsd/pages/dashboard/config";
+import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Download } from "lucide-react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
-import { Badge } from "~/fsd/shared/ui/atoms/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "~/fsd/shared/ui/atoms/card";
+import { Card, CardContent, CardHeader } from "~/fsd/shared/ui/atoms/card";
 
 interface OriginalMediaCardProps {
   uploadedFileId: string;
@@ -26,7 +21,6 @@ export default function OriginalMediaCard({
   status,
 }: OriginalMediaCardProps) {
   const { playUrl, isLoading } = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
-  const statusConfig = STATUS_CONFIG[status];
 
   const handleDownload = () => {
     if (!playUrl) return;
@@ -38,13 +32,9 @@ export default function OriginalMediaCard({
       <CardHeader className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-muted-foreground text-sm">Original media</p>
-          <h3 className="text-lg font-semibold">
-            {displayName ?? "Untitled"}
-          </h3>
+          <h3 className="text-lg font-semibold">{displayName ?? "Untitled"}</h3>
         </div>
-        <Badge variant={statusConfig.variant}>
-          {statusConfig.label}
-        </Badge>
+        <UploadedFileStatusBadge status={status} />
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="overflow-hidden rounded-xl bg-black">

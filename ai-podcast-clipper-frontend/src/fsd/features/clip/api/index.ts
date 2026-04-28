@@ -40,16 +40,14 @@ export async function deleteClip(
   try {
     const clip = await findClipById(clipId, authResult.data.userId);
 
-    if (
-      clip.uploadedFile?.lastSuccessfulAttempt === clip.processingAttempt
-    ) {
-      return failure("Visible clips cannot be deleted");
-    }
-
     await deleteS3Object(clip.s3Key);
     await deleteClipRecord(clip.id);
 
     revalidatePath("/dashboard");
+    if (clip.uploadedFile) {
+      revalidatePath(`/dashboard/uploads/${clip.uploadedFile.id}`);
+    }
+
     return success();
   } catch (error) {
     console.error("Failed to delete clip", error);

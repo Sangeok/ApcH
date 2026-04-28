@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import {
   confirmUploadCompleted,
-  deleteUploadedFileWithClips,
+  deleteUploadedFile,
   generateUploadUrl,
   reconcileProcessingRequest,
   reconcileUploadConfirmation,
@@ -147,7 +147,7 @@ export function useUploadPodcast({
         });
       } finally {
         if (createdFileId && canAutoDeleteDraft) {
-          await deleteUploadedFileWithClips(createdFileId).catch(console.error);
+          await deleteUploadedFile(createdFileId).catch(console.error);
         }
       }
     });

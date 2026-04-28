@@ -1,16 +1,11 @@
 "use client";
 
 import { Suspense } from "react";
-import { useQuery } from "@tanstack/react-query";
 import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
-import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import { STATUS_CONFIG } from "~/fsd/pages/dashboard/config";
-import {
-  UploadedFileActions,
-  uploadedFileDetailQueryOptions,
-} from "~/fsd/features/upload";
+import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
+import { UploadedFileActions } from "~/fsd/features/upload";
+import { useLiveUploadedFileDetail } from "~/fsd/pages/upload-detail/model/use-live-uploaded-file-detail";
 import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
-import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import {
   Card,
   CardContent,
@@ -25,29 +20,11 @@ interface UploadDetailPageProps {
   uploadedFileData: UploadedFileDetail;
 }
 
-const POLLING_INTERVAL_MS = 7_500;
-
 export default function UploadDetailPage({
   uploadedFileData,
 }: UploadDetailPageProps) {
-  const shouldRefetchWhileProcessing = (
-    statusToCheck?: UploadedFileDetail["status"],
-  ) => isActiveProcessingStatus(statusToCheck ?? uploadedFileData.status);
-
-  const { data: liveUploadedFileData } = useQuery({
-    ...uploadedFileDetailQueryOptions(uploadedFileData.id),
-    initialData: uploadedFileData,
-    staleTime: POLLING_INTERVAL_MS,
-    refetchInterval: (query) =>
-      shouldRefetchWhileProcessing(query.state.data?.status)
-        ? POLLING_INTERVAL_MS
-        : false,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: (query) =>
-      shouldRefetchWhileProcessing(query.state.data?.status) ? "always" : false,
-    refetchOnReconnect: (query) =>
-      shouldRefetchWhileProcessing(query.state.data?.status) ? "always" : false,
-  });
+  const { data: liveUploadedFileData } =
+    useLiveUploadedFileDetail(uploadedFileData);
   const {
     id: uploadedFileId,
     displayName,
@@ -61,7 +38,6 @@ export default function UploadDetailPage({
     failureCode,
     targetClipCount,
   } = liveUploadedFileData;
-  const statusConfig = STATUS_CONFIG[status];
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
@@ -74,7 +50,7 @@ export default function UploadDetailPage({
           <div className="text-muted-foreground mt-2 flex items-center gap-2 text-sm">
             <span>{new Date(createdAt).toLocaleString()}</span>
             <Separator orientation="vertical" className="h-4" />
-            <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+            <UploadedFileStatusBadge status={status} />
           </div>
         </div>
         <UploadedFileActions uploadedFileId={uploadedFileId} status={status} />
@@ -136,7 +112,7 @@ export default function UploadDetailPage({
             fallback={<p className="text-muted-foreground">Loading clips...</p>}
           >
             {clips.length > 0 ? (
-              <ClipDisplay clips={clips} allowDelete={false} />
+              <ClipDisplay clips={clips} />
             ) : (
               <p className="text-muted-foreground text-center">
                 No clips generated yet
