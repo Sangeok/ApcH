@@ -35,6 +35,8 @@ function getRetryBackoffMs(dispatchAttempt: number): number {
   );
 }
 
+// Records a durable dispatch request for this processing attempt.                          
+// The dispatcher later sends pending rows to Inngest and can retry failures.  
 export async function createProcessingDispatch(
   data: {
     uploadedFileId: string;
@@ -44,6 +46,9 @@ export async function createProcessingDispatch(
 ) {
   const now = options?.now ?? new Date();
 
+  // Creates a new processingDispatch row in the DB.
+  // This is the first “record of truth” that a processing request exists and is pending.
+  // "pending" means the dispatch has not been sent to Inngest yet. 
   return getClient(options?.tx).processingDispatch.create({
     data: {
       ...data,

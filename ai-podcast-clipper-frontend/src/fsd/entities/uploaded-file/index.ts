@@ -9,9 +9,9 @@ export {
   findStaleProcessingUploadedFiles,
   findStaleRawUploadDrafts,
   findStaleRecoverableUploadDrafts,
+  findUploadedFileSourceState,
   findUploadedFileForDeletion,
   findUploadedFileForProcessRequest,
-  getUploadedFileProcessingRequestState,
   findUploadedFileProcessingContext,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
@@ -34,6 +34,7 @@ export {
 export {
   ACTIVE_PROCESSING_STATUSES,
   isActiveProcessingStatus,
+  isProcessingStatus,
 } from "./model/processing-status";
 export type { ProcessingStatus } from "./model/processing-status";
 export type {

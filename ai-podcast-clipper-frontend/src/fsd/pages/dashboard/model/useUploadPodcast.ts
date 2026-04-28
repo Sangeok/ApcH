@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 import {
-  confirmUploadCompleted,
+  confirmUploadObjectExists,
   deleteUploadedFile,
   prepareUpload,
   reconcileProcessingRequest,
@@ -70,7 +70,7 @@ export function useUploadPodcast({
         canAutoDeleteDraft = false;
 
         toast.loading("Confirming upload...", { id: toastId });
-        const confirmResult = await confirmUploadCompleted(createdFileId);
+        const confirmResult = await confirmUploadObjectExists(createdFileId);
 
         if (!confirmResult.success) {
           const reconcileResult = await reconcileUploadConfirmation(createdFileId);

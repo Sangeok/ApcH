@@ -33,12 +33,11 @@ function toUploadLifecycleState(
   };
 }
 
-async function findUploadedFileSourceState(
+export async function findUploadedFileSourceState(
   uploadedFileId: string,
   userId: string,
-  options?: { tx?: Prisma.TransactionClient },
-): Promise<UploadedFileSourceState> {
-  return getClient(options?.tx).uploadedFile.findFirstOrThrow({
+) {
+  return db.uploadedFile.findFirstOrThrow({
     where: { id: uploadedFileId, userId },
     select: {
       status: true,
@@ -243,13 +242,6 @@ export async function findUploadedFileS3Key(
   });
 }
 
-export async function getUploadedFileProcessingRequestState(
-  uploadedFileId: string,
-  userId: string,
-) {
-  return findUploadedFileSourceState(uploadedFileId, userId);
-}
-
 export async function findUploadedFileForDeletion(
   uploadedFileId: string,
   userId: string,
@@ -365,6 +357,7 @@ async function confirmUploadedFileSourceByIdUnchecked(
   });
 }
 
+// Verifies the source object exists in S3 and marks the upload as uploaded.
 export async function confirmUploadedFileSourceIfObjectExists(
   uploadedFileId: string,
   userId: string,

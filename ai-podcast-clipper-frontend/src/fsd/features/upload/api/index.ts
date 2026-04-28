@@ -15,11 +15,12 @@ import {
   deleteUploadedFileRecord,
   findUploadedFileForDeletion,
   findUploadedFileS3Key,
+  findUploadedFileSourceState,
   getUploadedFileDetailsById,
   getUploadedFilePrefix,
-  getUploadedFileProcessingRequestState,
   isActiveProcessingStatus,
-  listRecoverableUploadDraftsByUserId,
+  isProcessingStatus,
+  type ProcessingStatus,
 } from "~/fsd/entities/uploaded-file";
 import {
   deleteS3Object,
@@ -59,10 +60,12 @@ async function deleteUploadedFileS3Assets(s3Key: string): Promise<void> {
   await deleteS3Object(s3Key);
 }
 
-async function createProcessingAttempt(
+// Atomically claims an upload for a new processing attempt and records
+// a pending dispatch row so the dispatcher can send it to Inngest.
+async function scheduleProcessingAttempt(
   uploadedFileId: string,
   userId: string,
-  allowedStatuses: string[],
+  allowedStatuses: readonly ProcessingStatus[],
 ): Promise<ActionResult<void>> {
   try {
     const now = new Date();
@@ -91,8 +94,12 @@ async function createProcessingAttempt(
         return failure("Stored clip count is no longer supported");
       }
 
+      if (!isProcessingStatus(uploadedFile.status)) {
+        return failure("This file cannot be scheduled right now");
+      }
+
       if (!allowedStatuses.includes(uploadedFile.status)) {
-        if (isActiveProcessingStatus(uploadedFile.status as never)) {
+        if (isActiveProcessingStatus(uploadedFile.status)) {
           return failure("Processing has already been requested");
         }
 
@@ -106,7 +113,7 @@ async function createProcessingAttempt(
           userId,
           uploaded: true,
           status: {
-            in: allowedStatuses,
+            in: [...allowedStatuses],
           },
           currentAttempt: uploadedFile.currentAttempt,
         },
@@ -201,7 +208,8 @@ export async function prepareUpload(fileInfo: {
   }
 }
 
-export async function confirmUploadCompleted(
+// Verifies the source object exists in S3 and marks the upload as completed.
+export async function confirmUploadObjectExists(
   uploadedFileId: string,
 ): Promise<ActionResult<void>> {
   const authResult = await requireAuth();
@@ -224,6 +232,8 @@ export async function confirmUploadCompleted(
   }
 }
 
+
+// Re-checks the upload confirmation state for a draft upload.
 export async function reconcileUploadConfirmation(
   uploadedFileId: string,
 ) {
@@ -231,7 +241,7 @@ export async function reconcileUploadConfirmation(
   if (!authResult.success) return authResult;
 
   try {
-    const confirmationState = await getUploadedFileProcessingRequestState(
+    const confirmationState = await findUploadedFileSourceState(
       uploadedFileId,
       authResult.data.userId,
     );
@@ -248,8 +258,12 @@ export async function reconcileUploadConfirmation(
       return success(confirmed.state);
     }
 
+    if (!isProcessingStatus(confirmationState.status)) {
+      return failure("Uploaded file has an invalid status");
+    }
+
     return success({
-      status: confirmationState.status as never,
+      status: confirmationState.status,
       uploaded: confirmationState.uploaded,
       currentAttempt: confirmationState.currentAttempt,
     });
@@ -259,12 +273,15 @@ export async function reconcileUploadConfirmation(
   }
 }
 
+// Re-checks the processing schedule state after scheduleUploadedFileProcessing
+// returns a failure to the client. If the upload is waiting for dispatch,
+// nudges the dispatcher instead of leaving it to the next sweep.
 export async function reconcileProcessingRequest(uploadedFileId: string) {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
   try {
-    const requestState = await getUploadedFileProcessingRequestState(
+    const requestState = await findUploadedFileSourceState(
       uploadedFileId,
       authResult.data.userId,
     );
@@ -273,8 +290,12 @@ export async function reconcileProcessingRequest(uploadedFileId: string) {
       await nudgeProcessingDispatch();
     }
 
+    if (!isProcessingStatus(requestState.status)) {
+      return failure("Uploaded file has an invalid status");
+    }
+
     return success({
-      status: requestState.status as never,
+      status: requestState.status,
       uploaded: requestState.uploaded,
       currentAttempt: requestState.currentAttempt,
     });
@@ -299,9 +320,11 @@ export async function scheduleUploadedFileProcessing(
     return failure(validated.error.issues[0]?.message ?? "Invalid request");
   }
 
-  return createProcessingAttempt(uploadedFileId, authResult.data.userId, [
-    "upload_pending",
-  ]);
+  return scheduleProcessingAttempt(
+    validated.data.uploadedFileId,
+    authResult.data.userId,
+    ["upload_pending"],
+  );
 }
 
 // Fetch the current user's upload details, returning null for hidden upload drafts.
@@ -366,7 +389,7 @@ export async function deleteUploadedFile(
       return failure("Uploaded file not found");
     }
 
-    if (isActiveProcessingStatus(uploadedFile.status as never)) {
+    if (isActiveProcessingStatus(uploadedFile.status)) {
       return failure("Active uploads cannot be deleted");
     }
 
@@ -389,23 +412,17 @@ export async function reprocessUploadedFile(
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
-  return createProcessingAttempt(uploadedFileId, authResult.data.userId, [
-    "processed",
-    "failed",
-    "no credits",
-  ]);
-}
+  const validated = scheduleUploadedFileProcessingSchema.safeParse({
+    uploadedFileId,
+  });
 
-export async function listRecoverableUploads() {
-  const authResult = await requireAuth();
-  if (!authResult.success) return authResult;
-
-  try {
-    return success(
-      await listRecoverableUploadDraftsByUserId(authResult.data.userId),
-    );
-  } catch (error) {
-    console.error("Failed to load recoverable uploads", error);
-    return failure("Failed to load recoverable uploads");
+  if (!validated.success) {
+    return failure(validated.error.issues[0]?.message ?? "Invalid request");
   }
+
+  return scheduleProcessingAttempt(
+    validated.data.uploadedFileId,
+    authResult.data.userId,
+    ["processed", "failed", "no credits"],
+  );
 }
