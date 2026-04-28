@@ -711,9 +711,8 @@ export async function findStaleRecoverableUploadDrafts(
 export async function deleteUploadedFileRecord(
   uploadedFileId: string,
   userId: string,
-  options?: { tx?: Prisma.TransactionClient },
 ) {
-  const result = await getClient(options?.tx).uploadedFile.deleteMany({
+  const result = await db.uploadedFile.deleteMany({
     where: { id: uploadedFileId, userId },
   });
 
@@ -724,11 +723,8 @@ export async function deleteUploadedFileRecord(
   return result;
 }
 
-export async function deleteUploadedFileRecordById(
-  uploadedFileId: string,
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.delete({
+export async function deleteUploadedFileRecordById(uploadedFileId: string) {
+  return db.uploadedFile.delete({
     where: { id: uploadedFileId },
   });
 }
