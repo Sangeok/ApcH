@@ -9,7 +9,6 @@ import {
   dispatchPendingProcessingRequests,
 } from "~/fsd/entities/processing-dispatch";
 import {
-  HiddenUploadDraftError,
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
   deleteUploadedFileRecord,
@@ -335,15 +334,7 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
     throw new Error("Unauthorized");
   }
 
-  try {
-    return await getUploadedFileDetailsById(uploadedFileId, session.user.id);
-  } catch (error) {
-    if (error instanceof HiddenUploadDraftError) {
-      return null;
-    }
-
-    throw error;
-  }
+  return getUploadedFileDetailsById(uploadedFileId, session.user.id);
 }
 
 // Generate a short-lived S3 URL for playing the current user's uploaded source file.

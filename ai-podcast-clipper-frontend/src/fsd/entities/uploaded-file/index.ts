@@ -1,5 +1,4 @@
 export {
-  HiddenUploadDraftError,
   confirmUploadedFileSourceByIdIfObjectExists,
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
@@ -12,7 +11,7 @@ export {
   findUploadedFileSourceState,
   findUploadedFileForDeletion,
   findUploadedFileForProcessRequest,
-  findUploadedFileProcessingContext,
+  findCurrentProcessingAttemptContext,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
   listRecoverableUploadDraftsByUserId,

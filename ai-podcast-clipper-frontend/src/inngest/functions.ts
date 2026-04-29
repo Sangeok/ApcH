@@ -13,7 +13,7 @@ import {
   findStaleProcessingUploadedFiles,
   findStaleRawUploadDrafts,
   findStaleRecoverableUploadDrafts,
-  findUploadedFileProcessingContext,
+  findCurrentProcessingAttemptContext,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptProcessed,
@@ -375,7 +375,7 @@ export const processVideo = inngest.createFunction(
       event.data;
 
     const context = await step.run("load-processing-context", async () => {
-      return findUploadedFileProcessingContext(uploadedFileId, attempt);
+      return findCurrentProcessingAttemptContext(uploadedFileId, attempt);
     });
 
     if (context?.status !== "queued") {
