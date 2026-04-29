@@ -9,6 +9,8 @@ function getClient(tx?: Prisma.TransactionClient): DbClient {
   return tx ?? db;
 }
 
+// Persists generated clip records for S3 objects created by the video processor.                          
+// Duplicate records for the same upload attempt and S3 key are ignored. 
 export async function createClipsBulk(
   data: Prisma.ClipCreateManyInput[],
   options?: { tx?: Prisma.TransactionClient },
@@ -23,7 +25,9 @@ export async function createClipsBulk(
   });
 }
 
-export async function countClipsByUploadedFileAttemptS3Keys(
+// Counts Clip records for the given upload attempt and S3 keys.
+// Used after bulk insert to verify how many generated S3 clips are persisted.
+export async function countClipsForAttemptS3Keys(
   uploadedFileId: string,
   processingAttempt: number,
   s3Keys: string[],
@@ -54,7 +58,8 @@ type ClipMetadataPatch = {
   youtubeHashtags?: string[] | null;
 };
 
-function getClipMetadataUpdateData(
+// Builds a partial Prisma update payload without clearing existing metadata.
+function toClipMetadataUpdateData(
   clip: ClipMetadataPatch,
 ): Prisma.ClipUpdateManyMutationInput {
   return {
@@ -71,6 +76,8 @@ function getClipMetadataUpdateData(
   };
 }
 
+// Applies backend-provided clip metadata to existing Clip records.
+// Returns the total number of Clip rows updated.
 export async function updateClipMetadataFromBackendClips(
   args: {
     uploadedFileId: string;
@@ -86,7 +93,7 @@ export async function updateClipMetadataFromBackendClips(
       continue;
     }
 
-    const data = getClipMetadataUpdateData(clip);
+    const data = toClipMetadataUpdateData(clip);
 
     if (Object.keys(data).length === 0) {
       continue;

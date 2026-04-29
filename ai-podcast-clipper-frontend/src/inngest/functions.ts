@@ -1,7 +1,7 @@
 import type { Prisma } from "generated/prisma";
 import { env } from "~/env";
 import {
-  countClipsByUploadedFileAttemptS3Keys,
+  countClipsForAttemptS3Keys,
   createClipsBulk,
   updateClipMetadataFromBackendClips,
 } from "~/fsd/entities/clip";
@@ -13,7 +13,7 @@ import {
   findStaleProcessingUploadedFiles,
   findStaleRawUploadDrafts,
   findStaleRecoverableUploadDrafts,
-  findUploadedFileProcessingContext,
+  findCurrentProcessingAttemptContext,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptProcessed,
@@ -243,7 +243,7 @@ async function persistGeneratedClips(args: {
     });
   }
 
-  const dbClipCount = await countClipsByUploadedFileAttemptS3Keys(
+  const dbClipCount = await countClipsForAttemptS3Keys(
     uploadedFileId,
     attempt,
     cappedClipKeys,
@@ -375,7 +375,7 @@ export const processVideo = inngest.createFunction(
       event.data;
 
     const context = await step.run("load-processing-context", async () => {
-      return findUploadedFileProcessingContext(uploadedFileId, attempt);
+      return findCurrentProcessingAttemptContext(uploadedFileId, attempt);
     });
 
     if (context?.status !== "queued") {

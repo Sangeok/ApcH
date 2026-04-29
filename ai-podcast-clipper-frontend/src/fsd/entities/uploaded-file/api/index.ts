@@ -3,7 +3,10 @@ import "server-only";
 import type { Prisma } from "generated/prisma";
 import { db } from "~/server/db";
 import { objectExists } from "~/fsd/shared/api/s3";
-import type { ProcessingStatus } from "../model/processing-status";
+import {
+  isProcessingStatus,
+  type ProcessingStatus,
+} from "../model/processing-status";
 import type {
   RecoverableUploadDraftSummary,
   UploadedFileDetail,
@@ -23,22 +26,27 @@ function getClient(tx?: Prisma.TransactionClient): DbClient {
   return tx ?? db;
 }
 
+// Converts DB source state into the public upload lifecycle DTO and validates
+// the string status before exposing it as the domain ProcessingStatus type.
 function toUploadLifecycleState(
   state: Pick<UploadedFileSourceState, "status" | "uploaded" | "currentAttempt">,
 ): UploadLifecycleState {
+  if (!isProcessingStatus(state.status)) {
+    throw new Error(`Invalid uploaded file status: ${state.status}`);
+  }
+
   return {
-    status: state.status as ProcessingStatus,
+    status: state.status,
     uploaded: state.uploaded,
     currentAttempt: state.currentAttempt,
   };
 }
 
-async function findUploadedFileSourceState(
+export async function findUploadedFileSourceState(
   uploadedFileId: string,
   userId: string,
-  options?: { tx?: Prisma.TransactionClient },
-): Promise<UploadedFileSourceState> {
-  return getClient(options?.tx).uploadedFile.findFirstOrThrow({
+) {
+  return db.uploadedFile.findFirstOrThrow({
     where: { id: uploadedFileId, userId },
     select: {
       status: true,
@@ -64,38 +72,32 @@ async function findUploadedFileSourceStateById(
   });
 }
 
+// Converts a DB status into a UI-visible status, rejecting hidden upload drafts.
 function toNonHiddenStatus(status: string): Exclude<ProcessingStatus, "upload_pending"> {
+  if (!isProcessingStatus(status)) {
+    throw new Error(`Invalid uploaded file status: ${status}`);
+  }
+
   if (status === "upload_pending") {
-    throw new HiddenUploadDraftError();
+    throw new Error("Hidden upload draft cannot be exposed");
   }
 
-  return status as Exclude<ProcessingStatus, "upload_pending">;
+  return status;
 }
 
-export class HiddenUploadDraftError extends Error {
-  constructor() {
-    super("Hidden upload draft");
-    this.name = "HiddenUploadDraftError";
-  }
-}
-
-export async function createUploadedFile(
-  data: {
-    userId: string;
-    s3Key: string;
-    displayName: string | null;
-    language: string;
-    targetClipCount: number;
-  },
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.create({
+// Creates a pending upload draft used to track and recover a direct S3 upload.
+export async function createUploadDraft(data: {
+  userId: string;
+  s3Key: string;
+  displayName: string | null;
+  language: string;
+  targetClipCount: number;
+}) {
+  return db.uploadedFile.create({
     data: {
       ...data,
       uploaded: false,
       status: "upload_pending",
-      currentAttempt: 0,
-      lastSuccessfulAttempt: 0,
     },
     select: { id: true },
   });
@@ -193,7 +195,7 @@ export async function listRecoverableUploadDraftsByUserId(
 export async function getUploadedFileDetailsById(
   uploadedFileId: string,
   userId: string,
-): Promise<UploadedFileDetail> {
+): Promise<UploadedFileDetail | null> {
   const file = await db.uploadedFile.findFirstOrThrow({
     where: { id: uploadedFileId, userId },
     select: {
@@ -214,7 +216,7 @@ export async function getUploadedFileDetailsById(
   });
 
   if (file.status === "upload_pending") {
-    throw new HiddenUploadDraftError();
+    return null;
   }
 
   const clips =
@@ -247,13 +249,6 @@ export async function findUploadedFileS3Key(
   });
 }
 
-export async function getUploadedFileProcessingRequestState(
-  uploadedFileId: string,
-  userId: string,
-) {
-  return findUploadedFileSourceState(uploadedFileId, userId);
-}
-
 export async function findUploadedFileForDeletion(
   uploadedFileId: string,
   userId: string,
@@ -269,6 +264,7 @@ export async function findUploadedFileForDeletion(
   });
 }
 
+// Loads the current user's uploaded file state needed before scheduling processing.
 export async function findUploadedFileForProcessRequest(
   uploadedFileId: string,
   userId: string,
@@ -288,26 +284,8 @@ export async function findUploadedFileForProcessRequest(
   });
 }
 
-export async function findUploadedFileForReprocess(
-  uploadedFileId: string,
-  userId: string,
-) {
-  return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      id: true,
-      userId: true,
-      status: true,
-      uploaded: true,
-      s3Key: true,
-      language: true,
-      currentAttempt: true,
-      targetClipCount: true,
-    },
-  });
-}
-
-export async function findUploadedFileProcessingContext(
+// Loads the DB-backed context for a processing worker, only for the current attempt.
+export async function findCurrentProcessingAttemptContext(
   uploadedFileId: string,
   attempt: number,
 ) {
@@ -319,10 +297,7 @@ export async function findUploadedFileProcessingContext(
     select: {
       userId: true,
       s3Key: true,
-      language: true,
       status: true,
-      processingStartedAt: true,
-      targetClipCount: true,
       user: {
         select: {
           credits: true,
@@ -332,62 +307,7 @@ export async function findUploadedFileProcessingContext(
   });
 }
 
-async function confirmUploadedFileSourceUnchecked(
-  uploadedFileId: string,
-  userId: string,
-  options?: { tx?: Prisma.TransactionClient; now?: Date },
-): Promise<UploadLifecycleState> {
-  const now = options?.now ?? new Date();
-  const client = getClient(options?.tx);
-
-  await client.uploadedFile.updateMany({
-    where: {
-      id: uploadedFileId,
-      userId,
-      status: "upload_pending",
-      uploaded: false,
-    },
-    data: {
-      uploaded: true,
-      sourceUploadedAt: now,
-    },
-  });
-
-  const state = await client.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      status: true,
-      uploaded: true,
-      currentAttempt: true,
-    },
-  });
-
-  return {
-    status: state.status as ProcessingStatus,
-    uploaded: state.uploaded,
-    currentAttempt: state.currentAttempt,
-  };
-}
-
-async function confirmUploadedFileSourceByIdUnchecked(
-  uploadedFileId: string,
-  options?: { tx?: Prisma.TransactionClient; now?: Date },
-) {
-  const now = options?.now ?? new Date();
-
-  return getClient(options?.tx).uploadedFile.updateMany({
-    where: {
-      id: uploadedFileId,
-      status: "upload_pending",
-      uploaded: false,
-    },
-    data: {
-      uploaded: true,
-      sourceUploadedAt: now,
-    },
-  });
-}
-
+// Verifies the source object exists in S3 and marks the upload as uploaded.
 export async function confirmUploadedFileSourceIfObjectExists(
   uploadedFileId: string,
   userId: string,
@@ -411,10 +331,35 @@ export async function confirmUploadedFileSourceIfObjectExists(
     };
   }
 
-  const confirmedState = await confirmUploadedFileSourceUnchecked(
-    uploadedFileId,
-    userId,
-  );
+  const confirmedState = await db.$transaction(async (tx) => {
+    const result = await tx.uploadedFile.updateMany({
+      where: {
+        id: uploadedFileId,
+        userId,
+        status: "upload_pending",
+        uploaded: false,
+      },
+      data: {
+        uploaded: true,
+        sourceUploadedAt: new Date(),
+      },
+    });
+
+    const state = await tx.uploadedFile.findFirstOrThrow({
+      where: { id: uploadedFileId, userId },
+      select: {
+        status: true,
+        uploaded: true,
+        currentAttempt: true,
+      },
+    });
+
+    if (result.count !== 1 && !state.uploaded) {
+      throw new Error("Uploaded file source could not be confirmed");
+    }
+
+    return toUploadLifecycleState(state);
+  });
 
   if (!confirmedState.uploaded) {
     throw new Error("Uploaded file source could not be confirmed");
@@ -426,6 +371,9 @@ export async function confirmUploadedFileSourceIfObjectExists(
   };
 }
 
+// Background sweep helper that confirms raw upload drafts by id when their S3
+// object exists. Re-reads after a missed update so stale cleanup avoids deleting
+// drafts that were concurrently confirmed or removed.
 export async function confirmUploadedFileSourceByIdIfObjectExists(
   uploadedFileId: string,
 ): Promise<
@@ -448,7 +396,17 @@ export async function confirmUploadedFileSourceByIdIfObjectExists(
     return { status: "missing_object" };
   }
 
-  const result = await confirmUploadedFileSourceByIdUnchecked(uploadedFileId);
+  const result = await db.uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      status: "upload_pending",
+      uploaded: false,
+    },
+    data: {
+      uploaded: true,
+      sourceUploadedAt: new Date(),
+    },
+  });
 
   if (result.count === 1) {
     return { status: "confirmed", confirmedNow: true };
@@ -467,6 +425,8 @@ export async function confirmUploadedFileSourceByIdIfObjectExists(
   return { status: "skipped" };
 }
 
+// Marks a processing attempt as queued after its dispatch row has successfully
+// sent the Inngest processing event.
 export async function markUploadedFileQueuedFromDispatch(
   uploadedFileId: string,
   attempt: number,
@@ -647,6 +607,8 @@ export async function findStaleProcessingUploadedFiles(staleBefore: Date) {
   });
 }
 
+// Finds upload drafts that are not DB-confirmed yet but may already have their
+// source object in S3, so the background sweep can verify and recover them.
 export async function findRawUploadDraftsForPromotion(limit = 50) {
   return db.uploadedFile.findMany({
     where: {
@@ -664,6 +626,8 @@ export async function findRawUploadDraftsForPromotion(limit = 50) {
   });
 }
 
+// Finds old unconfirmed upload drafts that are candidates for cleanup after a
+// final S3 existence check.
 export async function findStaleRawUploadDrafts(staleBefore: Date, limit = 50) {
   return db.uploadedFile.findMany({
     where: {
@@ -711,9 +675,8 @@ export async function findStaleRecoverableUploadDrafts(
 export async function deleteUploadedFileRecord(
   uploadedFileId: string,
   userId: string,
-  options?: { tx?: Prisma.TransactionClient },
 ) {
-  const result = await getClient(options?.tx).uploadedFile.deleteMany({
+  const result = await db.uploadedFile.deleteMany({
     where: { id: uploadedFileId, userId },
   });
 
@@ -724,11 +687,8 @@ export async function deleteUploadedFileRecord(
   return result;
 }
 
-export async function deleteUploadedFileRecordById(
-  uploadedFileId: string,
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.delete({
+export async function deleteUploadedFileRecordById(uploadedFileId: string) {
+  return db.uploadedFile.delete({
     where: { id: uploadedFileId },
   });
 }

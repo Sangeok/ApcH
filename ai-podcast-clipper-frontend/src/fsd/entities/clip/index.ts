@@ -1,5 +1,5 @@
 export {
-  countClipsByUploadedFileAttemptS3Keys,
+  countClipsForAttemptS3Keys,
   createClipsBulk,
   deleteClipRecord,
   findClipById,

@@ -1,19 +1,17 @@
 export {
-  HiddenUploadDraftError,
   confirmUploadedFileSourceByIdIfObjectExists,
   confirmUploadedFileSourceIfObjectExists,
-  createUploadedFile,
+  createUploadDraft,
   deleteUploadedFileRecordById,
   deleteUploadedFileRecord,
   findRawUploadDraftsForPromotion,
   findStaleProcessingUploadedFiles,
   findStaleRawUploadDrafts,
   findStaleRecoverableUploadDrafts,
+  findUploadedFileSourceState,
   findUploadedFileForDeletion,
   findUploadedFileForProcessRequest,
-  findUploadedFileForReprocess,
-  getUploadedFileProcessingRequestState,
-  findUploadedFileProcessingContext,
+  findCurrentProcessingAttemptContext,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
   listRecoverableUploadDraftsByUserId,
@@ -35,6 +33,7 @@ export {
 export {
   ACTIVE_PROCESSING_STATUSES,
   isActiveProcessingStatus,
+  isProcessingStatus,
 } from "./model/processing-status";
 export type { ProcessingStatus } from "./model/processing-status";
 export type {

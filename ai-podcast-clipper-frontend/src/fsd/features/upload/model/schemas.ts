@@ -9,7 +9,7 @@ const SUPPORTED_LANGUAGE_VALUES = SUPPORTED_LANGUAGES.map((option) => option.val
 const SUPPORTED_CLIP_COUNT_SET = new Set<number>(SUPPORTED_CLIP_COUNTS);
 const SUPPORTED_LANGUAGE_SET = new Set<string>(SUPPORTED_LANGUAGE_VALUES);
 
-export const generateUploadUrlSchema = z.object({
+export const prepareUploadSchema = z.object({
   fileName: z.string().min(1, "File name is required"),
   contentType: z.string().min(1, "Content type is required"),
   language: z.string().refine(
@@ -22,7 +22,7 @@ export const generateUploadUrlSchema = z.object({
   ),
 });
 
-export const requestProcessingAttemptSchema = z.object({
+export const scheduleUploadedFileProcessingSchema = z.object({
   uploadedFileId: z.string().cuid(),
 });
 
