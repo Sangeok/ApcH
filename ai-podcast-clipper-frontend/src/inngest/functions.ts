@@ -1,7 +1,7 @@
 import type { Prisma } from "generated/prisma";
 import { env } from "~/env";
 import {
-  countClipsByUploadedFileAttemptS3Keys,
+  countClipsForAttemptS3Keys,
   createClipsBulk,
   updateClipMetadataFromBackendClips,
 } from "~/fsd/entities/clip";
@@ -243,7 +243,7 @@ async function persistGeneratedClips(args: {
     });
   }
 
-  const dbClipCount = await countClipsByUploadedFileAttemptS3Keys(
+  const dbClipCount = await countClipsForAttemptS3Keys(
     uploadedFileId,
     attempt,
     cappedClipKeys,
