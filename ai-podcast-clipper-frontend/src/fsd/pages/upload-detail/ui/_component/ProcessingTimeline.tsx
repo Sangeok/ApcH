@@ -90,6 +90,8 @@ function getFailureLabel(failureCode: string | null): string | null {
       return "Dispatch retries exhausted";
     case "worker_timeout":
       return "Worker timed out";
+    case "queued_worker_not_started":
+      return "Worker did not start";
     case "backend_failed":
       return "Backend processing failed";
     case "no_clips_generated":

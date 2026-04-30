@@ -5,7 +5,12 @@ import {
   createClipsBulk,
   updateClipMetadataFromBackendClips,
 } from "~/fsd/entities/clip";
-import { dispatchPendingProcessingRequests } from "~/fsd/entities/processing-dispatch";
+import {
+  dispatchPendingProcessingRequests,
+  findStaleQueuedSentProcessingDispatches,
+  markProcessingDispatchRetryableNow,
+  markStaleQueuedDispatchDeadLetter,
+} from "~/fsd/entities/processing-dispatch";
 import {
   confirmUploadedFileSourceByIdIfObjectExists,
   deleteUploadedFileRecordById,
@@ -14,6 +19,7 @@ import {
   findStaleRawUploadDrafts,
   findStaleRecoverableUploadDrafts,
   findCurrentProcessingAttemptContext,
+  hasProcessingUploadForUser,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptProcessed,
@@ -30,6 +36,9 @@ import { inngest } from "./client";
 const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
 const MODAL_METADATA_GRACE_INTERVAL = "2m";
+const STALE_QUEUED_DISPATCH_INTERVAL_MS = 15 * 60 * 1000;
+const STALE_QUEUED_DISPATCH_DEAD_LETTER_MS = 2 * 60 * 60 * 1000;
+const STALE_QUEUED_MAX_DISPATCH_COUNT = 10;
 
 type ProcessVideoBackendClip = {
   index: number;
@@ -347,6 +356,59 @@ async function recoverStaleProcessingAttempts(): Promise<number> {
     );
 
     recovered += result.count;
+  }
+
+  return recovered;
+}
+
+async function recoverStaleQueuedDispatches(): Promise<number> {
+  const now = new Date();
+  const staleBefore = new Date(
+    now.getTime() - STALE_QUEUED_DISPATCH_INTERVAL_MS,
+  );
+  const dispatches = await findStaleQueuedSentProcessingDispatches(staleBefore);
+  let recovered = 0;
+
+  for (const dispatch of dispatches) {
+    try {
+      const userHasProcessingUpload = await hasProcessingUploadForUser(
+        dispatch.uploadedFile.userId,
+      );
+
+      if (userHasProcessingUpload) {
+        continue;
+      }
+
+      const shouldDeadLetter =
+        dispatch.dispatchCount >= STALE_QUEUED_MAX_DISPATCH_COUNT ||
+        now.getTime() - dispatch.createdAt.getTime() >=
+          STALE_QUEUED_DISPATCH_DEAD_LETTER_MS;
+
+      const result = shouldDeadLetter
+        ? await markStaleQueuedDispatchDeadLetter({
+            dispatchId: dispatch.id,
+            uploadedFileId: dispatch.uploadedFile.id,
+            attempt: dispatch.attempt,
+            errorMessage: "queued_worker_not_started",
+            now,
+          })
+        : await markProcessingDispatchRetryableNow({
+            dispatchId: dispatch.id,
+            uploadedFileId: dispatch.uploadedFile.id,
+            attempt: dispatch.attempt,
+            errorMessage: "queued_worker_not_started",
+            now,
+          });
+
+      recovered += result.count;
+    } catch (error) {
+      console.error("Failed to recover stale queued dispatch", {
+        dispatchId: dispatch.id,
+        uploadedFileId: dispatch.uploadedFile.id,
+        attempt: dispatch.attempt,
+        error,
+      });
+    }
   }
 
   return recovered;
@@ -683,8 +745,12 @@ export const staleProcessingSweep = inngest.createFunction(
   { id: "stale-processing-sweep" },
   { cron: "*/15 * * * *" },
   async () => {
+    const processingRecovered = await recoverStaleProcessingAttempts();
+    const queuedRecovered = await recoverStaleQueuedDispatches();
+
     return {
-      recovered: await recoverStaleProcessingAttempts(),
+      processingRecovered,
+      queuedRecovered,
     };
   },
 );

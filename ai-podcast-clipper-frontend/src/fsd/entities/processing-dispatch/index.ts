@@ -1,2 +1,9 @@
-export { createProcessingDispatch, dispatchPendingProcessingRequests } from "./api";
+export {
+  createProcessingDispatch,
+  dispatchPendingProcessingRequests,
+  findStaleQueuedSentProcessingDispatches,
+  markProcessingDispatchRetryableNow,
+  markStaleQueuedDispatchDeadLetter,
+} from "./api";
+export type { StaleQueuedSentProcessingDispatch } from "./api";
 export type { ProcessingDispatchStatus } from "./model/types";

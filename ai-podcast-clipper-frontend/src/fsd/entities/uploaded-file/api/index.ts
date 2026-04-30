@@ -21,6 +21,15 @@ type UploadedFileSourceState = {
   currentAttempt: number;
   s3Key: string;
 };
+type EnsureUploadedFileQueuedForDispatchResult =
+  | { status: "queued" }
+  | { status: "already_advanced"; currentStatus: ProcessingStatus }
+  | { status: "not_found" }
+  | {
+      status: "not_queueable";
+      currentStatus: string;
+      uploaded: boolean;
+    };
 
 function getClient(tx?: Prisma.TransactionClient): DbClient {
   return tx ?? db;
@@ -447,6 +456,69 @@ export async function markUploadedFileQueuedFromDispatch(
   });
 }
 
+export async function ensureUploadedFileQueuedForDispatch(
+  uploadedFileId: string,
+  attempt: number,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+): Promise<EnsureUploadedFileQueuedForDispatchResult> {
+  const now = options?.now ?? new Date();
+  const client = getClient(options?.tx);
+
+  const queued = await client.uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: "pending_enqueue",
+      uploaded: true,
+    },
+    data: {
+      status: "queued",
+      queuedAt: now,
+    },
+  });
+
+  if (queued.count === 1) {
+    return { status: "queued" };
+  }
+
+  const current = await client.uploadedFile.findFirst({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+    },
+    select: {
+      status: true,
+      uploaded: true,
+    },
+  });
+
+  if (!current) {
+    return { status: "not_found" };
+  }
+
+  if (current.status === "queued" && current.uploaded) {
+    return { status: "queued" };
+  }
+
+  if (
+    current.status === "processing" ||
+    current.status === "processed" ||
+    current.status === "failed" ||
+    current.status === "no credits"
+  ) {
+    return {
+      status: "already_advanced",
+      currentStatus: current.status,
+    };
+  }
+
+  return {
+    status: "not_queueable",
+    currentStatus: current.status,
+    uploaded: current.uploaded,
+  };
+}
+
 export async function startUploadedFileProcessingAttempt(
   uploadedFileId: string,
   attempt: number,
@@ -605,6 +677,17 @@ export async function findStaleProcessingUploadedFiles(staleBefore: Date) {
       currentAttempt: true,
     },
   });
+}
+
+export async function hasProcessingUploadForUser(userId: string): Promise<boolean> {
+  const count = await db.uploadedFile.count({
+    where: {
+      userId,
+      status: "processing",
+    },
+  });
+
+  return count > 0;
 }
 
 // Finds upload drafts that are not DB-confirmed yet but may already have their
