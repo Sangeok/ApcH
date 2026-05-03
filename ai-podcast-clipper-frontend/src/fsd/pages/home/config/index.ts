@@ -14,7 +14,7 @@ export const heroHighlights: HeroHighlight[] = [
   {
     label: "Automatic clip count",
     value: "Up to 2 per run",
-    footnote: "Gemini maps the top Q&A pairs with 40??0s durations.",
+    footnote: "Gemini maps the top Q&A pairs with 40-60s durations.",
   },
   {
     label: "Caption languages",
@@ -32,7 +32,7 @@ export const coreFeatures: FeatureCard[] = [
   {
     title: "AI Q&A Clipping",
     description:
-      "Gemini 2.5 scans word-level timestamps and plans 40??0 second question-and-answer clips automatically.",
+      "Gemini 2.5 scans word-level timestamps and plans 40-60 second question-and-answer clips automatically.",
     icon: Sparkles,
     badge: "LLM planning",
     footnote: "Keeps full sentence boundaries so playback never feels abrupt.",
@@ -48,7 +48,7 @@ export const coreFeatures: FeatureCard[] = [
   {
     title: "Auto Vertical Framing",
     description:
-      "Columbia face tracks steer 1080횞1920 crops or blurred backgrounds, rendered via NVENC at 25 fps.",
+      "Columbia face tracks steer 1080x1920 crops or blurred backgrounds, rendered via NVENC at 25 fps.",
     icon: Scissors,
     badge: "Face-aware",
     footnote: "Chooses crop vs. resize per frame for the best composition.",
@@ -73,7 +73,7 @@ export const coreFeatures: FeatureCard[] = [
   {
     title: "Dashboard Review Loop",
     description:
-      "Upload, request processing, review the clip list, play or download, and delete?봞ll from a single view.",
+      "Upload, request processing, review the clip list, play, download, and delete clips from a single view.",
     icon: Layers,
     badge: "Dashboard",
     footnote: "Next.js UI stays in sync with the database in real time.",

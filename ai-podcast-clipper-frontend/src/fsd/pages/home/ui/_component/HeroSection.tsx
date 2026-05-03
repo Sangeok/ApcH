@@ -10,11 +10,11 @@ export default function HeroSection() {
       <div className="space-y-8">
         <Badge className="border-primary/30 bg-primary/5 text-primary w-fit gap-2 border">
           <Sparkles className="size-3.5" />
-          Creator-first automation · Nov 2025
+          Creator-first automation - Nov 2025
         </Badge>
         <div className="space-y-6">
           <h1 className="text-foreground text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
-            Clip the signal, skip the grind.
+            AI Podcast Clipper for YouTube Shorts
           </h1>
           <p className="text-muted-foreground max-w-2xl text-lg">
             Podcast Clipper finds the high-converting moments inside every
