@@ -6,7 +6,7 @@ import { SITE_NAME, absoluteSiteUrl } from "~/fsd/shared/lib/site";
 import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
-  title: "Turn Your Podcast into Short-Form Clips with AI",
+  title: "AI Podcast Clipper for YouTube Shorts",
   description:
     "Upload your podcast video and AI finds the best Q&A highlights, adds captions, and exports vertical short-form clips. Powered by Gemini 2.5 + WhisperX. English & Korean subtitles supported.",
   alternates: {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     alternateLocale: "ko_KR",
     siteName: SITE_NAME,
-    title: "AI Podcast Clipper",
+    title: "AI Podcast Clipper for YouTube Shorts",
     description:
       "AI automatically detects podcast highlights and creates captioned vertical clips in minutes.",
     url: absoluteSiteUrl("/"),

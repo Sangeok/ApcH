@@ -1,7 +1,7 @@
 const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 const baseSiteUrl =
   configuredSiteUrl === undefined || configuredSiteUrl === ""
-    ? "https://apc-h.vercel.app"
+    ? "https://a-pch.com"
     : configuredSiteUrl;
 
 export const SITE_URL = baseSiteUrl.replace(/\/+$/, "");
