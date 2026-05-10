@@ -62,7 +62,7 @@ export function PlanCard({
         </div>
         <ul className="text-muted-foreground space-y-2 text-sm">
           <li>{plan.monthlyCredits} credits / month</li>
-          {tier === "pro" && <li>Priority processing</li>}
+          {tier === "pro" && <li>Monthly and yearly checkout options</li>}
         </ul>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">

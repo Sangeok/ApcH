@@ -18,7 +18,7 @@ export const heroHighlights: HeroHighlight[] = [
   },
   {
     label: "Caption languages",
-    value: "English & Korean",
+    value: "English or Korean",
     footnote: "WhisperX transcripts plus Gemini-powered translation.",
   },
   {
@@ -54,11 +54,11 @@ export const coreFeatures: FeatureCard[] = [
     footnote: "Chooses crop vs. resize per frame for the best composition.",
   },
   {
-    title: "English & Korean Captions",
+    title: "English or Korean Captions",
     description:
-      "English captions come from WhisperX, Korean captions from Gemini translation, each exported as its own clip.",
+      "Choose English or Korean before a processing run. English captions come from WhisperX; Korean captions come from Gemini translation.",
     icon: Languages,
-    badge: "Dual captions",
+    badge: "Caption language",
     footnote:
       "Ships with Anton and Noto Sans KR styles plus immediate S3 uploads.",
   },

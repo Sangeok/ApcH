@@ -24,13 +24,13 @@ export default function HeroSection() {
         </div>
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="gap-2">
-            <Link href="/dashboard">
+            <Link href="/login">
               Create a free workspace
               <ArrowRight className="size-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href="/dashboard">See product tour</Link>
+            <Link href="/product-tour">See product tour</Link>
           </Button>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
