@@ -1,22 +1,7 @@
-export const PLAN_TIERS = {
-  free: {
-    name: "Free",
-    monthlyCredits: 3,
-    description: "Basic plan",
-    price: "$0",
-    yearlyPrice: null,
-  },
-  pro: {
-    name: "Pro",
-    monthlyCredits: 30,
-    description: "For individual creators",
-    price: "$9.99",
-    yearlyPrice: "$99.99/yr",
-  },
-} as const;
+export { PLAN_TIERS, type PlanTier } from "./plan-tiers";
 
-export type PlanTier = keyof typeof PLAN_TIERS;
-export type ProductIds = (typeof POLAR_PRODUCT_IDS)[keyof typeof POLAR_PRODUCT_IDS];
+export type ProductIds =
+  (typeof POLAR_PRODUCT_IDS)[keyof typeof POLAR_PRODUCT_IDS];
 
 export const POLAR_PRODUCT_IDS = {
   sandbox: {

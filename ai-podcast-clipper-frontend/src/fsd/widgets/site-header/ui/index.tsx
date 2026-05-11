@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
+import { PUBLIC_NAV_ITEMS } from "../config/public-nav";
 
 interface SiteHeaderProps {
   isLoggedIn: boolean;
@@ -19,15 +20,32 @@ interface SiteHeaderProps {
   image?: string | null;
 }
 
-export default function SiteHeader({ isLoggedIn, email, image }: SiteHeaderProps) {
+export default function SiteHeader({
+  isLoggedIn,
+  email,
+  image,
+}: SiteHeaderProps) {
   return (
-    <header className="flex items-center justify-between gap-4 py-6">
+    <header className="flex flex-wrap items-center justify-between gap-4 py-6">
       <Link
         href="/"
         className="text-foreground text-lg font-semibold tracking-tight"
       >
         AI Podcast Clipper
       </Link>
+
+      <nav className="text-muted-foreground order-3 flex w-full flex-wrap items-center gap-x-6 gap-y-2 text-sm md:order-none md:w-auto">
+        {PUBLIC_NAV_ITEMS.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="hover:text-foreground underline-offset-4 hover:underline"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
       <div className="flex items-center gap-2">
         {!isLoggedIn && (
           <Button variant="outline" asChild>

@@ -5,6 +5,11 @@ import {
   absoluteSiteUrl,
 } from "~/fsd/shared/lib/site";
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 /**
  * WebApplication JSON-LD for the landing page.
  * @see https://schema.org/WebApplication
@@ -29,10 +34,29 @@ export function generateWebApplicationJsonLd() {
       "AI Q&A-Based Auto Clipping",
       "WhisperX Word-Level Subtitles",
       "Auto Vertical Framing",
-      "English & Korean Dual Subtitles",
+      "English or Korean Captions",
       "AWS S3 Secure Storage",
       "Dashboard Review Loop",
     ],
     screenshot: absoluteSiteUrl(OG_IMAGE_PATH),
+  };
+}
+
+/**
+ * FAQPage JSON-LD. Output ONLY when the same Q/A is rendered on the page.
+ * @see https://schema.org/FAQPage
+ */
+export function generateFaqJsonLd(items: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
   };
 }

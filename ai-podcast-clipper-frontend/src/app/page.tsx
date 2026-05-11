@@ -8,14 +8,13 @@ import { auth } from "~/server/auth";
 export const metadata: Metadata = {
   title: "AI Podcast Clipper for YouTube Shorts",
   description:
-    "Upload your podcast video and AI finds the best Q&A highlights, adds captions, and exports vertical short-form clips. Powered by Gemini 2.5 + WhisperX. English & Korean subtitles supported.",
+    "Upload your podcast video and AI finds the best Q&A highlights, adds captions, and exports vertical short-form clips. Powered by Gemini 2.5 + WhisperX. English or Korean captions are selected per processing run.",
   alternates: {
     canonical: absoluteSiteUrl("/"),
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    alternateLocale: "ko_KR",
     siteName: SITE_NAME,
     title: "AI Podcast Clipper for YouTube Shorts",
     description:
