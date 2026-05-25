@@ -7,6 +7,7 @@ import { db } from "~/server/db";
 import {
   createProcessingDispatch,
   dispatchPendingProcessingRequests,
+  dispatchProcessingRequestById,
 } from "~/fsd/entities/processing-dispatch";
 import {
   confirmUploadedFileSourceIfObjectExists,
@@ -19,7 +20,11 @@ import {
   getUploadedFilePrefix,
   isActiveProcessingStatus,
   isProcessingStatus,
+  listActiveUploadedFileQueueStateByUserId,
+  listUploadedFileSummariesByUserId,
+  type ActiveUploadedFileQueueState,
   type ProcessingStatus,
+  type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
 import {
   deleteS3Object,
@@ -38,9 +43,19 @@ import {
   scheduleUploadedFileProcessingSchema,
 } from "../model/schemas";
 
-async function nudgeProcessingDispatch(): Promise<void> {
+async function nudgeProcessingDispatch(
+  dispatchId: string | null = null,
+): Promise<void> {
   try {
-    await dispatchPendingProcessingRequests(1);
+    if (dispatchId) {
+      const dispatched = await dispatchProcessingRequestById(dispatchId);
+
+      if (dispatched) {
+        return;
+      }
+    }
+
+    await dispatchPendingProcessingRequests(5);
   } catch (error) {
     console.error("Best-effort processing dispatch nudge failed", error);
   }
@@ -66,6 +81,8 @@ async function scheduleProcessingAttempt(
   userId: string,
   allowedStatuses: readonly ProcessingStatus[],
 ): Promise<ActionResult<void>> {
+  let dispatchId: string;
+
   try {
     const now = new Date();
     const scheduled = await db.$transaction(async (tx) => {
@@ -131,7 +148,7 @@ async function scheduleProcessingAttempt(
         return failure("Processing has already been requested");
       }
 
-      await createProcessingDispatch(
+      const dispatch = await createProcessingDispatch(
         {
           uploadedFileId,
           attempt: nextAttempt,
@@ -139,12 +156,14 @@ async function scheduleProcessingAttempt(
         { tx, now },
       );
 
-      return success();
+      return success({ dispatchId: dispatch.id });
     });
 
     if (!scheduled.success) {
       return scheduled;
     }
+
+    dispatchId = scheduled.data.dispatchId;
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -157,7 +176,7 @@ async function scheduleProcessingAttempt(
     return failure("Failed to schedule processing");
   }
 
-  await nudgeProcessingDispatch();
+  await nudgeProcessingDispatch(dispatchId);
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
 
@@ -335,6 +354,28 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
   }
 
   return getUploadedFileDetailsById(uploadedFileId, session.user.id);
+}
+
+export async function listCurrentUserUploadedFileSummaries(): Promise<
+  UploadedFileSummary[]
+> {
+  const authResult = await requireAuth();
+  if (!authResult.success) {
+    throw new Error(authResult.error);
+  }
+
+  return listUploadedFileSummariesByUserId(authResult.data.userId);
+}
+
+export async function listCurrentUserActiveUploadedFileQueueState(): Promise<
+  ActiveUploadedFileQueueState
+> {
+  const authResult = await requireAuth();
+  if (!authResult.success) {
+    throw new Error(authResult.error);
+  }
+
+  return listActiveUploadedFileQueueStateByUserId(authResult.data.userId);
 }
 
 // Generate a short-lived S3 URL for playing the current user's uploaded source file.

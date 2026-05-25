@@ -1,10 +1,13 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
 import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
 import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
+import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file/model/types";
 import type { ActionResult } from "~/fsd/shared/api/result";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -21,7 +24,7 @@ type RunOptions = {
   action: () => Promise<ActionResult<void>>;
   successMessage: string;
   confirmationMessage?: string;
-  onSuccess?: () => void;
+  onSuccess?: () => void | Promise<void>;
   startTransition: ReturnType<typeof useTransition>[1];
 };
 
@@ -45,7 +48,7 @@ const runAction = ({
     }
 
     toast.success(successMessage);
-    onSuccess?.();
+    await onSuccess?.();
   });
 };
 
@@ -59,6 +62,7 @@ export default function UploadedFileActions({
   status,
 }: UploadedFileActionsProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const reprocessMutation = useReprocessUploadedFile(uploadedFileId);
   const [isDeleting, startDeleteTransition] = useTransition();
   const isActive = isActiveProcessingStatus(status);
@@ -81,7 +85,22 @@ export default function UploadedFileActions({
       successMessage: "Original file and clips deleted",
       confirmationMessage:
         "Are you sure you want to delete the file and all associated clips?",
-      onSuccess: () => router.push("/dashboard"),
+      onSuccess: async () => {
+        queryClient.setQueriesData<UploadedFileSummary[]>(
+          {
+            queryKey: uploadedFileKeys.lists(),
+            predicate: (query) => Array.isArray(query.state.data),
+          },
+          (old) => old?.filter((file) => file.id !== uploadedFileId),
+        );
+        queryClient.removeQueries({
+          queryKey: uploadedFileKeys.detail(uploadedFileId),
+        });
+        await queryClient.invalidateQueries({
+          queryKey: uploadedFileKeys.lists(),
+        });
+        router.push("/dashboard");
+      },
       startTransition: startDeleteTransition,
     });
   };

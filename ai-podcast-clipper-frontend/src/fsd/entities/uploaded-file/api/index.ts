@@ -4,10 +4,12 @@ import type { Prisma } from "generated/prisma";
 import { db } from "~/server/db";
 import { objectExists } from "~/fsd/shared/api/s3";
 import {
+  ACTIVE_PROCESSING_STATUSES,
   isProcessingStatus,
   type ProcessingStatus,
 } from "../model/processing-status";
 import type {
+  ActiveUploadedFileQueueState,
   RecoverableUploadDraftSummary,
   UploadedFileDetail,
   UploadedFileSummary,
@@ -167,6 +169,86 @@ export async function listUploadedFileSummariesByUserId(
         ? (countsByAttempt.get(`${file.id}:${file.lastSuccessfulAttempt}`) ?? 0)
         : 0,
   }));
+}
+
+export async function listActiveUploadedFileQueueStateByUserId(
+  userId: string,
+  queueLimit = 25,
+): Promise<ActiveUploadedFileQueueState> {
+  const [activeIdRows, queueFiles] = await Promise.all([
+    db.uploadedFile.findMany({
+      where: {
+        userId,
+        status: {
+          in: [...ACTIVE_PROCESSING_STATUSES],
+        },
+      },
+      select: {
+        id: true,
+      },
+    }),
+    db.uploadedFile.findMany({
+      where: {
+        userId,
+        status: {
+          in: [...ACTIVE_PROCESSING_STATUSES],
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: queueLimit,
+      select: {
+        id: true,
+        displayName: true,
+        status: true,
+        createdAt: true,
+        lastSuccessfulAttempt: true,
+      },
+    }),
+  ]);
+
+  const activeUploadedFileIds = activeIdRows.map((file) => file.id);
+  const activeAttemptPairs = queueFiles
+    .filter((file) => file.lastSuccessfulAttempt > 0)
+    .map((file) => ({
+      uploadedFileId: file.id,
+      processingAttempt: file.lastSuccessfulAttempt,
+    }));
+
+  const groupedCounts =
+    activeAttemptPairs.length > 0
+      ? await db.clip.groupBy({
+          by: ["uploadedFileId", "processingAttempt"],
+          where: {
+            OR: activeAttemptPairs,
+          },
+          _count: {
+            _all: true,
+          },
+        })
+      : [];
+
+  const countsByAttempt = new Map(
+    groupedCounts.map((group) => [
+      `${group.uploadedFileId ?? ""}:${group.processingAttempt}`,
+      group._count._all,
+    ]),
+  );
+
+  return {
+    activeUploadedFileIds,
+    queueFiles: queueFiles.map((file) => ({
+      id: file.id,
+      fileName: file.displayName ?? "Untitled",
+      status: toNonHiddenStatus(file.status),
+      createdAt: file.createdAt,
+      visibleClipsCount:
+        file.lastSuccessfulAttempt > 0
+          ? (countsByAttempt.get(`${file.id}:${file.lastSuccessfulAttempt}`) ?? 0)
+          : 0,
+    })),
+  };
 }
 
 export async function listRecoverableUploadDraftsByUserId(
@@ -664,7 +746,10 @@ export async function setUploadedFileUploaded(
   });
 }
 
-export async function findStaleProcessingUploadedFiles(staleBefore: Date) {
+export async function findStaleProcessingUploadedFiles(
+  staleBefore: Date,
+  limit = 25,
+) {
   return db.uploadedFile.findMany({
     where: {
       status: "processing",
@@ -672,6 +757,10 @@ export async function findStaleProcessingUploadedFiles(staleBefore: Date) {
         lt: staleBefore,
       },
     },
+    orderBy: {
+      processingStartedAt: "asc",
+    },
+    take: limit,
     select: {
       id: true,
       currentAttempt: true,

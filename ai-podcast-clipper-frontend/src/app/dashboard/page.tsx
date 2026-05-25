@@ -22,6 +22,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardView
+      userId={session.user.id}
       uploadedFiles={uploadedFiles}
       recoverableDrafts={recoverableDrafts}
     />

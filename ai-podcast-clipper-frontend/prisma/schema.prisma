@@ -84,6 +84,12 @@ model UploadedFile {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@index([s3Key])
+    @@index([status, processingStartedAt])
+    @@index([status, uploaded, processingStartedAt, queuedAt])
+    @@index([status, uploaded, createdAt])
+    @@index([status, uploaded, sourceUploadedAt])
+    @@index([userId, status, createdAt])
+    @@index([userId, createdAt])
 }
 
 model Clip {
@@ -129,6 +135,8 @@ model ProcessingDispatch {
 
     @@unique([uploadedFileId, attempt])
     @@index([status, nextRetryAt])
+    @@index([status, createdAt])
+    @@index([status, lockedAt])
 }
 
 model Subscription {

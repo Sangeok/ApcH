@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, RotateCcw, Trash2 } from "lucide-react";
@@ -7,6 +8,7 @@ import {
   deleteUploadedFile,
   scheduleUploadedFileProcessing,
 } from "~/fsd/features/upload/api";
+import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
 import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file/model/types";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -31,6 +33,7 @@ export default function RecoverableUploadDrafts({
   drafts,
 }: RecoverableUploadDraftsProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
 
   if (drafts.length === 0) {
@@ -47,6 +50,9 @@ export default function RecoverableUploadDrafts({
       }
 
       toast.success("Processing resumed");
+      await queryClient.invalidateQueries({
+        queryKey: uploadedFileKeys.lists(),
+      });
       router.refresh();
     });
   };
@@ -61,6 +67,9 @@ export default function RecoverableUploadDrafts({
       }
 
       toast.success("Upload discarded");
+      await queryClient.invalidateQueries({
+        queryKey: uploadedFileKeys.lists(),
+      });
       router.refresh();
     });
   };

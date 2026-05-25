@@ -36,7 +36,7 @@ type StaleQueuedSentProcessingDispatchRow = {
 
 const DISPATCH_BACKOFF_MS = [30_000, 60_000, 120_000, 300_000, 600_000] as const;
 const DISPATCH_STALE_LOCK_MS = 60_000;
-const DISPATCH_DEAD_LETTER_AGE_MS = 15 * 60_000;
+const DISPATCH_DEAD_LETTER_AGE_MS = 60 * 60_000;
 const MAX_DISPATCH_ATTEMPTS = 10;
 
 function getClient(tx?: Prisma.TransactionClient): DbClient {
@@ -54,6 +54,46 @@ function getRetryBackoffMs(dispatchAttempt: number): number {
     DISPATCH_BACKOFF_MS[DISPATCH_BACKOFF_MS.length - 1]!
   );
 }
+
+function getEligibleProcessingDispatchWhere(
+  now: Date,
+  dispatchId?: string,
+): Prisma.ProcessingDispatchWhereInput {
+  const staleBefore = new Date(now.getTime() - DISPATCH_STALE_LOCK_MS);
+
+  return {
+    ...(dispatchId ? { id: dispatchId } : {}),
+    OR: [
+      { status: "pending" },
+      {
+        status: "retryable_failed",
+        OR: [{ nextRetryAt: null }, { nextRetryAt: { lte: now } }],
+      },
+      {
+        status: "sending",
+        lockedAt: { lt: staleBefore },
+      },
+    ],
+  };
+}
+
+const eligibleProcessingDispatchSelect = {
+  id: true,
+  attempt: true,
+  dispatchCount: true,
+  createdAt: true,
+  uploadedFile: {
+    select: {
+      id: true,
+      userId: true,
+      language: true,
+      targetClipCount: true,
+      s3Key: true,
+      currentAttempt: true,
+      uploaded: true,
+    },
+  },
+} satisfies Prisma.ProcessingDispatchSelect;
 
 // Records a durable dispatch request for this processing attempt.                          
 // The dispatcher later sends pending rows to Inngest and can retry failures.  
@@ -79,48 +119,23 @@ export async function createProcessingDispatch(
 }
 
 async function listEligibleProcessingDispatches(limit: number, now: Date) {
-  const staleBefore = new Date(now.getTime() - DISPATCH_STALE_LOCK_MS);
-
   return db.processingDispatch.findMany({
-    where: {
-      OR: [
-        {
-          status: "pending",
-        },
-        {
-          status: "retryable_failed",
-          OR: [
-            { nextRetryAt: null },
-            { nextRetryAt: { lte: now } },
-          ],
-        },
-        {
-          status: "sending",
-          lockedAt: { lt: staleBefore },
-        },
-      ],
-    },
+    where: getEligibleProcessingDispatchWhere(now),
     orderBy: {
       createdAt: "asc",
     },
     take: limit,
-    select: {
-      id: true,
-      attempt: true,
-      dispatchCount: true,
-      createdAt: true,
-      uploadedFile: {
-        select: {
-          id: true,
-          userId: true,
-          language: true,
-          targetClipCount: true,
-          s3Key: true,
-          currentAttempt: true,
-          uploaded: true,
-        },
-      },
-    },
+    select: eligibleProcessingDispatchSelect,
+  });
+}
+
+async function findEligibleProcessingDispatchById(
+  dispatchId: string,
+  now: Date,
+) {
+  return db.processingDispatch.findFirst({
+    where: getEligibleProcessingDispatchWhere(now, dispatchId),
+    select: eligibleProcessingDispatchSelect,
   });
 }
 
@@ -360,94 +375,132 @@ export async function markStaleQueuedDispatchDeadLetter(args: {
   });
 }
 
-export async function dispatchPendingProcessingRequests(limit = 25): Promise<number> {
+type EligibleProcessingDispatch = Awaited<
+  ReturnType<typeof listEligibleProcessingDispatches>
+>[number];
+
+async function processEligibleProcessingDispatch(
+  dispatch: EligibleProcessingDispatch,
+  now: Date,
+): Promise<boolean> {
+  const claimed = await claimProcessingDispatchForSend(dispatch.id, now);
+
+  if (!claimed) {
+    return false;
+  }
+
+  const dispatchAttempt = dispatch.dispatchCount + 1;
+
+  try {
+    if (dispatch.uploadedFile.currentAttempt !== dispatch.attempt) {
+      await markProcessingDispatchDeadLetter(dispatch.id, "stale_attempt");
+      return false;
+    }
+
+    if (!dispatch.uploadedFile.uploaded) {
+      throw new Error("Source upload has not been confirmed");
+    }
+
+    const queueResult = await ensureUploadedFileQueuedForDispatch(
+      dispatch.uploadedFile.id,
+      dispatch.attempt,
+      { now },
+    );
+
+    if (queueResult.status === "already_advanced") {
+      await markProcessingDispatchSent(dispatch.id, { now });
+      return false;
+    }
+
+    if (queueResult.status !== "queued") {
+      throw new Error(
+        `Upload is not queueable for dispatch: ${queueResult.status}`,
+      );
+    }
+
+    await inngest.send({
+      name: "process-video-events",
+      data: {
+        uploadedFileId: dispatch.uploadedFile.id,
+        userId: dispatch.uploadedFile.userId,
+        language: dispatch.uploadedFile.language,
+        clipCount: dispatch.uploadedFile.targetClipCount,
+        attempt: dispatch.attempt,
+        outputPrefix: getAttemptOutputPrefix(
+          dispatch.uploadedFile.s3Key,
+          dispatch.attempt,
+        ),
+        matchKey: getProcessingMatchKey(
+          dispatch.uploadedFile.id,
+          dispatch.attempt,
+        ),
+      },
+    });
+
+    await markProcessingDispatchSent(dispatch.id, { now });
+    return true;
+  } catch (error) {
+    const errorMessage = toErrorMessage(error);
+    const isDeadLetter =
+      dispatchAttempt >= MAX_DISPATCH_ATTEMPTS ||
+      now.getTime() - dispatch.createdAt.getTime() >=
+        DISPATCH_DEAD_LETTER_AGE_MS;
+
+    if (isDeadLetter) {
+      await db.$transaction(async (tx) => {
+        await markProcessingDispatchDeadLetter(dispatch.id, errorMessage, {
+          tx,
+          now,
+        });
+        await markUploadedFileAttemptFailed(
+          dispatch.uploadedFile.id,
+          dispatch.attempt,
+          "dispatch_dead_letter",
+          {
+            tx,
+            now,
+            statuses: ["pending_enqueue", "queued"],
+          },
+        );
+      });
+    } else {
+      await markProcessingDispatchRetry(
+        dispatch.id,
+        errorMessage,
+        dispatchAttempt,
+        { now },
+      );
+    }
+
+    return false;
+  }
+}
+
+export async function dispatchProcessingRequestById(
+  dispatchId: string,
+): Promise<boolean> {
+  const now = new Date();
+  const dispatch = await findEligibleProcessingDispatchById(dispatchId, now);
+
+  if (!dispatch) {
+    return false;
+  }
+
+  return processEligibleProcessingDispatch(dispatch, now);
+}
+
+export async function dispatchPendingProcessingRequests(
+  limit = 25,
+): Promise<number> {
   const now = new Date();
   const dispatches = await listEligibleProcessingDispatches(limit, now);
   let dispatchedCount = 0;
 
   for (const dispatch of dispatches) {
-    const claimed = await claimProcessingDispatchForSend(dispatch.id, now);
+    const dispatched = await processEligibleProcessingDispatch(dispatch, now);
 
-    if (!claimed) {
-      continue;
-    }
-
-    const dispatchAttempt = dispatch.dispatchCount + 1;
-
-    try {
-      if (dispatch.uploadedFile.currentAttempt !== dispatch.attempt) {
-        await markProcessingDispatchDeadLetter(dispatch.id, "stale_attempt");
-        continue;
-      }
-
-      if (!dispatch.uploadedFile.uploaded) {
-        throw new Error("Source upload has not been confirmed");
-      }
-
-      const queueResult = await ensureUploadedFileQueuedForDispatch(
-        dispatch.uploadedFile.id,
-        dispatch.attempt,
-        { now },
-      );
-
-      if (queueResult.status === "already_advanced") {
-        await markProcessingDispatchSent(dispatch.id, { now });
-        continue;
-      }
-
-      if (queueResult.status !== "queued") {
-        throw new Error(
-          `Upload is not queueable for dispatch: ${queueResult.status}`,
-        );
-      }
-
-      await inngest.send({
-        name: "process-video-events",
-        data: {
-          uploadedFileId: dispatch.uploadedFile.id,
-          userId: dispatch.uploadedFile.userId,
-          language: dispatch.uploadedFile.language,
-          clipCount: dispatch.uploadedFile.targetClipCount,
-          attempt: dispatch.attempt,
-          outputPrefix: getAttemptOutputPrefix(
-            dispatch.uploadedFile.s3Key,
-            dispatch.attempt,
-          ),
-          matchKey: getProcessingMatchKey(
-            dispatch.uploadedFile.id,
-            dispatch.attempt,
-          ),
-        },
-      });
-
-      await markProcessingDispatchSent(dispatch.id, { now });
-
+    if (dispatched) {
       dispatchedCount += 1;
-    } catch (error) {
-      const errorMessage = toErrorMessage(error);
-      const isDeadLetter =
-        dispatchAttempt >= MAX_DISPATCH_ATTEMPTS ||
-        now.getTime() - dispatch.createdAt.getTime() >= DISPATCH_DEAD_LETTER_AGE_MS;
-
-      if (isDeadLetter) {
-        await db.$transaction(async (tx) => {
-          await markProcessingDispatchDeadLetter(dispatch.id, errorMessage, { tx, now });
-          await markUploadedFileAttemptFailed(
-            dispatch.uploadedFile.id,
-            dispatch.attempt,
-            "dispatch_dead_letter",
-            {
-              tx,
-              now,
-              statuses: ["pending_enqueue", "queued"],
-            },
-          );
-        });
-      } else {
-        await markProcessingDispatchRetry(dispatch.id, errorMessage, dispatchAttempt, {
-          now,
-        });
-      }
     }
   }
 

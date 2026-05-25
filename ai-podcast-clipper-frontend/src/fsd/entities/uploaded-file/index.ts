@@ -16,6 +16,7 @@ export {
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
   hasProcessingUploadForUser,
+  listActiveUploadedFileQueueStateByUserId,
   listRecoverableUploadDraftsByUserId,
   listUploadedFileSummariesByUserId,
   markUploadedFileAttemptFailed,
@@ -39,6 +40,7 @@ export {
 } from "./model/processing-status";
 export type { ProcessingStatus } from "./model/processing-status";
 export type {
+  ActiveUploadedFileQueueState,
   RecoverableUploadDraftSummary,
   UploadedFileDetail,
   UploadedFileSummary,

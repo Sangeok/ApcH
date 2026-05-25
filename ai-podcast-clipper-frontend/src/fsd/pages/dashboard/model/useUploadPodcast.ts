@@ -1,6 +1,9 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
 import { toast } from "sonner";
 import {
   confirmUploadObjectExists,
@@ -34,6 +37,19 @@ export function useUploadPodcast({
   onSuccess,
 }: UseUploadPodcastOptions) {
   const [isUploading, startUploading] = useTransition();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  const markUploadVisible = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: uploadedFileKeys.lists(),
+    });
+    onSuccess?.();
+  };
+
+  const refreshRecoverableDrafts = () => {
+    router.refresh();
+  };
 
   const upload = (file: File, language: string, clipCount: number) => {
     startUploading(async () => {
@@ -81,6 +97,7 @@ export function useUploadPodcast({
               description:
                 "The upload draft was kept. Retry later from Recoverable Uploads.",
             });
+            refreshRecoverableDrafts();
             return;
           }
         }
@@ -99,7 +116,7 @@ export function useUploadPodcast({
                 "Your video has been scheduled for processing. Check the status below.",
               duration: 5000,
             });
-            onSuccess?.();
+            await markUploadVisible();
             return;
           }
 
@@ -108,6 +125,7 @@ export function useUploadPodcast({
             description:
               "The upload draft was kept. Resume processing from Recoverable Uploads.",
           });
+          refreshRecoverableDrafts();
           return;
         }
 
@@ -118,7 +136,7 @@ export function useUploadPodcast({
             "Your video has been scheduled for processing. Check the status below.",
           duration: 5000,
         });
-        onSuccess?.();
+        await markUploadVisible();
       } catch (error) {
         console.error("Failed to upload video", error);
 
@@ -134,8 +152,20 @@ export function useUploadPodcast({
 
             if (processState?.success && processState.data.status !== "upload_pending") {
               createdFileId = null;
+              toast.success("Video uploaded successfully", {
+                id: toastId,
+                description:
+                  "Your video has been scheduled for processing. Check the status below.",
+                duration: 5000,
+              });
+              await markUploadVisible();
+              return;
             }
           }
+        }
+
+        if (!canAutoDeleteDraft) {
+          refreshRecoverableDrafts();
         }
 
         toast.error("Failed to upload video", {
