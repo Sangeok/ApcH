@@ -2,10 +2,6 @@
 
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useTransition } from "react";
-import { ACTIVE_UPLOAD_POLLING_INTERVAL_MS } from "~/fsd/entities/uploaded-file/model/polling";
-import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
 import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -20,35 +16,15 @@ import type { UploadedFileSummary } from "../../model/types";
 
 interface QueueStatusProps {
   uploadedFiles: UploadedFileSummary[];
+  isFetching: boolean;
+  onRefresh: () => void;
 }
 
-export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
-  const [isPending, startTransition] = useTransition();
-  const router = useRouter();
-  const hasActiveUpload = uploadedFiles.some((file) =>
-    isActiveProcessingStatus(file.status),
-  );
-
-  const handleRefresh = () => {
-    startTransition(() => {
-      router.refresh();
-    });
-  };
-
-  useEffect(() => {
-    if (!hasActiveUpload) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      startTransition(() => {
-        router.refresh();
-      });
-    }, ACTIVE_UPLOAD_POLLING_INTERVAL_MS);
-
-    return () => window.clearInterval(intervalId);
-  }, [hasActiveUpload, router, startTransition]);
-
+export default function QueueStatus({
+  uploadedFiles,
+  isFetching,
+  onRefresh,
+}: QueueStatusProps) {
   if (uploadedFiles.length === 0) {
     return null;
   }
@@ -60,10 +36,10 @@ export default function QueueStatus({ uploadedFiles }: QueueStatusProps) {
         <Button
           variant="outline"
           size="sm"
-          onClick={handleRefresh}
-          disabled={isPending}
+          onClick={onRefresh}
+          disabled={isFetching}
         >
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isFetching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Refresh
         </Button>
       </div>

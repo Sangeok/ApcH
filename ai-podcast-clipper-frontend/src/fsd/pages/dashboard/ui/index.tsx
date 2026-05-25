@@ -1,12 +1,20 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useOptimistic } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useOptimistic, useRef } from "react";
 import { env } from "~/env";
+import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
 import type {
+  ActiveUploadedFileQueueState,
   RecoverableUploadDraftSummary,
   UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file/model/types";
+import {
+  currentUserActiveUploadQueueQueryOptions,
+  currentUserUploadedFileListQueryOptions,
+} from "~/fsd/features/upload/model/query-options";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -27,18 +35,72 @@ import RecoverableUploadDrafts from "./_component/RecoverableUploadDrafts";
 import UploadPodcast from "./_component/UploadPodcast";
 
 interface DashboardViewProps {
+  userId: string;
   uploadedFiles: UploadedFileSummary[];
   recoverableDrafts: RecoverableUploadDraftSummary[];
 }
 
 export default function DashboardView({
+  userId,
   uploadedFiles,
   recoverableDrafts,
 }: DashboardViewProps) {
+  const router = useRouter();
+  const initialActiveQueueFiles = useMemo(
+    () => uploadedFiles.filter((file) => isActiveProcessingStatus(file.status)),
+    [uploadedFiles],
+  );
+  const initialActiveQueueState = useMemo<ActiveUploadedFileQueueState>(
+    () => ({
+      queueFiles: initialActiveQueueFiles.slice(0, 25),
+      activeUploadedFileIds: initialActiveQueueFiles.map((file) => file.id),
+    }),
+    [initialActiveQueueFiles],
+  );
+
+  const uploadedFilesQuery = useQuery(
+    currentUserUploadedFileListQueryOptions(userId, uploadedFiles),
+  );
+  const activeQueueQuery = useQuery(
+    currentUserActiveUploadQueueQueryOptions(userId, initialActiveQueueState),
+  );
+
+  const queriedUploadedFiles = uploadedFilesQuery.data ?? uploadedFiles;
+  const activeQueueState = activeQueueQuery.data ?? initialActiveQueueState;
+  const activeQueueFiles = activeQueueState.queueFiles;
   const [optimisticFiles, addOptimisticFile] = useOptimistic(
-    uploadedFiles,
+    queriedUploadedFiles,
     (state, newFile: UploadedFileSummary) => [newFile, ...state],
   );
+  const optimisticQueueFiles = useMemo(
+    () => optimisticFiles.filter((file) => file.id.startsWith("optimistic-")),
+    [optimisticFiles],
+  );
+  const queueStatusFiles = useMemo(
+    () => [...optimisticQueueFiles, ...activeQueueFiles],
+    [activeQueueFiles, optimisticQueueFiles],
+  );
+  const activeUploadedFileIds = useMemo(
+    () => new Set(activeQueueState.activeUploadedFileIds),
+    [activeQueueState.activeUploadedFileIds],
+  );
+  const previousActiveUploadedFileIdsRef = useRef(activeUploadedFileIds);
+  const refetchUploadedFiles = uploadedFilesQuery.refetch;
+
+  useEffect(() => {
+    const previousActiveUploadedFileIds =
+      previousActiveUploadedFileIdsRef.current;
+    const hasCompletedUpload = [...previousActiveUploadedFileIds].some(
+      (uploadedFileId) => !activeUploadedFileIds.has(uploadedFileId),
+    );
+
+    if (hasCompletedUpload) {
+      router.refresh();
+      void refetchUploadedFiles();
+    }
+
+    previousActiveUploadedFileIdsRef.current = activeUploadedFileIds;
+  }, [activeUploadedFileIds, refetchUploadedFiles, router]);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col space-y-6 px-4 py-8">
@@ -67,7 +129,11 @@ export default function DashboardView({
         <TabsContent value="upload" className="space-y-6">
           <UploadPodcast onOptimisticAdd={addOptimisticFile} />
           <RecoverableUploadDrafts drafts={recoverableDrafts} />
-          <QueueStatus uploadedFiles={optimisticFiles} />
+          <QueueStatus
+            uploadedFiles={queueStatusFiles}
+            isFetching={activeQueueQuery.isFetching}
+            onRefresh={() => void activeQueueQuery.refetch()}
+          />
         </TabsContent>
 
         <TabsContent value="my-clips">
@@ -80,7 +146,7 @@ export default function DashboardView({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UploadedFileList files={uploadedFiles} />
+              <UploadedFileList files={queriedUploadedFiles} />
             </CardContent>
           </Card>
         </TabsContent>

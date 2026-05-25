@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import type { Clip } from "generated/prisma";
 import {
   Copy,
@@ -13,6 +14,8 @@ import {
 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
+import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
 import type { ActionResult } from "~/fsd/shared/api/result";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Button } from "~/fsd/shared/ui/atoms/button";
@@ -51,6 +54,7 @@ export function ClipActions({
   onDelete,
   onDeleteSuccess,
 }: ClipActionsProps) {
+  const queryClient = useQueryClient();
   const [isDeleting, startDeleting] = useTransition();
 
   const handleDownload = () => {
@@ -65,11 +69,37 @@ export function ClipActions({
     }
 
     startDeleting(async () => {
-      onDeleteSuccess(clip.id);
-
       const result = await onDelete(clip.id);
 
       if (result.success) {
+        const uploadedFileId = clip.uploadedFileId;
+
+        if (uploadedFileId) {
+          queryClient.setQueryData<UploadedFileDetail>(
+            uploadedFileKeys.detail(uploadedFileId),
+            (old) =>
+              old
+                ? {
+                    ...old,
+                    clips: old.clips.filter((item) => item.id !== clip.id),
+                  }
+                : old,
+          );
+        }
+
+        onDeleteSuccess(clip.id);
+
+        await Promise.all([
+          uploadedFileId
+            ? queryClient.invalidateQueries({
+                queryKey: uploadedFileKeys.detail(uploadedFileId),
+              })
+            : Promise.resolve(),
+          queryClient.invalidateQueries({
+            queryKey: uploadedFileKeys.lists(),
+          }),
+        ]);
+
         toast.success("Clip deleted");
       } else {
         toast.error(result.error ?? "Failed to delete clip");

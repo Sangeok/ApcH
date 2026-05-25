@@ -1,6 +1,15 @@
 import { queryOptions } from "@tanstack/react-query";
+import { ACTIVE_UPLOAD_POLLING_INTERVAL_MS } from "~/fsd/entities/uploaded-file/model/polling";
 import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import { getUploadedFileDetails } from "../api";
+import type {
+  ActiveUploadedFileQueueState,
+  UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file/model/types";
+import {
+  getUploadedFileDetails,
+  listCurrentUserActiveUploadedFileQueueState,
+  listCurrentUserUploadedFileSummaries,
+} from "../api";
 
 export const uploadedFileDetailQueryOptions = (uploadedFileId: string) =>
   queryOptions({
@@ -14,4 +23,35 @@ export const uploadedFileDetailQueryOptions = (uploadedFileId: string) =>
 
       return uploadedFileData;
     },
+  });
+
+export const currentUserUploadedFileListQueryOptions = (
+  userId: string,
+  initialData: UploadedFileSummary[],
+) =>
+  queryOptions({
+    queryKey: uploadedFileKeys.currentUserList(userId),
+    queryFn: async () => listCurrentUserUploadedFileSummaries(),
+    initialData,
+    staleTime: 60_000,
+  });
+
+export const currentUserActiveUploadQueueQueryOptions = (
+  userId: string,
+  initialData: ActiveUploadedFileQueueState,
+) =>
+  queryOptions({
+    queryKey: uploadedFileKeys.currentUserActiveQueue(userId),
+    queryFn: async () => listCurrentUserActiveUploadedFileQueueState(),
+    initialData,
+    refetchInterval: (query) => {
+      const queueState = query.state.data;
+
+      if (!queueState?.activeUploadedFileIds.length) {
+        return false;
+      }
+
+      return ACTIVE_UPLOAD_POLLING_INTERVAL_MS;
+    },
+    refetchIntervalInBackground: false,
   });

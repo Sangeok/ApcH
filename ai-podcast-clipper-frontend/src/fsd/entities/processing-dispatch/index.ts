@@ -1,6 +1,7 @@
 export {
   createProcessingDispatch,
   dispatchPendingProcessingRequests,
+  dispatchProcessingRequestById,
   findStaleQueuedSentProcessingDispatches,
   markProcessingDispatchRetryableNow,
   markStaleQueuedDispatchDeadLetter,

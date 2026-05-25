@@ -340,9 +340,12 @@ async function cleanupStaleRecoverableUploadDrafts(
   return deleted;
 }
 
-async function recoverStaleProcessingAttempts(): Promise<number> {
+async function recoverStaleProcessingAttempts(limit = 25): Promise<number> {
   const staleBefore = new Date(Date.now() - 2 * 60 * 60 * 1000);
-  const staleFiles = await findStaleProcessingUploadedFiles(staleBefore);
+  const staleFiles = await findStaleProcessingUploadedFiles(
+    staleBefore,
+    limit,
+  );
   let recovered = 0;
 
   for (const file of staleFiles) {
@@ -713,19 +716,25 @@ export const processVideo = inngest.createFunction(
   },
 );
 
-export const processingDispatchSweep = inngest.createFunction(
-  { id: "processing-dispatch-sweep" },
-  { cron: "* * * * *" },
+export const processingMaintenanceSweep = inngest.createFunction(
+  { id: "processing-maintenance-sweep" },
+  { cron: "*/15 * * * *" },
   async () => {
+    const processingRecovered = await recoverStaleProcessingAttempts(25);
+    const queuedRecovered = await recoverStaleQueuedDispatches();
+    const dispatched = await dispatchPendingProcessingRequests(25);
+
     return {
-      dispatched: await dispatchPendingProcessingRequests(),
+      dispatched,
+      processingRecovered,
+      queuedRecovered,
     };
   },
 );
 
 export const uploadDraftSweep = inngest.createFunction(
   { id: "upload-draft-sweep" },
-  { cron: "*/10 * * * *" },
+  { cron: "0 * * * *" },
   async () => {
     const [promoted, cleanedRaw, cleanedRecoverable] = await Promise.all([
       promoteRecoverableUploadDrafts(),
@@ -737,20 +746,6 @@ export const uploadDraftSweep = inngest.createFunction(
       promoted,
       cleanedRaw,
       cleanedRecoverable,
-    };
-  },
-);
-
-export const staleProcessingSweep = inngest.createFunction(
-  { id: "stale-processing-sweep" },
-  { cron: "*/15 * * * *" },
-  async () => {
-    const processingRecovered = await recoverStaleProcessingAttempts();
-    const queuedRecovered = await recoverStaleQueuedDispatches();
-
-    return {
-      processingRecovered,
-      queuedRecovered,
     };
   },
 );

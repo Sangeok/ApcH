@@ -1,6 +1,11 @@
 import type { Clip } from "generated/prisma";
 import type { ProcessingStatus } from "./processing-status";
 
+export interface ActiveUploadedFileQueueState {
+  queueFiles: UploadedFileSummary[];
+  activeUploadedFileIds: string[];
+}
+
 export interface UploadedFileSummary {
   id: string;
   fileName: string;
