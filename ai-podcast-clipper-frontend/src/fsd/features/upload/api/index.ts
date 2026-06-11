@@ -6,8 +6,7 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import {
   createProcessingDispatch,
-  dispatchPendingProcessingRequests,
-  dispatchProcessingRequestById,
+  dispatchProcessingRequestByIdOrFail,
 } from "~/fsd/entities/processing-dispatch";
 import {
   confirmUploadedFileSourceIfObjectExists,
@@ -22,6 +21,9 @@ import {
   isProcessingStatus,
   listActiveUploadedFileQueueStateByUserId,
   listUploadedFileSummariesByUserId,
+  markUploadedFileAttemptFailed,
+  reconcileStaleUploadedFileForUser,
+  reconcileStaleUploadedFilesForUser,
   type ActiveUploadedFileQueueState,
   type ProcessingStatus,
   type UploadedFileSummary,
@@ -43,25 +45,7 @@ import {
   scheduleUploadedFileProcessingSchema,
 } from "../model/schemas";
 
-async function nudgeProcessingDispatch(
-  dispatchId: string | null = null,
-): Promise<void> {
-  try {
-    if (dispatchId) {
-      const dispatched = await dispatchProcessingRequestById(dispatchId);
-
-      if (dispatched) {
-        return;
-      }
-    }
-
-    await dispatchPendingProcessingRequests(5);
-  } catch (error) {
-    console.error("Best-effort processing dispatch nudge failed", error);
-  }
-}
-
- // Delete all S3 objects under this upload's prefix.
+// Delete all S3 objects under this upload's prefix.
 async function deleteUploadedFileS3Assets(s3Key: string): Promise<void> {
   const prefix = `${getUploadedFilePrefix(s3Key)}/`;
   const keys = await listS3Objects(prefix);
@@ -74,6 +58,11 @@ async function deleteUploadedFileS3Assets(s3Key: string): Promise<void> {
   await deleteS3Object(s3Key);
 }
 
+function revalidateUploadedFileViews(uploadedFileId: string) {
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
+}
+
 // Atomically claims an upload for a new processing attempt and records
 // a pending dispatch row so the dispatcher can send it to Inngest.
 async function scheduleProcessingAttempt(
@@ -82,88 +71,106 @@ async function scheduleProcessingAttempt(
   allowedStatuses: readonly ProcessingStatus[],
 ): Promise<ActionResult<void>> {
   let dispatchId: string;
+  let scheduledAttempt: number;
 
   try {
     const now = new Date();
-    const scheduled = await db.$transaction(async (tx) => {
-      const uploadedFile = await tx.uploadedFile.findFirst({
-        where: { id: uploadedFileId, userId },
-        select: {
-          id: true,
-          userId: true,
-          status: true,
-          uploaded: true,
-          currentAttempt: true,
-          targetClipCount: true,
-        },
-      });
+    const scheduled = await db.$transaction(
+      async (
+        tx,
+      ): Promise<ActionResult<{ dispatchId: string; attempt: number }>> => {
+        const uploadedFile = await tx.uploadedFile.findFirst({
+          where: { id: uploadedFileId, userId },
+          select: {
+            id: true,
+            userId: true,
+            status: true,
+            uploaded: true,
+            currentAttempt: true,
+            targetClipCount: true,
+            user: {
+              select: {
+                credits: true,
+              },
+            },
+          },
+        });
 
-      if (!uploadedFile) {
-        return failure("Uploaded file not found");
-      }
+        if (!uploadedFile) {
+          return failure("Uploaded file not found");
+        }
 
-      if (!uploadedFile.uploaded) {
-        return failure("Source upload has not been confirmed");
-      }
+        if (!uploadedFile.uploaded) {
+          return failure("Source upload has not been confirmed");
+        }
 
-      if (!isSupportedClipCount(uploadedFile.targetClipCount)) {
-        return failure("Stored clip count is no longer supported");
-      }
+        if (!isSupportedClipCount(uploadedFile.targetClipCount)) {
+          return failure("Stored clip count is no longer supported");
+        }
 
-      if (!isProcessingStatus(uploadedFile.status)) {
-        return failure("This file cannot be scheduled right now");
-      }
+        if (!isProcessingStatus(uploadedFile.status)) {
+          return failure("This file cannot be scheduled right now");
+        }
 
-      if (!allowedStatuses.includes(uploadedFile.status)) {
-        if (isActiveProcessingStatus(uploadedFile.status)) {
+        if (!allowedStatuses.includes(uploadedFile.status)) {
+          if (isActiveProcessingStatus(uploadedFile.status)) {
+            return failure("Processing has already been requested");
+          }
+
+          return failure("This file cannot be scheduled right now");
+        }
+
+        if (
+          uploadedFile.status === "no credits" &&
+          uploadedFile.user.credits <= 0
+        ) {
+          return failure("Add credits before retrying this upload.");
+        }
+
+        const nextAttempt = uploadedFile.currentAttempt + 1;
+        const claimed = await tx.uploadedFile.updateMany({
+          where: {
+            id: uploadedFileId,
+            userId,
+            uploaded: true,
+            status: {
+              in: [...allowedStatuses],
+            },
+            currentAttempt: uploadedFile.currentAttempt,
+          },
+          data: {
+            status: "pending_enqueue",
+            enqueueRequestedAt: now,
+            queuedAt: null,
+            processingStartedAt: null,
+            terminalStatusAt: null,
+            failureCode: null,
+            currentAttempt: nextAttempt,
+          },
+        });
+
+        if (claimed.count !== 1) {
           return failure("Processing has already been requested");
         }
 
-        return failure("This file cannot be scheduled right now");
-      }
-
-      const nextAttempt = uploadedFile.currentAttempt + 1;
-      const claimed = await tx.uploadedFile.updateMany({
-        where: {
-          id: uploadedFileId,
-          userId,
-          uploaded: true,
-          status: {
-            in: [...allowedStatuses],
+        const dispatch = await createProcessingDispatch(
+          {
+            uploadedFileId,
+            attempt: nextAttempt,
           },
-          currentAttempt: uploadedFile.currentAttempt,
-        },
-        data: {
-          status: "pending_enqueue",
-          enqueueRequestedAt: now,
-          queuedAt: null,
-          processingStartedAt: null,
-          terminalStatusAt: null,
-          failureCode: null,
-          currentAttempt: nextAttempt,
-        },
-      });
+          { tx },
+        );
 
-      if (claimed.count !== 1) {
-        return failure("Processing has already been requested");
-      }
-
-      const dispatch = await createProcessingDispatch(
-        {
-          uploadedFileId,
-          attempt: nextAttempt,
-        },
-        { tx, now },
-      );
-
-      return success({ dispatchId: dispatch.id });
-    });
+        return success({ dispatchId: dispatch.id, attempt: nextAttempt });
+      },
+    );
 
     if (!scheduled.success) {
       return scheduled;
     }
 
     dispatchId = scheduled.data.dispatchId;
+    scheduledAttempt = scheduled.data.attempt;
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -176,9 +183,24 @@ async function scheduleProcessingAttempt(
     return failure("Failed to schedule processing");
   }
 
-  await nudgeProcessingDispatch(dispatchId);
-  revalidatePath("/dashboard");
-  revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
+  const dispatchResult = await dispatchProcessingRequestByIdOrFail(dispatchId);
+
+  if (dispatchResult.status !== "sent") {
+    await markUploadedFileAttemptFailed(
+      uploadedFileId,
+      scheduledAttempt,
+      "dispatch_failed",
+      { statuses: ["pending_enqueue", "queued"] },
+    );
+
+    revalidateUploadedFileViews(uploadedFileId);
+
+    return failure(
+      "Processing could not start. Retry from the upload detail page.",
+    );
+  }
+
+  revalidateUploadedFileViews(uploadedFileId);
 
   return success();
 }
@@ -189,14 +211,18 @@ export async function prepareUpload(fileInfo: {
   contentType: string;
   language: string;
   clipCount: number;
-}): Promise<ActionResult<{ signedUrl: string; uploadedFileId: string; key: string }>> {
+}): Promise<
+  ActionResult<{ signedUrl: string; uploadedFileId: string; key: string }>
+> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
   const validated = prepareUploadSchema.safeParse(fileInfo);
 
   if (!validated.success) {
-    return failure(validated.error.issues[0]?.message ?? "Invalid upload request");
+    return failure(
+      validated.error.issues[0]?.message ?? "Invalid upload request",
+    );
   }
 
   try {
@@ -250,11 +276,8 @@ export async function confirmUploadObjectExists(
   }
 }
 
-
 // Re-checks the upload confirmation state for a draft upload.
-export async function reconcileUploadConfirmation(
-  uploadedFileId: string,
-) {
+export async function reconcileUploadConfirmation(uploadedFileId: string) {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
@@ -291,22 +314,22 @@ export async function reconcileUploadConfirmation(
   }
 }
 
-// Re-checks the processing schedule state after scheduleUploadedFileProcessing
-// returns a failure to the client. If the upload is waiting for dispatch,
-// nudges the dispatcher instead of leaving it to the next sweep.
+// Re-checks the processing state without reviving dispatch work.
+// Stale active attempts are closed so the user can start a fresh retry.
 export async function reconcileProcessingRequest(uploadedFileId: string) {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
   try {
-    const requestState = await findUploadedFileSourceState(
+    await reconcileStaleUploadedFileForUser(
       uploadedFileId,
       authResult.data.userId,
     );
 
-    if (requestState.status === "pending_enqueue") {
-      await nudgeProcessingDispatch();
-    }
+    const requestState = await findUploadedFileSourceState(
+      uploadedFileId,
+      authResult.data.userId,
+    );
 
     if (!isProcessingStatus(requestState.status)) {
       return failure("Uploaded file has an invalid status");
@@ -353,6 +376,8 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
     throw new Error("Unauthorized");
   }
 
+  await reconcileStaleUploadedFileForUser(uploadedFileId, session.user.id);
+
   return getUploadedFileDetailsById(uploadedFileId, session.user.id);
 }
 
@@ -364,16 +389,18 @@ export async function listCurrentUserUploadedFileSummaries(): Promise<
     throw new Error(authResult.error);
   }
 
+  await reconcileStaleUploadedFilesForUser(authResult.data.userId);
+
   return listUploadedFileSummariesByUserId(authResult.data.userId);
 }
 
-export async function listCurrentUserActiveUploadedFileQueueState(): Promise<
-  ActiveUploadedFileQueueState
-> {
+export async function listCurrentUserActiveUploadedFileQueueState(): Promise<ActiveUploadedFileQueueState> {
   const authResult = await requireAuth();
   if (!authResult.success) {
     throw new Error(authResult.error);
   }
+
+  await reconcileStaleUploadedFilesForUser(authResult.data.userId);
 
   return listActiveUploadedFileQueueStateByUserId(authResult.data.userId);
 }
@@ -451,6 +478,11 @@ export async function reprocessUploadedFile(
   if (!validated.success) {
     return failure(validated.error.issues[0]?.message ?? "Invalid request");
   }
+
+  await reconcileStaleUploadedFileForUser(
+    validated.data.uploadedFileId,
+    authResult.data.userId,
+  );
 
   return scheduleProcessingAttempt(
     validated.data.uploadedFileId,

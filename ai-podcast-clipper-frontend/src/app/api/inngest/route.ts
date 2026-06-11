@@ -1,18 +1,10 @@
 import { serve } from "inngest/next";
 import { inngest } from "../../../inngest/client";
-import {
-  processVideo,
-  processingMaintenanceSweep,
-  uploadDraftSweep,
-} from "~/inngest/functions";
+import { processVideo } from "~/inngest/functions";
 
 export const maxDuration = 10;
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [
-    processVideo,
-    processingMaintenanceSweep,
-    uploadDraftSweep,
-  ],
+  functions: [processVideo],
 });

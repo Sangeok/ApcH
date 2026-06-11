@@ -2,7 +2,6 @@ export const PROCESSING_DISPATCH_STATUSES = [
   "pending",
   "sending",
   "sent",
-  "retryable_failed",
   "dead_letter",
 ] as const;
 
