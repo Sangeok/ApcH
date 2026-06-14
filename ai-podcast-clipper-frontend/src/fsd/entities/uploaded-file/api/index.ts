@@ -1,13 +1,17 @@
 import "server-only";
 
 import type { Prisma } from "generated/prisma";
+import { inngest } from "~/inngest/client";
 import { db } from "~/server/db";
-import { objectExists } from "~/fsd/shared/api/s3";
+import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";
+import { deleteS3Object, objectExists } from "~/fsd/shared/api/s3";
+import { getProcessingMatchKey } from "../model/attempt-prefix";
 import {
   ACTIVE_PROCESSING_STATUSES,
   isProcessingStatus,
   type ProcessingStatus,
 } from "../model/processing-status";
+import { PROCESSING_STALE_POLICY } from "../model/stale-policy";
 import type {
   ActiveUploadedFileQueueState,
   RecoverableUploadDraftSummary,
@@ -32,6 +36,16 @@ type EnsureUploadedFileQueuedForDispatchResult =
       currentStatus: string;
       uploaded: boolean;
     };
+type StaleProcessingCandidate = {
+  id: string;
+  userId: string;
+  status: string;
+  currentAttempt: number;
+  failureCode: string | null;
+  enqueueRequestedAt: Date | null;
+  queuedAt: Date | null;
+  processingStartedAt: Date | null;
+};
 
 function getClient(tx?: Prisma.TransactionClient): DbClient {
   return tx ?? db;
@@ -40,7 +54,10 @@ function getClient(tx?: Prisma.TransactionClient): DbClient {
 // Converts DB source state into the public upload lifecycle DTO and validates
 // the string status before exposing it as the domain ProcessingStatus type.
 function toUploadLifecycleState(
-  state: Pick<UploadedFileSourceState, "status" | "uploaded" | "currentAttempt">,
+  state: Pick<
+    UploadedFileSourceState,
+    "status" | "uploaded" | "currentAttempt"
+  >,
 ): UploadLifecycleState {
   if (!isProcessingStatus(state.status)) {
     throw new Error(`Invalid uploaded file status: ${state.status}`);
@@ -68,23 +85,10 @@ export async function findUploadedFileSourceState(
   });
 }
 
-async function findUploadedFileSourceStateById(
-  uploadedFileId: string,
-  options?: { tx?: Prisma.TransactionClient },
-): Promise<UploadedFileSourceState | null> {
-  return getClient(options?.tx).uploadedFile.findFirst({
-    where: { id: uploadedFileId },
-    select: {
-      status: true,
-      uploaded: true,
-      currentAttempt: true,
-      s3Key: true,
-    },
-  });
-}
-
 // Converts a DB status into a UI-visible status, rejecting hidden upload drafts.
-function toNonHiddenStatus(status: string): Exclude<ProcessingStatus, "upload_pending"> {
+function toNonHiddenStatus(
+  status: string,
+): Exclude<ProcessingStatus, "upload_pending"> {
   if (!isProcessingStatus(status)) {
     throw new Error(`Invalid uploaded file status: ${status}`);
   }
@@ -94,6 +98,90 @@ function toNonHiddenStatus(status: string): Exclude<ProcessingStatus, "upload_pe
   }
 
   return status;
+}
+
+function toProcessingStatus(status: string): ProcessingStatus {
+  if (!isProcessingStatus(status)) {
+    throw new Error(`Invalid uploaded file status: ${status}`);
+  }
+
+  return status;
+}
+
+function isOlderThan(date: Date | null, threshold: Date): boolean {
+  return date !== null && date < threshold;
+}
+
+function isActiveProcessingStatusValue(
+  status: ProcessingStatus,
+): status is (typeof ACTIVE_PROCESSING_STATUSES)[number] {
+  return (ACTIVE_PROCESSING_STATUSES as readonly ProcessingStatus[]).includes(
+    status,
+  );
+}
+
+function getStaleFailureCode(
+  file: StaleProcessingCandidate,
+  now: Date,
+  hasProcessingUploadForQueuedState: boolean,
+): string | null {
+  switch (file.status) {
+    case "pending_enqueue": {
+      const staleBefore = new Date(
+        now.getTime() - PROCESSING_STALE_POLICY.pendingEnqueueTimeoutMs,
+      );
+
+      return isOlderThan(file.enqueueRequestedAt, staleBefore)
+        ? "dispatch_timeout"
+        : null;
+    }
+    case "queued": {
+      if (hasProcessingUploadForQueuedState) {
+        return null;
+      }
+
+      const staleBefore = new Date(
+        now.getTime() - PROCESSING_STALE_POLICY.queuedWorkerStartTimeoutMs,
+      );
+
+      return isOlderThan(file.queuedAt, staleBefore)
+        ? "queued_worker_not_started"
+        : null;
+    }
+    case "processing": {
+      const staleBefore = new Date(
+        now.getTime() - PROCESSING_STALE_POLICY.processingTimeoutMs,
+      );
+
+      return isOlderThan(file.processingStartedAt, staleBefore)
+        ? "worker_timeout"
+        : null;
+    }
+    default:
+      return null;
+  }
+}
+
+async function sendProcessingCancelEventBestEffort(args: {
+  uploadedFileId: string;
+  attempt: number;
+}) {
+  try {
+    await inngest.send({
+      name: "process-video-events/cancel",
+      data: {
+        uploadedFileId: args.uploadedFileId,
+        attempt: args.attempt,
+        matchKey: getProcessingMatchKey(args.uploadedFileId, args.attempt),
+      },
+    });
+  } catch (error) {
+    console.error("Failed to send processing cancel event", {
+      uploadedFileId: args.uploadedFileId,
+      attempt: args.attempt,
+      error,
+    });
+  }
 }
 
 // Creates a pending upload draft used to track and recover a direct S3 upload.
@@ -245,7 +333,8 @@ export async function listActiveUploadedFileQueueStateByUserId(
       createdAt: file.createdAt,
       visibleClipsCount:
         file.lastSuccessfulAttempt > 0
-          ? (countsByAttempt.get(`${file.id}:${file.lastSuccessfulAttempt}`) ?? 0)
+          ? (countsByAttempt.get(`${file.id}:${file.lastSuccessfulAttempt}`) ??
+            0)
           : 0,
     })),
   };
@@ -303,12 +392,19 @@ export async function getUploadedFileDetailsById(
       terminalStatusAt: true,
       currentAttempt: true,
       lastSuccessfulAttempt: true,
+      user: {
+        select: {
+          credits: true,
+        },
+      },
     },
   });
 
   if (file.status === "upload_pending") {
     return null;
   }
+
+  const { user, ...fileData } = file;
 
   const clips =
     file.lastSuccessfulAttempt > 0
@@ -324,8 +420,9 @@ export async function getUploadedFileDetailsById(
       : [];
 
   return {
-    ...file,
+    ...fileData,
     status: toNonHiddenStatus(file.status),
+    currentUserCredits: user.credits,
     clips,
   };
 }
@@ -406,7 +503,10 @@ export async function confirmUploadedFileSourceIfObjectExists(
   | { status: "confirmed"; state: UploadLifecycleState }
   | { status: "missing_object"; state: UploadLifecycleState }
 > {
-  const currentState = await findUploadedFileSourceState(uploadedFileId, userId);
+  const currentState = await findUploadedFileSourceState(
+    uploadedFileId,
+    userId,
+  );
 
   if (currentState.uploaded) {
     return {
@@ -460,60 +560,6 @@ export async function confirmUploadedFileSourceIfObjectExists(
     status: "confirmed",
     state: confirmedState,
   };
-}
-
-// Background sweep helper that confirms raw upload drafts by id when their S3
-// object exists. Re-reads after a missed update so stale cleanup avoids deleting
-// drafts that were concurrently confirmed or removed.
-export async function confirmUploadedFileSourceByIdIfObjectExists(
-  uploadedFileId: string,
-): Promise<
-  | { status: "confirmed"; confirmedNow: boolean }
-  | { status: "missing_object" }
-  | { status: "not_found" }
-  | { status: "skipped" }
-> {
-  const currentState = await findUploadedFileSourceStateById(uploadedFileId);
-
-  if (!currentState) {
-    return { status: "not_found" };
-  }
-
-  if (currentState.uploaded) {
-    return { status: "confirmed", confirmedNow: false };
-  }
-
-  if (!(await objectExists(currentState.s3Key))) {
-    return { status: "missing_object" };
-  }
-
-  const result = await db.uploadedFile.updateMany({
-    where: {
-      id: uploadedFileId,
-      status: "upload_pending",
-      uploaded: false,
-    },
-    data: {
-      uploaded: true,
-      sourceUploadedAt: new Date(),
-    },
-  });
-
-  if (result.count === 1) {
-    return { status: "confirmed", confirmedNow: true };
-  }
-
-  const refreshedState = await findUploadedFileSourceStateById(uploadedFileId);
-
-  if (!refreshedState) {
-    return { status: "not_found" };
-  }
-
-  if (refreshedState.uploaded) {
-    return { status: "confirmed", confirmedNow: false };
-  }
-
-  return { status: "skipped" };
 }
 
 // Marks a processing attempt as queued after its dispatch row has successfully
@@ -644,6 +690,63 @@ export async function markUploadedFileAttemptProcessed(
   });
 }
 
+export async function isUploadedFileAttemptStillProcessing(
+  uploadedFileId: string,
+  attempt: number,
+): Promise<boolean> {
+  const file = await db.uploadedFile.findFirst({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: "processing",
+    },
+    select: { id: true },
+  });
+
+  return file !== null;
+}
+
+export async function isUploadedFileAttemptCurrent(
+  uploadedFileId: string,
+  attempt: number,
+): Promise<boolean> {
+  const file = await db.uploadedFile.findFirst({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+    },
+    select: { id: true },
+  });
+
+  return file !== null;
+}
+
+export async function completeUploadedFileProcessingAttempt(args: {
+  uploadedFileId: string;
+  attempt: number;
+  userId: string;
+  clipsFound: number;
+  now?: Date;
+}): Promise<{ completed: boolean }> {
+  return db.$transaction(async (tx) => {
+    const updated = await markUploadedFileAttemptProcessed(
+      args.uploadedFileId,
+      args.attempt,
+      {
+        tx,
+        now: args.now,
+      },
+    );
+
+    if (updated.count !== 1) {
+      return { completed: false };
+    }
+
+    await decrementUserCreditsFloorZero(args.userId, args.clipsFound, { tx });
+    return { completed: true };
+  });
+}
+
 export async function markUploadedFileAttemptFailed(
   uploadedFileId: string,
   attempt: number,
@@ -655,7 +758,11 @@ export async function markUploadedFileAttemptFailed(
   },
 ) {
   const now = options?.now ?? new Date();
-  const statuses = options?.statuses ?? ["pending_enqueue", "queued", "processing"];
+  const statuses = options?.statuses ?? [
+    "pending_enqueue",
+    "queued",
+    "processing",
+  ];
 
   return getClient(options?.tx).uploadedFile.updateMany({
     where: {
@@ -712,7 +819,9 @@ export async function updateUploadedFileStatus(
       ...(options?.processingStartedAt !== undefined
         ? { processingStartedAt: options.processingStartedAt }
         : {}),
-      ...(options?.queuedAt !== undefined ? { queuedAt: options.queuedAt } : {}),
+      ...(options?.queuedAt !== undefined
+        ? { queuedAt: options.queuedAt }
+        : {}),
       ...(options?.terminalStatusAt !== undefined
         ? { terminalStatusAt: options.terminalStatusAt }
         : {}),
@@ -746,29 +855,9 @@ export async function setUploadedFileUploaded(
   });
 }
 
-export async function findStaleProcessingUploadedFiles(
-  staleBefore: Date,
-  limit = 25,
-) {
-  return db.uploadedFile.findMany({
-    where: {
-      status: "processing",
-      processingStartedAt: {
-        lt: staleBefore,
-      },
-    },
-    orderBy: {
-      processingStartedAt: "asc",
-    },
-    take: limit,
-    select: {
-      id: true,
-      currentAttempt: true,
-    },
-  });
-}
-
-export async function hasProcessingUploadForUser(userId: string): Promise<boolean> {
+export async function hasProcessingUploadForUser(
+  userId: string,
+): Promise<boolean> {
   const count = await db.uploadedFile.count({
     where: {
       userId,
@@ -779,69 +868,330 @@ export async function hasProcessingUploadForUser(userId: string): Promise<boolea
   return count > 0;
 }
 
-// Finds upload drafts that are not DB-confirmed yet but may already have their
-// source object in S3, so the background sweep can verify and recover them.
-export async function findRawUploadDraftsForPromotion(limit = 50) {
-  return db.uploadedFile.findMany({
-    where: {
-      status: "upload_pending",
-      uploaded: false,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    take: limit,
+export async function reconcileStaleUploadedFileForUser(
+  uploadedFileId: string,
+  userId: string,
+  options?: { now?: Date },
+): Promise<{
+  changed: boolean;
+  status: ProcessingStatus;
+  failureCode: string | null;
+}> {
+  const now = options?.now ?? new Date();
+  const file = await db.uploadedFile.findFirst({
+    where: { id: uploadedFileId, userId },
     select: {
       id: true,
-      s3Key: true,
+      userId: true,
+      status: true,
+      currentAttempt: true,
+      failureCode: true,
+      enqueueRequestedAt: true,
+      queuedAt: true,
+      processingStartedAt: true,
     },
   });
+
+  if (!file) {
+    throw new Error("Uploaded file not found");
+  }
+
+  const status = toProcessingStatus(file.status);
+
+  if (!isActiveProcessingStatusValue(status)) {
+    return {
+      changed: false,
+      status,
+      failureCode: file.failureCode,
+    };
+  }
+
+  const hasProcessingForQueuedState =
+    status === "queued" ? await hasProcessingUploadForUser(userId) : false;
+  const failureCode = getStaleFailureCode(
+    file,
+    now,
+    hasProcessingForQueuedState,
+  );
+
+  if (!failureCode) {
+    return {
+      changed: false,
+      status,
+      failureCode: file.failureCode,
+    };
+  }
+
+  const updated = await markUploadedFileAttemptFailed(
+    file.id,
+    file.currentAttempt,
+    failureCode,
+    {
+      now,
+      statuses: [status],
+    },
+  );
+
+  if (updated.count === 1 && failureCode === "worker_timeout") {
+    await sendProcessingCancelEventBestEffort({
+      uploadedFileId: file.id,
+      attempt: file.currentAttempt,
+    });
+  }
+
+  const latest = await db.uploadedFile.findFirstOrThrow({
+    where: { id: uploadedFileId, userId },
+    select: {
+      status: true,
+      failureCode: true,
+    },
+  });
+
+  return {
+    changed: updated.count === 1,
+    status: toProcessingStatus(latest.status),
+    failureCode: latest.failureCode,
+  };
 }
 
-// Finds old unconfirmed upload drafts that are candidates for cleanup after a
-// final S3 existence check.
-export async function findStaleRawUploadDrafts(staleBefore: Date, limit = 50) {
-  return db.uploadedFile.findMany({
+export async function reconcileStaleUploadedFilesForUser(
+  userId: string,
+  options?: { now?: Date; limit?: number },
+): Promise<{ changedCount: number }> {
+  const now = options?.now ?? new Date();
+  const limit = options?.limit ?? 50;
+  const activeFiles = await db.uploadedFile.findMany({
     where: {
-      status: "upload_pending",
-      uploaded: false,
-      createdAt: {
-        lt: staleBefore,
+      userId,
+      status: {
+        in: [...ACTIVE_PROCESSING_STATUSES],
       },
     },
     orderBy: {
       createdAt: "asc",
-    },
-    take: limit,
-    select: {
-      id: true,
-      s3Key: true,
-    },
-  });
-}
-
-export async function findStaleRecoverableUploadDrafts(
-  staleBefore: Date,
-  limit = 50,
-) {
-  return db.uploadedFile.findMany({
-    where: {
-      status: "upload_pending",
-      uploaded: true,
-      sourceUploadedAt: {
-        lt: staleBefore,
-      },
-    },
-    orderBy: {
-      sourceUploadedAt: "asc",
     },
     take: limit,
     select: {
       id: true,
       userId: true,
-      s3Key: true,
+      status: true,
+      currentAttempt: true,
+      failureCode: true,
+      enqueueRequestedAt: true,
+      queuedAt: true,
+      processingStartedAt: true,
     },
   });
+
+  let changedCount = 0;
+
+  for (const file of activeFiles.filter(
+    (file) => file.status === "processing",
+  )) {
+    const failureCode = getStaleFailureCode(file, now, false);
+
+    if (failureCode !== "worker_timeout") {
+      continue;
+    }
+
+    const updated = await markUploadedFileAttemptFailed(
+      file.id,
+      file.currentAttempt,
+      failureCode,
+      {
+        now,
+        statuses: ["processing"],
+      },
+    );
+
+    if (updated.count === 1) {
+      changedCount += 1;
+      await sendProcessingCancelEventBestEffort({
+        uploadedFileId: file.id,
+        attempt: file.currentAttempt,
+      });
+    }
+  }
+
+  for (const file of activeFiles.filter(
+    (file) => file.status === "pending_enqueue",
+  )) {
+    const failureCode = getStaleFailureCode(file, now, false);
+
+    if (failureCode !== "dispatch_timeout") {
+      continue;
+    }
+
+    const updated = await markUploadedFileAttemptFailed(
+      file.id,
+      file.currentAttempt,
+      failureCode,
+      {
+        now,
+        statuses: ["pending_enqueue"],
+      },
+    );
+
+    if (updated.count === 1) {
+      changedCount += 1;
+    }
+  }
+
+  const hasProcessing = await hasProcessingUploadForUser(userId);
+
+  if (!hasProcessing) {
+    for (const file of activeFiles.filter((file) => file.status === "queued")) {
+      const failureCode = getStaleFailureCode(file, now, false);
+
+      if (failureCode !== "queued_worker_not_started") {
+        continue;
+      }
+
+      const updated = await markUploadedFileAttemptFailed(
+        file.id,
+        file.currentAttempt,
+        failureCode,
+        {
+          now,
+          statuses: ["queued"],
+        },
+      );
+
+      if (updated.count === 1) {
+        changedCount += 1;
+      }
+    }
+  }
+
+  return { changedCount };
+}
+
+export async function reconcileUploadDraftsForUser(
+  userId: string,
+  options?: { now?: Date; limit?: number },
+): Promise<{
+  promoted: number;
+  deletedRaw: number;
+  deletedRecoverable: number;
+  skippedDueToErrors: number;
+}> {
+  const now = options?.now ?? new Date();
+  const limit = options?.limit ?? 50;
+  const rawStaleBefore = new Date(
+    now.getTime() - PROCESSING_STALE_POLICY.rawUploadDraftTtlMs,
+  );
+  const recoverableStaleBefore = new Date(
+    now.getTime() - PROCESSING_STALE_POLICY.recoverableUploadDraftTtlMs,
+  );
+  const drafts = await db.uploadedFile.findMany({
+    where: {
+      userId,
+      status: "upload_pending",
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: limit,
+    select: {
+      id: true,
+      s3Key: true,
+      uploaded: true,
+      createdAt: true,
+      sourceUploadedAt: true,
+    },
+  });
+
+  let promoted = 0;
+  let deletedRaw = 0;
+  let deletedRecoverable = 0;
+  let skippedDueToErrors = 0;
+
+  for (const draft of drafts) {
+    if (!draft.uploaded) {
+      let exists: boolean;
+
+      try {
+        exists = await objectExists(draft.s3Key);
+      } catch (error) {
+        skippedDueToErrors += 1;
+        console.error("Failed to check upload draft source object", {
+          uploadedFileId: draft.id,
+          s3Key: draft.s3Key,
+          error,
+        });
+        continue;
+      }
+
+      if (exists) {
+        const updated = await db.uploadedFile.updateMany({
+          where: {
+            id: draft.id,
+            userId,
+            status: "upload_pending",
+            uploaded: false,
+          },
+          data: {
+            uploaded: true,
+            sourceUploadedAt: now,
+          },
+        });
+
+        promoted += updated.count;
+        continue;
+      }
+
+      if (draft.createdAt < rawStaleBefore) {
+        const deleted = await db.uploadedFile.deleteMany({
+          where: {
+            id: draft.id,
+            userId,
+            status: "upload_pending",
+            uploaded: false,
+          },
+        });
+
+        deletedRaw += deleted.count;
+      }
+
+      continue;
+    }
+
+    const retentionDate = draft.sourceUploadedAt ?? draft.createdAt;
+
+    if (retentionDate >= recoverableStaleBefore) {
+      continue;
+    }
+
+    try {
+      await deleteS3Object(draft.s3Key);
+    } catch (error) {
+      skippedDueToErrors += 1;
+      console.error("Failed to delete stale recoverable upload draft source", {
+        uploadedFileId: draft.id,
+        s3Key: draft.s3Key,
+        error,
+      });
+      continue;
+    }
+
+    const deleted = await db.uploadedFile.deleteMany({
+      where: {
+        id: draft.id,
+        userId,
+        status: "upload_pending",
+        uploaded: true,
+      },
+    });
+
+    deletedRecoverable += deleted.count;
+  }
+
+  return {
+    promoted,
+    deletedRaw,
+    deletedRecoverable,
+    skippedDueToErrors,
+  };
 }
 
 export async function deleteUploadedFileRecord(
@@ -857,10 +1207,4 @@ export async function deleteUploadedFileRecord(
   }
 
   return result;
-}
-
-export async function deleteUploadedFileRecordById(uploadedFileId: string) {
-  return db.uploadedFile.delete({
-    where: { id: uploadedFileId },
-  });
 }

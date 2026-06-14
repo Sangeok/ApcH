@@ -86,8 +86,16 @@ function getEventTimestamp(
 
 function getFailureLabel(failureCode: string | null): string | null {
   switch (failureCode) {
+    case "dispatch_failed":
+      return "Processing could not start";
+    case "dispatch_timeout":
+      return "Processing request timed out";
     case "dispatch_dead_letter":
       return "Dispatch retries exhausted";
+    case "callback_timeout":
+      return "Processing result timed out";
+    case "missing_source_object":
+      return "Original upload is missing";
     case "worker_timeout":
       return "Worker timed out";
     case "queued_worker_not_started":

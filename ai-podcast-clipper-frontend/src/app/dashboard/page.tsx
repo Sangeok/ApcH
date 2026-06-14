@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import {
   listRecoverableUploadDraftsByUserId,
   listUploadedFileSummariesByUserId,
+  reconcileStaleUploadedFilesForUser,
+  reconcileUploadDraftsForUser,
 } from "~/fsd/entities/uploaded-file";
 import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
@@ -14,6 +16,9 @@ export default async function DashboardPage() {
   if (!session?.user?.id) {
     redirect("/login");
   }
+
+  await reconcileStaleUploadedFilesForUser(session.user.id);
+  await reconcileUploadDraftsForUser(session.user.id);
 
   const [uploadedFiles, recoverableDrafts] = await Promise.all([
     listUploadedFileSummariesByUserId(session.user.id),

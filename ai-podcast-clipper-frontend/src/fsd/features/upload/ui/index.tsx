@@ -1,7 +1,14 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
+import {
+  CreditCard,
+  Loader2,
+  MoreHorizontal,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
@@ -55,11 +62,13 @@ const runAction = ({
 interface UploadedFileActionsProps {
   uploadedFileId: string;
   status: ProcessingStatus;
+  currentUserCredits: number;
 }
 
 export default function UploadedFileActions({
   uploadedFileId,
   status,
+  currentUserCredits,
 }: UploadedFileActionsProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -67,11 +76,16 @@ export default function UploadedFileActions({
   const [isDeleting, startDeleteTransition] = useTransition();
   const isActive = isActiveProcessingStatus(status);
   const anyPending = reprocessMutation.isPending || isDeleting;
+  const shouldBuyCredits = status === "no credits" && currentUserCredits <= 0;
+  const actionLabel =
+    status === "failed" || (status === "no credits" && currentUserCredits > 0)
+      ? "Retry processing"
+      : "Reprocess";
 
   const handleReprocess = () => {
     reprocessMutation.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Reprocessing started");
+        toast.success("Processing started");
       },
       onError: (error) => {
         toast.error(error.message);
@@ -107,18 +121,27 @@ export default function UploadedFileActions({
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        disabled={anyPending || isActive}
-        onClick={handleReprocess}
-      >
-        {reprocessMutation.isPending ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          <RefreshCw className="mr-2 h-4 w-4" />
-        )}
-        Reprocess
-      </Button>
+      {shouldBuyCredits ? (
+        <Button variant="outline" disabled={anyPending} asChild>
+          <Link href="/dashboard/billing">
+            <CreditCard className="mr-2 h-4 w-4" />
+            Buy credits
+          </Link>
+        </Button>
+      ) : (
+        <Button
+          variant="outline"
+          disabled={anyPending || isActive}
+          onClick={handleReprocess}
+        >
+          {reprocessMutation.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="mr-2 h-4 w-4" />
+          )}
+          {actionLabel}
+        </Button>
+      )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" disabled={anyPending || isActive}>

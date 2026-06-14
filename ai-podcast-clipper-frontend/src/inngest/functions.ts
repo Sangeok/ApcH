@@ -6,39 +6,19 @@ import {
   updateClipMetadataFromBackendClips,
 } from "~/fsd/entities/clip";
 import {
-  dispatchPendingProcessingRequests,
-  findStaleQueuedSentProcessingDispatches,
-  markProcessingDispatchRetryableNow,
-  markStaleQueuedDispatchDeadLetter,
-} from "~/fsd/entities/processing-dispatch";
-import {
-  confirmUploadedFileSourceByIdIfObjectExists,
-  deleteUploadedFileRecordById,
-  findRawUploadDraftsForPromotion,
-  findStaleProcessingUploadedFiles,
-  findStaleRawUploadDrafts,
-  findStaleRecoverableUploadDrafts,
+  completeUploadedFileProcessingAttempt,
   findCurrentProcessingAttemptContext,
-  hasProcessingUploadForUser,
+  isUploadedFileAttemptStillProcessing,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
-  markUploadedFileAttemptProcessed,
   startUploadedFileProcessingAttempt,
 } from "~/fsd/entities/uploaded-file";
-import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";
-import {
-  deleteS3Object,
-  listS3Objects,
-  objectExists,
-} from "~/fsd/shared/api/s3";
+import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
 import { inngest } from "./client";
 
 const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
 const MODAL_METADATA_GRACE_INTERVAL = "2m";
-const STALE_QUEUED_DISPATCH_INTERVAL_MS = 15 * 60 * 1000;
-const STALE_QUEUED_DISPATCH_DEAD_LETTER_MS = 2 * 60 * 60 * 1000;
-const STALE_QUEUED_MAX_DISPATCH_COUNT = 10;
 
 type ProcessVideoBackendClip = {
   index: number;
@@ -267,156 +247,6 @@ async function countGeneratedClipKeys(outputPrefix: string): Promise<number> {
   return (await findAttemptGeneratedClipKeys(outputPrefix)).length;
 }
 
-async function promoteRecoverableUploadDrafts(limit = 25): Promise<number> {
-  const drafts = await findRawUploadDraftsForPromotion(limit);
-  let promoted = 0;
-
-  for (const draft of drafts) {
-    try {
-      const result = await confirmUploadedFileSourceByIdIfObjectExists(
-        draft.id,
-      );
-
-      if (result.status === "confirmed" && result.confirmedNow) {
-        promoted += 1;
-      }
-    } catch (error) {
-      console.error("Failed to promote recoverable upload draft", error);
-    }
-  }
-
-  return promoted;
-}
-
-async function cleanupStaleRawUploadDrafts(limit = 25): Promise<number> {
-  const staleBefore = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const drafts = await findStaleRawUploadDrafts(staleBefore, limit);
-  let deleted = 0;
-
-  for (const draft of drafts) {
-    try {
-      const result = await confirmUploadedFileSourceByIdIfObjectExists(
-        draft.id,
-      );
-
-      if (result.status === "confirmed" || result.status === "skipped") {
-        continue;
-      }
-
-      if (result.status === "not_found") {
-        continue;
-      }
-
-      await deleteUploadedFileRecordById(draft.id);
-      deleted += 1;
-    } catch (error) {
-      console.error("Failed to cleanup stale raw upload draft", error);
-    }
-  }
-
-  return deleted;
-}
-
-async function cleanupStaleRecoverableUploadDrafts(
-  limit = 25,
-): Promise<number> {
-  const staleBefore = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const drafts = await findStaleRecoverableUploadDrafts(staleBefore, limit);
-  let deleted = 0;
-
-  for (const draft of drafts) {
-    try {
-      if (await objectExists(draft.s3Key)) {
-        await deleteS3Object(draft.s3Key);
-      }
-
-      await deleteUploadedFileRecordById(draft.id);
-      deleted += 1;
-    } catch (error) {
-      console.error("Failed to cleanup stale recoverable upload draft", error);
-    }
-  }
-
-  return deleted;
-}
-
-async function recoverStaleProcessingAttempts(limit = 25): Promise<number> {
-  const staleBefore = new Date(Date.now() - 2 * 60 * 60 * 1000);
-  const staleFiles = await findStaleProcessingUploadedFiles(
-    staleBefore,
-    limit,
-  );
-  let recovered = 0;
-
-  for (const file of staleFiles) {
-    const result = await markUploadedFileAttemptFailed(
-      file.id,
-      file.currentAttempt,
-      "worker_timeout",
-      {
-        statuses: ["processing"],
-      },
-    );
-
-    recovered += result.count;
-  }
-
-  return recovered;
-}
-
-async function recoverStaleQueuedDispatches(): Promise<number> {
-  const now = new Date();
-  const staleBefore = new Date(
-    now.getTime() - STALE_QUEUED_DISPATCH_INTERVAL_MS,
-  );
-  const dispatches = await findStaleQueuedSentProcessingDispatches(staleBefore);
-  let recovered = 0;
-
-  for (const dispatch of dispatches) {
-    try {
-      const userHasProcessingUpload = await hasProcessingUploadForUser(
-        dispatch.uploadedFile.userId,
-      );
-
-      if (userHasProcessingUpload) {
-        continue;
-      }
-
-      const shouldDeadLetter =
-        dispatch.dispatchCount >= STALE_QUEUED_MAX_DISPATCH_COUNT ||
-        now.getTime() - dispatch.createdAt.getTime() >=
-          STALE_QUEUED_DISPATCH_DEAD_LETTER_MS;
-
-      const result = shouldDeadLetter
-        ? await markStaleQueuedDispatchDeadLetter({
-            dispatchId: dispatch.id,
-            uploadedFileId: dispatch.uploadedFile.id,
-            attempt: dispatch.attempt,
-            errorMessage: "queued_worker_not_started",
-            now,
-          })
-        : await markProcessingDispatchRetryableNow({
-            dispatchId: dispatch.id,
-            uploadedFileId: dispatch.uploadedFile.id,
-            attempt: dispatch.attempt,
-            errorMessage: "queued_worker_not_started",
-            now,
-          });
-
-      recovered += result.count;
-    } catch (error) {
-      console.error("Failed to recover stale queued dispatch", {
-        dispatchId: dispatch.id,
-        uploadedFileId: dispatch.uploadedFile.id,
-        attempt: dispatch.attempt,
-        error,
-      });
-    }
-  }
-
-  return recovered;
-}
-
 export const processVideo = inngest.createFunction(
   {
     id: "process-video",
@@ -445,6 +275,66 @@ export const processVideo = inngest.createFunction(
 
     if (context?.status !== "queued") {
       return { skipped: true };
+    }
+
+    const sourceCheck = await step.run(
+      "check-source-object-exists",
+      async () => {
+        try {
+          return {
+            status: "checked" as const,
+            exists: await objectExists(context.s3Key),
+          };
+        } catch (error) {
+          console.error("Failed to check source object before processing", {
+            uploadedFileId,
+            attempt,
+            s3Key: context.s3Key,
+            error,
+          });
+
+          return {
+            status: "error" as const,
+            errorMessage: toErrorMessage(error),
+          };
+        }
+      },
+    );
+
+    if (sourceCheck.status === "error") {
+      await step.run("mark-source-check-failed", async () => {
+        await markUploadedFileAttemptFailed(
+          uploadedFileId,
+          attempt,
+          "backend_failed",
+          {
+            now: new Date(),
+            statuses: ["queued"],
+          },
+        );
+      });
+
+      return {
+        skipped: false,
+        status: "backend_failed",
+        error: sourceCheck.errorMessage,
+      };
+    }
+
+    if (!sourceCheck.exists) {
+      await step.run("mark-missing-source-object", async () => {
+        await markUploadedFileAttemptFailed(
+          uploadedFileId,
+          attempt,
+          "missing_source_object",
+          {
+            now: new Date(),
+            statuses: ["queued"],
+          },
+        );
+      });
+
+      return { skipped: false, status: "missing_source_object" };
     }
 
     if (context.user.credits <= 0) {
@@ -625,6 +515,17 @@ export const processVideo = inngest.createFunction(
         );
       }
 
+      const stillProcessing = await step.run(
+        "check-attempt-still-processing",
+        async () => {
+          return isUploadedFileAttemptStillProcessing(uploadedFileId, attempt);
+        },
+      );
+
+      if (!stillProcessing) {
+        return { skipped: true, status: "attempt_no_longer_active" };
+      }
+
       const { clipsFound } = await step.run(
         "persist-generated-clips",
         async () => {
@@ -648,6 +549,28 @@ export const processVideo = inngest.createFunction(
 
       if (backendFailureMessage && clipsFound === 0) {
         throw new Error(backendFailureMessage);
+      }
+
+      const callbackTimedOutWithoutOutputs =
+        shouldWaitForCallback &&
+        !modalCallbackReceived &&
+        !generatedClipsDetected &&
+        generatedClipCount < clipCount;
+
+      if (callbackTimedOutWithoutOutputs && clipsFound === 0) {
+        await step.run("mark-callback-timeout", async () => {
+          await markUploadedFileAttemptFailed(
+            uploadedFileId,
+            attempt,
+            "callback_timeout",
+            {
+              now: new Date(),
+              statuses: ["processing"],
+            },
+          );
+        });
+
+        return { skipped: false, status: "callback_timeout" };
       }
 
       if (clipsFound === 0) {
@@ -687,15 +610,22 @@ export const processVideo = inngest.createFunction(
         };
       }
 
-      await step.run("deduct-credits", async () => {
-        await decrementUserCreditsFloorZero(context.userId, clipsFound);
-      });
+      const completion = await step.run(
+        "complete-processing-attempt",
+        async () => {
+          return completeUploadedFileProcessingAttempt({
+            uploadedFileId,
+            attempt,
+            userId: context.userId,
+            clipsFound,
+            now: new Date(),
+          });
+        },
+      );
 
-      await step.run("mark-processed", async () => {
-        await markUploadedFileAttemptProcessed(uploadedFileId, attempt, {
-          now: new Date(),
-        });
-      });
+      if (!completion.completed) {
+        return { skipped: true, status: "attempt_no_longer_active" };
+      }
 
       return { skipped: false, status: "processed" };
     } catch (error) {
@@ -713,39 +643,5 @@ export const processVideo = inngest.createFunction(
 
       throw error;
     }
-  },
-);
-
-export const processingMaintenanceSweep = inngest.createFunction(
-  { id: "processing-maintenance-sweep" },
-  { cron: "*/15 * * * *" },
-  async () => {
-    const processingRecovered = await recoverStaleProcessingAttempts(25);
-    const queuedRecovered = await recoverStaleQueuedDispatches();
-    const dispatched = await dispatchPendingProcessingRequests(25);
-
-    return {
-      dispatched,
-      processingRecovered,
-      queuedRecovered,
-    };
-  },
-);
-
-export const uploadDraftSweep = inngest.createFunction(
-  { id: "upload-draft-sweep" },
-  { cron: "0 * * * *" },
-  async () => {
-    const [promoted, cleanedRaw, cleanedRecoverable] = await Promise.all([
-      promoteRecoverableUploadDrafts(),
-      cleanupStaleRawUploadDrafts(),
-      cleanupStaleRecoverableUploadDrafts(),
-    ]);
-
-    return {
-      promoted,
-      cleanedRaw,
-      cleanedRecoverable,
-    };
   },
 );

@@ -44,6 +44,7 @@ export function useUploadPodcast({
     await queryClient.invalidateQueries({
       queryKey: uploadedFileKeys.lists(),
     });
+    router.refresh();
     onSuccess?.();
   };
 
@@ -89,31 +90,39 @@ export function useUploadPodcast({
         const confirmResult = await confirmUploadObjectExists(createdFileId);
 
         if (!confirmResult.success) {
-          const reconcileResult = await reconcileUploadConfirmation(createdFileId);
+          const reconcileResult =
+            await reconcileUploadConfirmation(createdFileId);
 
           if (!reconcileResult.success || !reconcileResult.data.uploaded) {
-            toast.error("Upload finished, but confirmation could not be verified.", {
-              id: toastId,
-              description:
-                "The upload draft was kept. Retry later from Recoverable Uploads.",
-            });
+            toast.error(
+              "Upload finished, but confirmation could not be verified.",
+              {
+                id: toastId,
+                description:
+                  "The upload draft was kept. Retry later from Recoverable Uploads.",
+              },
+            );
             refreshRecoverableDrafts();
             return;
           }
         }
 
         toast.loading("Scheduling processing...", { id: toastId });
-        const processResult = await scheduleUploadedFileProcessing(createdFileId);
+        const processResult =
+          await scheduleUploadedFileProcessing(createdFileId);
 
         if (!processResult.success) {
-          const reconcileResult = await reconcileProcessingRequest(createdFileId);
+          const reconcileResult =
+            await reconcileProcessingRequest(createdFileId);
 
-          if (reconcileResult.success && reconcileResult.data.status !== "upload_pending") {
+          if (
+            reconcileResult.success &&
+            reconcileResult.data.status !== "upload_pending"
+          ) {
             createdFileId = null;
-            toast.success("Video uploaded successfully", {
+            toast.error("Video uploaded, but processing could not start.", {
               id: toastId,
-              description:
-                "Your video has been scheduled for processing. Check the status below.",
+              description: "Open the upload detail page and retry processing.",
               duration: 5000,
             });
             await markUploadVisible();
@@ -141,21 +150,24 @@ export function useUploadPodcast({
         console.error("Failed to upload video", error);
 
         if (createdFileId && !canAutoDeleteDraft) {
-          const reconcileResult = await reconcileUploadConfirmation(createdFileId).catch(
-            () => null,
-          );
+          const reconcileResult = await reconcileUploadConfirmation(
+            createdFileId,
+          ).catch(() => null);
 
           if (reconcileResult?.success && reconcileResult.data.uploaded) {
-            const processState = await reconcileProcessingRequest(createdFileId).catch(
-              () => null,
-            );
+            const processState = await reconcileProcessingRequest(
+              createdFileId,
+            ).catch(() => null);
 
-            if (processState?.success && processState.data.status !== "upload_pending") {
+            if (
+              processState?.success &&
+              processState.data.status !== "upload_pending"
+            ) {
               createdFileId = null;
-              toast.success("Video uploaded successfully", {
+              toast.error("Video uploaded, but processing could not start.", {
                 id: toastId,
                 description:
-                  "Your video has been scheduled for processing. Check the status below.",
+                  "Open the upload detail page and retry processing.",
                 duration: 5000,
               });
               await markUploadVisible();
@@ -170,10 +182,9 @@ export function useUploadPodcast({
 
         toast.error("Failed to upload video", {
           id: toastId,
-          description:
-            canAutoDeleteDraft
-              ? "There was a problem uploading your video. Please try again."
-              : "The upload draft was kept. Resume later from Recoverable Uploads if needed.",
+          description: canAutoDeleteDraft
+            ? "There was a problem uploading your video. Please try again."
+            : "The upload draft was kept. Resume later from Recoverable Uploads if needed.",
         });
       } finally {
         if (createdFileId && canAutoDeleteDraft) {

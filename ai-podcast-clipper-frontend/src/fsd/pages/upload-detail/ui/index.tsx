@@ -37,6 +37,7 @@ export default function UploadDetailPage({
     terminalStatusAt,
     failureCode,
     targetClipCount,
+    currentUserCredits,
   } = liveUploadedFileData;
 
   return (
@@ -53,7 +54,11 @@ export default function UploadDetailPage({
             <UploadedFileStatusBadge status={status} />
           </div>
         </div>
-        <UploadedFileActions uploadedFileId={uploadedFileId} status={status} />
+        <UploadedFileActions
+          uploadedFileId={uploadedFileId}
+          status={status}
+          currentUserCredits={currentUserCredits}
+        />
       </header>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">

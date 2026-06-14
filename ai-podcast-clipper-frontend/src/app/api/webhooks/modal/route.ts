@@ -1,6 +1,9 @@
 import { env } from "~/env";
 import { updateClipMetadataFromBackendClips } from "~/fsd/entities/clip";
-import { getProcessingMatchKey } from "~/fsd/entities/uploaded-file";
+import {
+  getProcessingMatchKey,
+  isUploadedFileAttemptCurrent,
+} from "~/fsd/entities/uploaded-file";
 import { inngest } from "~/inngest/client";
 
 interface ModalWebhookClip {
@@ -173,7 +176,12 @@ export async function POST(req: Request) {
     },
   });
 
-  if (body.clips && body.clips.length > 0) {
+  const isCurrentAttempt = await isUploadedFileAttemptCurrent(
+    body.uploadedFileId,
+    body.attempt,
+  );
+
+  if (isCurrentAttempt && body.clips && body.clips.length > 0) {
     try {
       await updateClipMetadataFromBackendClips({
         uploadedFileId: body.uploadedFileId,

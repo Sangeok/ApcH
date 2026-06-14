@@ -37,6 +37,7 @@ export interface UploadedFileDetail {
   terminalStatusAt: Date | null;
   currentAttempt: number;
   lastSuccessfulAttempt: number;
+  currentUserCredits: number;
   clips: Clip[];
 }
 
