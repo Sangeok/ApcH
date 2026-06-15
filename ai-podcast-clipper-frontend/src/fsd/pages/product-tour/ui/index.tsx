@@ -16,7 +16,7 @@ export default function ProductTourPage() {
         title="See How AI Podcast Clipper Turns Podcasts Into Shorts"
         description="Walk through the full pipeline before you sign up: upload, AI highlight detection, captioned vertical framing, and dashboard review."
         primaryCta={{ label: "Try it free", href: "/login" }}
-        secondaryCta={{ label: "See features", href: "/features" }}
+        secondaryCta={{ label: "How it works", href: "/how-it-works" }}
       />
 
       <SeoSection

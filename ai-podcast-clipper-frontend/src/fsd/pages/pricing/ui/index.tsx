@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { PLAN_TIERS } from "~/fsd/features/billing/config/plan-tiers";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
+import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
   CardContent,
@@ -129,6 +131,18 @@ export default function PricingPage() {
             <li key={limit}>{limit}</li>
           ))}
         </ul>
+      </SeoSection>
+
+      <SeoSection
+        eyebrow="Caption planning"
+        title="Before spending credits, check the caption workflow"
+        description="The caption guide explains why timing, mobile readability, and language choice matter for podcast clips."
+      >
+        <Button asChild variant="outline">
+          <Link href="/guides/podcast-clips-with-captions">
+            Read the caption guide
+          </Link>
+        </Button>
       </SeoSection>
 
       <FaqSection items={pricingFaq} />

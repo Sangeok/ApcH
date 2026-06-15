@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
   CardContent,
@@ -83,6 +85,18 @@ export default function YoutubeShortsGeneratorPage() {
             <li key={item}>{item}</li>
           ))}
         </ul>
+      </SeoSection>
+
+      <SeoSection
+        eyebrow="Clip length"
+        title="Choosing the right Short length"
+        description="Podcast Shorts often need enough time for both the question and the answer. Use the length guide before deciding whether a moment should be 30, 40, or 60 seconds."
+      >
+        <Button asChild variant="outline">
+          <Link href="/guides/best-podcast-clip-length-for-shorts">
+            Read the clip length guide
+          </Link>
+        </Button>
       </SeoSection>
 
       <FaqSection items={shortsFaq} />

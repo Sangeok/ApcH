@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
+import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
   CardContent,
@@ -83,6 +85,16 @@ export default function FeaturesPage() {
             </tbody>
           </table>
         </div>
+      </SeoSection>
+
+      <SeoSection
+        eyebrow="Pipeline"
+        title="Want the processing details?"
+        description="The how-it-works page explains upload storage, transcription, highlight selection, active speaker framing, captions, rendering, and dashboard review."
+      >
+        <Button asChild variant="outline">
+          <Link href="/how-it-works">Read how it works</Link>
+        </Button>
       </SeoSection>
 
       <FaqSection items={featuresFaq} />

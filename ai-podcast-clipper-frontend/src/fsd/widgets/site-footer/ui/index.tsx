@@ -18,6 +18,23 @@ const FOOTER_GROUPS = [
     ],
   },
   {
+    title: "Resources",
+    links: [
+      { label: "Guides", href: "/guides" },
+      { label: "Compare workflows", href: "/compare" },
+      { label: "How it works", href: "/how-it-works" },
+      { label: "Changelog", href: "/changelog" },
+    ],
+  },
+  {
+    title: "Trust",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Security", href: "/security" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
     title: "Legal",
     links: [
       { label: "Terms of Service", href: "/terms" },
@@ -29,7 +46,7 @@ const FOOTER_GROUPS = [
 export default function SiteFooter() {
   return (
     <footer className="text-muted-foreground mt-16 border-t pt-10 text-sm">
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
         {FOOTER_GROUPS.map((group) => (
           <div key={group.title} className="space-y-3">
             <p className="text-foreground text-sm font-semibold tracking-tight">
