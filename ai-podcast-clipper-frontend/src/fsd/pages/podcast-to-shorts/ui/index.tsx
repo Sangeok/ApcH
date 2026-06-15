@@ -82,9 +82,7 @@ export default function PodcastToShortsPage() {
               <CardHeader>
                 <div className="text-primary flex items-center gap-3">
                   <platform.icon className="size-5" />
-                  <CardTitle className="text-lg">
-                    {platform.platform}
-                  </CardTitle>
+                  <CardTitle className="text-lg">{platform.platform}</CardTitle>
                 </div>
                 <CardDescription>{platform.spec}</CardDescription>
               </CardHeader>
@@ -96,6 +94,18 @@ export default function PodcastToShortsPage() {
             </Card>
           ))}
         </div>
+      </SeoSection>
+
+      <SeoSection
+        eyebrow="Review"
+        title="Treat generated clips as review candidates"
+        description="Before publishing a Short, confirm source rights, guest consent, caption accuracy, and whether the selected moment still makes sense outside the full episode."
+      >
+        <Button asChild variant="outline">
+          <Link href="/guides/how-to-make-podcast-clips-for-youtube-shorts">
+            Read the clipping workflow guide
+          </Link>
+        </Button>
       </SeoSection>
 
       <SeoSection

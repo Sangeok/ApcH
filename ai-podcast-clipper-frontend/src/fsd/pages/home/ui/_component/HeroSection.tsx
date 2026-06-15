@@ -18,8 +18,8 @@ export default function HeroSection() {
           </h1>
           <p className="text-muted-foreground max-w-2xl text-lg">
             Podcast Clipper finds the high-converting moments inside every
-            episode, trims them with studio precision, and ships them to
-            every channel before the conversation goes stale.
+            episode, trims them with studio precision, and ships them to every
+            channel before the conversation goes stale.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -32,6 +32,9 @@ export default function HeroSection() {
           <Button asChild variant="outline" size="lg">
             <Link href="/product-tour">See product tour</Link>
           </Button>
+          <Button asChild variant="ghost" size="lg">
+            <Link href="/guides">Read guides</Link>
+          </Button>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {heroHighlights.map((highlight) => (
@@ -39,9 +42,7 @@ export default function HeroSection() {
               key={highlight.label}
               className="border-border/80 bg-card/80 rounded-2xl border p-4 shadow-sm"
             >
-              <p className="text-muted-foreground text-sm">
-                {highlight.label}
-              </p>
+              <p className="text-muted-foreground text-sm">{highlight.label}</p>
               <p className="mt-2 text-2xl font-semibold tracking-tight">
                 {highlight.value}
               </p>

@@ -13,7 +13,7 @@ import type { FeatureCard, HeroHighlight, WorkflowStep } from "../model/types";
 export const heroHighlights: HeroHighlight[] = [
   {
     label: "Automatic clip count",
-    value: "Up to 2 per run",
+    value: "1-4 clips",
     footnote: "Gemini maps the top Q&A pairs with 40-60s durations.",
   },
   {
