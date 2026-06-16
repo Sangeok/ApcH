@@ -7,6 +7,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { AnalyticsTracker } from "~/fsd/shared/analytics";
 
 focusManager.setEventListener((handleFocus) => {
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -48,6 +49,7 @@ function getQueryClient() {
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={getQueryClient()}>
+      <AnalyticsTracker />
       {children}
     </QueryClientProvider>
   );

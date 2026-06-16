@@ -26,7 +26,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Effective date: April 3, 2026
+            Effective date: June 16, 2026
           </p>
         </div>
 
@@ -128,6 +128,14 @@ export default function PrivacyPage() {
                     <td className="py-2 pr-4">Credit balance</td>
                     <td className="py-2">Used to manage service usage</td>
                   </tr>
+                  <tr className="border-border border-b">
+                    <td className="py-2 pr-4">Product analytics events</td>
+                    <td className="py-2">
+                      Pseudonymous page and product milestone events used to
+                      understand onboarding, upload, processing, and billing
+                      drop-off.
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -170,7 +178,9 @@ export default function PrivacyPage() {
             <h3 className="text-base font-medium">Cookies</h3>
             <p className="text-muted-foreground text-sm">
               We only use cookies required for authentication. We do not use
-              analytics or advertising cookies.
+              analytics or advertising cookies. We use local browser storage to
+              keep a pseudonymous analytics identifier and session identifier
+              for first-party product analytics.
             </p>
             <div className="overflow-x-auto">
               <table className="text-muted-foreground w-full text-sm">
@@ -324,6 +334,13 @@ export default function PrivacyPage() {
                   <td className="py-2 pr-4">Temporary scene detection data</td>
                   <td className="py-2">Deleted immediately after processing</td>
                 </tr>
+                <tr className="border-border border-b">
+                  <td className="py-2 pr-4">Product analytics events</td>
+                  <td className="py-2">
+                    90 days maximum for raw analytics events. User-linked rows
+                    are deleted earlier when the linked account is deleted.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -345,6 +362,10 @@ export default function PrivacyPage() {
             <li>
               Scene detection data is processed temporarily for video analysis
               and is not stored in the database.
+            </li>
+            <li>
+              Product analytics events do not include uploaded file names, video
+              URLs, S3 keys, payment card details, or OAuth tokens.
             </li>
           </ul>
         </section>

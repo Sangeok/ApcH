@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrackedLink } from "~/fsd/shared/analytics";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { PUBLIC_NAV_ITEMS } from "../config/public-nav";
 
@@ -25,7 +26,12 @@ export default function PublicHeader() {
       </nav>
 
       <Button variant="outline" asChild>
-        <Link href="/login">Log in</Link>
+        <TrackedLink
+          href="/login"
+          metadata={{ location: "public_header", cta: "log_in" }}
+        >
+          Log in
+        </TrackedLink>
       </Button>
     </header>
   );

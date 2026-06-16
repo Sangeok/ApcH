@@ -234,6 +234,18 @@ exports.Prisma.OrderScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AnalyticsEventScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  anonymousId: 'anonymousId',
+  sessionId: 'sessionId',
+  path: 'path',
+  referrer: 'referrer',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  userId: 'userId'
+};
+
 exports.Prisma.VerificationTokenScalarFieldEnum = {
   identifier: 'identifier',
   token: 'token',
@@ -243,6 +255,11 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -255,6 +272,12 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
 
 exports.Prisma.ModelName = {
   Account: 'Account',
@@ -265,6 +288,7 @@ exports.Prisma.ModelName = {
   ProcessingDispatch: 'ProcessingDispatch',
   Subscription: 'Subscription',
   Order: 'Order',
+  AnalyticsEvent: 'AnalyticsEvent',
   VerificationToken: 'VerificationToken'
 };
 

@@ -20,6 +20,7 @@ import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Loader2, UploadCloud } from "lucide-react";
 import { useState } from "react";
 import { useUploadPodcast } from "~/fsd/pages/dashboard/model/useUploadPodcast";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   UPLOAD_CONFIG,
   SUPPORTED_LANGUAGES,
@@ -44,12 +45,53 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
 
   const handleFileDrop = (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
+
+    const file = acceptedFiles[0];
+
+    if (file) {
+      void trackAnalyticsEvent("upload_file_selected", {
+        fileType: file.type,
+        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
+        language,
+        clipCount,
+      });
+    }
   };
 
   const handleUpload = () => {
     const file = files[0];
     if (!file) return;
     upload(file, language, clipCount);
+  };
+
+  const handleLanguageChange = (nextLanguage: string) => {
+    setLanguage(nextLanguage);
+
+    const file = files[0];
+
+    if (file) {
+      void trackAnalyticsEvent("upload_options_changed", {
+        fileType: file.type,
+        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
+        language: nextLanguage,
+        clipCount,
+      });
+    }
+  };
+
+  const handleClipCountChange = (nextClipCount: number) => {
+    setClipCount(nextClipCount);
+
+    const file = files[0];
+
+    if (file) {
+      void trackAnalyticsEvent("upload_options_changed", {
+        fileType: file.type,
+        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
+        language,
+        clipCount: nextClipCount,
+      });
+    }
   };
 
   return (
@@ -123,7 +165,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                       {SUPPORTED_LANGUAGES.map((lang) => (
                         <DropdownMenuItem
                           key={lang.value}
-                          onClick={() => setLanguage(lang.value)}
+                          onClick={() => handleLanguageChange(lang.value)}
                           className="cursor-pointer"
                         >
                           {lang.label}
@@ -144,7 +186,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                       {CLIP_COUNT_OPTIONS.map((option) => (
                         <DropdownMenuItem
                           key={option.value}
-                          onClick={() => setClipCount(option.value)}
+                          onClick={() => handleClipCountChange(option.value)}
                           className="cursor-pointer"
                         >
                           {option.label}

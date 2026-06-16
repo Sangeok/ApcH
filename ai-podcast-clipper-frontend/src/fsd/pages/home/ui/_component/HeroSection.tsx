@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { TrackedLink } from "~/fsd/shared/analytics";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { heroHighlights } from "../../config";
@@ -24,10 +25,16 @@ export default function HeroSection() {
         </div>
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="gap-2">
-            <Link href="/login">
+            <TrackedLink
+              href="/login"
+              metadata={{
+                location: "home_hero",
+                cta: "create_free_workspace",
+              }}
+            >
               Create a free workspace
               <ArrowRight className="size-4" />
-            </Link>
+            </TrackedLink>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link href="/product-tour">See product tour</Link>

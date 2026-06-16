@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/fsd/shared/ui/atoms/avatar";
+import { TrackedLink } from "~/fsd/shared/analytics";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -49,7 +50,12 @@ export default function SiteHeader({
       <div className="flex items-center gap-2">
         {!isLoggedIn && (
           <Button variant="outline" asChild>
-            <Link href="/login">Log in</Link>
+            <TrackedLink
+              href="/login"
+              metadata={{ location: "site_header", cta: "log_in" }}
+            >
+              Log in
+            </TrackedLink>
           </Button>
         )}
         {isLoggedIn && (
