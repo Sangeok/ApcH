@@ -10,12 +10,18 @@ import {
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
 import { signInWithGoogle } from "~/fsd/features/auth";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { GoogleIcon } from "~/fsd/shared/ui/atoms/icons/google";
 
 export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const handleGoogleSignIn = async () => {
+    await trackAnalyticsEvent("login_started", { provider: "google" });
+    await signInWithGoogle();
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -29,7 +35,7 @@ export default function LoginForm({
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => void signInWithGoogle()}
+            onClick={() => void handleGoogleSignIn()}
           >
             <GoogleIcon className="mr-2 size-4" />
             Continue with Google

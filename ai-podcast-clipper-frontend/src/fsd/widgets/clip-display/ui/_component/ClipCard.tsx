@@ -1,9 +1,10 @@
 "use client";
 
 import type { Clip } from "generated/prisma";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getClipPlayUrl } from "~/fsd/features/clip/api";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
 import { parseJsonArray } from "~/fsd/shared/lib/utils";
@@ -29,6 +30,7 @@ export default function ClipCard({
   const { playUrl, isLoading, error } = usePlayUrl(clip.id, getClipPlayUrl);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
+  const trackedPlayRef = useRef(false);
 
   const scriptText = clip.scriptText?.trim() ?? "";
   const hasScript = scriptText.length > 0;
@@ -55,9 +57,33 @@ export default function ClipCard({
     }
   };
 
+  const handlePlay = () => {
+    if (trackedPlayRef.current) {
+      return;
+    }
+
+    trackedPlayRef.current = true;
+    void trackAnalyticsEvent(
+      "clip_viewed",
+      {
+        clipId: clip.id,
+        uploadedFileId: clip.uploadedFileId ?? undefined,
+      },
+      {
+        path: "/dashboard/uploads/[uploadedFileId]",
+        dedupeKey: `clip_viewed:${clip.id}`,
+      },
+    );
+  };
+
   return (
     <div className="flex max-w-52 flex-col gap-2">
-      <ClipVideoPlayer src={playUrl} isLoading={isLoading} error={error} />
+      <ClipVideoPlayer
+        src={playUrl}
+        isLoading={isLoading}
+        error={error}
+        onPlay={handlePlay}
+      />
       <ClipActions
         clip={clip}
         playUrl={playUrl}

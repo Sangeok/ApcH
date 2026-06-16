@@ -13,6 +13,7 @@ import {
   markUploadedFileAttemptNoCredits,
   startUploadedFileProcessingAttempt,
 } from "~/fsd/entities/uploaded-file";
+import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
 import { inngest } from "./client";
 
@@ -643,5 +644,23 @@ export const processVideo = inngest.createFunction(
 
       throw error;
     }
+  },
+);
+
+export const cleanupAnalyticsEvents = inngest.createFunction(
+  {
+    id: "cleanup-analytics-events",
+  },
+  {
+    cron: "0 3 * * *",
+  },
+  async ({ step }) => {
+    const result = await step.run("delete-expired-analytics-events", () =>
+      cleanupExpiredAnalyticsEvents(),
+    );
+
+    return {
+      deleted: result.count,
+    };
   },
 );

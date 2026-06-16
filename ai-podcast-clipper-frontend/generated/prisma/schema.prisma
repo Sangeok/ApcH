@@ -52,10 +52,11 @@ model User {
   accounts        Account[]
   sessions        Session[]
 
-  uploadedFiles UploadedFile[]
-  clips         Clip[]
-  subscription  Subscription?
-  orders        Order[]
+  uploadedFiles   UploadedFile[]
+  clips           Clip[]
+  subscription    Subscription?
+  orders          Order[]
+  analyticsEvents AnalyticsEvent[]
 }
 
 model UploadedFile {
@@ -84,6 +85,12 @@ model UploadedFile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([s3Key])
+  @@index([status, processingStartedAt])
+  @@index([status, uploaded, processingStartedAt, queuedAt])
+  @@index([status, uploaded, createdAt])
+  @@index([status, uploaded, sourceUploadedAt])
+  @@index([userId, status, createdAt])
+  @@index([userId, createdAt])
 }
 
 model Clip {
@@ -129,6 +136,8 @@ model ProcessingDispatch {
 
   @@unique([uploadedFileId, attempt])
   @@index([status, nextRetryAt])
+  @@index([status, createdAt])
+  @@index([status, lockedAt])
 }
 
 model Subscription {
@@ -163,6 +172,27 @@ model Order {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  name        String
+  anonymousId String   @db.VarChar(80)
+  sessionId   String   @db.VarChar(80)
+  path        String   @db.VarChar(512)
+  referrer    String?  @db.VarChar(512)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+
+  @@index([name, createdAt])
+  @@index([anonymousId, createdAt])
+  @@index([sessionId, createdAt])
+  @@index([userId, createdAt])
+  @@index([path, createdAt])
+  @@index([createdAt])
 }
 
 model VerificationToken {

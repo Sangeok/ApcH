@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { TrackedLink } from "~/fsd/shared/analytics";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 
@@ -18,10 +18,13 @@ export default function CtaSection() {
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <Button asChild size="lg" className="gap-2">
-          <Link href="/login">
+          <TrackedLink
+            href="/login"
+            metadata={{ location: "home_cta", cta: "start_free_trial" }}
+          >
             Start free trial
             <ArrowRight className="size-4" />
-          </Link>
+          </TrackedLink>
         </Button>
       </div>
     </section>

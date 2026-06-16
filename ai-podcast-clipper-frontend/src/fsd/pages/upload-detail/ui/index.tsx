@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
 import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
 import { UploadedFileActions } from "~/fsd/features/upload";
 import { useLiveUploadedFileDetail } from "~/fsd/pages/upload-detail/model/use-live-uploaded-file-detail";
 import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ interface UploadDetailPageProps {
 export default function UploadDetailPage({
   uploadedFileData,
 }: UploadDetailPageProps) {
+  const trackedDetailViewRef = useRef(false);
   const { data: liveUploadedFileData } =
     useLiveUploadedFileDetail(uploadedFileData);
   const {
@@ -39,6 +41,26 @@ export default function UploadDetailPage({
     targetClipCount,
     currentUserCredits,
   } = liveUploadedFileData;
+
+  useEffect(() => {
+    if (trackedDetailViewRef.current) {
+      return;
+    }
+
+    trackedDetailViewRef.current = true;
+    void trackAnalyticsEvent(
+      "upload_detail_viewed",
+      {
+        uploadedFileId,
+        status,
+        visibleClipsCount: clips.length,
+      },
+      {
+        path: "/dashboard/uploads/[uploadedFileId]",
+        dedupeKey: `upload_detail_viewed:${uploadedFileId}`,
+      },
+    );
+  }, [clips.length, status, uploadedFileId]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">

@@ -12,6 +12,7 @@ import {
 } from "~/fsd/shared/ui/atoms/card";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { getCheckoutUrl } from "~/fsd/features/billing/api";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { PLAN_TIERS } from "../config";
 import type { PlanTier, ProductIds } from "../config";
 
@@ -35,10 +36,18 @@ export function PlanCard({
       ? !hasActiveSubscription
       : hasActiveSubscription && currentTier === tier;
 
-  function handleSubscribe(productId: string) {
+  function handleSubscribe(productId: string, billingInterval: "month" | "year") {
     startTransition(async () => {
+      await trackAnalyticsEvent("billing_cta_clicked", {
+        tier,
+        billingInterval,
+      });
       const result = await getCheckoutUrl(productId);
       if (result.success) {
+        await trackAnalyticsEvent("checkout_started", {
+          tier,
+          billingInterval,
+        });
         window.location.href = result.data.url;
       }
     });
@@ -76,7 +85,7 @@ export function PlanCard({
               className="w-full"
               disabled={isCurrentPlan || isPending}
               onClick={() =>
-                productIds && handleSubscribe(productIds.pro_monthly)
+                productIds && handleSubscribe(productIds.pro_monthly, "month")
               }
             >
               {isPending
@@ -91,7 +100,7 @@ export function PlanCard({
                 className="w-full"
                 disabled={isPending}
                 onClick={() =>
-                  productIds && handleSubscribe(productIds.pro_yearly)
+                  productIds && handleSubscribe(productIds.pro_yearly, "year")
                 }
               >
                 {isPending ? "Redirecting..." : `Subscribe Yearly (${plan.yearlyPrice})`}

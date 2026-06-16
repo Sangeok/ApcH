@@ -4,9 +4,15 @@ interface ClipVideoPlayerProps {
   src: string | null;
   isLoading: boolean;
   error?: string | null;
+  onPlay?: () => void;
 }
 
-export function ClipVideoPlayer({ src, isLoading, error }: ClipVideoPlayerProps) {
+export function ClipVideoPlayer({
+  src,
+  isLoading,
+  error,
+  onPlay,
+}: ClipVideoPlayerProps) {
   if (isLoading) {
     return (
       <div className="bg-muted flex h-full w-full items-center justify-center">
@@ -33,7 +39,13 @@ export function ClipVideoPlayer({ src, isLoading, error }: ClipVideoPlayerProps)
 
   return (
     <div className="bg-muted">
-      <video src={src} controls preload="metadata" className="h-full w-full rounded-md object-cover" />
+      <video
+        src={src}
+        controls
+        preload="metadata"
+        className="h-full w-full rounded-md object-cover"
+        onPlay={onPlay}
+      />
     </div>
   );
 }

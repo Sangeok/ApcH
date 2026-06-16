@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { TrackedLink } from "~/fsd/shared/analytics";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 
@@ -40,15 +40,29 @@ export function SeoPageHero({
         <div className="flex flex-wrap gap-3">
           {primaryCta ? (
             <Button asChild size="lg" className="gap-2">
-              <Link href={primaryCta.href}>
+              <TrackedLink
+                href={primaryCta.href}
+                metadata={{
+                  location: "seo_page_hero_primary",
+                  cta: primaryCta.label,
+                }}
+              >
                 {primaryCta.label}
                 <ArrowRight className="size-4" />
-              </Link>
+              </TrackedLink>
             </Button>
           ) : null}
           {secondaryCta ? (
             <Button asChild variant="outline" size="lg">
-              <Link href={secondaryCta.href}>{secondaryCta.label}</Link>
+              <TrackedLink
+                href={secondaryCta.href}
+                metadata={{
+                  location: "seo_page_hero_secondary",
+                  cta: secondaryCta.label,
+                }}
+              >
+                {secondaryCta.label}
+              </TrackedLink>
             </Button>
           ) : null}
         </div>

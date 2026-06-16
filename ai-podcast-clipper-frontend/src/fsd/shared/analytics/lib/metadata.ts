@@ -1,0 +1,70 @@
+type SafeMetadataValue = string | number | boolean;
+
+export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
+  landing_view: [],
+  marketing_page_view: [],
+  login_view: [],
+  cta_clicked: ["location", "cta"],
+  login_started: ["provider"],
+  dashboard_viewed: [],
+  upload_file_selected: ["fileType", "fileSizeMb", "language", "clipCount"],
+  upload_options_changed: ["fileType", "fileSizeMb", "language", "clipCount"],
+  upload_started: ["fileType", "fileSizeMb", "language", "clipCount"],
+  upload_prepare_failed: ["stage"],
+  upload_s3_completed: ["fileType", "fileSizeMb"],
+  upload_s3_failed: ["stage"],
+  upload_confirmed: ["uploadedFileId"],
+  upload_confirmation_failed: ["uploadedFileId", "stage"],
+  processing_scheduled: ["uploadedFileId", "recoveredByReconciliation"],
+  processing_schedule_failed: ["uploadedFileId", "stage"],
+  upload_detail_viewed: ["uploadedFileId", "status", "visibleClipsCount"],
+  clip_viewed: ["clipId", "uploadedFileId"],
+  billing_viewed: [],
+  billing_cta_clicked: ["tier", "billingInterval"],
+  checkout_started: ["tier", "billingInterval"],
+  checkout_returned_success: [],
+  page_exited: ["dwellTimeMs"],
+} as const;
+
+function isSafeMetadataValue(value: unknown): value is SafeMetadataValue {
+  if (typeof value === "string") {
+    return value.length <= 512;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+
+  return typeof value === "boolean";
+}
+
+export function sanitizeAnalyticsMetadata(
+  eventName: string,
+  metadata: unknown,
+): Record<string, SafeMetadataValue> | undefined {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return undefined;
+  }
+
+  const allowedKeys =
+    ANALYTICS_METADATA_KEYS_BY_EVENT[
+      eventName as keyof typeof ANALYTICS_METADATA_KEYS_BY_EVENT
+    ] ?? [];
+
+  if (allowedKeys.length === 0) {
+    return undefined;
+  }
+
+  const input = metadata as Record<string, unknown>;
+  const output: Record<string, SafeMetadataValue> = {};
+
+  for (const key of allowedKeys) {
+    const value = input[key];
+
+    if (isSafeMetadataValue(value)) {
+      output[key] = value;
+    }
+  }
+
+  return Object.keys(output).length > 0 ? output : undefined;
+}

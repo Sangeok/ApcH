@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
 import { toast } from "sonner";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   confirmUploadObjectExists,
   deleteUploadedFile,
@@ -25,6 +26,19 @@ async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
   if (!response.ok) {
     throw new Error("Failed to upload file to S3");
   }
+}
+
+function getSafeUploadMetadata(
+  file: File,
+  language: string,
+  clipCount: number,
+) {
+  return {
+    fileType: file.type,
+    fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
+    language,
+    clipCount,
+  };
 }
 
 interface UseUploadPodcastOptions {
@@ -66,6 +80,9 @@ export function useUploadPodcast({
       const toastId = toast.loading("Preparing upload...");
       let createdFileId: string | null = null;
       let canAutoDeleteDraft = true;
+      const uploadMetadata = getSafeUploadMetadata(file, language, clipCount);
+
+      void trackAnalyticsEvent("upload_started", uploadMetadata);
 
       try {
         const uploadResult = await prepareUpload({
@@ -76,6 +93,9 @@ export function useUploadPodcast({
         });
 
         if (!uploadResult.success) {
+          void trackAnalyticsEvent("upload_prepare_failed", {
+            stage: "prepare_upload",
+          });
           toast.error(uploadResult.error, { id: toastId });
           return;
         }
@@ -84,6 +104,10 @@ export function useUploadPodcast({
 
         toast.loading("Uploading file to server...", { id: toastId });
         await uploadFileToS3(file, uploadResult.data.signedUrl);
+        void trackAnalyticsEvent("upload_s3_completed", {
+          fileType: file.type,
+          fileSizeMb: uploadMetadata.fileSizeMb,
+        });
         canAutoDeleteDraft = false;
 
         toast.loading("Confirming upload...", { id: toastId });
@@ -94,6 +118,10 @@ export function useUploadPodcast({
             await reconcileUploadConfirmation(createdFileId);
 
           if (!reconcileResult.success || !reconcileResult.data.uploaded) {
+            void trackAnalyticsEvent("upload_confirmation_failed", {
+              uploadedFileId: createdFileId,
+              stage: "confirm_upload",
+            });
             toast.error(
               "Upload finished, but confirmation could not be verified.",
               {
@@ -107,6 +135,10 @@ export function useUploadPodcast({
           }
         }
 
+        void trackAnalyticsEvent("upload_confirmed", {
+          uploadedFileId: createdFileId,
+        });
+
         toast.loading("Scheduling processing...", { id: toastId });
         const processResult =
           await scheduleUploadedFileProcessing(createdFileId);
@@ -119,6 +151,10 @@ export function useUploadPodcast({
             reconcileResult.success &&
             reconcileResult.data.status !== "upload_pending"
           ) {
+            void trackAnalyticsEvent("processing_scheduled", {
+              uploadedFileId: createdFileId,
+              recoveredByReconciliation: true,
+            });
             createdFileId = null;
             toast.error("Video uploaded, but processing could not start.", {
               id: toastId,
@@ -129,6 +165,10 @@ export function useUploadPodcast({
             return;
           }
 
+          void trackAnalyticsEvent("processing_schedule_failed", {
+            uploadedFileId: createdFileId,
+            stage: "schedule_processing",
+          });
           toast.error(processResult.error, {
             id: toastId,
             description:
@@ -138,6 +178,10 @@ export function useUploadPodcast({
           return;
         }
 
+        void trackAnalyticsEvent("processing_scheduled", {
+          uploadedFileId: createdFileId,
+          recoveredByReconciliation: false,
+        });
         createdFileId = null;
         toast.success("Video uploaded successfully", {
           id: toastId,
@@ -148,6 +192,12 @@ export function useUploadPodcast({
         await markUploadVisible();
       } catch (error) {
         console.error("Failed to upload video", error);
+
+        if (createdFileId && canAutoDeleteDraft) {
+          void trackAnalyticsEvent("upload_s3_failed", {
+            stage: "upload_to_s3",
+          });
+        }
 
         if (createdFileId && !canAutoDeleteDraft) {
           const reconcileResult = await reconcileUploadConfirmation(

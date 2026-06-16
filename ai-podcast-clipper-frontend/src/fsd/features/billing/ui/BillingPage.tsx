@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { PlanCard } from "./PlanCard";
 import { SubscriptionStatus } from "./SubscriptionStatus";
 import { OrderHistory } from "./OrderHistory";
@@ -19,6 +20,7 @@ interface BillingPageProps {
 export function BillingPage({ data, productIds, showSuccessBanner, subscriptionEnabled }: BillingPageProps) {
   const router = useRouter();
   const [polling, setPolling] = useState(false);
+  const trackedCheckoutSuccessRef = useRef(false);
 
   const POLLING_INTERVAL_MS = 2_000;
   const POLLING_TIMEOUT_MS = 30_000;
@@ -50,6 +52,15 @@ export function BillingPage({ data, productIds, showSuccessBanner, subscriptionE
       toast.success("Subscription activated! Credits have been added.");
     }
   }, [showSuccessBanner, data.subscription]);
+
+  useEffect(() => {
+    if (!showSuccessBanner || trackedCheckoutSuccessRef.current) return;
+
+    trackedCheckoutSuccessRef.current = true;
+    void trackAnalyticsEvent("checkout_returned_success", undefined, {
+      dedupeKey: "checkout_returned_success",
+    });
+  }, [showSuccessBanner]);
 
   const currentTier = data.subscription?.planTier ?? null;
 

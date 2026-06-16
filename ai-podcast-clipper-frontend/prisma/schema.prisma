@@ -56,6 +56,7 @@ model User {
     clips         Clip[]
     subscription  Subscription?
     orders        Order[]
+    analyticsEvents AnalyticsEvent[]
 }
 
 model UploadedFile {
@@ -171,6 +172,27 @@ model Order {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@index([userId])
+}
+
+model AnalyticsEvent {
+    id          String   @id @default(cuid())
+    name        String
+    anonymousId String   @db.VarChar(80)
+    sessionId   String   @db.VarChar(80)
+    path        String   @db.VarChar(512)
+    referrer    String?  @db.VarChar(512)
+    metadata    Json?
+    createdAt   DateTime @default(now())
+
+    user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String?
+
+    @@index([name, createdAt])
+    @@index([anonymousId, createdAt])
+    @@index([sessionId, createdAt])
+    @@index([userId, createdAt])
+    @@index([path, createdAt])
+    @@index([createdAt])
 }
 
 model VerificationToken {
