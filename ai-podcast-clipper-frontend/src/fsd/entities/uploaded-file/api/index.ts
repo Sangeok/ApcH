@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Prisma } from "generated/prisma";
+import { Prisma } from "generated/prisma";
 import { inngest } from "~/inngest/client";
 import { db } from "~/server/db";
 import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";
@@ -647,25 +647,59 @@ export async function ensureUploadedFileQueuedForDispatch(
   };
 }
 
+export type StartProcessingAttemptResult =
+  | { status: "started" }
+  | { status: "already_processing" }
+  | { status: "not_claimable" };
+
+// Atomically claims a queued attempt as processing while enforcing one
+// processing run per user. The partial unique index
+// "UploadedFile_one_processing_per_user_idx" is the real guarantee; the
+// pre-check is a fast path and the P2002 catch closes the SELECT/UPDATE race,
+// both resolving to already_processing.
 export async function startUploadedFileProcessingAttempt(
   uploadedFileId: string,
+  userId: string,
   attempt: number,
-  options?: { tx?: Prisma.TransactionClient; now?: Date },
-) {
+  options?: { now?: Date },
+): Promise<StartProcessingAttemptResult> {
   const now = options?.now ?? new Date();
 
-  return getClient(options?.tx).uploadedFile.updateMany({
-    where: {
-      id: uploadedFileId,
-      currentAttempt: attempt,
-      status: "queued",
-      processingStartedAt: null,
-    },
-    data: {
-      status: "processing",
-      processingStartedAt: now,
-    },
-  });
+  try {
+    return await db.$transaction(async (tx) => {
+      if (await hasProcessingUploadForUser(userId, { tx })) {
+        return { status: "already_processing" };
+      }
+
+      const claimed = await tx.uploadedFile.updateMany({
+        where: {
+          id: uploadedFileId,
+          currentAttempt: attempt,
+          status: "queued",
+          processingStartedAt: null,
+        },
+        data: {
+          status: "processing",
+          processingStartedAt: now,
+        },
+      });
+
+      if (claimed.count !== 1) {
+        return { status: "not_claimable" };
+      }
+
+      return { status: "started" };
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return { status: "already_processing" };
+    }
+
+    throw error;
+  }
 }
 
 export async function markUploadedFileAttemptProcessed(
@@ -857,8 +891,9 @@ export async function setUploadedFileUploaded(
 
 export async function hasProcessingUploadForUser(
   userId: string,
+  options?: { tx?: Prisma.TransactionClient },
 ): Promise<boolean> {
-  const count = await db.uploadedFile.count({
+  const count = await getClient(options?.tx).uploadedFile.count({
     where: {
       userId,
       status: "processing",
