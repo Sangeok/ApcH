@@ -34,8 +34,8 @@ export const pricingIncluded = [
 export const pricingLimits = [
   "Per-upload size limit: 900 MB .mp4.",
   "Per-run clip count: 1, 2, 3, or 4.",
-  "Concurrency: one active processing run per user.",
-  "Processing starts only when the account has a positive credit balance.",
+  "Concurrency: one running processing job per user. Additional requests wait in queue.",
+  "Processing starts only when the account has at least one credit per requested clip.",
   "Presigned download URLs expire after 1 hour.",
 ] as const;
 

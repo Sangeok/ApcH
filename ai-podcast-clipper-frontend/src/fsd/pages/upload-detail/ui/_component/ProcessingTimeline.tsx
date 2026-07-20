@@ -24,8 +24,8 @@ interface ProcessingTimelineProps {
 }
 
 const EVENT_LABELS: Record<TimelineEventKey, string> = {
-  pendingEnqueue: "Pending Queue",
-  queued: "Queued",
+  pendingEnqueue: "Scheduling",
+  queued: "Waiting",
   processing: "Processing",
   processed: "Processed",
   failed: "Failed",

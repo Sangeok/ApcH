@@ -338,7 +338,7 @@ export const processVideo = inngest.createFunction(
       return { skipped: false, status: "missing_source_object" };
     }
 
-    if (context.user.credits <= 0) {
+    if (context.user.credits < clipCount) {
       await step.run("mark-no-credits", async () => {
         await markUploadedFileAttemptNoCredits(uploadedFileId, attempt, {
           now: new Date(),
@@ -348,19 +348,31 @@ export const processVideo = inngest.createFunction(
       return { skipped: false, status: "no credits" };
     }
 
-    const claimed = await step.run("claim-processing-attempt", async () => {
-      const result = await startUploadedFileProcessingAttempt(
+    const claimResult = await step.run("claim-processing-attempt", async () => {
+      return startUploadedFileProcessingAttempt(
         uploadedFileId,
+        context.userId,
         attempt,
         {
           now: new Date(),
         },
       );
-
-      return result.count === 1;
     });
 
-    if (!claimed) {
+    if (claimResult.status === "already_processing") {
+      console.warn(
+        "Skipping processing: user already has an active processing run",
+        {
+          uploadedFileId,
+          attempt,
+          userId: context.userId,
+        },
+      );
+
+      return { skipped: true, status: "already_processing" };
+    }
+
+    if (claimResult.status !== "started") {
       return { skipped: true };
     }
 

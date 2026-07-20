@@ -91,6 +91,10 @@ model UploadedFile {
     @@index([status, uploaded, sourceUploadedAt])
     @@index([userId, status, createdAt])
     @@index([userId, createdAt])
+    // Partial unique index "UploadedFile_one_processing_per_user_idx"
+    // (userId WHERE status = 'processing') enforces one processing run per user.
+    // Defined in migration 20260630000000_one_processing_per_user_index because
+    // Prisma cannot express partial indexes in the schema.
 }
 
 model Clip {
