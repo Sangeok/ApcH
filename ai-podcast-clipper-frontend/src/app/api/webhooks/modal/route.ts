@@ -5,6 +5,7 @@ import {
   isUploadedFileAttemptCurrent,
 } from "~/fsd/entities/uploaded-file";
 import { inngest } from "~/inngest/client";
+import type { AnalyzedMoment } from "~/inngest/client";
 
 interface ModalWebhookClip {
   index: number;
@@ -37,12 +38,28 @@ interface RawModalWebhookClip {
   youtube_hashtags?: string[] | null;
 }
 
+interface RawAnalyzedMoment {
+  index?: number | string;
+  startSeconds?: number | null;
+  start_seconds?: number | null;
+  endSeconds?: number | null;
+  end_seconds?: number | null;
+  clipType?: string | null;
+  clip_type?: string | null;
+  hook?: string | null;
+  payoff?: string | null;
+}
+
 interface RawModalWebhookBody {
   uploadedFileId?: string;
   uploaded_file_id?: string;
   attempt?: number | string;
   status?: string;
+  phase?: string;
   clips?: RawModalWebhookClip[];
+  moments?: RawAnalyzedMoment[];
+  transcript_s3_key?: string;
+  transcriptS3Key?: string;
   error?: unknown;
 }
 
@@ -50,7 +67,12 @@ interface NormalizedModalWebhookBody {
   uploadedFileId: string;
   attempt: number;
   status: string;
+  // normalizeBody가 실제로 생산하는 두 값만 모델링한다. 백엔드 phase "auto"와
+  // phase 없는 구버전 콜백은 모두 "render"(기존 처리 경로)로 접힌다.
+  phase: "analyze" | "render";
   clips?: ModalWebhookClip[];
+  moments?: AnalyzedMoment[];
+  transcriptS3Key?: string | null;
   error?: string;
 }
 
@@ -121,6 +143,31 @@ function normalizeClip(rawClip: RawModalWebhookClip): ModalWebhookClip | null {
   };
 }
 
+function normalizeAnalyzedMoment(
+  raw: RawAnalyzedMoment,
+): AnalyzedMoment | null {
+  const index = toStrictNonNegativeInteger(raw.index);
+  const startSeconds = raw.startSeconds ?? raw.start_seconds;
+  const endSeconds = raw.endSeconds ?? raw.end_seconds;
+
+  if (
+    index === null ||
+    typeof startSeconds !== "number" ||
+    typeof endSeconds !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    index,
+    startSeconds,
+    endSeconds,
+    clipType: raw.clipType ?? raw.clip_type ?? null,
+    hook: raw.hook ?? null,
+    payoff: raw.payoff ?? null,
+  };
+}
+
 function normalizeBody(
   rawBody: RawModalWebhookBody,
 ): NormalizedModalWebhookBody | null {
@@ -141,11 +188,19 @@ function normalizeBody(
     uploadedFileId,
     attempt,
     status: rawBody.status,
+    // phase가 없으면 구버전 백엔드 콜백이므로 렌더(기존 경로)로 간주한다.
+    phase: rawBody.phase === "analyze" ? "analyze" : "render",
     clips: Array.isArray(rawBody.clips)
       ? rawBody.clips
           .map(normalizeClip)
           .filter((clip): clip is ModalWebhookClip => clip !== null)
       : undefined,
+    moments: Array.isArray(rawBody.moments)
+      ? rawBody.moments
+          .map(normalizeAnalyzedMoment)
+          .filter((moment): moment is AnalyzedMoment => moment !== null)
+      : undefined,
+    transcriptS3Key: rawBody.transcript_s3_key ?? rawBody.transcriptS3Key ?? null,
     error: toWebhookErrorMessage(rawBody.error),
   };
 }
@@ -162,6 +217,23 @@ export async function POST(req: Request) {
 
   if (!body) {
     return new Response("Bad Request", { status: 400 });
+  }
+
+  if (body.phase === "analyze") {
+    await inngest.send({
+      name: "modal/video.analyzed",
+      data: {
+        uploadedFileId: body.uploadedFileId,
+        attempt: body.attempt,
+        matchKey: getProcessingMatchKey(body.uploadedFileId, body.attempt),
+        status: body.status,
+        moments: body.moments,
+        transcriptS3Key: body.transcriptS3Key,
+        error: body.error,
+      },
+    });
+
+    return new Response("OK", { status: 200 });
   }
 
   await inngest.send({

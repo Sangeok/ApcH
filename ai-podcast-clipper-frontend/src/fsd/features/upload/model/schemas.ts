@@ -20,6 +20,7 @@ export const prepareUploadSchema = z.object({
     (value) => SUPPORTED_CLIP_COUNT_SET.has(value),
     "Unsupported clip count",
   ),
+  reviewBeforeGenerate: z.boolean(),
 });
 
 export const scheduleUploadedFileProcessingSchema = z.object({

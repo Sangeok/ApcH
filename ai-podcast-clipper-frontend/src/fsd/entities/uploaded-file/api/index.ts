@@ -191,6 +191,7 @@ export async function createUploadDraft(data: {
   displayName: string | null;
   language: string;
   targetClipCount: number;
+  reviewBeforeGenerate: boolean;
 }) {
   return db.uploadedFile.create({
     data: {
@@ -392,6 +393,9 @@ export async function getUploadedFileDetailsById(
       terminalStatusAt: true,
       currentAttempt: true,
       lastSuccessfulAttempt: true,
+      reviewBeforeGenerate: true,
+      reviewAttempt: true,
+      reviewReadyAt: true,
       user: {
         select: {
           credits: true,
@@ -419,11 +423,23 @@ export async function getUploadedFileDetailsById(
         })
       : [];
 
+  const clipDrafts =
+    file.reviewAttempt !== null
+      ? await db.clipDraft.findMany({
+          where: {
+            uploadedFileId: file.id,
+            attempt: file.reviewAttempt,
+          },
+          orderBy: { index: "asc" },
+        })
+      : [];
+
   return {
     ...fileData,
     status: toNonHiddenStatus(file.status),
     currentUserCredits: user.credits,
     clips,
+    clipDrafts,
   };
 }
 
@@ -719,6 +735,32 @@ export async function markUploadedFileAttemptProcessed(
       status: "processed",
       terminalStatusAt: now,
       lastSuccessfulAttempt: attempt,
+      failureCode: null,
+    },
+  });
+}
+
+// Marks an analysis attempt as awaiting user review. Records which attempt's
+// drafts are under review and where the reusable transcript lives.
+export async function markUploadedFileAttemptReviewPending(
+  uploadedFileId: string,
+  attempt: number,
+  args: { transcriptS3Key: string | null },
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+) {
+  const now = options?.now ?? new Date();
+
+  return getClient(options?.tx).uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      currentAttempt: attempt,
+      status: "processing",
+    },
+    data: {
+      status: "review_pending",
+      reviewAttempt: attempt,
+      reviewReadyAt: now,
+      transcriptS3Key: args.transcriptS3Key,
       failureCode: null,
     },
   });

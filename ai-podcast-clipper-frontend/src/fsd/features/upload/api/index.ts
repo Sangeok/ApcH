@@ -8,6 +8,7 @@ import {
   createProcessingDispatch,
   dispatchProcessingRequestByIdOrFail,
 } from "~/fsd/entities/processing-dispatch";
+import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft";
 import {
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
@@ -38,6 +39,10 @@ import {
 } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
+import {
+  CLIP_DURATION_LIMITS,
+  isClipDurationWithinLimits,
+} from "~/fsd/shared/config/constants";
 import { v4 as uuidv4 } from "uuid";
 import {
   isSupportedClipCount,
@@ -69,6 +74,7 @@ async function scheduleProcessingAttempt(
   uploadedFileId: string,
   userId: string,
   allowedStatuses: readonly ProcessingStatus[],
+  kindOverride?: "render",
 ): Promise<ActionResult<void>> {
   let dispatchId: string;
   let scheduledAttempt: number;
@@ -88,6 +94,7 @@ async function scheduleProcessingAttempt(
             uploaded: true,
             currentAttempt: true,
             targetClipCount: true,
+            reviewBeforeGenerate: true,
             user: {
               select: {
                 credits: true,
@@ -157,6 +164,9 @@ async function scheduleProcessingAttempt(
           {
             uploadedFileId,
             attempt: nextAttempt,
+            kind:
+              kindOverride ??
+              (uploadedFile.reviewBeforeGenerate ? "analyze" : "auto"),
           },
           { tx },
         );
@@ -211,6 +221,7 @@ export async function prepareUpload(fileInfo: {
   contentType: string;
   language: string;
   clipCount: number;
+  reviewBeforeGenerate: boolean;
 }): Promise<
   ActionResult<{ signedUrl: string; uploadedFileId: string; key: string }>
 > {
@@ -226,7 +237,8 @@ export async function prepareUpload(fileInfo: {
   }
 
   try {
-    const { fileName, contentType, language, clipCount } = validated.data;
+    const { fileName, contentType, language, clipCount, reviewBeforeGenerate } =
+      validated.data;
     const fileExtension = fileName.split(".").pop() ?? "";
     const uniqueId = uuidv4();
     const key = `${uniqueId}/original.${fileExtension}`;
@@ -243,6 +255,7 @@ export async function prepareUpload(fileInfo: {
       displayName: fileName,
       language,
       targetClipCount: clipCount,
+      reviewBeforeGenerate,
     });
 
     return success({ key, uploadedFileId: uploadDraft.id, signedUrl });
@@ -368,6 +381,98 @@ export async function scheduleUploadedFileProcessing(
   );
 }
 
+// Validates the reviewed drafts and schedules the render attempt.
+// clip-review 피처가 아니라 이 파일에 두는 이유: 비공개 scheduleProcessingAttempt를
+// 직접 호출해 feature 간 peer import와 이중 auth/검증을 피한다.
+export async function confirmClipDraftsAndGenerate(
+  uploadedFileId: string,
+): Promise<ActionResult<void>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  const validated = scheduleUploadedFileProcessingSchema.safeParse({
+    uploadedFileId,
+  });
+
+  if (!validated.success) {
+    return failure(validated.error.issues[0]?.message ?? "Invalid request");
+  }
+
+  try {
+    const file = await db.uploadedFile.findFirst({
+      where: {
+        id: validated.data.uploadedFileId,
+        userId: authResult.data.userId,
+      },
+      select: {
+        id: true,
+        status: true,
+        reviewAttempt: true,
+        targetClipCount: true,
+        user: { select: { credits: true } },
+      },
+    });
+
+    if (!file) {
+      return failure("Uploaded file not found");
+    }
+
+    if (file.status !== "review_pending" || file.reviewAttempt === null) {
+      return failure("This upload is not currently under review");
+    }
+
+    const selectedDrafts = (
+      await listClipDraftsForAttempt(file.id, file.reviewAttempt)
+    ).filter((draft) => draft.selected);
+
+    if (selectedDrafts.length === 0) {
+      return failure("Select at least one clip to generate");
+    }
+
+    if (selectedDrafts.length > file.targetClipCount) {
+      return failure(
+        `You can generate up to ${file.targetClipCount} clips for this upload`,
+      );
+    }
+
+    if (file.user.credits < selectedDrafts.length) {
+      return failure("Not enough credits for the selected clips");
+    }
+
+    // 겹치는 구간 방지 (백엔드 identify_moments의 non-overlap 제약을 미러링)
+    const sorted = [...selectedDrafts].sort(
+      (a, b) => a.startSeconds - b.startSeconds,
+    );
+
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1]!;
+      const next = sorted[i]!;
+
+      if (next.startSeconds < prev.endSeconds) {
+        return failure("Selected clips must not overlap");
+      }
+    }
+
+    for (const draft of selectedDrafts) {
+      if (!isClipDurationWithinLimits(draft.startSeconds, draft.endSeconds)) {
+        return failure(
+          `Every selected clip must be between ${CLIP_DURATION_LIMITS.MIN_SECONDS}s and ${CLIP_DURATION_LIMITS.MAX_SECONDS}s`,
+        );
+      }
+    }
+
+    return scheduleProcessingAttempt(
+      file.id,
+      authResult.data.userId,
+      ["review_pending"],
+      "render",
+    );
+  } catch (error) {
+    console.error("Failed to confirm clip drafts", error);
+    return failure("Failed to start clip generation");
+  }
+}
+
 // Fetch the current user's upload details, returning null for hidden upload drafts.
 export async function getUploadedFileDetails(uploadedFileId: string) {
   const session = await auth();
@@ -487,6 +592,6 @@ export async function reprocessUploadedFile(
   return scheduleProcessingAttempt(
     validated.data.uploadedFileId,
     authResult.data.userId,
-    ["processed", "failed", "no credits"],
+    ["processed", "failed", "no credits", "review_pending"],
   );
 }

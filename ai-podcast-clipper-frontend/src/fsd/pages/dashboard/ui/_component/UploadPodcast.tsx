@@ -38,6 +38,8 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
   const [clipCount, setClipCount] = useState<number>(DEFAULT_CLIP_COUNT);
+  const [reviewBeforeGenerate, setReviewBeforeGenerate] =
+    useState<boolean>(false);
   const { upload, isUploading } = useUploadPodcast({
     onOptimisticAdd,
     onSuccess: () => setFiles([]),
@@ -61,7 +63,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
   const handleUpload = () => {
     const file = files[0];
     if (!file) return;
-    upload(file, language, clipCount);
+    upload(file, language, clipCount, reviewBeforeGenerate);
   };
 
   const handleLanguageChange = (nextLanguage: string) => {
@@ -192,6 +194,30 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                           {option.label}
                         </DropdownMenuItem>
                       ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="flex gap-x-2">
+                  <p className="mt-1.5 text-sm font-medium">Generation:</p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        {reviewBeforeGenerate ? "Review first" : "Auto"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        onClick={() => setReviewBeforeGenerate(false)}
+                        className="cursor-pointer"
+                      >
+                        Auto (generate immediately)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setReviewBeforeGenerate(true)}
+                        className="cursor-pointer"
+                      >
+                        Review first (edit clips before generating)
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

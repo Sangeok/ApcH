@@ -27,6 +27,14 @@ class ProcessVideoRequest(BaseModel):
     s3_key: str
     language: str = "Korean"
     clip_count: int
+    # auto: 기존 단일 파이프라인 / analyze: 전사+후보 추출만 / render: 전달받은 구간만 렌더링
+    mode: str = "auto"
+    # render 모드 전용: [{"index": int, "start": float, "end": float, "type": str|None,
+    #   "hook": str|None, "payoff": str|None,
+    #   "caption_style": {"position": str, "fontSize": int|None, "color": str|None, "maxWordsPerLine": int|None} | None}]
+    moments: list[dict] | None = None
+    # render 모드 전용: 분석 단계에서 저장한 전사 JSON의 S3 키 (없거나 로드 실패 시 재전사)
+    transcript_s3_key: str | None = None
     attempt: int | None = None
     output_prefix: str | None = None
     callback_url: str | None = None
@@ -71,6 +79,85 @@ def get_video_duration_seconds(video_path: pathlib.Path) -> float:
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     return float(result.stdout.strip())
+
+
+# 클립 길이 제한: analyze/render/auto 모든 경로가 공유
+MAX_CLIP_DURATION = 90
+MIN_CLIP_DURATION = 30
+
+
+def validate_moments(clip_moments, video_duration: float | None = None) -> list:
+    """30~90초 범위(및 옵션으로 영상 길이 범위)를 벗어난 구간을 걸러낸다."""
+    validated = []
+    for moment in clip_moments:
+        start = moment.get("start")
+        end = moment.get("end")
+        if start is None or end is None:
+            continue
+        duration = end - start
+        if duration < MIN_CLIP_DURATION or duration > MAX_CLIP_DURATION:
+            print(f"Skipping moment ({duration:.1f}s): outside [{MIN_CLIP_DURATION}, {MAX_CLIP_DURATION}]s range")
+            continue
+        if video_duration is not None and (start < 0 or end > video_duration):
+            print(f"Skipping moment ({start:.1f}-{end:.1f}s): outside video duration {video_duration:.1f}s")
+            continue
+        validated.append(moment)
+    return validated
+
+
+# 캡션 위치 → ASS alignment (numpad 표기). "middle"(5)이 기존 하드코딩 값.
+CAPTION_POSITION_ALIGNMENT = {
+    "top": 8,
+    "middle": 5,
+    "bottom": 2,
+}
+
+# top/bottom 선택 시 사용할 세로 마진 초기값. 시각 튜닝 대상 (Open Questions 참고).
+CAPTION_POSITION_MARGINV = {
+    "top": 200,
+    "bottom": 260,
+}
+
+
+def parse_hex_color(value):
+    """'#RRGGBB' 문자열을 pysubs2.Color로 변환. 형식이 아니면 None."""
+    if not isinstance(value, str):
+        return None
+    m = re.fullmatch(r"#?([0-9a-fA-F]{6})", value.strip())
+    if not m:
+        return None
+    r, g, b = (int(m.group(1)[i:i + 2], 16) for i in (0, 2, 4))
+    return pysubs2.Color(r, g, b)
+
+
+def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_word: int, default_marginv: int) -> dict:
+    """사용자 캡션 스타일을 언어별 기본값 위에 얹어 ASS 스타일 파라미터로 해석한다.
+
+    잘못된/누락된 값은 조용히 기본값으로 대체한다 (렌더 실패보다 기본 스타일 출력이 낫다).
+    """
+    style = caption_style if isinstance(caption_style, dict) else {}
+
+    position = style.get("position")
+    if position not in CAPTION_POSITION_ALIGNMENT:
+        position = "middle"
+
+    fontsize = style.get("fontSize")
+    if not isinstance(fontsize, (int, float)) or not (60 <= fontsize <= 200):
+        fontsize = default_fontsize
+
+    max_word = style.get("maxWordsPerLine")
+    if not isinstance(max_word, int) or not (1 <= max_word <= 8):
+        max_word = default_max_word
+
+    primary_color = parse_hex_color(style.get("color")) or pysubs2.Color(255, 255, 255)
+
+    return {
+        "alignment": CAPTION_POSITION_ALIGNMENT[position],
+        "marginv": default_marginv if position == "middle" else CAPTION_POSITION_MARGINV[position],
+        "fontsize": int(fontsize),
+        "max_word": max_word,
+        "primary_color": primary_color,
+    }
 
 def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path, output_path, framerate=25):
     target_width = 1080
@@ -161,9 +248,17 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
     )
     subprocess.run(ffmpeg_command, shell=True, check=True, text=True)
 
-def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, clip_end: float, clip_video_path: str, output_path: str, max_word: int = 5):
+def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, clip_end: float, clip_video_path: str, output_path: str, max_word: int = 5, caption_style: dict | None = None):
     temp_dir = os.path.dirname(output_path)
     subtitle_path = os.path.join(temp_dir, "temp_subtitles.ass")
+
+    resolved = resolve_caption_style(
+        caption_style,
+        default_fontsize=122,
+        default_max_word=max_word,
+        default_marginv=165,
+    )
+    max_word = resolved["max_word"]
 
     clip_segments = [segment for segment in transcript_segments
                     if segment.get("start") is not None
@@ -226,16 +321,16 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
     style_name = "Default"
     new_style = pysubs2.SSAStyle()
     new_style.fontname = "Anton"
-    new_style.fontsize = 122
-    new_style.primary_color = pysubs2.Color(255, 255, 255)
+    new_style.fontsize = resolved["fontsize"]
+    new_style.primary_color = resolved["primary_color"]
     new_style.border_style = 1
     new_style.outline = 1.1
     new_style.shadow = 6.5
     new_style.shadowcolor = pysubs2.Color(12, 12, 12, 210)
-    new_style.alignment = 5
+    new_style.alignment = resolved["alignment"]
     new_style.marginl = 44
     new_style.marginr = 44
-    new_style.marginv = 165
+    new_style.marginv = resolved["marginv"]
     new_style.spacing = 1.8
 
     subs.styles[style_name] = new_style
@@ -262,9 +357,17 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
     script_text = "\n".join(text for _, _, text in subtitles if text)
     return script_text
 
-def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, clip_end: float, clip_video_path: str, output_path: str, gemini_client, max_word: int = 3):
+def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, clip_end: float, clip_video_path: str, output_path: str, gemini_client, max_word: int = 3, caption_style: dict | None = None):
     temp_dir = os.path.dirname(output_path)
     subtitle_path = os.path.join(temp_dir, "temp_korean_subtitles.ass")
+
+    resolved = resolve_caption_style(
+        caption_style,
+        default_fontsize=130,
+        default_max_word=max_word,
+        default_marginv=155,
+    )
+    max_word = resolved["max_word"]
 
     # Step 1: 클립 범위 내 세그먼트 필터링
     clip_segments = [segment for segment in transcript_segments
@@ -417,16 +520,16 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
     style_name = "Korean"
     korean_style = pysubs2.SSAStyle()
     korean_style.fontname = "Noto Sans KR"  # 한글 폰트
-    korean_style.fontsize = 130
-    korean_style.primary_color = pysubs2.Color(255, 255, 255)
+    korean_style.fontsize = resolved["fontsize"]
+    korean_style.primary_color = resolved["primary_color"]
     korean_style.border_style = 1
     korean_style.outline = 1.3
     korean_style.shadow = 6.5
     korean_style.shadowcolor = pysubs2.Color(8, 8, 8, 210)
-    korean_style.alignment = 5  # 하단 중앙
+    korean_style.alignment = resolved["alignment"]
     korean_style.marginl = 48
     korean_style.marginr = 48
-    korean_style.marginv = 155
+    korean_style.marginv = resolved["marginv"]
     korean_style.spacing = 1.2
 
     subs.styles[style_name] = korean_style
@@ -556,7 +659,7 @@ def generate_youtube_metadata(script_text: str, language: str, gemini_client) ->
         print(f"Metadata generation error: {e}")
         return default_metadata
 
-def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str, output_prefix: str | None = None):
+def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str, output_prefix: str | None = None, caption_style: dict | None = None):
     clip_name = f"clip_{clip_index}"
     s3_key_dir = (output_prefix or os.path.dirname(s3_key)).strip("/")
     print(f"Processing clip: {clip_name}")
@@ -635,7 +738,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     if selected_language == "English":
         # 영어 자막 영상 생성
         print(f"Creating English subtitles for clip {clip_index}...")
-        script_text = create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, english_output_path, max_word=5)
+        script_text = create_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, english_output_path, max_word=5, caption_style=caption_style)
     
         # 영어 자막 영상 업로드
         english_s3_key = f"{s3_key_dir}/{clip_name}_en.mp4"
@@ -646,7 +749,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     elif selected_language == "Korean":
         # 한글 자막 영상 생성
         print(f"Creating Korean subtitles for clip {clip_index}...")
-        script_text = create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3)
+        script_text = create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3, caption_style=caption_style)
 
         # 한글 자막 영상 업로드
         korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
@@ -822,10 +925,11 @@ Transcript:
 
     # 실제 영상 처리 (비동기 실행, 완료/실패 시 callback)
     @modal.method()
-    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None):
+    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None, mode: str = "auto", moments: list | None = None, transcript_s3_key: str | None = None):
         import requests as req
 
         clip_results = []
+        analyze_payload = None
 
         run_id = str(uuid.uuid4())
         base_dir = pathlib.Path("/tmp") / run_id
@@ -848,91 +952,167 @@ Transcript:
         try:
             s3_client.download_file("ai-podcast-clipper-hamsoo", s3_key, str(video_path))
 
-            # 1. transcription
-            transcript_segments_json = self.transcribe_video(base_dir, video_path)
-            transcript_segments = json.loads(transcript_segments_json)
+            # 1. transcription — render 모드는 저장된 전사를 재사용, 실패 시 재전사
+            transcript_segments = None
+            if mode == "render" and transcript_s3_key:
+                try:
+                    obj = s3_client.get_object(Bucket="ai-podcast-clipper-hamsoo", Key=transcript_s3_key)
+                    transcript_segments = json.loads(obj["Body"].read())
+                    print(f"Reusing stored transcript: {transcript_s3_key}")
+                except Exception as e:
+                    print(f"Failed to load stored transcript ({e}); falling back to transcription")
 
-            # 2. Identify moments for clips
-            print("Identifying moments for clips...")
-            identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2)
+            if transcript_segments is None:
+                transcript_segments_json = self.transcribe_video(base_dir, video_path)
+                transcript_segments = json.loads(transcript_segments_json)
+            else:
+                transcript_segments_json = json.dumps(transcript_segments)
 
-            raw = identified_moments_raws.strip()
-
-            if raw.startswith("```"):
-                raw = raw[len("```"):].strip()
-                if raw.lower().startswith("json"):
-                    raw = raw[4:].lstrip()
-            if raw.endswith("```"):
-                raw = raw[:-3].strip()
-
-            try:
-                clip_moments = json.loads(raw)
-            except json.JSONDecodeError:
-                print("Error: Identified moments is not valid JSON")
-                clip_moments = []
-
-            if not clip_moments or not isinstance(clip_moments, list):
-                print("Error: Identified moments is not a list")
-                clip_moments = []
-
-            print(f"Final identified moments: {clip_moments}")
-
-            # 3. 30~90초 범위 검증 및 필터링
-            MAX_CLIP_DURATION = 90
-            MIN_CLIP_DURATION = 30
-
-            validated_moments = []
-            for moment in clip_moments:
-                start = moment.get("start")
-                end = moment.get("end")
-                if start is None or end is None:
-                    continue
-                duration = end - start
-                if MIN_CLIP_DURATION <= duration <= MAX_CLIP_DURATION:
-                    validated_moments.append(moment)
-                else:
-                    print(f"Skipping moment ({duration:.1f}s): outside [{MIN_CLIP_DURATION}, {MAX_CLIP_DURATION}]s range")
-
-            for index, moment in enumerate(validated_moments[:clip_count]):
-                print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
-
-                clip_result = process_clip(
-                    base_dir,
-                    video_path,
-                    s3_key,
-                    moment["start"],
-                    moment["end"],
-                    index,
-                    transcript_segments,
-                    self.gemini_client,
-                    language,
-                    output_prefix,
+            if mode == "analyze":
+                # 전사 JSON을 업로드 prefix에 저장해 렌더 단계와 편집 UI에서 재사용
+                transcript_key = f"{os.path.dirname(s3_key)}/transcript.json"
+                s3_client.put_object(
+                    Bucket="ai-podcast-clipper-hamsoo",
+                    Key=transcript_key,
+                    Body=transcript_segments_json.encode("utf-8"),
+                    ContentType="application/json",
                 )
 
-                clip_result["clipType"] = moment.get("type")
-                clip_result["hook"] = moment.get("hook")
-                clip_result["payoff"] = moment.get("payoff")
+                # 후보 추출 (기존 auto 경로의 파싱 로직과 동일)
+                print("Identifying moments for clips...")
+                identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2)
 
-                clip_results.append(clip_result)
+                raw = identified_moments_raws.strip()
+                if raw.startswith("```"):
+                    raw = raw[len("```"):].strip()
+                    if raw.lower().startswith("json"):
+                        raw = raw[4:].lstrip()
+                if raw.endswith("```"):
+                    raw = raw[:-3].strip()
 
-            # 성공 콜백
-            if callback_url and uploaded_file_id:
-                req.post(callback_url, json={
-                    "uploadedFileId": uploaded_file_id,
-                    "attempt": attempt,
-                    "status": "ok",
-                    "clips": clip_results,
-                }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
+                try:
+                    clip_moments = json.loads(raw)
+                except json.JSONDecodeError:
+                    print("Error: Identified moments is not valid JSON")
+                    clip_moments = []
+
+                if not clip_moments or not isinstance(clip_moments, list):
+                    print("Error: Identified moments is not a list")
+                    clip_moments = []
+
+                validated_moments = validate_moments(clip_moments)
+
+                analyze_payload = {
+                    "transcript_s3_key": transcript_key,
+                    "moments": [
+                        {
+                            "index": idx,
+                            "startSeconds": float(m["start"]),
+                            "endSeconds": float(m["end"]),
+                            "clipType": m.get("type"),
+                            "hook": m.get("hook"),
+                            "payoff": m.get("payoff"),
+                        }
+                        for idx, m in enumerate(validated_moments)
+                    ],
+                }
+
+                if callback_url and uploaded_file_id:
+                    req.post(callback_url, json={
+                        "uploadedFileId": uploaded_file_id,
+                        "attempt": attempt,
+                        "status": "ok",
+                        "phase": "analyze",
+                        **analyze_payload,
+                    }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
+
+            else:
+                # auto: Gemini가 구간 결정 / render: 전달받은 구간 사용
+                if mode == "render":
+                    video_duration = get_video_duration_seconds(video_path)
+                    validated_moments = validate_moments(
+                        [
+                            {
+                                "start": m.get("start"),
+                                "end": m.get("end"),
+                                "type": m.get("type"),
+                                "hook": m.get("hook"),
+                                "payoff": m.get("payoff"),
+                                "caption_style": m.get("caption_style"),
+                            }
+                            for m in (moments or [])
+                        ],
+                        video_duration,
+                    )
+                else:
+                    # 2. Identify moments for clips (기존 auto 경로와 동일)
+                    print("Identifying moments for clips...")
+                    identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2)
+
+                    raw = identified_moments_raws.strip()
+                    if raw.startswith("```"):
+                        raw = raw[len("```"):].strip()
+                        if raw.lower().startswith("json"):
+                            raw = raw[4:].lstrip()
+                    if raw.endswith("```"):
+                        raw = raw[:-3].strip()
+
+                    try:
+                        clip_moments = json.loads(raw)
+                    except json.JSONDecodeError:
+                        print("Error: Identified moments is not valid JSON")
+                        clip_moments = []
+
+                    if not clip_moments or not isinstance(clip_moments, list):
+                        print("Error: Identified moments is not a list")
+                        clip_moments = []
+
+                    print(f"Final identified moments: {clip_moments}")
+                    validated_moments = validate_moments(clip_moments)
+
+                for index, moment in enumerate(validated_moments[:clip_count]):
+                    print(f"Processing clip {index} from {moment['start']} to {moment['end']}")
+
+                    clip_result = process_clip(
+                        base_dir,
+                        video_path,
+                        s3_key,
+                        moment["start"],
+                        moment["end"],
+                        index,
+                        transcript_segments,
+                        self.gemini_client,
+                        language,
+                        output_prefix,
+                        caption_style=moment.get("caption_style"),
+                    )
+
+                    clip_result["clipType"] = moment.get("type")
+                    clip_result["hook"] = moment.get("hook")
+                    clip_result["payoff"] = moment.get("payoff")
+
+                    clip_results.append(clip_result)
+
+                # 성공 콜백 (기존과 동일 + phase 필드 추가)
+                if callback_url and uploaded_file_id:
+                    req.post(callback_url, json={
+                        "uploadedFileId": uploaded_file_id,
+                        "attempt": attempt,
+                        "status": "ok",
+                        "phase": mode,
+                        "clips": clip_results,
+                    }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
 
         except Exception as e:
             print(f"Error processing video: {e}")
-            # 실패 시에도 콜백 발송
+            # 실패 시에도 콜백 발송 (phase를 포함해 프론트가 분석/렌더 실패를 구분)
             if callback_url and uploaded_file_id:
                 try:
                     req.post(callback_url, json={
                         "uploadedFileId": uploaded_file_id,
                         "attempt": attempt,
                         "status": "error",
+                        "phase": mode,
                         "error": str(e),
                         "clips": [],
                     }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
@@ -945,8 +1125,16 @@ Transcript:
                 print(f"Cleaning up temp dir after {base_dir}")
                 shutil.rmtree(base_dir, ignore_errors=True)
 
+        if mode == "analyze":
+            return {
+                "status": "ok",
+                "phase": "analyze",
+                **(analyze_payload or {"moments": []}),
+            }
+
         return {
             "status": "ok",
+            "phase": mode,
             "clips_processed": len(clip_results),
             "s3_prefix": output_prefix or os.path.dirname(s3_key),
             "language": language,
@@ -977,6 +1165,9 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             uploaded_file_id=request.uploaded_file_id,
             attempt=request.attempt,
             output_prefix=request.output_prefix,
+            mode=request.mode,
+            moments=request.moments,
+            transcript_s3_key=request.transcript_s3_key,
         )
         return {"status": "accepted", "call_id": call.object_id}
     else:
@@ -989,6 +1180,9 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             uploaded_file_id=request.uploaded_file_id,
             attempt=request.attempt,
             output_prefix=request.output_prefix,
+            mode=request.mode,
+            moments=request.moments,
+            transcript_s3_key=request.transcript_s3_key,
         )
 
 

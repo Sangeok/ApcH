@@ -32,12 +32,14 @@ function getSafeUploadMetadata(
   file: File,
   language: string,
   clipCount: number,
+  reviewBeforeGenerate: boolean,
 ) {
   return {
     fileType: file.type,
     fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
     language,
     clipCount,
+    reviewBeforeGenerate,
   };
 }
 
@@ -66,7 +68,12 @@ export function useUploadPodcast({
     router.refresh();
   };
 
-  const upload = (file: File, language: string, clipCount: number) => {
+  const upload = (
+    file: File,
+    language: string,
+    clipCount: number,
+    reviewBeforeGenerate: boolean,
+  ) => {
     startUploading(async () => {
       const optimisticFile: UploadedFileSummary = {
         id: `optimistic-${Date.now()}`,
@@ -80,7 +87,12 @@ export function useUploadPodcast({
       const toastId = toast.loading("Preparing upload...");
       let createdFileId: string | null = null;
       let canAutoDeleteDraft = true;
-      const uploadMetadata = getSafeUploadMetadata(file, language, clipCount);
+      const uploadMetadata = getSafeUploadMetadata(
+        file,
+        language,
+        clipCount,
+        reviewBeforeGenerate,
+      );
 
       void trackAnalyticsEvent("upload_started", uploadMetadata);
 
@@ -90,6 +102,7 @@ export function useUploadPodcast({
           contentType: file.type,
           language,
           clipCount,
+          reviewBeforeGenerate,
         });
 
         if (!uploadResult.success) {

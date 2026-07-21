@@ -12,6 +12,7 @@ import {
   getAttemptOutputPrefix,
   getProcessingMatchKey,
 } from "~/fsd/entities/uploaded-file/model/attempt-prefix";
+import { getSelectedRenderMomentsForAttempt } from "~/fsd/entities/clip-draft";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 type PendingProcessingDispatch = Awaited<
@@ -37,6 +38,7 @@ export async function createProcessingDispatch(
   data: {
     uploadedFileId: string;
     attempt: number;
+    kind: "auto" | "analyze" | "render";
   },
   options?: { tx?: Prisma.TransactionClient },
 ) {
@@ -57,6 +59,7 @@ async function findPendingProcessingDispatchById(dispatchId: string) {
     select: {
       id: true,
       attempt: true,
+      kind: true,
       uploadedFile: {
         select: {
           id: true,
@@ -66,6 +69,8 @@ async function findPendingProcessingDispatchById(dispatchId: string) {
           s3Key: true,
           currentAttempt: true,
           uploaded: true,
+          reviewAttempt: true,
+          transcriptS3Key: true,
         },
       },
     },
@@ -187,24 +192,64 @@ export async function dispatchProcessingRequestByIdOrFail(
       );
     }
 
-    await inngest.send({
-      name: "process-video-events",
-      data: {
-        uploadedFileId: dispatch.uploadedFile.id,
-        userId: dispatch.uploadedFile.userId,
-        language: dispatch.uploadedFile.language,
-        clipCount: dispatch.uploadedFile.targetClipCount,
-        attempt: dispatch.attempt,
-        outputPrefix: getAttemptOutputPrefix(
-          dispatch.uploadedFile.s3Key,
-          dispatch.attempt,
-        ),
-        matchKey: getProcessingMatchKey(
-          dispatch.uploadedFile.id,
-          dispatch.attempt,
-        ),
-      },
-    });
+    const baseEventData = {
+      uploadedFileId: dispatch.uploadedFile.id,
+      userId: dispatch.uploadedFile.userId,
+      language: dispatch.uploadedFile.language,
+      attempt: dispatch.attempt,
+      outputPrefix: getAttemptOutputPrefix(
+        dispatch.uploadedFile.s3Key,
+        dispatch.attempt,
+      ),
+      matchKey: getProcessingMatchKey(
+        dispatch.uploadedFile.id,
+        dispatch.attempt,
+      ),
+    };
+
+    if (dispatch.kind === "analyze") {
+      await inngest.send({
+        name: "analyze-video-events",
+        data: {
+          ...baseEventData,
+          clipCount: dispatch.uploadedFile.targetClipCount,
+        },
+      });
+    } else if (dispatch.kind === "render") {
+      if (dispatch.uploadedFile.reviewAttempt === null) {
+        throw new Error("Render dispatch requires a completed analysis attempt");
+      }
+
+      // 선택 draft → RenderMoment 매핑은 clip-draft 엔티티가 소유한다(4.5(a)).
+      // 빈 선택은 confirm 액션이 사용자 경로에서 이미 막으므로, 아래 가드는
+      // 사용자 메시지가 아니라 방어선(dead_letter 경로)이다.
+      const renderMoments = await getSelectedRenderMomentsForAttempt(
+        dispatch.uploadedFile.id,
+        dispatch.uploadedFile.reviewAttempt,
+      );
+
+      if (renderMoments.length === 0) {
+        throw new Error("Render dispatch requires at least one selected clip draft");
+      }
+
+      await inngest.send({
+        name: "process-video-events",
+        data: {
+          ...baseEventData,
+          clipCount: renderMoments.length,
+          transcriptS3Key: dispatch.uploadedFile.transcriptS3Key,
+          moments: renderMoments,
+        },
+      });
+    } else {
+      await inngest.send({
+        name: "process-video-events",
+        data: {
+          ...baseEventData,
+          clipCount: dispatch.uploadedFile.targetClipCount,
+        },
+      });
+    }
 
     await markProcessingDispatchSent(dispatch.id, { now });
     return { status: "sent" };

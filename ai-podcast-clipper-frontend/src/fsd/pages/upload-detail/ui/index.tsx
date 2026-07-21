@@ -15,6 +15,7 @@ import {
 } from "~/fsd/shared/ui/atoms/card";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import ClipDisplay from "~/fsd/widgets/clip-display/ui";
+import ClipDraftReviewSection from "~/fsd/widgets/clip-draft-review/ui";
 import OriginalMediaCard from "./_component/OriginalMediaCard";
 
 interface UploadDetailPageProps {
@@ -33,10 +34,13 @@ export default function UploadDetailPage({
     createdAt,
     status,
     clips,
+    clipDrafts,
+    language,
     enqueueRequestedAt,
     queuedAt,
     processingStartedAt,
     terminalStatusAt,
+    reviewReadyAt,
     failureCode,
     targetClipCount,
     currentUserCredits,
@@ -62,6 +66,12 @@ export default function UploadDetailPage({
     );
   }, [clips.length, status, uploadedFileId]);
 
+  // 검토 단계에서는 검토 섹션이 핵심 작업이므로 요약 카드보다 먼저 배치하고,
+  // 이 시점에 항상 비어 있는 Generated clips 섹션은 숨긴다.
+  // 두 판정은 함께 바뀌는 "검토 모드 레이아웃" 결정이므로 나란히 명명해 둔다.
+  const isUnderReview = status === "review_pending" && clipDrafts.length > 0;
+  const showGeneratedClips = status !== "review_pending" || clips.length > 0;
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -82,6 +92,16 @@ export default function UploadDetailPage({
           currentUserCredits={currentUserCredits}
         />
       </header>
+
+      {isUnderReview && (
+        <ClipDraftReviewSection
+          uploadedFileId={uploadedFileId}
+          clipDrafts={clipDrafts}
+          targetClipCount={targetClipCount}
+          currentUserCredits={currentUserCredits}
+          language={language}
+        />
+      )}
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-1">
@@ -117,37 +137,42 @@ export default function UploadDetailPage({
               queuedAt={queuedAt}
               processingStartedAt={processingStartedAt}
               terminalStatusAt={terminalStatusAt}
+              reviewReadyAt={reviewReadyAt}
               failureCode={failureCode}
             />
           </CardContent>
         </Card>
       </section>
 
-      <section className="bg-card rounded-xl border">
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <div>
-            <p className="text-muted-foreground text-sm">Generated clips</p>
-            <h2 className="text-xl font-semibold">
-              {clips.length > 0
-                ? `${clips.length} clip${clips.length > 1 ? "s" : ""}`
-                : "No clips yet"}
-            </h2>
+      {showGeneratedClips && (
+        <section className="bg-card rounded-xl border">
+          <div className="flex items-center justify-between border-b px-6 py-4">
+            <div>
+              <p className="text-muted-foreground text-sm">Generated clips</p>
+              <h2 className="text-xl font-semibold">
+                {clips.length > 0
+                  ? `${clips.length} clip${clips.length > 1 ? "s" : ""}`
+                  : "No clips yet"}
+              </h2>
+            </div>
           </div>
-        </div>
-        <div className="px-6 py-6">
-          <Suspense
-            fallback={<p className="text-muted-foreground">Loading clips...</p>}
-          >
-            {clips.length > 0 ? (
-              <ClipDisplay clips={clips} />
-            ) : (
-              <p className="text-muted-foreground text-center">
-                No clips generated yet
-              </p>
-            )}
-          </Suspense>
-        </div>
-      </section>
+          <div className="px-6 py-6">
+            <Suspense
+              fallback={
+                <p className="text-muted-foreground">Loading clips...</p>
+              }
+            >
+              {clips.length > 0 ? (
+                <ClipDisplay clips={clips} />
+              ) : (
+                <p className="text-muted-foreground text-center">
+                  No clips generated yet
+                </p>
+              )}
+            </Suspense>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

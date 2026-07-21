@@ -15,52 +15,57 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 /**
  * Model Account
- *
+ * 
  */
 export type Account = $Result.DefaultSelection<Prisma.$AccountPayload>
 /**
  * Model Session
- *
+ * 
  */
 export type Session = $Result.DefaultSelection<Prisma.$SessionPayload>
 /**
  * Model User
- *
+ * 
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
  * Model UploadedFile
- *
+ * 
  */
 export type UploadedFile = $Result.DefaultSelection<Prisma.$UploadedFilePayload>
 /**
  * Model Clip
- *
+ * 
  */
 export type Clip = $Result.DefaultSelection<Prisma.$ClipPayload>
 /**
+ * Model ClipDraft
+ * 
+ */
+export type ClipDraft = $Result.DefaultSelection<Prisma.$ClipDraftPayload>
+/**
  * Model ProcessingDispatch
- *
+ * 
  */
 export type ProcessingDispatch = $Result.DefaultSelection<Prisma.$ProcessingDispatchPayload>
 /**
  * Model Subscription
- *
+ * 
  */
 export type Subscription = $Result.DefaultSelection<Prisma.$SubscriptionPayload>
 /**
  * Model Order
- *
+ * 
  */
 export type Order = $Result.DefaultSelection<Prisma.$OrderPayload>
 /**
  * Model AnalyticsEvent
- *
+ * 
  */
 export type AnalyticsEvent = $Result.DefaultSelection<Prisma.$AnalyticsEventPayload>
 /**
  * Model VerificationToken
- *
+ * 
  */
 export type VerificationToken = $Result.DefaultSelection<Prisma.$VerificationTokenPayload>
 
@@ -170,7 +175,7 @@ export class PrismaClient<
    *   prisma.user.create({ data: { name: 'Alice' } }),
    * ])
    * ```
-   *
+   * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
@@ -231,6 +236,16 @@ export class PrismaClient<
     * ```
     */
   get clip(): Prisma.ClipDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.clipDraft`: Exposes CRUD operations for the **ClipDraft** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ClipDrafts
+    * const clipDrafts = await prisma.clipDraft.findMany()
+    * ```
+    */
+  get clipDraft(): Prisma.ClipDraftDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.processingDispatch`: Exposes CRUD operations for the **ProcessingDispatch** model.
@@ -727,6 +742,7 @@ export namespace Prisma {
     User: 'User',
     UploadedFile: 'UploadedFile',
     Clip: 'Clip',
+    ClipDraft: 'ClipDraft',
     ProcessingDispatch: 'ProcessingDispatch',
     Subscription: 'Subscription',
     Order: 'Order',
@@ -750,7 +766,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "account" | "session" | "user" | "uploadedFile" | "clip" | "processingDispatch" | "subscription" | "order" | "analyticsEvent" | "verificationToken"
+      modelProps: "account" | "session" | "user" | "uploadedFile" | "clip" | "clipDraft" | "processingDispatch" | "subscription" | "order" | "analyticsEvent" | "verificationToken"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1121,6 +1137,80 @@ export namespace Prisma {
           count: {
             args: Prisma.ClipCountArgs<ExtArgs>
             result: $Utils.Optional<ClipCountAggregateOutputType> | number
+          }
+        }
+      }
+      ClipDraft: {
+        payload: Prisma.$ClipDraftPayload<ExtArgs>
+        fields: Prisma.ClipDraftFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ClipDraftFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ClipDraftFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>
+          }
+          findFirst: {
+            args: Prisma.ClipDraftFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ClipDraftFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>
+          }
+          findMany: {
+            args: Prisma.ClipDraftFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>[]
+          }
+          create: {
+            args: Prisma.ClipDraftCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>
+          }
+          createMany: {
+            args: Prisma.ClipDraftCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ClipDraftCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>[]
+          }
+          delete: {
+            args: Prisma.ClipDraftDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>
+          }
+          update: {
+            args: Prisma.ClipDraftUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>
+          }
+          deleteMany: {
+            args: Prisma.ClipDraftDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ClipDraftUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ClipDraftUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>[]
+          }
+          upsert: {
+            args: Prisma.ClipDraftUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ClipDraftPayload>
+          }
+          aggregate: {
+            args: Prisma.ClipDraftAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateClipDraft>
+          }
+          groupBy: {
+            args: Prisma.ClipDraftGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ClipDraftGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ClipDraftCountArgs<ExtArgs>
+            result: $Utils.Optional<ClipDraftCountAggregateOutputType> | number
           }
         }
       }
@@ -1539,7 +1629,7 @@ export namespace Prisma {
      * ```
      * // Shorthand for `emit: 'stdout'`
      * log: ['query', 'info', 'warn', 'error']
-     *
+     * 
      * // Emit as events only
      * log: [
      *   { emit: 'event', level: 'query' },
@@ -1547,14 +1637,14 @@ export namespace Prisma {
      *   { emit: 'event', level: 'warn' }
      *   { emit: 'event', level: 'error' }
      * ]
-     *
+     * 
      * / Emit as events and log to stdout
      * og: [
      *  { emit: 'stdout', level: 'query' },
      *  { emit: 'stdout', level: 'info' },
      *  { emit: 'stdout', level: 'warn' }
      *  { emit: 'stdout', level: 'error' }
-     *
+     * 
      * ```
      * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
      */
@@ -1575,7 +1665,7 @@ export namespace Prisma {
     adapter?: runtime.SqlDriverAdapterFactory | null
     /**
      * Global configuration for omitting model fields by default.
-     *
+     * 
      * @example
      * ```
      * const prisma = new PrismaClient({
@@ -1595,6 +1685,7 @@ export namespace Prisma {
     user?: UserOmit
     uploadedFile?: UploadedFileOmit
     clip?: ClipOmit
+    clipDraft?: ClipDraftOmit
     processingDispatch?: ProcessingDispatchOmit
     subscription?: SubscriptionOmit
     order?: OrderOmit
@@ -1758,11 +1849,13 @@ export namespace Prisma {
   export type UploadedFileCountOutputType = {
     clips: number
     dispatches: number
+    clipDrafts: number
   }
 
   export type UploadedFileCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFileCountOutputTypeCountClipsArgs
     dispatches?: boolean | UploadedFileCountOutputTypeCountDispatchesArgs
+    clipDrafts?: boolean | UploadedFileCountOutputTypeCountClipDraftsArgs
   }
 
   // Custom InputTypes
@@ -1788,6 +1881,13 @@ export namespace Prisma {
    */
   export type UploadedFileCountOutputTypeCountDispatchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProcessingDispatchWhereInput
+  }
+
+  /**
+   * UploadedFileCountOutputType without action
+   */
+  export type UploadedFileCountOutputTypeCountClipDraftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ClipDraftWhereInput
   }
 
 
@@ -1933,55 +2033,55 @@ export namespace Prisma {
     where?: AccountWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Accounts to fetch.
      */
     orderBy?: AccountOrderByWithRelationInput | AccountOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: AccountWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Accounts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Accounts.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned Accounts
     **/
     _count?: true | AccountCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: AccountAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: AccountSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: AccountMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: AccountMaxAggregateInputType
@@ -2223,13 +2323,13 @@ export namespace Prisma {
      * @example
      * // Get all Accounts
      * const accounts = await prisma.account.findMany()
-     *
+     * 
      * // Get first 10 Accounts
      * const accounts = await prisma.account.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const accountWithIdOnly = await prisma.account.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends AccountFindManyArgs>(args?: SelectSubset<T, AccountFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -2243,7 +2343,7 @@ export namespace Prisma {
      *     // ... data to create a Account
      *   }
      * })
-     *
+     * 
      */
     create<T extends AccountCreateArgs>(args: SelectSubset<T, AccountCreateArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -2257,7 +2357,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends AccountCreateManyArgs>(args?: SelectSubset<T, AccountCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -2271,7 +2371,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many Accounts and only return the `id`
      * const accountWithIdOnly = await prisma.account.createManyAndReturn({
      *   select: { id: true },
@@ -2281,7 +2381,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends AccountCreateManyAndReturnArgs>(args?: SelectSubset<T, AccountCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -2295,7 +2395,7 @@ export namespace Prisma {
      *     // ... filter to delete one Account
      *   }
      * })
-     *
+     * 
      */
     delete<T extends AccountDeleteArgs>(args: SelectSubset<T, AccountDeleteArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -2312,7 +2412,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends AccountUpdateArgs>(args: SelectSubset<T, AccountUpdateArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -2326,7 +2426,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends AccountDeleteManyArgs>(args?: SelectSubset<T, AccountDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -2345,7 +2445,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends AccountUpdateManyArgs>(args: SelectSubset<T, AccountUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -2362,7 +2462,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more Accounts and only return the `id`
      * const accountWithIdOnly = await prisma.account.updateManyAndReturn({
      *   select: { id: true },
@@ -2375,7 +2475,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends AccountUpdateManyAndReturnArgs>(args: SelectSubset<T, AccountUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -2464,7 +2564,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends AccountGroupByArgs,
@@ -2582,7 +2682,7 @@ export namespace Prisma {
     readonly session_state: FieldRef<"Account", 'String'>
     readonly refresh_token_expires_in: FieldRef<"Account", 'Int'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -2651,31 +2751,31 @@ export namespace Prisma {
     where?: AccountWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Accounts to fetch.
      */
     orderBy?: AccountOrderByWithRelationInput | AccountOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Accounts.
      */
     cursor?: AccountWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Accounts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Accounts.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Accounts.
      */
     distinct?: AccountScalarFieldEnum | AccountScalarFieldEnum[]
@@ -2703,31 +2803,31 @@ export namespace Prisma {
     where?: AccountWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Accounts to fetch.
      */
     orderBy?: AccountOrderByWithRelationInput | AccountOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Accounts.
      */
     cursor?: AccountWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Accounts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Accounts.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Accounts.
      */
     distinct?: AccountScalarFieldEnum | AccountScalarFieldEnum[]
@@ -2755,25 +2855,25 @@ export namespace Prisma {
     where?: AccountWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Accounts to fetch.
      */
     orderBy?: AccountOrderByWithRelationInput | AccountOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing Accounts.
      */
     cursor?: AccountWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Accounts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Accounts.
      */
     skip?: number
@@ -3057,43 +3157,43 @@ export namespace Prisma {
     where?: SessionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Sessions to fetch.
      */
     orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: SessionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Sessions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Sessions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned Sessions
     **/
     _count?: true | SessionCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: SessionMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: SessionMaxAggregateInputType
@@ -3277,13 +3377,13 @@ export namespace Prisma {
      * @example
      * // Get all Sessions
      * const sessions = await prisma.session.findMany()
-     *
+     * 
      * // Get first 10 Sessions
      * const sessions = await prisma.session.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const sessionWithIdOnly = await prisma.session.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends SessionFindManyArgs>(args?: SelectSubset<T, SessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -3297,7 +3397,7 @@ export namespace Prisma {
      *     // ... data to create a Session
      *   }
      * })
-     *
+     * 
      */
     create<T extends SessionCreateArgs>(args: SelectSubset<T, SessionCreateArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -3311,7 +3411,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends SessionCreateManyArgs>(args?: SelectSubset<T, SessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -3325,7 +3425,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many Sessions and only return the `id`
      * const sessionWithIdOnly = await prisma.session.createManyAndReturn({
      *   select: { id: true },
@@ -3335,7 +3435,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends SessionCreateManyAndReturnArgs>(args?: SelectSubset<T, SessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -3349,7 +3449,7 @@ export namespace Prisma {
      *     // ... filter to delete one Session
      *   }
      * })
-     *
+     * 
      */
     delete<T extends SessionDeleteArgs>(args: SelectSubset<T, SessionDeleteArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -3366,7 +3466,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends SessionUpdateArgs>(args: SelectSubset<T, SessionUpdateArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -3380,7 +3480,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends SessionDeleteManyArgs>(args?: SelectSubset<T, SessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -3399,7 +3499,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends SessionUpdateManyArgs>(args: SelectSubset<T, SessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -3416,7 +3516,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more Sessions and only return the `id`
      * const sessionWithIdOnly = await prisma.session.updateManyAndReturn({
      *   select: { id: true },
@@ -3429,7 +3529,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends SessionUpdateManyAndReturnArgs>(args: SelectSubset<T, SessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -3518,7 +3618,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends SessionGroupByArgs,
@@ -3627,7 +3727,7 @@ export namespace Prisma {
     readonly userId: FieldRef<"Session", 'String'>
     readonly expires: FieldRef<"Session", 'DateTime'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -3696,31 +3796,31 @@ export namespace Prisma {
     where?: SessionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Sessions to fetch.
      */
     orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Sessions.
      */
     cursor?: SessionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Sessions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Sessions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Sessions.
      */
     distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
@@ -3748,31 +3848,31 @@ export namespace Prisma {
     where?: SessionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Sessions to fetch.
      */
     orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Sessions.
      */
     cursor?: SessionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Sessions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Sessions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Sessions.
      */
     distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
@@ -3800,25 +3900,25 @@ export namespace Prisma {
     where?: SessionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Sessions to fetch.
      */
     orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing Sessions.
      */
     cursor?: SessionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Sessions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Sessions.
      */
     skip?: number
@@ -4144,55 +4244,55 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Users.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned Users
     **/
     _count?: true | UserCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: UserAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: UserSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: UserMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: UserMaxAggregateInputType
@@ -4418,13 +4518,13 @@ export namespace Prisma {
      * @example
      * // Get all Users
      * const users = await prisma.user.findMany()
-     *
+     * 
      * // Get first 10 Users
      * const users = await prisma.user.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends UserFindManyArgs>(args?: SelectSubset<T, UserFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -4438,7 +4538,7 @@ export namespace Prisma {
      *     // ... data to create a User
      *   }
      * })
-     *
+     * 
      */
     create<T extends UserCreateArgs>(args: SelectSubset<T, UserCreateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -4452,7 +4552,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends UserCreateManyArgs>(args?: SelectSubset<T, UserCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -4466,7 +4566,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many Users and only return the `id`
      * const userWithIdOnly = await prisma.user.createManyAndReturn({
      *   select: { id: true },
@@ -4476,7 +4576,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends UserCreateManyAndReturnArgs>(args?: SelectSubset<T, UserCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -4490,7 +4590,7 @@ export namespace Prisma {
      *     // ... filter to delete one User
      *   }
      * })
-     *
+     * 
      */
     delete<T extends UserDeleteArgs>(args: SelectSubset<T, UserDeleteArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -4507,7 +4607,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends UserUpdateArgs>(args: SelectSubset<T, UserUpdateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -4521,7 +4621,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends UserDeleteManyArgs>(args?: SelectSubset<T, UserDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -4540,7 +4640,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends UserUpdateManyArgs>(args: SelectSubset<T, UserUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -4557,7 +4657,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more Users and only return the `id`
      * const userWithIdOnly = await prisma.user.updateManyAndReturn({
      *   select: { id: true },
@@ -4570,7 +4670,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends UserUpdateManyAndReturnArgs>(args: SelectSubset<T, UserUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -4659,7 +4759,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends UserGroupByArgs,
@@ -4778,7 +4878,7 @@ export namespace Prisma {
     readonly polarCustomerId: FieldRef<"User", 'String'>
     readonly image: FieldRef<"User", 'String'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -4847,31 +4947,31 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Users.
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Users.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Users.
      */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
@@ -4899,31 +4999,31 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Users.
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Users.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Users.
      */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
@@ -4951,25 +5051,25 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing Users.
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Users.
      */
     skip?: number
@@ -5362,12 +5462,14 @@ export namespace Prisma {
     currentAttempt: number | null
     lastSuccessfulAttempt: number | null
     targetClipCount: number | null
+    reviewAttempt: number | null
   }
 
   export type UploadedFileSumAggregateOutputType = {
     currentAttempt: number | null
     lastSuccessfulAttempt: number | null
     targetClipCount: number | null
+    reviewAttempt: number | null
   }
 
   export type UploadedFileMinAggregateOutputType = {
@@ -5388,6 +5490,10 @@ export namespace Prisma {
     failureCode: string | null
     language: string | null
     targetClipCount: number | null
+    reviewBeforeGenerate: boolean | null
+    reviewAttempt: number | null
+    reviewReadyAt: Date | null
+    transcriptS3Key: string | null
     userId: string | null
   }
 
@@ -5409,6 +5515,10 @@ export namespace Prisma {
     failureCode: string | null
     language: string | null
     targetClipCount: number | null
+    reviewBeforeGenerate: boolean | null
+    reviewAttempt: number | null
+    reviewReadyAt: Date | null
+    transcriptS3Key: string | null
     userId: string | null
   }
 
@@ -5430,6 +5540,10 @@ export namespace Prisma {
     failureCode: number
     language: number
     targetClipCount: number
+    reviewBeforeGenerate: number
+    reviewAttempt: number
+    reviewReadyAt: number
+    transcriptS3Key: number
     userId: number
     _all: number
   }
@@ -5439,12 +5553,14 @@ export namespace Prisma {
     currentAttempt?: true
     lastSuccessfulAttempt?: true
     targetClipCount?: true
+    reviewAttempt?: true
   }
 
   export type UploadedFileSumAggregateInputType = {
     currentAttempt?: true
     lastSuccessfulAttempt?: true
     targetClipCount?: true
+    reviewAttempt?: true
   }
 
   export type UploadedFileMinAggregateInputType = {
@@ -5465,6 +5581,10 @@ export namespace Prisma {
     failureCode?: true
     language?: true
     targetClipCount?: true
+    reviewBeforeGenerate?: true
+    reviewAttempt?: true
+    reviewReadyAt?: true
+    transcriptS3Key?: true
     userId?: true
   }
 
@@ -5486,6 +5606,10 @@ export namespace Prisma {
     failureCode?: true
     language?: true
     targetClipCount?: true
+    reviewBeforeGenerate?: true
+    reviewAttempt?: true
+    reviewReadyAt?: true
+    transcriptS3Key?: true
     userId?: true
   }
 
@@ -5507,6 +5631,10 @@ export namespace Prisma {
     failureCode?: true
     language?: true
     targetClipCount?: true
+    reviewBeforeGenerate?: true
+    reviewAttempt?: true
+    reviewReadyAt?: true
+    transcriptS3Key?: true
     userId?: true
     _all?: true
   }
@@ -5518,55 +5646,55 @@ export namespace Prisma {
     where?: UploadedFileWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of UploadedFiles to fetch.
      */
     orderBy?: UploadedFileOrderByWithRelationInput | UploadedFileOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: UploadedFileWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` UploadedFiles from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` UploadedFiles.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned UploadedFiles
     **/
     _count?: true | UploadedFileCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: UploadedFileAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: UploadedFileSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: UploadedFileMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: UploadedFileMaxAggregateInputType
@@ -5615,6 +5743,10 @@ export namespace Prisma {
     failureCode: string | null
     language: string
     targetClipCount: number
+    reviewBeforeGenerate: boolean
+    reviewAttempt: number | null
+    reviewReadyAt: Date | null
+    transcriptS3Key: string | null
     userId: string
     _count: UploadedFileCountAggregateOutputType | null
     _avg: UploadedFileAvgAggregateOutputType | null
@@ -5655,9 +5787,14 @@ export namespace Prisma {
     failureCode?: boolean
     language?: boolean
     targetClipCount?: boolean
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: boolean
+    reviewReadyAt?: boolean
+    transcriptS3Key?: boolean
     userId?: boolean
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
+    clipDrafts?: boolean | UploadedFile$clipDraftsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | UploadedFileCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5680,6 +5817,10 @@ export namespace Prisma {
     failureCode?: boolean
     language?: boolean
     targetClipCount?: boolean
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: boolean
+    reviewReadyAt?: boolean
+    transcriptS3Key?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5702,6 +5843,10 @@ export namespace Prisma {
     failureCode?: boolean
     language?: boolean
     targetClipCount?: boolean
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: boolean
+    reviewReadyAt?: boolean
+    transcriptS3Key?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5724,13 +5869,18 @@ export namespace Prisma {
     failureCode?: boolean
     language?: boolean
     targetClipCount?: boolean
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: boolean
+    reviewReadyAt?: boolean
+    transcriptS3Key?: boolean
     userId?: boolean
   }
 
-  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "userId", ExtArgs["result"]["uploadedFile"]>
+  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "reviewBeforeGenerate" | "reviewAttempt" | "reviewReadyAt" | "transcriptS3Key" | "userId", ExtArgs["result"]["uploadedFile"]>
   export type UploadedFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
+    clipDrafts?: boolean | UploadedFile$clipDraftsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | UploadedFileCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -5746,6 +5896,7 @@ export namespace Prisma {
     objects: {
       clips: Prisma.$ClipPayload<ExtArgs>[]
       dispatches: Prisma.$ProcessingDispatchPayload<ExtArgs>[]
+      clipDrafts: Prisma.$ClipDraftPayload<ExtArgs>[]
       user: Prisma.$UserPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -5766,6 +5917,10 @@ export namespace Prisma {
       failureCode: string | null
       language: string
       targetClipCount: number
+      reviewBeforeGenerate: boolean
+      reviewAttempt: number | null
+      reviewReadyAt: Date | null
+      transcriptS3Key: string | null
       userId: string
     }, ExtArgs["result"]["uploadedFile"]>
     composites: {}
@@ -5846,13 +6001,13 @@ export namespace Prisma {
      * @example
      * // Get all UploadedFiles
      * const uploadedFiles = await prisma.uploadedFile.findMany()
-     *
+     * 
      * // Get first 10 UploadedFiles
      * const uploadedFiles = await prisma.uploadedFile.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const uploadedFileWithIdOnly = await prisma.uploadedFile.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends UploadedFileFindManyArgs>(args?: SelectSubset<T, UploadedFileFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -5866,7 +6021,7 @@ export namespace Prisma {
      *     // ... data to create a UploadedFile
      *   }
      * })
-     *
+     * 
      */
     create<T extends UploadedFileCreateArgs>(args: SelectSubset<T, UploadedFileCreateArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -5880,7 +6035,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends UploadedFileCreateManyArgs>(args?: SelectSubset<T, UploadedFileCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -5894,7 +6049,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many UploadedFiles and only return the `id`
      * const uploadedFileWithIdOnly = await prisma.uploadedFile.createManyAndReturn({
      *   select: { id: true },
@@ -5904,7 +6059,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends UploadedFileCreateManyAndReturnArgs>(args?: SelectSubset<T, UploadedFileCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -5918,7 +6073,7 @@ export namespace Prisma {
      *     // ... filter to delete one UploadedFile
      *   }
      * })
-     *
+     * 
      */
     delete<T extends UploadedFileDeleteArgs>(args: SelectSubset<T, UploadedFileDeleteArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -5935,7 +6090,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends UploadedFileUpdateArgs>(args: SelectSubset<T, UploadedFileUpdateArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -5949,7 +6104,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends UploadedFileDeleteManyArgs>(args?: SelectSubset<T, UploadedFileDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -5968,7 +6123,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends UploadedFileUpdateManyArgs>(args: SelectSubset<T, UploadedFileUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -5985,7 +6140,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more UploadedFiles and only return the `id`
      * const uploadedFileWithIdOnly = await prisma.uploadedFile.updateManyAndReturn({
      *   select: { id: true },
@@ -5998,7 +6153,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends UploadedFileUpdateManyAndReturnArgs>(args: SelectSubset<T, UploadedFileUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -6087,7 +6242,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends UploadedFileGroupByArgs,
@@ -6163,6 +6318,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     clips<T extends UploadedFile$clipsArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$clipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     dispatches<T extends UploadedFile$dispatchesArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$dispatchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    clipDrafts<T extends UploadedFile$clipDraftsArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$clipDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -6210,9 +6366,13 @@ export namespace Prisma {
     readonly failureCode: FieldRef<"UploadedFile", 'String'>
     readonly language: FieldRef<"UploadedFile", 'String'>
     readonly targetClipCount: FieldRef<"UploadedFile", 'Int'>
+    readonly reviewBeforeGenerate: FieldRef<"UploadedFile", 'Boolean'>
+    readonly reviewAttempt: FieldRef<"UploadedFile", 'Int'>
+    readonly reviewReadyAt: FieldRef<"UploadedFile", 'DateTime'>
+    readonly transcriptS3Key: FieldRef<"UploadedFile", 'String'>
     readonly userId: FieldRef<"UploadedFile", 'String'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -6281,31 +6441,31 @@ export namespace Prisma {
     where?: UploadedFileWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of UploadedFiles to fetch.
      */
     orderBy?: UploadedFileOrderByWithRelationInput | UploadedFileOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for UploadedFiles.
      */
     cursor?: UploadedFileWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` UploadedFiles from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` UploadedFiles.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of UploadedFiles.
      */
     distinct?: UploadedFileScalarFieldEnum | UploadedFileScalarFieldEnum[]
@@ -6333,31 +6493,31 @@ export namespace Prisma {
     where?: UploadedFileWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of UploadedFiles to fetch.
      */
     orderBy?: UploadedFileOrderByWithRelationInput | UploadedFileOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for UploadedFiles.
      */
     cursor?: UploadedFileWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` UploadedFiles from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` UploadedFiles.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of UploadedFiles.
      */
     distinct?: UploadedFileScalarFieldEnum | UploadedFileScalarFieldEnum[]
@@ -6385,25 +6545,25 @@ export namespace Prisma {
     where?: UploadedFileWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of UploadedFiles to fetch.
      */
     orderBy?: UploadedFileOrderByWithRelationInput | UploadedFileOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing UploadedFiles.
      */
     cursor?: UploadedFileWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` UploadedFiles from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` UploadedFiles.
      */
     skip?: number
@@ -6655,6 +6815,30 @@ export namespace Prisma {
   }
 
   /**
+   * UploadedFile.clipDrafts
+   */
+  export type UploadedFile$clipDraftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    where?: ClipDraftWhereInput
+    orderBy?: ClipDraftOrderByWithRelationInput | ClipDraftOrderByWithRelationInput[]
+    cursor?: ClipDraftWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ClipDraftScalarFieldEnum | ClipDraftScalarFieldEnum[]
+  }
+
+  /**
    * UploadedFile without action
    */
   export type UploadedFileDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6815,55 +6999,55 @@ export namespace Prisma {
     where?: ClipWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Clips to fetch.
      */
     orderBy?: ClipOrderByWithRelationInput | ClipOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: ClipWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Clips from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Clips.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned Clips
     **/
     _count?: true | ClipCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: ClipAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: ClipSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ClipMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: ClipMaxAggregateInputType
@@ -7112,13 +7296,13 @@ export namespace Prisma {
      * @example
      * // Get all Clips
      * const clips = await prisma.clip.findMany()
-     *
+     * 
      * // Get first 10 Clips
      * const clips = await prisma.clip.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const clipWithIdOnly = await prisma.clip.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends ClipFindManyArgs>(args?: SelectSubset<T, ClipFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -7132,7 +7316,7 @@ export namespace Prisma {
      *     // ... data to create a Clip
      *   }
      * })
-     *
+     * 
      */
     create<T extends ClipCreateArgs>(args: SelectSubset<T, ClipCreateArgs<ExtArgs>>): Prisma__ClipClient<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -7146,7 +7330,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends ClipCreateManyArgs>(args?: SelectSubset<T, ClipCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -7160,7 +7344,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many Clips and only return the `id`
      * const clipWithIdOnly = await prisma.clip.createManyAndReturn({
      *   select: { id: true },
@@ -7170,7 +7354,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends ClipCreateManyAndReturnArgs>(args?: SelectSubset<T, ClipCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -7184,7 +7368,7 @@ export namespace Prisma {
      *     // ... filter to delete one Clip
      *   }
      * })
-     *
+     * 
      */
     delete<T extends ClipDeleteArgs>(args: SelectSubset<T, ClipDeleteArgs<ExtArgs>>): Prisma__ClipClient<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -7201,7 +7385,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends ClipUpdateArgs>(args: SelectSubset<T, ClipUpdateArgs<ExtArgs>>): Prisma__ClipClient<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -7215,7 +7399,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends ClipDeleteManyArgs>(args?: SelectSubset<T, ClipDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -7234,7 +7418,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends ClipUpdateManyArgs>(args: SelectSubset<T, ClipUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -7251,7 +7435,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more Clips and only return the `id`
      * const clipWithIdOnly = await prisma.clip.updateManyAndReturn({
      *   select: { id: true },
@@ -7264,7 +7448,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends ClipUpdateManyAndReturnArgs>(args: SelectSubset<T, ClipUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -7353,7 +7537,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends ClipGroupByArgs,
@@ -7472,7 +7656,7 @@ export namespace Prisma {
     readonly uploadedFileId: FieldRef<"Clip", 'String'>
     readonly userId: FieldRef<"Clip", 'String'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -7541,31 +7725,31 @@ export namespace Prisma {
     where?: ClipWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Clips to fetch.
      */
     orderBy?: ClipOrderByWithRelationInput | ClipOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Clips.
      */
     cursor?: ClipWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Clips from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Clips.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Clips.
      */
     distinct?: ClipScalarFieldEnum | ClipScalarFieldEnum[]
@@ -7593,31 +7777,31 @@ export namespace Prisma {
     where?: ClipWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Clips to fetch.
      */
     orderBy?: ClipOrderByWithRelationInput | ClipOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Clips.
      */
     cursor?: ClipWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Clips from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Clips.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Clips.
      */
     distinct?: ClipScalarFieldEnum | ClipScalarFieldEnum[]
@@ -7645,25 +7829,25 @@ export namespace Prisma {
     where?: ClipWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Clips to fetch.
      */
     orderBy?: ClipOrderByWithRelationInput | ClipOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing Clips.
      */
     cursor?: ClipWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Clips from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Clips.
      */
     skip?: number
@@ -7905,6 +8089,1244 @@ export namespace Prisma {
 
 
   /**
+   * Model ClipDraft
+   */
+
+  export type AggregateClipDraft = {
+    _count: ClipDraftCountAggregateOutputType | null
+    _avg: ClipDraftAvgAggregateOutputType | null
+    _sum: ClipDraftSumAggregateOutputType | null
+    _min: ClipDraftMinAggregateOutputType | null
+    _max: ClipDraftMaxAggregateOutputType | null
+  }
+
+  export type ClipDraftAvgAggregateOutputType = {
+    attempt: number | null
+    index: number | null
+    aiStartSeconds: number | null
+    aiEndSeconds: number | null
+    startSeconds: number | null
+    endSeconds: number | null
+  }
+
+  export type ClipDraftSumAggregateOutputType = {
+    attempt: number | null
+    index: number | null
+    aiStartSeconds: number | null
+    aiEndSeconds: number | null
+    startSeconds: number | null
+    endSeconds: number | null
+  }
+
+  export type ClipDraftMinAggregateOutputType = {
+    id: string | null
+    uploadedFileId: string | null
+    attempt: number | null
+    index: number | null
+    aiStartSeconds: number | null
+    aiEndSeconds: number | null
+    startSeconds: number | null
+    endSeconds: number | null
+    clipType: string | null
+    hook: string | null
+    payoff: string | null
+    selected: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ClipDraftMaxAggregateOutputType = {
+    id: string | null
+    uploadedFileId: string | null
+    attempt: number | null
+    index: number | null
+    aiStartSeconds: number | null
+    aiEndSeconds: number | null
+    startSeconds: number | null
+    endSeconds: number | null
+    clipType: string | null
+    hook: string | null
+    payoff: string | null
+    selected: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ClipDraftCountAggregateOutputType = {
+    id: number
+    uploadedFileId: number
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType: number
+    hook: number
+    payoff: number
+    selected: number
+    captionStyle: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ClipDraftAvgAggregateInputType = {
+    attempt?: true
+    index?: true
+    aiStartSeconds?: true
+    aiEndSeconds?: true
+    startSeconds?: true
+    endSeconds?: true
+  }
+
+  export type ClipDraftSumAggregateInputType = {
+    attempt?: true
+    index?: true
+    aiStartSeconds?: true
+    aiEndSeconds?: true
+    startSeconds?: true
+    endSeconds?: true
+  }
+
+  export type ClipDraftMinAggregateInputType = {
+    id?: true
+    uploadedFileId?: true
+    attempt?: true
+    index?: true
+    aiStartSeconds?: true
+    aiEndSeconds?: true
+    startSeconds?: true
+    endSeconds?: true
+    clipType?: true
+    hook?: true
+    payoff?: true
+    selected?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ClipDraftMaxAggregateInputType = {
+    id?: true
+    uploadedFileId?: true
+    attempt?: true
+    index?: true
+    aiStartSeconds?: true
+    aiEndSeconds?: true
+    startSeconds?: true
+    endSeconds?: true
+    clipType?: true
+    hook?: true
+    payoff?: true
+    selected?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ClipDraftCountAggregateInputType = {
+    id?: true
+    uploadedFileId?: true
+    attempt?: true
+    index?: true
+    aiStartSeconds?: true
+    aiEndSeconds?: true
+    startSeconds?: true
+    endSeconds?: true
+    clipType?: true
+    hook?: true
+    payoff?: true
+    selected?: true
+    captionStyle?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ClipDraftAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ClipDraft to aggregate.
+     */
+    where?: ClipDraftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ClipDrafts to fetch.
+     */
+    orderBy?: ClipDraftOrderByWithRelationInput | ClipDraftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ClipDraftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ClipDrafts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ClipDrafts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ClipDrafts
+    **/
+    _count?: true | ClipDraftCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ClipDraftAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ClipDraftSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ClipDraftMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ClipDraftMaxAggregateInputType
+  }
+
+  export type GetClipDraftAggregateType<T extends ClipDraftAggregateArgs> = {
+        [P in keyof T & keyof AggregateClipDraft]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateClipDraft[P]>
+      : GetScalarType<T[P], AggregateClipDraft[P]>
+  }
+
+
+
+
+  export type ClipDraftGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ClipDraftWhereInput
+    orderBy?: ClipDraftOrderByWithAggregationInput | ClipDraftOrderByWithAggregationInput[]
+    by: ClipDraftScalarFieldEnum[] | ClipDraftScalarFieldEnum
+    having?: ClipDraftScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ClipDraftCountAggregateInputType | true
+    _avg?: ClipDraftAvgAggregateInputType
+    _sum?: ClipDraftSumAggregateInputType
+    _min?: ClipDraftMinAggregateInputType
+    _max?: ClipDraftMaxAggregateInputType
+  }
+
+  export type ClipDraftGroupByOutputType = {
+    id: string
+    uploadedFileId: string
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType: string | null
+    hook: string | null
+    payoff: string | null
+    selected: boolean
+    captionStyle: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ClipDraftCountAggregateOutputType | null
+    _avg: ClipDraftAvgAggregateOutputType | null
+    _sum: ClipDraftSumAggregateOutputType | null
+    _min: ClipDraftMinAggregateOutputType | null
+    _max: ClipDraftMaxAggregateOutputType | null
+  }
+
+  type GetClipDraftGroupByPayload<T extends ClipDraftGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ClipDraftGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ClipDraftGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ClipDraftGroupByOutputType[P]>
+            : GetScalarType<T[P], ClipDraftGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ClipDraftSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    index?: boolean
+    aiStartSeconds?: boolean
+    aiEndSeconds?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
+    selected?: boolean
+    captionStyle?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["clipDraft"]>
+
+  export type ClipDraftSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    index?: boolean
+    aiStartSeconds?: boolean
+    aiEndSeconds?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
+    selected?: boolean
+    captionStyle?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["clipDraft"]>
+
+  export type ClipDraftSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    index?: boolean
+    aiStartSeconds?: boolean
+    aiEndSeconds?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
+    selected?: boolean
+    captionStyle?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["clipDraft"]>
+
+  export type ClipDraftSelectScalar = {
+    id?: boolean
+    uploadedFileId?: boolean
+    attempt?: boolean
+    index?: boolean
+    aiStartSeconds?: boolean
+    aiEndSeconds?: boolean
+    startSeconds?: boolean
+    endSeconds?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
+    selected?: boolean
+    captionStyle?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ClipDraftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "index" | "aiStartSeconds" | "aiEndSeconds" | "startSeconds" | "endSeconds" | "clipType" | "hook" | "payoff" | "selected" | "captionStyle" | "createdAt" | "updatedAt", ExtArgs["result"]["clipDraft"]>
+  export type ClipDraftInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }
+  export type ClipDraftIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }
+  export type ClipDraftIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+  }
+
+  export type $ClipDraftPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ClipDraft"
+    objects: {
+      uploadedFile: Prisma.$UploadedFilePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      uploadedFileId: string
+      attempt: number
+      index: number
+      aiStartSeconds: number
+      aiEndSeconds: number
+      startSeconds: number
+      endSeconds: number
+      clipType: string | null
+      hook: string | null
+      payoff: string | null
+      selected: boolean
+      captionStyle: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["clipDraft"]>
+    composites: {}
+  }
+
+  type ClipDraftGetPayload<S extends boolean | null | undefined | ClipDraftDefaultArgs> = $Result.GetResult<Prisma.$ClipDraftPayload, S>
+
+  type ClipDraftCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ClipDraftFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ClipDraftCountAggregateInputType | true
+    }
+
+  export interface ClipDraftDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ClipDraft'], meta: { name: 'ClipDraft' } }
+    /**
+     * Find zero or one ClipDraft that matches the filter.
+     * @param {ClipDraftFindUniqueArgs} args - Arguments to find a ClipDraft
+     * @example
+     * // Get one ClipDraft
+     * const clipDraft = await prisma.clipDraft.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ClipDraftFindUniqueArgs>(args: SelectSubset<T, ClipDraftFindUniqueArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ClipDraft that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ClipDraftFindUniqueOrThrowArgs} args - Arguments to find a ClipDraft
+     * @example
+     * // Get one ClipDraft
+     * const clipDraft = await prisma.clipDraft.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ClipDraftFindUniqueOrThrowArgs>(args: SelectSubset<T, ClipDraftFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ClipDraft that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ClipDraftFindFirstArgs} args - Arguments to find a ClipDraft
+     * @example
+     * // Get one ClipDraft
+     * const clipDraft = await prisma.clipDraft.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ClipDraftFindFirstArgs>(args?: SelectSubset<T, ClipDraftFindFirstArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ClipDraft that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ClipDraftFindFirstOrThrowArgs} args - Arguments to find a ClipDraft
+     * @example
+     * // Get one ClipDraft
+     * const clipDraft = await prisma.clipDraft.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ClipDraftFindFirstOrThrowArgs>(args?: SelectSubset<T, ClipDraftFindFirstOrThrowArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ClipDrafts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ClipDraftFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ClipDrafts
+     * const clipDrafts = await prisma.clipDraft.findMany()
+     * 
+     * // Get first 10 ClipDrafts
+     * const clipDrafts = await prisma.clipDraft.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const clipDraftWithIdOnly = await prisma.clipDraft.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ClipDraftFindManyArgs>(args?: SelectSubset<T, ClipDraftFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ClipDraft.
+     * @param {ClipDraftCreateArgs} args - Arguments to create a ClipDraft.
+     * @example
+     * // Create one ClipDraft
+     * const ClipDraft = await prisma.clipDraft.create({
+     *   data: {
+     *     // ... data to create a ClipDraft
+     *   }
+     * })
+     * 
+     */
+    create<T extends ClipDraftCreateArgs>(args: SelectSubset<T, ClipDraftCreateArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ClipDrafts.
+     * @param {ClipDraftCreateManyArgs} args - Arguments to create many ClipDrafts.
+     * @example
+     * // Create many ClipDrafts
+     * const clipDraft = await prisma.clipDraft.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ClipDraftCreateManyArgs>(args?: SelectSubset<T, ClipDraftCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ClipDrafts and returns the data saved in the database.
+     * @param {ClipDraftCreateManyAndReturnArgs} args - Arguments to create many ClipDrafts.
+     * @example
+     * // Create many ClipDrafts
+     * const clipDraft = await prisma.clipDraft.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ClipDrafts and only return the `id`
+     * const clipDraftWithIdOnly = await prisma.clipDraft.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ClipDraftCreateManyAndReturnArgs>(args?: SelectSubset<T, ClipDraftCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ClipDraft.
+     * @param {ClipDraftDeleteArgs} args - Arguments to delete one ClipDraft.
+     * @example
+     * // Delete one ClipDraft
+     * const ClipDraft = await prisma.clipDraft.delete({
+     *   where: {
+     *     // ... filter to delete one ClipDraft
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ClipDraftDeleteArgs>(args: SelectSubset<T, ClipDraftDeleteArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ClipDraft.
+     * @param {ClipDraftUpdateArgs} args - Arguments to update one ClipDraft.
+     * @example
+     * // Update one ClipDraft
+     * const clipDraft = await prisma.clipDraft.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ClipDraftUpdateArgs>(args: SelectSubset<T, ClipDraftUpdateArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ClipDrafts.
+     * @param {ClipDraftDeleteManyArgs} args - Arguments to filter ClipDrafts to delete.
+     * @example
+     * // Delete a few ClipDrafts
+     * const { count } = await prisma.clipDraft.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ClipDraftDeleteManyArgs>(args?: SelectSubset<T, ClipDraftDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ClipDrafts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ClipDraftUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ClipDrafts
+     * const clipDraft = await prisma.clipDraft.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ClipDraftUpdateManyArgs>(args: SelectSubset<T, ClipDraftUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ClipDrafts and returns the data updated in the database.
+     * @param {ClipDraftUpdateManyAndReturnArgs} args - Arguments to update many ClipDrafts.
+     * @example
+     * // Update many ClipDrafts
+     * const clipDraft = await prisma.clipDraft.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ClipDrafts and only return the `id`
+     * const clipDraftWithIdOnly = await prisma.clipDraft.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ClipDraftUpdateManyAndReturnArgs>(args: SelectSubset<T, ClipDraftUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ClipDraft.
+     * @param {ClipDraftUpsertArgs} args - Arguments to update or create a ClipDraft.
+     * @example
+     * // Update or create a ClipDraft
+     * const clipDraft = await prisma.clipDraft.upsert({
+     *   create: {
+     *     // ... data to create a ClipDraft
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ClipDraft we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ClipDraftUpsertArgs>(args: SelectSubset<T, ClipDraftUpsertArgs<ExtArgs>>): Prisma__ClipDraftClient<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ClipDrafts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ClipDraftCountArgs} args - Arguments to filter ClipDrafts to count.
+     * @example
+     * // Count the number of ClipDrafts
+     * const count = await prisma.clipDraft.count({
+     *   where: {
+     *     // ... the filter for the ClipDrafts we want to count
+     *   }
+     * })
+    **/
+    count<T extends ClipDraftCountArgs>(
+      args?: Subset<T, ClipDraftCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ClipDraftCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ClipDraft.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ClipDraftAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ClipDraftAggregateArgs>(args: Subset<T, ClipDraftAggregateArgs>): Prisma.PrismaPromise<GetClipDraftAggregateType<T>>
+
+    /**
+     * Group by ClipDraft.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ClipDraftGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ClipDraftGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ClipDraftGroupByArgs['orderBy'] }
+        : { orderBy?: ClipDraftGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ClipDraftGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetClipDraftGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ClipDraft model
+   */
+  readonly fields: ClipDraftFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ClipDraft.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ClipDraftClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    uploadedFile<T extends UploadedFileDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFileDefaultArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ClipDraft model
+   */
+  interface ClipDraftFieldRefs {
+    readonly id: FieldRef<"ClipDraft", 'String'>
+    readonly uploadedFileId: FieldRef<"ClipDraft", 'String'>
+    readonly attempt: FieldRef<"ClipDraft", 'Int'>
+    readonly index: FieldRef<"ClipDraft", 'Int'>
+    readonly aiStartSeconds: FieldRef<"ClipDraft", 'Float'>
+    readonly aiEndSeconds: FieldRef<"ClipDraft", 'Float'>
+    readonly startSeconds: FieldRef<"ClipDraft", 'Float'>
+    readonly endSeconds: FieldRef<"ClipDraft", 'Float'>
+    readonly clipType: FieldRef<"ClipDraft", 'String'>
+    readonly hook: FieldRef<"ClipDraft", 'String'>
+    readonly payoff: FieldRef<"ClipDraft", 'String'>
+    readonly selected: FieldRef<"ClipDraft", 'Boolean'>
+    readonly captionStyle: FieldRef<"ClipDraft", 'Json'>
+    readonly createdAt: FieldRef<"ClipDraft", 'DateTime'>
+    readonly updatedAt: FieldRef<"ClipDraft", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ClipDraft findUnique
+   */
+  export type ClipDraftFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * Filter, which ClipDraft to fetch.
+     */
+    where: ClipDraftWhereUniqueInput
+  }
+
+  /**
+   * ClipDraft findUniqueOrThrow
+   */
+  export type ClipDraftFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * Filter, which ClipDraft to fetch.
+     */
+    where: ClipDraftWhereUniqueInput
+  }
+
+  /**
+   * ClipDraft findFirst
+   */
+  export type ClipDraftFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * Filter, which ClipDraft to fetch.
+     */
+    where?: ClipDraftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ClipDrafts to fetch.
+     */
+    orderBy?: ClipDraftOrderByWithRelationInput | ClipDraftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ClipDrafts.
+     */
+    cursor?: ClipDraftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ClipDrafts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ClipDrafts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ClipDrafts.
+     */
+    distinct?: ClipDraftScalarFieldEnum | ClipDraftScalarFieldEnum[]
+  }
+
+  /**
+   * ClipDraft findFirstOrThrow
+   */
+  export type ClipDraftFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * Filter, which ClipDraft to fetch.
+     */
+    where?: ClipDraftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ClipDrafts to fetch.
+     */
+    orderBy?: ClipDraftOrderByWithRelationInput | ClipDraftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ClipDrafts.
+     */
+    cursor?: ClipDraftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ClipDrafts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ClipDrafts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ClipDrafts.
+     */
+    distinct?: ClipDraftScalarFieldEnum | ClipDraftScalarFieldEnum[]
+  }
+
+  /**
+   * ClipDraft findMany
+   */
+  export type ClipDraftFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * Filter, which ClipDrafts to fetch.
+     */
+    where?: ClipDraftWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ClipDrafts to fetch.
+     */
+    orderBy?: ClipDraftOrderByWithRelationInput | ClipDraftOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ClipDrafts.
+     */
+    cursor?: ClipDraftWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ClipDrafts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ClipDrafts.
+     */
+    skip?: number
+    distinct?: ClipDraftScalarFieldEnum | ClipDraftScalarFieldEnum[]
+  }
+
+  /**
+   * ClipDraft create
+   */
+  export type ClipDraftCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ClipDraft.
+     */
+    data: XOR<ClipDraftCreateInput, ClipDraftUncheckedCreateInput>
+  }
+
+  /**
+   * ClipDraft createMany
+   */
+  export type ClipDraftCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ClipDrafts.
+     */
+    data: ClipDraftCreateManyInput | ClipDraftCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ClipDraft createManyAndReturn
+   */
+  export type ClipDraftCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * The data used to create many ClipDrafts.
+     */
+    data: ClipDraftCreateManyInput | ClipDraftCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ClipDraft update
+   */
+  export type ClipDraftUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ClipDraft.
+     */
+    data: XOR<ClipDraftUpdateInput, ClipDraftUncheckedUpdateInput>
+    /**
+     * Choose, which ClipDraft to update.
+     */
+    where: ClipDraftWhereUniqueInput
+  }
+
+  /**
+   * ClipDraft updateMany
+   */
+  export type ClipDraftUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ClipDrafts.
+     */
+    data: XOR<ClipDraftUpdateManyMutationInput, ClipDraftUncheckedUpdateManyInput>
+    /**
+     * Filter which ClipDrafts to update
+     */
+    where?: ClipDraftWhereInput
+    /**
+     * Limit how many ClipDrafts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ClipDraft updateManyAndReturn
+   */
+  export type ClipDraftUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * The data used to update ClipDrafts.
+     */
+    data: XOR<ClipDraftUpdateManyMutationInput, ClipDraftUncheckedUpdateManyInput>
+    /**
+     * Filter which ClipDrafts to update
+     */
+    where?: ClipDraftWhereInput
+    /**
+     * Limit how many ClipDrafts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ClipDraft upsert
+   */
+  export type ClipDraftUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ClipDraft to update in case it exists.
+     */
+    where: ClipDraftWhereUniqueInput
+    /**
+     * In case the ClipDraft found by the `where` argument doesn't exist, create a new ClipDraft with this data.
+     */
+    create: XOR<ClipDraftCreateInput, ClipDraftUncheckedCreateInput>
+    /**
+     * In case the ClipDraft was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ClipDraftUpdateInput, ClipDraftUncheckedUpdateInput>
+  }
+
+  /**
+   * ClipDraft delete
+   */
+  export type ClipDraftDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+    /**
+     * Filter which ClipDraft to delete.
+     */
+    where: ClipDraftWhereUniqueInput
+  }
+
+  /**
+   * ClipDraft deleteMany
+   */
+  export type ClipDraftDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ClipDrafts to delete
+     */
+    where?: ClipDraftWhereInput
+    /**
+     * Limit how many ClipDrafts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ClipDraft without action
+   */
+  export type ClipDraftDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipDraft
+     */
+    select?: ClipDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ClipDraft
+     */
+    omit?: ClipDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClipDraftInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model ProcessingDispatch
    */
 
@@ -7930,6 +9352,7 @@ export namespace Prisma {
     id: string | null
     uploadedFileId: string | null
     attempt: number | null
+    kind: string | null
     status: string | null
     dispatchCount: number | null
     lastError: string | null
@@ -7944,6 +9367,7 @@ export namespace Prisma {
     id: string | null
     uploadedFileId: string | null
     attempt: number | null
+    kind: string | null
     status: string | null
     dispatchCount: number | null
     lastError: string | null
@@ -7958,6 +9382,7 @@ export namespace Prisma {
     id: number
     uploadedFileId: number
     attempt: number
+    kind: number
     status: number
     dispatchCount: number
     lastError: number
@@ -7984,6 +9409,7 @@ export namespace Prisma {
     id?: true
     uploadedFileId?: true
     attempt?: true
+    kind?: true
     status?: true
     dispatchCount?: true
     lastError?: true
@@ -7998,6 +9424,7 @@ export namespace Prisma {
     id?: true
     uploadedFileId?: true
     attempt?: true
+    kind?: true
     status?: true
     dispatchCount?: true
     lastError?: true
@@ -8012,6 +9439,7 @@ export namespace Prisma {
     id?: true
     uploadedFileId?: true
     attempt?: true
+    kind?: true
     status?: true
     dispatchCount?: true
     lastError?: true
@@ -8030,55 +9458,55 @@ export namespace Prisma {
     where?: ProcessingDispatchWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ProcessingDispatches to fetch.
      */
     orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: ProcessingDispatchWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ProcessingDispatches from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ProcessingDispatches.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned ProcessingDispatches
     **/
     _count?: true | ProcessingDispatchCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: ProcessingDispatchAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: ProcessingDispatchSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ProcessingDispatchMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: ProcessingDispatchMaxAggregateInputType
@@ -8113,6 +9541,7 @@ export namespace Prisma {
     id: string
     uploadedFileId: string
     attempt: number
+    kind: string
     status: string
     dispatchCount: number
     lastError: string | null
@@ -8146,6 +9575,7 @@ export namespace Prisma {
     id?: boolean
     uploadedFileId?: boolean
     attempt?: boolean
+    kind?: boolean
     status?: boolean
     dispatchCount?: boolean
     lastError?: boolean
@@ -8161,6 +9591,7 @@ export namespace Prisma {
     id?: boolean
     uploadedFileId?: boolean
     attempt?: boolean
+    kind?: boolean
     status?: boolean
     dispatchCount?: boolean
     lastError?: boolean
@@ -8176,6 +9607,7 @@ export namespace Prisma {
     id?: boolean
     uploadedFileId?: boolean
     attempt?: boolean
+    kind?: boolean
     status?: boolean
     dispatchCount?: boolean
     lastError?: boolean
@@ -8191,6 +9623,7 @@ export namespace Prisma {
     id?: boolean
     uploadedFileId?: boolean
     attempt?: boolean
+    kind?: boolean
     status?: boolean
     dispatchCount?: boolean
     lastError?: boolean
@@ -8201,7 +9634,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type ProcessingDispatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "status" | "dispatchCount" | "lastError" | "dispatchedAt" | "nextRetryAt" | "lockedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["processingDispatch"]>
+  export type ProcessingDispatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "kind" | "status" | "dispatchCount" | "lastError" | "dispatchedAt" | "nextRetryAt" | "lockedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["processingDispatch"]>
   export type ProcessingDispatchInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }
@@ -8221,6 +9654,7 @@ export namespace Prisma {
       id: string
       uploadedFileId: string
       attempt: number
+      kind: string
       status: string
       dispatchCount: number
       lastError: string | null
@@ -8308,13 +9742,13 @@ export namespace Prisma {
      * @example
      * // Get all ProcessingDispatches
      * const processingDispatches = await prisma.processingDispatch.findMany()
-     *
+     * 
      * // Get first 10 ProcessingDispatches
      * const processingDispatches = await prisma.processingDispatch.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const processingDispatchWithIdOnly = await prisma.processingDispatch.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends ProcessingDispatchFindManyArgs>(args?: SelectSubset<T, ProcessingDispatchFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -8328,7 +9762,7 @@ export namespace Prisma {
      *     // ... data to create a ProcessingDispatch
      *   }
      * })
-     *
+     * 
      */
     create<T extends ProcessingDispatchCreateArgs>(args: SelectSubset<T, ProcessingDispatchCreateArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -8342,7 +9776,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends ProcessingDispatchCreateManyArgs>(args?: SelectSubset<T, ProcessingDispatchCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -8356,7 +9790,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many ProcessingDispatches and only return the `id`
      * const processingDispatchWithIdOnly = await prisma.processingDispatch.createManyAndReturn({
      *   select: { id: true },
@@ -8366,7 +9800,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends ProcessingDispatchCreateManyAndReturnArgs>(args?: SelectSubset<T, ProcessingDispatchCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -8380,7 +9814,7 @@ export namespace Prisma {
      *     // ... filter to delete one ProcessingDispatch
      *   }
      * })
-     *
+     * 
      */
     delete<T extends ProcessingDispatchDeleteArgs>(args: SelectSubset<T, ProcessingDispatchDeleteArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -8397,7 +9831,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends ProcessingDispatchUpdateArgs>(args: SelectSubset<T, ProcessingDispatchUpdateArgs<ExtArgs>>): Prisma__ProcessingDispatchClient<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -8411,7 +9845,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends ProcessingDispatchDeleteManyArgs>(args?: SelectSubset<T, ProcessingDispatchDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -8430,7 +9864,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends ProcessingDispatchUpdateManyArgs>(args: SelectSubset<T, ProcessingDispatchUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -8447,7 +9881,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more ProcessingDispatches and only return the `id`
      * const processingDispatchWithIdOnly = await prisma.processingDispatch.updateManyAndReturn({
      *   select: { id: true },
@@ -8460,7 +9894,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends ProcessingDispatchUpdateManyAndReturnArgs>(args: SelectSubset<T, ProcessingDispatchUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -8549,7 +9983,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends ProcessingDispatchGroupByArgs,
@@ -8656,6 +10090,7 @@ export namespace Prisma {
     readonly id: FieldRef<"ProcessingDispatch", 'String'>
     readonly uploadedFileId: FieldRef<"ProcessingDispatch", 'String'>
     readonly attempt: FieldRef<"ProcessingDispatch", 'Int'>
+    readonly kind: FieldRef<"ProcessingDispatch", 'String'>
     readonly status: FieldRef<"ProcessingDispatch", 'String'>
     readonly dispatchCount: FieldRef<"ProcessingDispatch", 'Int'>
     readonly lastError: FieldRef<"ProcessingDispatch", 'String'>
@@ -8665,7 +10100,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"ProcessingDispatch", 'DateTime'>
     readonly updatedAt: FieldRef<"ProcessingDispatch", 'DateTime'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -8734,31 +10169,31 @@ export namespace Prisma {
     where?: ProcessingDispatchWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ProcessingDispatches to fetch.
      */
     orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for ProcessingDispatches.
      */
     cursor?: ProcessingDispatchWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ProcessingDispatches from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ProcessingDispatches.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of ProcessingDispatches.
      */
     distinct?: ProcessingDispatchScalarFieldEnum | ProcessingDispatchScalarFieldEnum[]
@@ -8786,31 +10221,31 @@ export namespace Prisma {
     where?: ProcessingDispatchWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ProcessingDispatches to fetch.
      */
     orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for ProcessingDispatches.
      */
     cursor?: ProcessingDispatchWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ProcessingDispatches from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ProcessingDispatches.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of ProcessingDispatches.
      */
     distinct?: ProcessingDispatchScalarFieldEnum | ProcessingDispatchScalarFieldEnum[]
@@ -8838,25 +10273,25 @@ export namespace Prisma {
     where?: ProcessingDispatchWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ProcessingDispatches to fetch.
      */
     orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing ProcessingDispatches.
      */
     cursor?: ProcessingDispatchWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ProcessingDispatches from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ProcessingDispatches.
      */
     skip?: number
@@ -9218,55 +10653,55 @@ export namespace Prisma {
     where?: SubscriptionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Subscriptions to fetch.
      */
     orderBy?: SubscriptionOrderByWithRelationInput | SubscriptionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: SubscriptionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Subscriptions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Subscriptions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned Subscriptions
     **/
     _count?: true | SubscriptionCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: SubscriptionAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: SubscriptionSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: SubscriptionMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: SubscriptionMaxAggregateInputType
@@ -9514,13 +10949,13 @@ export namespace Prisma {
      * @example
      * // Get all Subscriptions
      * const subscriptions = await prisma.subscription.findMany()
-     *
+     * 
      * // Get first 10 Subscriptions
      * const subscriptions = await prisma.subscription.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const subscriptionWithIdOnly = await prisma.subscription.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends SubscriptionFindManyArgs>(args?: SelectSubset<T, SubscriptionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -9534,7 +10969,7 @@ export namespace Prisma {
      *     // ... data to create a Subscription
      *   }
      * })
-     *
+     * 
      */
     create<T extends SubscriptionCreateArgs>(args: SelectSubset<T, SubscriptionCreateArgs<ExtArgs>>): Prisma__SubscriptionClient<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -9548,7 +10983,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends SubscriptionCreateManyArgs>(args?: SelectSubset<T, SubscriptionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -9562,7 +10997,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many Subscriptions and only return the `id`
      * const subscriptionWithIdOnly = await prisma.subscription.createManyAndReturn({
      *   select: { id: true },
@@ -9572,7 +11007,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends SubscriptionCreateManyAndReturnArgs>(args?: SelectSubset<T, SubscriptionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -9586,7 +11021,7 @@ export namespace Prisma {
      *     // ... filter to delete one Subscription
      *   }
      * })
-     *
+     * 
      */
     delete<T extends SubscriptionDeleteArgs>(args: SelectSubset<T, SubscriptionDeleteArgs<ExtArgs>>): Prisma__SubscriptionClient<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -9603,7 +11038,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends SubscriptionUpdateArgs>(args: SelectSubset<T, SubscriptionUpdateArgs<ExtArgs>>): Prisma__SubscriptionClient<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -9617,7 +11052,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends SubscriptionDeleteManyArgs>(args?: SelectSubset<T, SubscriptionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -9636,7 +11071,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends SubscriptionUpdateManyArgs>(args: SelectSubset<T, SubscriptionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -9653,7 +11088,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more Subscriptions and only return the `id`
      * const subscriptionWithIdOnly = await prisma.subscription.updateManyAndReturn({
      *   select: { id: true },
@@ -9666,7 +11101,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends SubscriptionUpdateManyAndReturnArgs>(args: SelectSubset<T, SubscriptionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -9755,7 +11190,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends SubscriptionGroupByArgs,
@@ -9874,7 +11309,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Subscription", 'DateTime'>
     readonly updatedAt: FieldRef<"Subscription", 'DateTime'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -9943,31 +11378,31 @@ export namespace Prisma {
     where?: SubscriptionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Subscriptions to fetch.
      */
     orderBy?: SubscriptionOrderByWithRelationInput | SubscriptionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Subscriptions.
      */
     cursor?: SubscriptionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Subscriptions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Subscriptions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Subscriptions.
      */
     distinct?: SubscriptionScalarFieldEnum | SubscriptionScalarFieldEnum[]
@@ -9995,31 +11430,31 @@ export namespace Prisma {
     where?: SubscriptionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Subscriptions to fetch.
      */
     orderBy?: SubscriptionOrderByWithRelationInput | SubscriptionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Subscriptions.
      */
     cursor?: SubscriptionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Subscriptions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Subscriptions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Subscriptions.
      */
     distinct?: SubscriptionScalarFieldEnum | SubscriptionScalarFieldEnum[]
@@ -10047,25 +11482,25 @@ export namespace Prisma {
     where?: SubscriptionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Subscriptions to fetch.
      */
     orderBy?: SubscriptionOrderByWithRelationInput | SubscriptionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing Subscriptions.
      */
     cursor?: SubscriptionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Subscriptions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Subscriptions.
      */
     skip?: number
@@ -10391,55 +11826,55 @@ export namespace Prisma {
     where?: OrderWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Orders to fetch.
      */
     orderBy?: OrderOrderByWithRelationInput | OrderOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: OrderWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Orders from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Orders.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned Orders
     **/
     _count?: true | OrderCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: OrderAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: OrderSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: OrderMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: OrderMaxAggregateInputType
@@ -10651,13 +12086,13 @@ export namespace Prisma {
      * @example
      * // Get all Orders
      * const orders = await prisma.order.findMany()
-     *
+     * 
      * // Get first 10 Orders
      * const orders = await prisma.order.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const orderWithIdOnly = await prisma.order.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends OrderFindManyArgs>(args?: SelectSubset<T, OrderFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -10671,7 +12106,7 @@ export namespace Prisma {
      *     // ... data to create a Order
      *   }
      * })
-     *
+     * 
      */
     create<T extends OrderCreateArgs>(args: SelectSubset<T, OrderCreateArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -10685,7 +12120,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends OrderCreateManyArgs>(args?: SelectSubset<T, OrderCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -10699,7 +12134,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many Orders and only return the `id`
      * const orderWithIdOnly = await prisma.order.createManyAndReturn({
      *   select: { id: true },
@@ -10709,7 +12144,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends OrderCreateManyAndReturnArgs>(args?: SelectSubset<T, OrderCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -10723,7 +12158,7 @@ export namespace Prisma {
      *     // ... filter to delete one Order
      *   }
      * })
-     *
+     * 
      */
     delete<T extends OrderDeleteArgs>(args: SelectSubset<T, OrderDeleteArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -10740,7 +12175,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends OrderUpdateArgs>(args: SelectSubset<T, OrderUpdateArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -10754,7 +12189,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends OrderDeleteManyArgs>(args?: SelectSubset<T, OrderDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -10773,7 +12208,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends OrderUpdateManyArgs>(args: SelectSubset<T, OrderUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -10790,7 +12225,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more Orders and only return the `id`
      * const orderWithIdOnly = await prisma.order.updateManyAndReturn({
      *   select: { id: true },
@@ -10803,7 +12238,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends OrderUpdateManyAndReturnArgs>(args: SelectSubset<T, OrderUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -10892,7 +12327,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends OrderGroupByArgs,
@@ -11005,7 +12440,7 @@ export namespace Prisma {
     readonly status: FieldRef<"Order", 'String'>
     readonly createdAt: FieldRef<"Order", 'DateTime'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -11074,31 +12509,31 @@ export namespace Prisma {
     where?: OrderWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Orders to fetch.
      */
     orderBy?: OrderOrderByWithRelationInput | OrderOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Orders.
      */
     cursor?: OrderWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Orders from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Orders.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Orders.
      */
     distinct?: OrderScalarFieldEnum | OrderScalarFieldEnum[]
@@ -11126,31 +12561,31 @@ export namespace Prisma {
     where?: OrderWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Orders to fetch.
      */
     orderBy?: OrderOrderByWithRelationInput | OrderOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Orders.
      */
     cursor?: OrderWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Orders from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Orders.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Orders.
      */
     distinct?: OrderScalarFieldEnum | OrderScalarFieldEnum[]
@@ -11178,25 +12613,25 @@ export namespace Prisma {
     where?: OrderWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Orders to fetch.
      */
     orderBy?: OrderOrderByWithRelationInput | OrderOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing Orders.
      */
     cursor?: OrderWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Orders from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Orders.
      */
     skip?: number
@@ -11506,43 +12941,43 @@ export namespace Prisma {
     where?: AnalyticsEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of AnalyticsEvents to fetch.
      */
     orderBy?: AnalyticsEventOrderByWithRelationInput | AnalyticsEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: AnalyticsEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` AnalyticsEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` AnalyticsEvents.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned AnalyticsEvents
     **/
     _count?: true | AnalyticsEventCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: AnalyticsEventMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: AnalyticsEventMaxAggregateInputType
@@ -11756,13 +13191,13 @@ export namespace Prisma {
      * @example
      * // Get all AnalyticsEvents
      * const analyticsEvents = await prisma.analyticsEvent.findMany()
-     *
+     * 
      * // Get first 10 AnalyticsEvents
      * const analyticsEvents = await prisma.analyticsEvent.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const analyticsEventWithIdOnly = await prisma.analyticsEvent.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends AnalyticsEventFindManyArgs>(args?: SelectSubset<T, AnalyticsEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AnalyticsEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -11776,7 +13211,7 @@ export namespace Prisma {
      *     // ... data to create a AnalyticsEvent
      *   }
      * })
-     *
+     * 
      */
     create<T extends AnalyticsEventCreateArgs>(args: SelectSubset<T, AnalyticsEventCreateArgs<ExtArgs>>): Prisma__AnalyticsEventClient<$Result.GetResult<Prisma.$AnalyticsEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -11790,7 +13225,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends AnalyticsEventCreateManyArgs>(args?: SelectSubset<T, AnalyticsEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -11804,7 +13239,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many AnalyticsEvents and only return the `id`
      * const analyticsEventWithIdOnly = await prisma.analyticsEvent.createManyAndReturn({
      *   select: { id: true },
@@ -11814,7 +13249,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends AnalyticsEventCreateManyAndReturnArgs>(args?: SelectSubset<T, AnalyticsEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AnalyticsEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -11828,7 +13263,7 @@ export namespace Prisma {
      *     // ... filter to delete one AnalyticsEvent
      *   }
      * })
-     *
+     * 
      */
     delete<T extends AnalyticsEventDeleteArgs>(args: SelectSubset<T, AnalyticsEventDeleteArgs<ExtArgs>>): Prisma__AnalyticsEventClient<$Result.GetResult<Prisma.$AnalyticsEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -11845,7 +13280,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends AnalyticsEventUpdateArgs>(args: SelectSubset<T, AnalyticsEventUpdateArgs<ExtArgs>>): Prisma__AnalyticsEventClient<$Result.GetResult<Prisma.$AnalyticsEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -11859,7 +13294,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends AnalyticsEventDeleteManyArgs>(args?: SelectSubset<T, AnalyticsEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -11878,7 +13313,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends AnalyticsEventUpdateManyArgs>(args: SelectSubset<T, AnalyticsEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -11895,7 +13330,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more AnalyticsEvents and only return the `id`
      * const analyticsEventWithIdOnly = await prisma.analyticsEvent.updateManyAndReturn({
      *   select: { id: true },
@@ -11908,7 +13343,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends AnalyticsEventUpdateManyAndReturnArgs>(args: SelectSubset<T, AnalyticsEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AnalyticsEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -11997,7 +13432,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends AnalyticsEventGroupByArgs,
@@ -12111,7 +13546,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"AnalyticsEvent", 'DateTime'>
     readonly userId: FieldRef<"AnalyticsEvent", 'String'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -12180,31 +13615,31 @@ export namespace Prisma {
     where?: AnalyticsEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of AnalyticsEvents to fetch.
      */
     orderBy?: AnalyticsEventOrderByWithRelationInput | AnalyticsEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for AnalyticsEvents.
      */
     cursor?: AnalyticsEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` AnalyticsEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` AnalyticsEvents.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of AnalyticsEvents.
      */
     distinct?: AnalyticsEventScalarFieldEnum | AnalyticsEventScalarFieldEnum[]
@@ -12232,31 +13667,31 @@ export namespace Prisma {
     where?: AnalyticsEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of AnalyticsEvents to fetch.
      */
     orderBy?: AnalyticsEventOrderByWithRelationInput | AnalyticsEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for AnalyticsEvents.
      */
     cursor?: AnalyticsEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` AnalyticsEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` AnalyticsEvents.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of AnalyticsEvents.
      */
     distinct?: AnalyticsEventScalarFieldEnum | AnalyticsEventScalarFieldEnum[]
@@ -12284,25 +13719,25 @@ export namespace Prisma {
     where?: AnalyticsEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of AnalyticsEvents to fetch.
      */
     orderBy?: AnalyticsEventOrderByWithRelationInput | AnalyticsEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing AnalyticsEvents.
      */
     cursor?: AnalyticsEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` AnalyticsEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` AnalyticsEvents.
      */
     skip?: number
@@ -12599,43 +14034,43 @@ export namespace Prisma {
     where?: VerificationTokenWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of VerificationTokens to fetch.
      */
     orderBy?: VerificationTokenOrderByWithRelationInput | VerificationTokenOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: VerificationTokenWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` VerificationTokens from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` VerificationTokens.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned VerificationTokens
     **/
     _count?: true | VerificationTokenCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: VerificationTokenMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: VerificationTokenMaxAggregateInputType
@@ -12799,13 +14234,13 @@ export namespace Prisma {
      * @example
      * // Get all VerificationTokens
      * const verificationTokens = await prisma.verificationToken.findMany()
-     *
+     * 
      * // Get first 10 VerificationTokens
      * const verificationTokens = await prisma.verificationToken.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `identifier`
      * const verificationTokenWithIdentifierOnly = await prisma.verificationToken.findMany({ select: { identifier: true } })
-     *
+     * 
      */
     findMany<T extends VerificationTokenFindManyArgs>(args?: SelectSubset<T, VerificationTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VerificationTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -12819,7 +14254,7 @@ export namespace Prisma {
      *     // ... data to create a VerificationToken
      *   }
      * })
-     *
+     * 
      */
     create<T extends VerificationTokenCreateArgs>(args: SelectSubset<T, VerificationTokenCreateArgs<ExtArgs>>): Prisma__VerificationTokenClient<$Result.GetResult<Prisma.$VerificationTokenPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -12833,7 +14268,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends VerificationTokenCreateManyArgs>(args?: SelectSubset<T, VerificationTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -12847,7 +14282,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many VerificationTokens and only return the `identifier`
      * const verificationTokenWithIdentifierOnly = await prisma.verificationToken.createManyAndReturn({
      *   select: { identifier: true },
@@ -12857,7 +14292,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends VerificationTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, VerificationTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VerificationTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -12871,7 +14306,7 @@ export namespace Prisma {
      *     // ... filter to delete one VerificationToken
      *   }
      * })
-     *
+     * 
      */
     delete<T extends VerificationTokenDeleteArgs>(args: SelectSubset<T, VerificationTokenDeleteArgs<ExtArgs>>): Prisma__VerificationTokenClient<$Result.GetResult<Prisma.$VerificationTokenPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -12888,7 +14323,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends VerificationTokenUpdateArgs>(args: SelectSubset<T, VerificationTokenUpdateArgs<ExtArgs>>): Prisma__VerificationTokenClient<$Result.GetResult<Prisma.$VerificationTokenPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -12902,7 +14337,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends VerificationTokenDeleteManyArgs>(args?: SelectSubset<T, VerificationTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -12921,7 +14356,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends VerificationTokenUpdateManyArgs>(args: SelectSubset<T, VerificationTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -12938,7 +14373,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more VerificationTokens and only return the `identifier`
      * const verificationTokenWithIdentifierOnly = await prisma.verificationToken.updateManyAndReturn({
      *   select: { identifier: true },
@@ -12951,7 +14386,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends VerificationTokenUpdateManyAndReturnArgs>(args: SelectSubset<T, VerificationTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VerificationTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -13040,7 +14475,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends VerificationTokenGroupByArgs,
@@ -13147,7 +14582,7 @@ export namespace Prisma {
     readonly token: FieldRef<"VerificationToken", 'String'>
     readonly expires: FieldRef<"VerificationToken", 'DateTime'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -13204,31 +14639,31 @@ export namespace Prisma {
     where?: VerificationTokenWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of VerificationTokens to fetch.
      */
     orderBy?: VerificationTokenOrderByWithRelationInput | VerificationTokenOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for VerificationTokens.
      */
     cursor?: VerificationTokenWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` VerificationTokens from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` VerificationTokens.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of VerificationTokens.
      */
     distinct?: VerificationTokenScalarFieldEnum | VerificationTokenScalarFieldEnum[]
@@ -13252,31 +14687,31 @@ export namespace Prisma {
     where?: VerificationTokenWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of VerificationTokens to fetch.
      */
     orderBy?: VerificationTokenOrderByWithRelationInput | VerificationTokenOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for VerificationTokens.
      */
     cursor?: VerificationTokenWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` VerificationTokens from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` VerificationTokens.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of VerificationTokens.
      */
     distinct?: VerificationTokenScalarFieldEnum | VerificationTokenScalarFieldEnum[]
@@ -13300,25 +14735,25 @@ export namespace Prisma {
     where?: VerificationTokenWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of VerificationTokens to fetch.
      */
     orderBy?: VerificationTokenOrderByWithRelationInput | VerificationTokenOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing VerificationTokens.
      */
     cursor?: VerificationTokenWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` VerificationTokens from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` VerificationTokens.
      */
     skip?: number
@@ -13587,6 +15022,10 @@ export namespace Prisma {
     failureCode: 'failureCode',
     language: 'language',
     targetClipCount: 'targetClipCount',
+    reviewBeforeGenerate: 'reviewBeforeGenerate',
+    reviewAttempt: 'reviewAttempt',
+    reviewReadyAt: 'reviewReadyAt',
+    transcriptS3Key: 'transcriptS3Key',
     userId: 'userId'
   };
 
@@ -13612,10 +15051,32 @@ export namespace Prisma {
   export type ClipScalarFieldEnum = (typeof ClipScalarFieldEnum)[keyof typeof ClipScalarFieldEnum]
 
 
+  export const ClipDraftScalarFieldEnum: {
+    id: 'id',
+    uploadedFileId: 'uploadedFileId',
+    attempt: 'attempt',
+    index: 'index',
+    aiStartSeconds: 'aiStartSeconds',
+    aiEndSeconds: 'aiEndSeconds',
+    startSeconds: 'startSeconds',
+    endSeconds: 'endSeconds',
+    clipType: 'clipType',
+    hook: 'hook',
+    payoff: 'payoff',
+    selected: 'selected',
+    captionStyle: 'captionStyle',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ClipDraftScalarFieldEnum = (typeof ClipDraftScalarFieldEnum)[keyof typeof ClipDraftScalarFieldEnum]
+
+
   export const ProcessingDispatchScalarFieldEnum: {
     id: 'id',
     uploadedFileId: 'uploadedFileId',
     attempt: 'attempt',
+    kind: 'kind',
     status: 'status',
     dispatchCount: 'dispatchCount',
     lastError: 'lastError',
@@ -13737,77 +15198,77 @@ export namespace Prisma {
    * Reference to a field of type 'String'
    */
   export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
-
+    
 
 
   /**
    * Reference to a field of type 'String[]'
    */
   export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
-
+    
 
 
   /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-
+    
 
 
   /**
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-
+    
 
 
   /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-
+    
 
 
   /**
    * Reference to a field of type 'DateTime[]'
    */
   export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-
+    
 
 
   /**
    * Reference to a field of type 'Boolean'
    */
   export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-
+    
 
 
   /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-
+    
 
 
   /**
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
-
+    
 
 
   /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-
+    
 
 
   /**
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-
+    
   /**
    * Deep Input Types
    */
@@ -14072,9 +15533,14 @@ export namespace Prisma {
     failureCode?: StringNullableFilter<"UploadedFile"> | string | null
     language?: StringFilter<"UploadedFile"> | string
     targetClipCount?: IntFilter<"UploadedFile"> | number
+    reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
+    reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
+    reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
     dispatches?: ProcessingDispatchListRelationFilter
+    clipDrafts?: ClipDraftListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -14096,9 +15562,14 @@ export namespace Prisma {
     failureCode?: SortOrderInput | SortOrder
     language?: SortOrder
     targetClipCount?: SortOrder
+    reviewBeforeGenerate?: SortOrder
+    reviewAttempt?: SortOrderInput | SortOrder
+    reviewReadyAt?: SortOrderInput | SortOrder
+    transcriptS3Key?: SortOrderInput | SortOrder
     userId?: SortOrder
     clips?: ClipOrderByRelationAggregateInput
     dispatches?: ProcessingDispatchOrderByRelationAggregateInput
+    clipDrafts?: ClipDraftOrderByRelationAggregateInput
     user?: UserOrderByWithRelationInput
   }
 
@@ -14123,9 +15594,14 @@ export namespace Prisma {
     failureCode?: StringNullableFilter<"UploadedFile"> | string | null
     language?: StringFilter<"UploadedFile"> | string
     targetClipCount?: IntFilter<"UploadedFile"> | number
+    reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
+    reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
+    reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
     dispatches?: ProcessingDispatchListRelationFilter
+    clipDrafts?: ClipDraftListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
@@ -14147,6 +15623,10 @@ export namespace Prisma {
     failureCode?: SortOrderInput | SortOrder
     language?: SortOrder
     targetClipCount?: SortOrder
+    reviewBeforeGenerate?: SortOrder
+    reviewAttempt?: SortOrderInput | SortOrder
+    reviewReadyAt?: SortOrderInput | SortOrder
+    transcriptS3Key?: SortOrderInput | SortOrder
     userId?: SortOrder
     _count?: UploadedFileCountOrderByAggregateInput
     _avg?: UploadedFileAvgOrderByAggregateInput
@@ -14176,6 +15656,10 @@ export namespace Prisma {
     failureCode?: StringNullableWithAggregatesFilter<"UploadedFile"> | string | null
     language?: StringWithAggregatesFilter<"UploadedFile"> | string
     targetClipCount?: IntWithAggregatesFilter<"UploadedFile"> | number
+    reviewBeforeGenerate?: BoolWithAggregatesFilter<"UploadedFile"> | boolean
+    reviewAttempt?: IntNullableWithAggregatesFilter<"UploadedFile"> | number | null
+    reviewReadyAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
+    transcriptS3Key?: StringNullableWithAggregatesFilter<"UploadedFile"> | string | null
     userId?: StringWithAggregatesFilter<"UploadedFile"> | string
   }
 
@@ -14280,6 +15764,114 @@ export namespace Prisma {
     userId?: StringWithAggregatesFilter<"Clip"> | string
   }
 
+  export type ClipDraftWhereInput = {
+    AND?: ClipDraftWhereInput | ClipDraftWhereInput[]
+    OR?: ClipDraftWhereInput[]
+    NOT?: ClipDraftWhereInput | ClipDraftWhereInput[]
+    id?: StringFilter<"ClipDraft"> | string
+    uploadedFileId?: StringFilter<"ClipDraft"> | string
+    attempt?: IntFilter<"ClipDraft"> | number
+    index?: IntFilter<"ClipDraft"> | number
+    aiStartSeconds?: FloatFilter<"ClipDraft"> | number
+    aiEndSeconds?: FloatFilter<"ClipDraft"> | number
+    startSeconds?: FloatFilter<"ClipDraft"> | number
+    endSeconds?: FloatFilter<"ClipDraft"> | number
+    clipType?: StringNullableFilter<"ClipDraft"> | string | null
+    hook?: StringNullableFilter<"ClipDraft"> | string | null
+    payoff?: StringNullableFilter<"ClipDraft"> | string | null
+    selected?: BoolFilter<"ClipDraft"> | boolean
+    captionStyle?: JsonNullableFilter<"ClipDraft">
+    createdAt?: DateTimeFilter<"ClipDraft"> | Date | string
+    updatedAt?: DateTimeFilter<"ClipDraft"> | Date | string
+    uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
+  }
+
+  export type ClipDraftOrderByWithRelationInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    index?: SortOrder
+    aiStartSeconds?: SortOrder
+    aiEndSeconds?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    clipType?: SortOrderInput | SortOrder
+    hook?: SortOrderInput | SortOrder
+    payoff?: SortOrderInput | SortOrder
+    selected?: SortOrder
+    captionStyle?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    uploadedFile?: UploadedFileOrderByWithRelationInput
+  }
+
+  export type ClipDraftWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    uploadedFileId_attempt_index?: ClipDraftUploadedFileIdAttemptIndexCompoundUniqueInput
+    AND?: ClipDraftWhereInput | ClipDraftWhereInput[]
+    OR?: ClipDraftWhereInput[]
+    NOT?: ClipDraftWhereInput | ClipDraftWhereInput[]
+    uploadedFileId?: StringFilter<"ClipDraft"> | string
+    attempt?: IntFilter<"ClipDraft"> | number
+    index?: IntFilter<"ClipDraft"> | number
+    aiStartSeconds?: FloatFilter<"ClipDraft"> | number
+    aiEndSeconds?: FloatFilter<"ClipDraft"> | number
+    startSeconds?: FloatFilter<"ClipDraft"> | number
+    endSeconds?: FloatFilter<"ClipDraft"> | number
+    clipType?: StringNullableFilter<"ClipDraft"> | string | null
+    hook?: StringNullableFilter<"ClipDraft"> | string | null
+    payoff?: StringNullableFilter<"ClipDraft"> | string | null
+    selected?: BoolFilter<"ClipDraft"> | boolean
+    captionStyle?: JsonNullableFilter<"ClipDraft">
+    createdAt?: DateTimeFilter<"ClipDraft"> | Date | string
+    updatedAt?: DateTimeFilter<"ClipDraft"> | Date | string
+    uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
+  }, "id" | "uploadedFileId_attempt_index">
+
+  export type ClipDraftOrderByWithAggregationInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    index?: SortOrder
+    aiStartSeconds?: SortOrder
+    aiEndSeconds?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    clipType?: SortOrderInput | SortOrder
+    hook?: SortOrderInput | SortOrder
+    payoff?: SortOrderInput | SortOrder
+    selected?: SortOrder
+    captionStyle?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ClipDraftCountOrderByAggregateInput
+    _avg?: ClipDraftAvgOrderByAggregateInput
+    _max?: ClipDraftMaxOrderByAggregateInput
+    _min?: ClipDraftMinOrderByAggregateInput
+    _sum?: ClipDraftSumOrderByAggregateInput
+  }
+
+  export type ClipDraftScalarWhereWithAggregatesInput = {
+    AND?: ClipDraftScalarWhereWithAggregatesInput | ClipDraftScalarWhereWithAggregatesInput[]
+    OR?: ClipDraftScalarWhereWithAggregatesInput[]
+    NOT?: ClipDraftScalarWhereWithAggregatesInput | ClipDraftScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ClipDraft"> | string
+    uploadedFileId?: StringWithAggregatesFilter<"ClipDraft"> | string
+    attempt?: IntWithAggregatesFilter<"ClipDraft"> | number
+    index?: IntWithAggregatesFilter<"ClipDraft"> | number
+    aiStartSeconds?: FloatWithAggregatesFilter<"ClipDraft"> | number
+    aiEndSeconds?: FloatWithAggregatesFilter<"ClipDraft"> | number
+    startSeconds?: FloatWithAggregatesFilter<"ClipDraft"> | number
+    endSeconds?: FloatWithAggregatesFilter<"ClipDraft"> | number
+    clipType?: StringNullableWithAggregatesFilter<"ClipDraft"> | string | null
+    hook?: StringNullableWithAggregatesFilter<"ClipDraft"> | string | null
+    payoff?: StringNullableWithAggregatesFilter<"ClipDraft"> | string | null
+    selected?: BoolWithAggregatesFilter<"ClipDraft"> | boolean
+    captionStyle?: JsonNullableWithAggregatesFilter<"ClipDraft">
+    createdAt?: DateTimeWithAggregatesFilter<"ClipDraft"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ClipDraft"> | Date | string
+  }
+
   export type ProcessingDispatchWhereInput = {
     AND?: ProcessingDispatchWhereInput | ProcessingDispatchWhereInput[]
     OR?: ProcessingDispatchWhereInput[]
@@ -14287,6 +15879,7 @@ export namespace Prisma {
     id?: StringFilter<"ProcessingDispatch"> | string
     uploadedFileId?: StringFilter<"ProcessingDispatch"> | string
     attempt?: IntFilter<"ProcessingDispatch"> | number
+    kind?: StringFilter<"ProcessingDispatch"> | string
     status?: StringFilter<"ProcessingDispatch"> | string
     dispatchCount?: IntFilter<"ProcessingDispatch"> | number
     lastError?: StringNullableFilter<"ProcessingDispatch"> | string | null
@@ -14302,6 +15895,7 @@ export namespace Prisma {
     id?: SortOrder
     uploadedFileId?: SortOrder
     attempt?: SortOrder
+    kind?: SortOrder
     status?: SortOrder
     dispatchCount?: SortOrder
     lastError?: SortOrderInput | SortOrder
@@ -14321,6 +15915,7 @@ export namespace Prisma {
     NOT?: ProcessingDispatchWhereInput | ProcessingDispatchWhereInput[]
     uploadedFileId?: StringFilter<"ProcessingDispatch"> | string
     attempt?: IntFilter<"ProcessingDispatch"> | number
+    kind?: StringFilter<"ProcessingDispatch"> | string
     status?: StringFilter<"ProcessingDispatch"> | string
     dispatchCount?: IntFilter<"ProcessingDispatch"> | number
     lastError?: StringNullableFilter<"ProcessingDispatch"> | string | null
@@ -14336,6 +15931,7 @@ export namespace Prisma {
     id?: SortOrder
     uploadedFileId?: SortOrder
     attempt?: SortOrder
+    kind?: SortOrder
     status?: SortOrder
     dispatchCount?: SortOrder
     lastError?: SortOrderInput | SortOrder
@@ -14358,6 +15954,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
     uploadedFileId?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
     attempt?: IntWithAggregatesFilter<"ProcessingDispatch"> | number
+    kind?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
     status?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
     dispatchCount?: IntWithAggregatesFilter<"ProcessingDispatch"> | number
     lastError?: StringNullableWithAggregatesFilter<"ProcessingDispatch"> | string | null
@@ -14942,8 +16539,13 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -14965,9 +16567,14 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     userId: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileUpdateInput = {
@@ -14988,8 +16595,13 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -15011,9 +16623,14 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileCreateManyInput = {
@@ -15034,6 +16651,10 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     userId: string
   }
 
@@ -15055,6 +16676,10 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UploadedFileUncheckedUpdateManyInput = {
@@ -15075,6 +16700,10 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -15188,9 +16817,135 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
   }
 
+  export type ClipDraftCreateInput = {
+    id?: string
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    selected?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    uploadedFile: UploadedFileCreateNestedOneWithoutClipDraftsInput
+  }
+
+  export type ClipDraftUncheckedCreateInput = {
+    id?: string
+    uploadedFileId: string
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    selected?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ClipDraftUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    index?: IntFieldUpdateOperationsInput | number
+    aiStartSeconds?: FloatFieldUpdateOperationsInput | number
+    aiEndSeconds?: FloatFieldUpdateOperationsInput | number
+    startSeconds?: FloatFieldUpdateOperationsInput | number
+    endSeconds?: FloatFieldUpdateOperationsInput | number
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    selected?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutClipDraftsNestedInput
+  }
+
+  export type ClipDraftUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    index?: IntFieldUpdateOperationsInput | number
+    aiStartSeconds?: FloatFieldUpdateOperationsInput | number
+    aiEndSeconds?: FloatFieldUpdateOperationsInput | number
+    startSeconds?: FloatFieldUpdateOperationsInput | number
+    endSeconds?: FloatFieldUpdateOperationsInput | number
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    selected?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ClipDraftCreateManyInput = {
+    id?: string
+    uploadedFileId: string
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    selected?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ClipDraftUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    index?: IntFieldUpdateOperationsInput | number
+    aiStartSeconds?: FloatFieldUpdateOperationsInput | number
+    aiEndSeconds?: FloatFieldUpdateOperationsInput | number
+    startSeconds?: FloatFieldUpdateOperationsInput | number
+    endSeconds?: FloatFieldUpdateOperationsInput | number
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    selected?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ClipDraftUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    index?: IntFieldUpdateOperationsInput | number
+    aiStartSeconds?: FloatFieldUpdateOperationsInput | number
+    aiEndSeconds?: FloatFieldUpdateOperationsInput | number
+    startSeconds?: FloatFieldUpdateOperationsInput | number
+    endSeconds?: FloatFieldUpdateOperationsInput | number
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    selected?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ProcessingDispatchCreateInput = {
     id?: string
     attempt: number
+    kind?: string
     status?: string
     dispatchCount?: number
     lastError?: string | null
@@ -15206,6 +16961,7 @@ export namespace Prisma {
     id?: string
     uploadedFileId: string
     attempt: number
+    kind?: string
     status?: string
     dispatchCount?: number
     lastError?: string | null
@@ -15219,6 +16975,7 @@ export namespace Prisma {
   export type ProcessingDispatchUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     dispatchCount?: IntFieldUpdateOperationsInput | number
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15234,6 +16991,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     uploadedFileId?: StringFieldUpdateOperationsInput | string
     attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     dispatchCount?: IntFieldUpdateOperationsInput | number
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15248,6 +17006,7 @@ export namespace Prisma {
     id?: string
     uploadedFileId: string
     attempt: number
+    kind?: string
     status?: string
     dispatchCount?: number
     lastError?: string | null
@@ -15261,6 +17020,7 @@ export namespace Prisma {
   export type ProcessingDispatchUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     dispatchCount?: IntFieldUpdateOperationsInput | number
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15275,6 +17035,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     uploadedFileId?: StringFieldUpdateOperationsInput | string
     attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     dispatchCount?: IntFieldUpdateOperationsInput | number
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15985,7 +17746,17 @@ export namespace Prisma {
     none?: ProcessingDispatchWhereInput
   }
 
+  export type ClipDraftListRelationFilter = {
+    every?: ClipDraftWhereInput
+    some?: ClipDraftWhereInput
+    none?: ClipDraftWhereInput
+  }
+
   export type ProcessingDispatchOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ClipDraftOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16007,6 +17778,10 @@ export namespace Prisma {
     failureCode?: SortOrder
     language?: SortOrder
     targetClipCount?: SortOrder
+    reviewBeforeGenerate?: SortOrder
+    reviewAttempt?: SortOrder
+    reviewReadyAt?: SortOrder
+    transcriptS3Key?: SortOrder
     userId?: SortOrder
   }
 
@@ -16014,6 +17789,7 @@ export namespace Prisma {
     currentAttempt?: SortOrder
     lastSuccessfulAttempt?: SortOrder
     targetClipCount?: SortOrder
+    reviewAttempt?: SortOrder
   }
 
   export type UploadedFileMaxOrderByAggregateInput = {
@@ -16034,6 +17810,10 @@ export namespace Prisma {
     failureCode?: SortOrder
     language?: SortOrder
     targetClipCount?: SortOrder
+    reviewBeforeGenerate?: SortOrder
+    reviewAttempt?: SortOrder
+    reviewReadyAt?: SortOrder
+    transcriptS3Key?: SortOrder
     userId?: SortOrder
   }
 
@@ -16055,6 +17835,10 @@ export namespace Prisma {
     failureCode?: SortOrder
     language?: SortOrder
     targetClipCount?: SortOrder
+    reviewBeforeGenerate?: SortOrder
+    reviewAttempt?: SortOrder
+    reviewReadyAt?: SortOrder
+    transcriptS3Key?: SortOrder
     userId?: SortOrder
   }
 
@@ -16062,6 +17846,7 @@ export namespace Prisma {
     currentAttempt?: SortOrder
     lastSuccessfulAttempt?: SortOrder
     targetClipCount?: SortOrder
+    reviewAttempt?: SortOrder
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -16170,9 +17955,161 @@ export namespace Prisma {
     _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
   export type UploadedFileScalarRelationFilter = {
     is?: UploadedFileWhereInput
     isNot?: UploadedFileWhereInput
+  }
+
+  export type ClipDraftUploadedFileIdAttemptIndexCompoundUniqueInput = {
+    uploadedFileId: string
+    attempt: number
+    index: number
+  }
+
+  export type ClipDraftCountOrderByAggregateInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    index?: SortOrder
+    aiStartSeconds?: SortOrder
+    aiEndSeconds?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    clipType?: SortOrder
+    hook?: SortOrder
+    payoff?: SortOrder
+    selected?: SortOrder
+    captionStyle?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ClipDraftAvgOrderByAggregateInput = {
+    attempt?: SortOrder
+    index?: SortOrder
+    aiStartSeconds?: SortOrder
+    aiEndSeconds?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+  }
+
+  export type ClipDraftMaxOrderByAggregateInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    index?: SortOrder
+    aiStartSeconds?: SortOrder
+    aiEndSeconds?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    clipType?: SortOrder
+    hook?: SortOrder
+    payoff?: SortOrder
+    selected?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ClipDraftMinOrderByAggregateInput = {
+    id?: SortOrder
+    uploadedFileId?: SortOrder
+    attempt?: SortOrder
+    index?: SortOrder
+    aiStartSeconds?: SortOrder
+    aiEndSeconds?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+    clipType?: SortOrder
+    hook?: SortOrder
+    payoff?: SortOrder
+    selected?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ClipDraftSumOrderByAggregateInput = {
+    attempt?: SortOrder
+    index?: SortOrder
+    aiStartSeconds?: SortOrder
+    aiEndSeconds?: SortOrder
+    startSeconds?: SortOrder
+    endSeconds?: SortOrder
+  }
+
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type ProcessingDispatchUploadedFileIdAttemptCompoundUniqueInput = {
@@ -16184,6 +18121,7 @@ export namespace Prisma {
     id?: SortOrder
     uploadedFileId?: SortOrder
     attempt?: SortOrder
+    kind?: SortOrder
     status?: SortOrder
     dispatchCount?: SortOrder
     lastError?: SortOrder
@@ -16203,6 +18141,7 @@ export namespace Prisma {
     id?: SortOrder
     uploadedFileId?: SortOrder
     attempt?: SortOrder
+    kind?: SortOrder
     status?: SortOrder
     dispatchCount?: SortOrder
     lastError?: SortOrder
@@ -16217,6 +18156,7 @@ export namespace Prisma {
     id?: SortOrder
     uploadedFileId?: SortOrder
     attempt?: SortOrder
+    kind?: SortOrder
     status?: SortOrder
     dispatchCount?: SortOrder
     lastError?: SortOrder
@@ -16331,29 +18271,6 @@ export namespace Prisma {
   export type OrderSumOrderByAggregateInput = {
     amount?: SortOrder
   }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
@@ -16392,32 +18309,6 @@ export namespace Prisma {
     referrer?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type VerificationTokenIdentifierTokenCompoundUniqueInput = {
@@ -16801,6 +18692,13 @@ export namespace Prisma {
     connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
   }
 
+  export type ClipDraftCreateNestedManyWithoutUploadedFileInput = {
+    create?: XOR<ClipDraftCreateWithoutUploadedFileInput, ClipDraftUncheckedCreateWithoutUploadedFileInput> | ClipDraftCreateWithoutUploadedFileInput[] | ClipDraftUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ClipDraftCreateOrConnectWithoutUploadedFileInput | ClipDraftCreateOrConnectWithoutUploadedFileInput[]
+    createMany?: ClipDraftCreateManyUploadedFileInputEnvelope
+    connect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutUploadedFilesInput = {
     create?: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>
     connectOrCreate?: UserCreateOrConnectWithoutUploadedFilesInput
@@ -16819,6 +18717,13 @@ export namespace Prisma {
     connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutUploadedFileInput | ProcessingDispatchCreateOrConnectWithoutUploadedFileInput[]
     createMany?: ProcessingDispatchCreateManyUploadedFileInputEnvelope
     connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+  }
+
+  export type ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput = {
+    create?: XOR<ClipDraftCreateWithoutUploadedFileInput, ClipDraftUncheckedCreateWithoutUploadedFileInput> | ClipDraftCreateWithoutUploadedFileInput[] | ClipDraftUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ClipDraftCreateOrConnectWithoutUploadedFileInput | ClipDraftCreateOrConnectWithoutUploadedFileInput[]
+    createMany?: ClipDraftCreateManyUploadedFileInputEnvelope
+    connect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -16851,6 +18756,20 @@ export namespace Prisma {
     update?: ProcessingDispatchUpdateWithWhereUniqueWithoutUploadedFileInput | ProcessingDispatchUpdateWithWhereUniqueWithoutUploadedFileInput[]
     updateMany?: ProcessingDispatchUpdateManyWithWhereWithoutUploadedFileInput | ProcessingDispatchUpdateManyWithWhereWithoutUploadedFileInput[]
     deleteMany?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
+  }
+
+  export type ClipDraftUpdateManyWithoutUploadedFileNestedInput = {
+    create?: XOR<ClipDraftCreateWithoutUploadedFileInput, ClipDraftUncheckedCreateWithoutUploadedFileInput> | ClipDraftCreateWithoutUploadedFileInput[] | ClipDraftUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ClipDraftCreateOrConnectWithoutUploadedFileInput | ClipDraftCreateOrConnectWithoutUploadedFileInput[]
+    upsert?: ClipDraftUpsertWithWhereUniqueWithoutUploadedFileInput | ClipDraftUpsertWithWhereUniqueWithoutUploadedFileInput[]
+    createMany?: ClipDraftCreateManyUploadedFileInputEnvelope
+    set?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    disconnect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    delete?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    connect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    update?: ClipDraftUpdateWithWhereUniqueWithoutUploadedFileInput | ClipDraftUpdateWithWhereUniqueWithoutUploadedFileInput[]
+    updateMany?: ClipDraftUpdateManyWithWhereWithoutUploadedFileInput | ClipDraftUpdateManyWithWhereWithoutUploadedFileInput[]
+    deleteMany?: ClipDraftScalarWhereInput | ClipDraftScalarWhereInput[]
   }
 
   export type UserUpdateOneRequiredWithoutUploadedFilesNestedInput = {
@@ -16889,6 +18808,20 @@ export namespace Prisma {
     deleteMany?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
   }
 
+  export type ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput = {
+    create?: XOR<ClipDraftCreateWithoutUploadedFileInput, ClipDraftUncheckedCreateWithoutUploadedFileInput> | ClipDraftCreateWithoutUploadedFileInput[] | ClipDraftUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: ClipDraftCreateOrConnectWithoutUploadedFileInput | ClipDraftCreateOrConnectWithoutUploadedFileInput[]
+    upsert?: ClipDraftUpsertWithWhereUniqueWithoutUploadedFileInput | ClipDraftUpsertWithWhereUniqueWithoutUploadedFileInput[]
+    createMany?: ClipDraftCreateManyUploadedFileInputEnvelope
+    set?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    disconnect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    delete?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    connect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+    update?: ClipDraftUpdateWithWhereUniqueWithoutUploadedFileInput | ClipDraftUpdateWithWhereUniqueWithoutUploadedFileInput[]
+    updateMany?: ClipDraftUpdateManyWithWhereWithoutUploadedFileInput | ClipDraftUpdateManyWithWhereWithoutUploadedFileInput[]
+    deleteMany?: ClipDraftScalarWhereInput | ClipDraftScalarWhereInput[]
+  }
+
   export type UploadedFileCreateNestedOneWithoutClipsInput = {
     create?: XOR<UploadedFileCreateWithoutClipsInput, UploadedFileUncheckedCreateWithoutClipsInput>
     connectOrCreate?: UploadedFileCreateOrConnectWithoutClipsInput
@@ -16925,6 +18858,28 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutClipsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutClipsInput, UserUpdateWithoutClipsInput>, UserUncheckedUpdateWithoutClipsInput>
+  }
+
+  export type UploadedFileCreateNestedOneWithoutClipDraftsInput = {
+    create?: XOR<UploadedFileCreateWithoutClipDraftsInput, UploadedFileUncheckedCreateWithoutClipDraftsInput>
+    connectOrCreate?: UploadedFileCreateOrConnectWithoutClipDraftsInput
+    connect?: UploadedFileWhereUniqueInput
+  }
+
+  export type FloatFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UploadedFileUpdateOneRequiredWithoutClipDraftsNestedInput = {
+    create?: XOR<UploadedFileCreateWithoutClipDraftsInput, UploadedFileUncheckedCreateWithoutClipDraftsInput>
+    connectOrCreate?: UploadedFileCreateOrConnectWithoutClipDraftsInput
+    upsert?: UploadedFileUpsertWithoutClipDraftsInput
+    connect?: UploadedFileWhereUniqueInput
+    update?: XOR<XOR<UploadedFileUpdateToOneWithWhereWithoutClipDraftsInput, UploadedFileUpdateWithoutClipDraftsInput>, UploadedFileUncheckedUpdateWithoutClipDraftsInput>
   }
 
   export type UploadedFileCreateNestedOneWithoutDispatchesInput = {
@@ -17201,6 +19156,22 @@ export namespace Prisma {
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
   }
+
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -17473,8 +19444,13 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileUncheckedCreateWithoutUserInput = {
@@ -17495,8 +19471,13 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutUserInput = {
@@ -17746,6 +19727,10 @@ export namespace Prisma {
     failureCode?: StringNullableFilter<"UploadedFile"> | string | null
     language?: StringFilter<"UploadedFile"> | string
     targetClipCount?: IntFilter<"UploadedFile"> | number
+    reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
+    reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
+    reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
+    transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
     userId?: StringFilter<"UploadedFile"> | string
   }
 
@@ -17931,6 +19916,7 @@ export namespace Prisma {
   export type ProcessingDispatchCreateWithoutUploadedFileInput = {
     id?: string
     attempt: number
+    kind?: string
     status?: string
     dispatchCount?: number
     lastError?: string | null
@@ -17944,6 +19930,7 @@ export namespace Prisma {
   export type ProcessingDispatchUncheckedCreateWithoutUploadedFileInput = {
     id?: string
     attempt: number
+    kind?: string
     status?: string
     dispatchCount?: number
     lastError?: string | null
@@ -17961,6 +19948,50 @@ export namespace Prisma {
 
   export type ProcessingDispatchCreateManyUploadedFileInputEnvelope = {
     data: ProcessingDispatchCreateManyUploadedFileInput | ProcessingDispatchCreateManyUploadedFileInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ClipDraftCreateWithoutUploadedFileInput = {
+    id?: string
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    selected?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ClipDraftUncheckedCreateWithoutUploadedFileInput = {
+    id?: string
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    selected?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ClipDraftCreateOrConnectWithoutUploadedFileInput = {
+    where: ClipDraftWhereUniqueInput
+    create: XOR<ClipDraftCreateWithoutUploadedFileInput, ClipDraftUncheckedCreateWithoutUploadedFileInput>
+  }
+
+  export type ClipDraftCreateManyUploadedFileInputEnvelope = {
+    data: ClipDraftCreateManyUploadedFileInput | ClipDraftCreateManyUploadedFileInput[]
     skipDuplicates?: boolean
   }
 
@@ -18042,6 +20073,7 @@ export namespace Prisma {
     id?: StringFilter<"ProcessingDispatch"> | string
     uploadedFileId?: StringFilter<"ProcessingDispatch"> | string
     attempt?: IntFilter<"ProcessingDispatch"> | number
+    kind?: StringFilter<"ProcessingDispatch"> | string
     status?: StringFilter<"ProcessingDispatch"> | string
     dispatchCount?: IntFilter<"ProcessingDispatch"> | number
     lastError?: StringNullableFilter<"ProcessingDispatch"> | string | null
@@ -18050,6 +20082,43 @@ export namespace Prisma {
     lockedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
     createdAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
     updatedAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+  }
+
+  export type ClipDraftUpsertWithWhereUniqueWithoutUploadedFileInput = {
+    where: ClipDraftWhereUniqueInput
+    update: XOR<ClipDraftUpdateWithoutUploadedFileInput, ClipDraftUncheckedUpdateWithoutUploadedFileInput>
+    create: XOR<ClipDraftCreateWithoutUploadedFileInput, ClipDraftUncheckedCreateWithoutUploadedFileInput>
+  }
+
+  export type ClipDraftUpdateWithWhereUniqueWithoutUploadedFileInput = {
+    where: ClipDraftWhereUniqueInput
+    data: XOR<ClipDraftUpdateWithoutUploadedFileInput, ClipDraftUncheckedUpdateWithoutUploadedFileInput>
+  }
+
+  export type ClipDraftUpdateManyWithWhereWithoutUploadedFileInput = {
+    where: ClipDraftScalarWhereInput
+    data: XOR<ClipDraftUpdateManyMutationInput, ClipDraftUncheckedUpdateManyWithoutUploadedFileInput>
+  }
+
+  export type ClipDraftScalarWhereInput = {
+    AND?: ClipDraftScalarWhereInput | ClipDraftScalarWhereInput[]
+    OR?: ClipDraftScalarWhereInput[]
+    NOT?: ClipDraftScalarWhereInput | ClipDraftScalarWhereInput[]
+    id?: StringFilter<"ClipDraft"> | string
+    uploadedFileId?: StringFilter<"ClipDraft"> | string
+    attempt?: IntFilter<"ClipDraft"> | number
+    index?: IntFilter<"ClipDraft"> | number
+    aiStartSeconds?: FloatFilter<"ClipDraft"> | number
+    aiEndSeconds?: FloatFilter<"ClipDraft"> | number
+    startSeconds?: FloatFilter<"ClipDraft"> | number
+    endSeconds?: FloatFilter<"ClipDraft"> | number
+    clipType?: StringNullableFilter<"ClipDraft"> | string | null
+    hook?: StringNullableFilter<"ClipDraft"> | string | null
+    payoff?: StringNullableFilter<"ClipDraft"> | string | null
+    selected?: BoolFilter<"ClipDraft"> | boolean
+    captionStyle?: JsonNullableFilter<"ClipDraft">
+    createdAt?: DateTimeFilter<"ClipDraft"> | Date | string
+    updatedAt?: DateTimeFilter<"ClipDraft"> | Date | string
   }
 
   export type UserUpsertWithoutUploadedFilesInput = {
@@ -18115,7 +20184,12 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -18137,8 +20211,13 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     userId: string
     dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutClipsInput = {
@@ -18214,7 +20293,12 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -18236,8 +20320,13 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UserUpsertWithoutClipsInput = {
@@ -18285,6 +20374,130 @@ export namespace Prisma {
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
   }
 
+  export type UploadedFileCreateWithoutClipDraftsInput = {
+    id?: string
+    s3Key: string
+    displayName?: string | null
+    uploaded?: boolean
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
+    processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
+    language?: string
+    targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
+    clips?: ClipCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
+    user: UserCreateNestedOneWithoutUploadedFilesInput
+  }
+
+  export type UploadedFileUncheckedCreateWithoutClipDraftsInput = {
+    id?: string
+    s3Key: string
+    displayName?: string | null
+    uploaded?: boolean
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
+    processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
+    language?: string
+    targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
+    userId: string
+    clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
+  }
+
+  export type UploadedFileCreateOrConnectWithoutClipDraftsInput = {
+    where: UploadedFileWhereUniqueInput
+    create: XOR<UploadedFileCreateWithoutClipDraftsInput, UploadedFileUncheckedCreateWithoutClipDraftsInput>
+  }
+
+  export type UploadedFileUpsertWithoutClipDraftsInput = {
+    update: XOR<UploadedFileUpdateWithoutClipDraftsInput, UploadedFileUncheckedUpdateWithoutClipDraftsInput>
+    create: XOR<UploadedFileCreateWithoutClipDraftsInput, UploadedFileUncheckedCreateWithoutClipDraftsInput>
+    where?: UploadedFileWhereInput
+  }
+
+  export type UploadedFileUpdateToOneWithWhereWithoutClipDraftsInput = {
+    where?: UploadedFileWhereInput
+    data: XOR<UploadedFileUpdateWithoutClipDraftsInput, UploadedFileUncheckedUpdateWithoutClipDraftsInput>
+  }
+
+  export type UploadedFileUpdateWithoutClipDraftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    uploaded?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    clips?: ClipUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
+    user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
+  }
+
+  export type UploadedFileUncheckedUpdateWithoutClipDraftsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    uploaded?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+    clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
+  }
+
   export type UploadedFileCreateWithoutDispatchesInput = {
     id?: string
     s3Key: string
@@ -18303,7 +20516,12 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -18325,8 +20543,13 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
     userId: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutDispatchesInput = {
@@ -18363,7 +20586,12 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -18385,8 +20613,13 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UserCreateWithoutSubscriptionInput = {
@@ -18680,6 +20913,10 @@ export namespace Prisma {
     failureCode?: string | null
     language?: string
     targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
   }
 
   export type ClipCreateManyUserInput = {
@@ -18799,8 +21036,13 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileUncheckedUpdateWithoutUserInput = {
@@ -18821,8 +21063,13 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileUncheckedUpdateManyWithoutUserInput = {
@@ -18843,6 +21090,10 @@ export namespace Prisma {
     failureCode?: NullableStringFieldUpdateOperationsInput | string | null
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ClipUpdateWithoutUserInput = {
@@ -18971,12 +21222,30 @@ export namespace Prisma {
   export type ProcessingDispatchCreateManyUploadedFileInput = {
     id?: string
     attempt: number
+    kind?: string
     status?: string
     dispatchCount?: number
     lastError?: string | null
     dispatchedAt?: Date | string | null
     nextRetryAt?: Date | string | null
     lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ClipDraftCreateManyUploadedFileInput = {
+    id?: string
+    attempt: number
+    index: number
+    aiStartSeconds: number
+    aiEndSeconds: number
+    startSeconds: number
+    endSeconds: number
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    selected?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -19029,6 +21298,7 @@ export namespace Prisma {
   export type ProcessingDispatchUpdateWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     dispatchCount?: IntFieldUpdateOperationsInput | number
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19042,6 +21312,7 @@ export namespace Prisma {
   export type ProcessingDispatchUncheckedUpdateWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     dispatchCount?: IntFieldUpdateOperationsInput | number
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19055,12 +21326,64 @@ export namespace Prisma {
   export type ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     dispatchCount?: IntFieldUpdateOperationsInput | number
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
     dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ClipDraftUpdateWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    index?: IntFieldUpdateOperationsInput | number
+    aiStartSeconds?: FloatFieldUpdateOperationsInput | number
+    aiEndSeconds?: FloatFieldUpdateOperationsInput | number
+    startSeconds?: FloatFieldUpdateOperationsInput | number
+    endSeconds?: FloatFieldUpdateOperationsInput | number
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    selected?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ClipDraftUncheckedUpdateWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    index?: IntFieldUpdateOperationsInput | number
+    aiStartSeconds?: FloatFieldUpdateOperationsInput | number
+    aiEndSeconds?: FloatFieldUpdateOperationsInput | number
+    startSeconds?: FloatFieldUpdateOperationsInput | number
+    endSeconds?: FloatFieldUpdateOperationsInput | number
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    selected?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ClipDraftUncheckedUpdateManyWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    index?: IntFieldUpdateOperationsInput | number
+    aiStartSeconds?: FloatFieldUpdateOperationsInput | number
+    aiEndSeconds?: FloatFieldUpdateOperationsInput | number
+    startSeconds?: FloatFieldUpdateOperationsInput | number
+    endSeconds?: FloatFieldUpdateOperationsInput | number
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    selected?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

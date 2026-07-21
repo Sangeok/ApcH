@@ -12,6 +12,7 @@ const STATUS_BADGE_CONFIG = {
   pending_enqueue: { label: "Scheduling", variant: "outline" },
   queued: { label: "Waiting", variant: "outline" },
   processing: { label: "Processing", variant: "outline" },
+  review_pending: { label: "Review Needed", variant: "default" },
   processed: { label: "Processed", variant: "outline" },
   failed: { label: "Failed", variant: "destructive" },
   "no credits": { label: "No Credits", variant: "destructive" },

@@ -11,11 +11,14 @@ import {
   isUploadedFileAttemptStillProcessing,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
+  markUploadedFileAttemptReviewPending,
   startUploadedFileProcessingAttempt,
 } from "~/fsd/entities/uploaded-file";
+import { createClipDraftsBulk } from "~/fsd/entities/clip-draft";
 import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
 import { inngest } from "./client";
+import type { AnalyzedMoment } from "./client";
 
 const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
@@ -261,14 +264,26 @@ export const processVideo = inngest.createFunction(
   },
   {
     event: "process-video-events",
-    concurrency: {
-      limit: 1,
-      key: "event.data.userId",
-    },
+    // analyzeVideo와 동일한 account 스코프 키로 "유저당 1개 실행"을 두 함수에 걸쳐 보장.
+    // 함수 스코프로 두면 analyzeVideo와 별도 큐가 되어 직렬화가 깨진다.
+    concurrency: [
+      {
+        scope: "account",
+        key: "event.data.userId",
+        limit: 1,
+      },
+    ],
   },
   async ({ event, step }) => {
-    const { uploadedFileId, language, clipCount, attempt, outputPrefix } =
-      event.data;
+    const {
+      uploadedFileId,
+      language,
+      clipCount,
+      attempt,
+      outputPrefix,
+      moments,
+      transcriptS3Key,
+    } = event.data;
 
     const context = await step.run("load-processing-context", async () => {
       return findCurrentProcessingAttemptContext(uploadedFileId, attempt);
@@ -382,6 +397,11 @@ export const processVideo = inngest.createFunction(
         : undefined;
 
       const modalResponse = await step.run("send-to-modal", async () => {
+        // Render dispatch는 항상 비어 있지 않은 moments를 싣는다(디스패처가 빈 선택을
+        // 가드). auto/analyze 이벤트에는 moments 필드 자체가 없다.
+        const shouldRenderSelectedMoments =
+          moments !== undefined && moments.length > 0;
+
         const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
           method: "POST",
           body: JSON.stringify({
@@ -390,6 +410,9 @@ export const processVideo = inngest.createFunction(
             attempt,
             language,
             clip_count: clipCount,
+            mode: shouldRenderSelectedMoments ? "render" : "auto",
+            moments: shouldRenderSelectedMoments ? moments : undefined,
+            transcript_s3_key: transcriptS3Key ?? undefined,
             output_prefix: outputPrefix,
             callback_url: callbackUrl,
           }),
@@ -647,6 +670,302 @@ export const processVideo = inngest.createFunction(
           uploadedFileId,
           attempt,
           "backend_failed",
+          {
+            now: new Date(),
+            statuses: ["processing"],
+          },
+        );
+      });
+
+      throw error;
+    }
+  },
+);
+
+const ANALYSIS_RESULT_TIMEOUT = "60m";
+
+// 동기(로컬 개발) 경로의 미신뢰 wire 형태. 비동기 경로는 이벤트 스키마가
+// AnalyzedMoment를 보장하지만 두 경로를 한 변수로 다루기 위해 Partial로 통일한다.
+// canonical 형태는 src/inngest/client.ts의 AnalyzedMoment 하나다.
+type AnalyzedMomentPayload = Partial<AnalyzedMoment>;
+
+export const analyzeVideo = inngest.createFunction(
+  {
+    id: "analyze-video",
+    retries: 1,
+    cancelOn: [
+      {
+        event: "process-video-events/cancel",
+        match: "data.matchKey",
+      },
+    ],
+  },
+  {
+    event: "analyze-video-events",
+    // processVideo와 반드시 동일한 account 스코프 concurrency 키를 공유한다.
+    // 함수 레벨 concurrency는 함수 ID별 독립 큐라, 함수 스코프로 두면 두 함수가 서로
+    // 직렬화되지 않아 유저의 analyze/render가 동시에 돌다 DB 클레임 레이스로 한쪽이 stranded된다.
+    concurrency: [
+      {
+        scope: "account",
+        key: "event.data.userId",
+        limit: 1,
+      },
+    ],
+  },
+  async ({ event, step }) => {
+    const { uploadedFileId, language, clipCount, attempt, outputPrefix } =
+      event.data;
+
+    const context = await step.run("load-processing-context", async () => {
+      return findCurrentProcessingAttemptContext(uploadedFileId, attempt);
+    });
+
+    if (context?.status !== "queued") {
+      return { skipped: true };
+    }
+
+    const sourceCheck = await step.run(
+      "check-source-object-exists",
+      async () => {
+        try {
+          return {
+            status: "checked" as const,
+            exists: await objectExists(context.s3Key),
+          };
+        } catch (error) {
+          console.error("Failed to check source object before analysis", {
+            uploadedFileId,
+            attempt,
+            s3Key: context.s3Key,
+            error,
+          });
+
+          return {
+            status: "error" as const,
+            errorMessage: toErrorMessage(error),
+          };
+        }
+      },
+    );
+
+    if (sourceCheck.status === "error" || !sourceCheck.exists) {
+      await step.run("mark-analysis-source-failed", async () => {
+        await markUploadedFileAttemptFailed(
+          uploadedFileId,
+          attempt,
+          sourceCheck.status === "error"
+            ? "backend_failed"
+            : "missing_source_object",
+          {
+            now: new Date(),
+            statuses: ["queued"],
+          },
+        );
+      });
+
+      return { skipped: false, status: "analysis_source_failed" };
+    }
+
+    // 분석 자체는 크레딧을 차감하지 않지만, 잔여 크레딧이 없는 사용자의
+    // GPU 사용을 막기 위해 최소 1 크레딧을 요구한다.
+    if (context.user.credits < 1) {
+      await step.run("mark-no-credits", async () => {
+        await markUploadedFileAttemptNoCredits(uploadedFileId, attempt, {
+          now: new Date(),
+        });
+      });
+
+      return { skipped: false, status: "no credits" };
+    }
+
+    const claimResult = await step.run("claim-processing-attempt", async () => {
+      return startUploadedFileProcessingAttempt(
+        uploadedFileId,
+        context.userId,
+        attempt,
+        {
+          now: new Date(),
+        },
+      );
+    });
+
+    if (claimResult.status !== "started") {
+      return {
+        skipped: true,
+        status:
+          claimResult.status === "already_processing"
+            ? "already_processing"
+            : undefined,
+      };
+    }
+
+    try {
+      const callbackUrl = env.NEXT_PUBLIC_SITE_URL
+        ? `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/modal`
+        : undefined;
+
+      const modalResponse = await step.run("send-analyze-to-modal", async () => {
+        const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
+          method: "POST",
+          body: JSON.stringify({
+            uploaded_file_id: uploadedFileId,
+            s3_key: context.s3Key,
+            attempt,
+            language,
+            clip_count: clipCount,
+            mode: "analyze",
+            output_prefix: outputPrefix,
+            callback_url: callbackUrl,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
+          },
+        });
+
+        if (!response.ok) {
+          const text = await response.text().catch(() => "");
+          throw new Error(
+            `Modal analyze dispatch failed (${response.status}): ${text.slice(0, 500)}`,
+          );
+        }
+
+        return (await response.json()) as Record<string, unknown>;
+      });
+
+      const shouldWaitForCallback = modalResponse.status === "accepted";
+
+      if (shouldWaitForCallback && !callbackUrl) {
+        throw new Error(
+          "Modal accepted async analysis, but NEXT_PUBLIC_SITE_URL is not configured for callbacks",
+        );
+      }
+
+      let analysisStatus: unknown;
+      let analysisError: unknown;
+      let analyzedMoments: AnalyzedMomentPayload[] = [];
+      let transcriptS3Key: string | null = null;
+
+      if (shouldWaitForCallback) {
+        const analysisResult = await step.waitForEvent(
+          "wait-for-analysis-result",
+          {
+            event: "modal/video.analyzed",
+            match: "data.matchKey",
+            timeout: ANALYSIS_RESULT_TIMEOUT,
+          },
+        );
+
+        if (!analysisResult) {
+          await step.run("mark-analysis-timeout", async () => {
+            await markUploadedFileAttemptFailed(
+              uploadedFileId,
+              attempt,
+              "analysis_timeout",
+              {
+                now: new Date(),
+                statuses: ["processing"],
+              },
+            );
+          });
+
+          return { skipped: false, status: "analysis_timeout" };
+        }
+
+        analysisStatus = analysisResult.data.status;
+        analysisError = analysisResult.data.error;
+        analyzedMoments = analysisResult.data.moments ?? [];
+        transcriptS3Key = analysisResult.data.transcriptS3Key ?? null;
+      } else {
+        // 동기 모드 (로컬 개발): 응답 본문이 곧 분석 결과다.
+        analysisStatus = modalResponse.status;
+        analysisError = modalResponse.error;
+        analyzedMoments = Array.isArray(modalResponse.moments)
+          ? (modalResponse.moments as AnalyzedMomentPayload[])
+          : [];
+        transcriptS3Key =
+          typeof modalResponse.transcript_s3_key === "string"
+            ? modalResponse.transcript_s3_key
+            : null;
+      }
+
+      if (!isSuccessfulModalStatus(analysisStatus)) {
+        throw new Error(
+          `Modal analysis reported status "${String(analysisStatus)}": ${toErrorMessage(
+            analysisError ?? "Unknown analysis error",
+          )}`,
+        );
+      }
+
+      const validMoments = analyzedMoments.filter(
+        (moment): moment is AnalyzedMomentPayload & {
+          startSeconds: number;
+          endSeconds: number;
+        } =>
+          typeof moment.startSeconds === "number" &&
+          typeof moment.endSeconds === "number",
+      );
+
+      if (validMoments.length === 0) {
+        await step.run("mark-no-moments-found", async () => {
+          await markUploadedFileAttemptFailed(
+            uploadedFileId,
+            attempt,
+            "no_moments_found",
+            {
+              now: new Date(),
+              statuses: ["processing"],
+            },
+          );
+        });
+
+        return { skipped: false, status: "no_moments_found" };
+      }
+
+      await step.run("persist-clip-drafts", async () => {
+        await createClipDraftsBulk(
+          validMoments.map((moment, order) => ({
+            uploadedFileId,
+            attempt,
+            index: moment.index ?? order,
+            aiStartSeconds: moment.startSeconds,
+            aiEndSeconds: moment.endSeconds,
+            startSeconds: moment.startSeconds,
+            endSeconds: moment.endSeconds,
+            clipType: moment.clipType ?? null,
+            hook: moment.hook ?? null,
+            payoff: moment.payoff ?? null,
+            // 상위 clipCount개만 기본 선택 (Gemini 랭킹 순)
+            selected: order < clipCount,
+          })),
+        );
+      });
+
+      const marked = await step.run("mark-review-pending", async () => {
+        return markUploadedFileAttemptReviewPending(
+          uploadedFileId,
+          attempt,
+          { transcriptS3Key },
+          { now: new Date() },
+        );
+      });
+
+      if (marked.count !== 1) {
+        return { skipped: true, status: "attempt_no_longer_active" };
+      }
+
+      return {
+        skipped: false,
+        status: "review_pending",
+        draftCount: validMoments.length,
+      };
+    } catch (error) {
+      await step.run("mark-analysis-failed", async () => {
+        await markUploadedFileAttemptFailed(
+          uploadedFileId,
+          attempt,
+          "analysis_failed",
           {
             now: new Date(),
             statuses: ["processing"],
