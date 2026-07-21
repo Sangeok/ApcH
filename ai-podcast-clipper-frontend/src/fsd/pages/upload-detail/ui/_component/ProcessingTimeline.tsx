@@ -8,6 +8,7 @@ type TimelineEventKey =
   | "pendingEnqueue"
   | "queued"
   | "processing"
+  | "review"
   | "processed"
   | "failed"
   | "noCredits";
@@ -20,6 +21,7 @@ interface ProcessingTimelineProps {
   queuedAt: Date | null;
   processingStartedAt: Date | null;
   terminalStatusAt: Date | null;
+  reviewReadyAt: Date | null;
   failureCode: string | null;
 }
 
@@ -27,6 +29,7 @@ const EVENT_LABELS: Record<TimelineEventKey, string> = {
   pendingEnqueue: "Scheduling",
   queued: "Waiting",
   processing: "Processing",
+  review: "Review",
   processed: "Processed",
   failed: "Failed",
   noCredits: "No Credits",
@@ -49,6 +52,8 @@ function getTimelineEvents({
       return ["pendingEnqueue", "queued"];
     case "processing":
       return ["pendingEnqueue", "queued", "processing"];
+    case "review_pending":
+      return ["pendingEnqueue", "queued", "processing", "review"];
     case "processed":
       return ["pendingEnqueue", "queued", "processing", "processed"];
     case "no credits":
@@ -77,6 +82,8 @@ function getEventTimestamp(
       return props.queuedAt;
     case "processing":
       return props.processingStartedAt;
+    case "review":
+      return props.reviewReadyAt;
     case "processed":
     case "failed":
     case "noCredits":
@@ -102,6 +109,12 @@ function getFailureLabel(failureCode: string | null): string | null {
       return "Worker did not start";
     case "backend_failed":
       return "Backend processing failed";
+    case "analysis_failed":
+      return "Analysis failed";
+    case "analysis_timeout":
+      return "Analysis timed out";
+    case "no_moments_found":
+      return "No suitable moments were found";
     case "no_clips_generated":
       return "No clips were generated";
     case "incomplete_clips_generated":

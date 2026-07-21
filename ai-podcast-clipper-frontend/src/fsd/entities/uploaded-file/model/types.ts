@@ -1,4 +1,4 @@
-import type { Clip } from "generated/prisma";
+import type { Clip, ClipDraft } from "generated/prisma";
 import type { ProcessingStatus } from "./processing-status";
 
 export interface ActiveUploadedFileQueueState {
@@ -37,8 +37,12 @@ export interface UploadedFileDetail {
   terminalStatusAt: Date | null;
   currentAttempt: number;
   lastSuccessfulAttempt: number;
+  reviewBeforeGenerate: boolean;
+  reviewAttempt: number | null;
+  reviewReadyAt: Date | null;
   currentUserCredits: number;
   clips: Clip[];
+  clipDrafts: ClipDraft[];
 }
 
 export interface UploadLifecycleState {

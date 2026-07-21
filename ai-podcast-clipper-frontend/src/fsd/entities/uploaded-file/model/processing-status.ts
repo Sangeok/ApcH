@@ -3,6 +3,7 @@ export const PROCESSING_STATUSES = [
   "pending_enqueue",
   "queued",
   "processing",
+  "review_pending",
   "processed",
   "failed",
   "no credits",

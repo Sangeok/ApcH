@@ -29,3 +29,56 @@ export const DEFAULT_CLIP_COUNT = CLIP_COUNT_OPTIONS[2].value;
 
 export const YOUTUBE_TITLE_MAX_LENGTH = 100;
 export const YOUTUBE_DESCRIPTION_MAX_LENGTH = 5000;
+
+/**
+ * Clip duration limits. Must stay in sync with
+ * ai-podcast-clipper-backend/main.py MIN_CLIP_DURATION / MAX_CLIP_DURATION.
+ */
+export const CLIP_DURATION_LIMITS = {
+  MIN_SECONDS: 30,
+  MAX_SECONDS: 90,
+} as const;
+
+/**
+ * Caption style editing options. Defaults must stay in sync with the hardcoded
+ * values in ai-podcast-clipper-backend/main.py:
+ * create_subtitles_with_ffmpeg (en: fontsize 122, max_word 5) /
+ * create_korean_subtitles_with_ffmpeg (kr: fontsize 130, max_word 3),
+ * and with resolve_caption_style's validation ranges.
+ */
+export const CAPTION_STYLE_OPTIONS = {
+  POSITIONS: ["top", "middle", "bottom"],
+  DEFAULT_POSITION: "middle",
+  FONT_SIZE_RANGE: { MIN: 60, MAX: 200 },
+  DEFAULT_FONT_SIZE: { English: 122, Korean: 130 },
+  COLOR_PRESETS: ["#FFFFFF", "#FFE45E", "#7CF3FF", "#111111"],
+  DEFAULT_COLOR: "#FFFFFF",
+  MAX_WORDS_RANGE: { MIN: 1, MAX: 8 },
+  DEFAULT_MAX_WORDS: { English: 5, Korean: 3 },
+} as const;
+
+// 30~90초 검증의 단일 지점. zod refine과 서버 액션 가드가 모두 이 함수를 사용한다.
+export function isClipDurationWithinLimits(
+  startSeconds: number,
+  endSeconds: number,
+): boolean {
+  const duration = endSeconds - startSeconds;
+  return (
+    duration >= CLIP_DURATION_LIMITS.MIN_SECONDS &&
+    duration <= CLIP_DURATION_LIMITS.MAX_SECONDS
+  );
+}
+
+/**
+ * 캡션 스타일 계약의 단일 원천(canonical) 타입.
+ * 검증 스키마(features/clip-review/model/schemas.ts의 captionStyleSchema),
+ * 렌더 이벤트 페이로드(src/inngest/client.ts의 RenderCaptionStyle),
+ * 렌더 디스패처의 JSON 캐스팅, 검토 UI가 전부 이 타입 하나를 참조한다.
+ * 모든 필드는 required-but-nullable: null = 백엔드가 언어별 기본값으로 해석.
+ */
+export type CaptionStyle = {
+  position: (typeof CAPTION_STYLE_OPTIONS.POSITIONS)[number];
+  fontSize: number | null;
+  color: string | null;
+  maxWordsPerLine: number | null;
+};

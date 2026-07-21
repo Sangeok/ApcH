@@ -173,6 +173,10 @@ exports.Prisma.UploadedFileScalarFieldEnum = {
   failureCode: 'failureCode',
   language: 'language',
   targetClipCount: 'targetClipCount',
+  reviewBeforeGenerate: 'reviewBeforeGenerate',
+  reviewAttempt: 'reviewAttempt',
+  reviewReadyAt: 'reviewReadyAt',
+  transcriptS3Key: 'transcriptS3Key',
   userId: 'userId'
 };
 
@@ -192,10 +196,29 @@ exports.Prisma.ClipScalarFieldEnum = {
   userId: 'userId'
 };
 
+exports.Prisma.ClipDraftScalarFieldEnum = {
+  id: 'id',
+  uploadedFileId: 'uploadedFileId',
+  attempt: 'attempt',
+  index: 'index',
+  aiStartSeconds: 'aiStartSeconds',
+  aiEndSeconds: 'aiEndSeconds',
+  startSeconds: 'startSeconds',
+  endSeconds: 'endSeconds',
+  clipType: 'clipType',
+  hook: 'hook',
+  payoff: 'payoff',
+  selected: 'selected',
+  captionStyle: 'captionStyle',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ProcessingDispatchScalarFieldEnum = {
   id: 'id',
   uploadedFileId: 'uploadedFileId',
   attempt: 'attempt',
+  kind: 'kind',
   status: 'status',
   dispatchCount: 'dispatchCount',
   lastError: 'lastError',
@@ -285,6 +308,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   UploadedFile: 'UploadedFile',
   Clip: 'Clip',
+  ClipDraft: 'ClipDraft',
   ProcessingDispatch: 'ProcessingDispatch',
   Subscription: 'Subscription',
   Order: 'Order',

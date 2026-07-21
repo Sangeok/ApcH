@@ -64,7 +64,7 @@ model UploadedFile {
   s3Key                 String
   displayName           String?
   uploaded              Boolean   @default(false)
-  status                String    @default("upload_pending") // upload_pending, pending_enqueue, queued, processing, processed, failed, no credits
+  status                String    @default("upload_pending") // upload_pending, pending_enqueue, queued, processing, review_pending, processed, failed, no credits
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   sourceUploadedAt      DateTime?
@@ -77,12 +77,23 @@ model UploadedFile {
   failureCode           String?
   language              String    @default("English")
   targetClipCount       Int       @default(3)
+  // Pre-generation review mode. When true, processing runs analyze -> review -> render.
+  reviewBeforeGenerate  Boolean   @default(false)
+  // The analysis attempt whose ClipDrafts are currently under review / were confirmed.
+  reviewAttempt         Int?
+  reviewReadyAt         DateTime?
+  transcriptS3Key       String?
   userId                String
 
   clips      Clip[]
   dispatches ProcessingDispatch[]
+  clipDrafts ClipDraft[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Partial unique index "UploadedFile_one_processing_per_user_idx"
+  // (userId WHERE status = 'processing') enforces one processing run per user.
+  // Defined in migration 20260630000000_one_processing_per_user_index because
+  // Prisma cannot express partial indexes in the schema.
 
   @@index([s3Key])
   @@index([status, processingStartedAt])
@@ -119,10 +130,46 @@ model Clip {
   @@index([uploadedFileId, processingAttempt])
 }
 
+model ClipDraft {
+  id             String @id @default(cuid())
+  uploadedFileId String
+  // Analysis attempt that produced this draft (UploadedFile.reviewAttempt).
+  attempt        Int
+  // Gemini ranking order (0 = most engaging).
+  index          Int
+
+  // Immutable AI proposal (reset target).
+  aiStartSeconds Float
+  aiEndSeconds   Float
+
+  // User-editable range. Initialized to the AI values.
+  startSeconds Float
+  endSeconds   Float
+
+  clipType String?
+  hook     String?
+  payoff   String?
+  selected Boolean @default(true)
+
+  // Per-clip caption style override. null = language defaults (backend hardcoded values).
+  // Shape: shared CaptionStyle type (src/fsd/shared/config/constants.ts),
+  // validated by captionStyleSchema (features/clip-review/model/schemas.ts).
+  captionStyle Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  uploadedFile UploadedFile @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
+
+  @@unique([uploadedFileId, attempt, index])
+  @@index([uploadedFileId, attempt])
+}
+
 model ProcessingDispatch {
   id             String    @id @default(cuid())
   uploadedFileId String
   attempt        Int
+  kind           String    @default("auto") // auto, analyze, render
   status         String    @default("pending") // pending, sending, sent, retryable_failed, dead_letter
   dispatchCount  Int       @default(0)
   lastError      String?

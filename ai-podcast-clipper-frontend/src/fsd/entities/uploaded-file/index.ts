@@ -19,6 +19,7 @@ export {
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptProcessed,
+  markUploadedFileAttemptReviewPending,
   markUploadedFileQueuedFromDispatch,
   reconcileStaleUploadedFileForUser,
   reconcileStaleUploadedFilesForUser,
