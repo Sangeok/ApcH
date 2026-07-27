@@ -193,8 +193,12 @@ export function useClipDraftReview(
   // 성공/실패 모두 서버 상태로 재동기화한다.
   const setAllSelectionMutation = useMutation({
     mutationFn: async (selected: boolean) => {
+      // 이미 같은 값이면 건너뛰는 최적화를 두어선 안 된다. mutationFn은
+      // onMutate가 detail 캐시의 모든 draft.selected를 낙관적으로 뒤집은 뒤에
+      // 실행되고, 그 사이 리렌더가 끼면 여기 clipDrafts가 갱신된 값으로
+      // 교체되어 전부 skip될 수 있다(= 서버에 아무것도 저장되지 않음).
+      // applyStyleMutation과 동일하게 대상 전체를 무조건 저장한다.
       for (const draft of clipDrafts) {
-        if (draft.selected === selected) continue;
         const result = await saveClipDraftEdit({
           clipDraftId: draft.id,
           startSeconds: draft.startSeconds,

@@ -76,9 +76,11 @@ export default function ClipDraftCard({
   onApplyToAll,
   isApplyingToAll,
 }: ClipDraftCardProps) {
+  // 구간·스타일은 사용자가 편집 중인 값이라 로컬 state로 두지만, 선택 여부는
+  // detail 캐시(draft.selected)에서 직접 읽는다. 로컬로 복사하면 위젯 헤더의
+  // Select all/Deselect all이 캐시만 갱신하고 카드 체크박스는 그대로 남는다.
   const [startSeconds, setStartSeconds] = useState<number>(draft.startSeconds);
   const [endSeconds, setEndSeconds] = useState<number>(draft.endSeconds);
-  const [selected, setSelected] = useState<boolean>(draft.selected);
   const [captionStyle, setCaptionStyle] = useState<CaptionStyle | null>(
     toCaptionStyle(draft.captionStyle),
   );
@@ -162,15 +164,16 @@ export default function ClipDraftCard({
         clipDraftId: draft.id,
         startSeconds,
         endSeconds,
-        selected,
+        selected: draft.selected,
         captionStyle: styleDirty ? captionStyle : undefined,
       });
     }, AUTO_SAVE_DEBOUNCE_MS);
 
     return clearPendingAutoSave;
     // 의존성 제외는 전부 의도적이다:
-    // - selected: handleSelectedChange가 타이머를 취소하고 즉시 저장하는 별도
-    //   경로다. 여기 포함하면 토글마다 디바운스 저장이 중복 발화한다.
+    // - draft.selected: handleSelectedChange가 타이머를 취소하고 즉시 저장하는
+    //   별도 경로다. 여기 포함하면 토글마다 디바운스 저장이 중복 발화하고,
+    //   Select all/Deselect all이 모든 카드에서 중복 저장을 유발한다.
     // - styleDirty: 항상 captionStyle 변경과 함께만 바뀐다(onChange/onReset/
     //   onApplyToAll/handleToggleStyleOpen). 단독 트리거가 되어선 안 된다.
     // - withinLimits/runSave/clearPendingAutoSave: 렌더마다 재생성되는 파생값/
@@ -181,8 +184,9 @@ export default function ClipDraftCard({
 
   // 선택 여부는 디바운스 없이 즉시 저장한다. 현재 구간이 길이 제한 밖이라
   // 저장 불가능하면, 마지막으로 저장된 서버 구간을 유지한 채 선택만 반영한다.
+  // 체크박스 표시는 saveMutation onMutate의 낙관적 갱신이 담당하므로 여기서
+  // 로컬 state를 따로 두지 않는다(실패 시 롤백도 그대로 화면에 반영된다).
   const handleSelectedChange = (nextSelected: boolean) => {
-    setSelected(nextSelected);
     clearPendingAutoSave();
     void runSave({
       clipDraftId: draft.id,
@@ -211,7 +215,7 @@ export default function ClipDraftCard({
       className={cn(
         "rounded-lg border p-4",
         isActive && "ring-2 ring-primary",
-        !selected && "opacity-70",
+        !draft.selected && "opacity-70",
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -219,7 +223,7 @@ export default function ClipDraftCard({
           <input
             type="checkbox"
             className="mt-1"
-            checked={selected}
+            checked={draft.selected}
             onChange={(event) => handleSelectedChange(event.target.checked)}
           />
           <span>
