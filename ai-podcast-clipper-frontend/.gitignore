@@ -13,6 +13,12 @@
 /prisma/db.sqlite-journal
 db.sqlite
 
+# prisma
+# Windows에서 prisma generate는 엔진을 <engine>.tmp<pid>로 쓴 뒤 rename하는데,
+# 파일이 잠겨 rename이 실패하면 tmp 파일이 21MB씩 그대로 남는다.
+# generated/prisma는 커밋 대상이지만(CLAUDE.md) 이 찌꺼기는 제외한다.
+generated/prisma/*.tmp*
+
 # next.js
 /.next/
 /out/
