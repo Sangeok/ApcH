@@ -40,6 +40,9 @@ export const env = createEnv({
     MODAL_WEBHOOK_SECRET: z.string(),
     // NextAuth Production URL
     AUTH_URL: z.string().url().optional(),
+    // Sentry (Vercel Production 스코프에만 주입. 없으면 Sentry.init이 no-op)
+    SENTRY_DSN: z.string().optional(),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
   },
 
   /**
@@ -84,6 +87,8 @@ export const env = createEnv({
     CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,
     MODAL_WEBHOOK_SECRET: process.env.MODAL_WEBHOOK_SECRET,
     AUTH_URL: process.env.AUTH_URL,
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_SUBSCRIPTION_ENABLED: process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED,
   },

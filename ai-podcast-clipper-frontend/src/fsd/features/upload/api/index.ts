@@ -9,6 +9,7 @@ import {
   dispatchProcessingRequestByIdOrFail,
 } from "~/fsd/entities/processing-dispatch";
 import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft";
+import { flushReports } from "~/fsd/shared/observability";
 import {
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
@@ -202,6 +203,11 @@ async function scheduleProcessingAttempt(
       "dispatch_failed",
       { statuses: ["pending_enqueue", "queued"] },
     );
+
+    // 서버리스 인스턴스가 응답 후 얼면 dispatch catch에서 보고한 이벤트가 유실된다.
+    // 요청 경계인 여기서 한 번만 flush한다.
+    // 사용자를 붙잡는 경로이므로 기본값(2s)보다 짧은 예산을 명시한다.
+    await flushReports(1_000);
 
     revalidateUploadedFileViews(uploadedFileId);
 
