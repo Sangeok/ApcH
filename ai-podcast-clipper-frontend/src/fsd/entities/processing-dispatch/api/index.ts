@@ -13,6 +13,7 @@ import {
   getProcessingMatchKey,
 } from "~/fsd/entities/uploaded-file/model/attempt-prefix";
 import { getSelectedRenderMomentsForAttempt } from "~/fsd/entities/clip-draft";
+import { reportPipelineFailure } from "~/fsd/shared/observability";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 type PendingProcessingDispatch = Awaited<
@@ -268,6 +269,19 @@ export async function dispatchProcessingRequestByIdOrFail(
           statuses: ["pending_enqueue", "queued"],
         },
       );
+    });
+
+    // 트랜잭션 커밋 후에 보고한다. 트랜잭션 안에서 보내면
+    // (a) 롤백 시 DB는 되돌아갔는데 이벤트는 이미 나간 유령 알림이 되고
+    // (b) 열린 Prisma 커넥션을 붙잡은 채 네트워크 I/O를 하게 된다.
+    //
+    // 이 catch는 dead-letter 마킹과 uploadedFile 실패 마킹을 모두 포함하는
+    // "한 사건"이므로 여기서 정확히 한 번만 보고한다.
+    reportPipelineFailure({
+      kind: "dispatch-failure",
+      failureCode: "dispatch_failed",
+      uploadedFileId: dispatch.uploadedFile.id,
+      attempt: dispatch.attempt,
     });
 
     return {

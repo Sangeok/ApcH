@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "~/fsd/shared/api/admin-guard";
 import { Button } from "~/fsd/shared/ui/atoms/button";
+import { Toaster } from "~/fsd/shared/ui/atoms/sonner";
 
 export const metadata: Metadata = {
   robots: {
@@ -31,6 +32,7 @@ export default async function AdminLayout({
         </div>
       </header>
       <main>{children}</main>
+      <Toaster />
     </div>
   );
 }

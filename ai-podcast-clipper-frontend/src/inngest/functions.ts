@@ -9,6 +9,7 @@ import {
   completeUploadedFileProcessingAttempt,
   findCurrentProcessingAttemptContext,
   isUploadedFileAttemptStillProcessing,
+  listStuckProcessingUploadedFiles,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptReviewPending,
@@ -17,9 +18,16 @@ import {
 import { createClipDraftsBulk } from "~/fsd/entities/clip-draft";
 import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
+import {
+  flushReports,
+  reportError,
+  reportPipelineFailure,
+} from "~/fsd/shared/observability";
 import { inngest } from "./client";
 import type { AnalyzedMoment } from "./client";
 
+// ⚠️ 이 세 값의 곱/합(≈62m)이 uploaded-file/model/stale-policy.ts의
+//    stuckAlertMs(90m) 근거다. 바꾸면 그쪽도 함께 재검토할 것.
 const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
 const MODAL_METADATA_GRACE_INTERVAL = "2m";
@@ -302,11 +310,11 @@ export const processVideo = inngest.createFunction(
             exists: await objectExists(context.s3Key),
           };
         } catch (error) {
-          console.error("Failed to check source object before processing", {
+          reportError(error, {
+            origin: "processVideo.checkSourceObject",
             uploadedFileId,
             attempt,
             s3Key: context.s3Key,
-            error,
           });
 
           return {
@@ -682,6 +690,8 @@ export const processVideo = inngest.createFunction(
   },
 );
 
+// ⚠️ uploaded-file/model/stale-policy.ts의 stuckAlertMs(90m) 근거 중 하나.
+//    바꾸면 그쪽도 함께 재검토할 것.
 const ANALYSIS_RESULT_TIMEOUT = "60m";
 
 // 동기(로컬 개발) 경로의 미신뢰 wire 형태. 비동기 경로는 이벤트 스키마가
@@ -734,11 +744,11 @@ export const analyzeVideo = inngest.createFunction(
             exists: await objectExists(context.s3Key),
           };
         } catch (error) {
-          console.error("Failed to check source object before analysis", {
+          reportError(error, {
+            origin: "analyzeVideo.checkSourceObject",
             uploadedFileId,
             attempt,
             s3Key: context.s3Key,
-            error,
           });
 
           return {
@@ -992,6 +1002,69 @@ export const cleanupAnalyticsEvents = inngest.createFunction(
 
     return {
       deleted: result.count,
+    };
+  },
+);
+
+// 조회 상한. stuck.length가 이 값과 같으면 더 있을 수 있다는 뜻이라
+// 잘림 여부를 반환값에 드러낸다.
+const STUCK_SCAN_LIMIT = 50;
+
+export const monitorPipelineHealth = inngest.createFunction(
+  {
+    id: "monitor-pipeline-health",
+  },
+  {
+    // ⚠️ 이 주기는 stale-policy.ts의 stuckAlertMaxAgeMs(24h) 산정 전제다
+    //    ("cron 2회 누락까지 견딘다"). 주기를 바꾸면 그쪽도 재검토할 것.
+    cron: "*/15 * * * *",
+  },
+  async ({ step }) => {
+    // step 경계는 JSON 직렬화를 거친다. Date를 그대로 반환하면
+    // 재개 시 문자열로 되살아나 타입이 거짓말을 하므로,
+    // 경과 계산까지 step 안에서 끝내고 원시 값만 넘긴다.
+    const stuck = await step.run("list-stuck-processing", async () => {
+      const rows = await listStuckProcessingUploadedFiles({
+        limit: STUCK_SCAN_LIMIT,
+      });
+      const now = Date.now();
+
+      // processingStartedAt은 쿼리의 범위 필터가 non-null을 보장하지만
+      // Prisma 타입이 Date | null이라 좁힘용 가드가 필요하다.
+      // 즉 아래 `: []` 분기는 런타임에 도달하지 않는다.
+      return rows.flatMap((row) =>
+        row.processingStartedAt
+          ? [
+              {
+                uploadedFileId: row.id,
+                processingStartedAt: row.processingStartedAt.toISOString(),
+                elapsedMinutes: Math.round(
+                  (now - row.processingStartedAt.getTime()) / 60_000,
+                ),
+              },
+            ]
+          : [],
+      );
+    });
+
+    for (const row of stuck) {
+      reportPipelineFailure({
+        kind: "stuck-processing",
+        uploadedFileId: row.uploadedFileId,
+        processingStartedAt: row.processingStartedAt,
+        elapsedMinutes: row.elapsedMinutes,
+      });
+    }
+
+    // 이벤트마다 flush하면 route.ts의 maxDuration=10 예산을 넘길 수 있다.
+    // 루프가 끝난 뒤 한 번만, 기본 예산으로 호출한다(배경 작업이라 여유가 있다).
+    await flushReports();
+
+    // truncated=true면 stuckCount는 실제 정체 건수가 아니라 상한이다.
+    // 대량 정체 시 이 값을 총량으로 읽으면 안 된다.
+    return {
+      stuckCount: stuck.length,
+      truncated: stuck.length === STUCK_SCAN_LIMIT,
     };
   },
 );

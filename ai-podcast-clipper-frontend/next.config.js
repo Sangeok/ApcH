@@ -3,6 +3,7 @@
  * for Docker builds.
  */
 import "./src/env.js";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -69,4 +70,14 @@ const config = {
   },
 };
 
-export default config;
+// org/project는 여기 하드코딩하지 않고 SENTRY_ORG / SENTRY_PROJECT 환경변수로 받는다.
+// @sentry/nextjs v10의 SentryBuildOptions가 두 값 모두 해당 환경변수 폴백을 문서화하고 있고,
+// 그래야 slug를 모르는 상태에서도 코드가 완결된다. 셋 중 하나라도 없으면 소스맵 업로드만
+// 조용히 건너뛰고 빌드는 통과한다(silent: true).
+export default withSentryConfig(config, {
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // 소스맵을 업로드하되 빌드 산출물에서는 제거 (스택 추적은 살리고 노출은 막음)
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
+  // 토큰이 없는 환경(preview/로컬)에서 빌드가 깨지지 않게
+  silent: true,
+});
