@@ -77,6 +77,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
         fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
         language: nextLanguage,
         clipCount,
+        reviewBeforeGenerate,
       });
     }
   };
@@ -92,6 +93,25 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
         fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
         language,
         clipCount: nextClipCount,
+        reviewBeforeGenerate,
+      });
+    }
+  };
+
+  // 형제 핸들러(언어·개수)와 동일한 형태. 이 토글만 계측이 빠져 있었는데,
+  // 검토 단계를 켜는 비율이 clip_review_* 퍼널의 분모라 함께 기록한다.
+  const handleReviewModeChange = (nextReviewBeforeGenerate: boolean) => {
+    setReviewBeforeGenerate(nextReviewBeforeGenerate);
+
+    const file = files[0];
+
+    if (file) {
+      void trackAnalyticsEvent("upload_options_changed", {
+        fileType: file.type,
+        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
+        language,
+        clipCount,
+        reviewBeforeGenerate: nextReviewBeforeGenerate,
       });
     }
   };
@@ -207,13 +227,13 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem
-                        onClick={() => setReviewBeforeGenerate(false)}
+                        onClick={() => handleReviewModeChange(false)}
                         className="cursor-pointer"
                       >
                         Auto (generate immediately)
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => setReviewBeforeGenerate(true)}
+                        onClick={() => handleReviewModeChange(true)}
                         className="cursor-pointer"
                       >
                         Review first (edit clips before generating)

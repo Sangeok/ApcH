@@ -17,6 +17,7 @@ const VALID_FUNNELS = new Set<FunnelId>([
   "acquisition",
   "activation",
   "billing",
+  "review",
 ]);
 
 type AdminAnalyticsRouteProps = {

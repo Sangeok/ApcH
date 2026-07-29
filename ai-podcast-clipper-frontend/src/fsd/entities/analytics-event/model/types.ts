@@ -1,7 +1,7 @@
 import type { AnalyticsEventName } from "~/fsd/shared/analytics/event-catalog";
 
 export type AnalyticsDateRangeKey = "7d" | "30d" | "90d";
-export type FunnelId = "acquisition" | "activation" | "billing";
+export type FunnelId = "acquisition" | "activation" | "billing" | "review";
 
 export type AnalyticsDateRangeInput = {
   range: AnalyticsDateRangeKey;

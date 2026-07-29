@@ -34,6 +34,8 @@ interface ClipDraftCardProps {
   onSave: (input: SaveDraftInput) => Promise<void>;
   onApplyToAll: (style: CaptionStyle) => void;
   isApplyingToAll: boolean;
+  isOverlapping: boolean;
+  isBudgetFull: boolean;
 }
 
 function roundTenth(value: number): number {
@@ -75,6 +77,8 @@ export default function ClipDraftCard({
   onSave,
   onApplyToAll,
   isApplyingToAll,
+  isOverlapping,
+  isBudgetFull,
 }: ClipDraftCardProps) {
   // 구간·스타일은 사용자가 편집 중인 값이라 로컬 state로 두지만, 선택 여부는
   // detail 캐시(draft.selected)에서 직접 읽는다. 로컬로 복사하면 위젯 헤더의
@@ -210,20 +214,34 @@ export default function ClipDraftCard({
     });
   };
 
+  // 예산이 찬 상태에서 아직 선택되지 않은 카드만 잠근다.
+  // 이미 선택된 카드는 항상 해제 가능해야 교체가 된다.
+  const isBlockedByBudget = isBudgetFull && !draft.selected;
+
   return (
     <div
       className={cn(
         "rounded-lg border p-4",
         isActive && "ring-2 ring-primary",
         !draft.selected && "opacity-70",
+        isOverlapping && "border-destructive",
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <label className="flex items-start gap-2">
+        <label
+          className={cn(
+            "flex items-start gap-2",
+            isBlockedByBudget && "cursor-not-allowed",
+          )}
+        >
           <input
             type="checkbox"
             className="mt-1"
             checked={draft.selected}
+            disabled={isBlockedByBudget}
+            aria-describedby={
+              isBlockedByBudget ? `${draft.id}-budget-hint` : undefined
+            }
             onChange={(event) => handleSelectedChange(event.target.checked)}
           />
           <span>
@@ -340,6 +358,21 @@ export default function ClipDraftCard({
         {!withinLimits &&
           ` — not saved (must be ${CLIP_DURATION_LIMITS.MIN_SECONDS}-${CLIP_DURATION_LIMITS.MAX_SECONDS}s)`}
       </p>
+
+      {isOverlapping && (
+        <p className="text-destructive mt-1 text-xs">
+          Overlaps another selected clip. Adjust the start or end.
+        </p>
+      )}
+
+      {isBlockedByBudget && (
+        <p
+          id={`${draft.id}-budget-hint`}
+          className="text-muted-foreground mt-1 text-xs"
+        >
+          Swap one out to pick this instead.
+        </p>
+      )}
 
       {previewText && (
         <p className="mt-2 line-clamp-3 rounded bg-muted p-2 text-xs">

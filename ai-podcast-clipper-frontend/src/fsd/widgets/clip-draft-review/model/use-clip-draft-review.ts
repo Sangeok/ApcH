@@ -12,6 +12,12 @@ import {
   type CaptionStyleInput,
 } from "~/fsd/features/clip-review";
 import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload/api";
+import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
+
+// 검토 계측이 쓰는 정규화된 경로. normalizeAnalyticsPath가 실제 URL을 이 형태로
+// 접으므로(shared/analytics/lib/normalize-path.ts) 기존 upload_detail_viewed
+// 호출부와 동일한 문자열을 쓴다. 훅과 위젯이 같은 값을 쓰도록 여기서 export한다.
+export const REVIEW_ANALYTICS_PATH = "/dashboard/uploads/[uploadedFileId]";
 
 // 전사 JSON의 단어 단위 형태 (백엔드 transcribe_video 반환 형식, main.py).
 // 카드·에디터가 동일 타입을 소비하도록 위젯 model에서 단일 정의·export한다.
@@ -40,6 +46,9 @@ export interface ClipRange {
 export function useClipDraftReview(
   uploadedFileId: string,
   clipDrafts: ClipDraft[],
+  // 계측 메타데이터 산정용. 뮤테이션 성공 지점에서 예산 값을 함께 실어
+  // 보내기 위해 받는다. 선택 동작 자체는 이 값에 의존하지 않는다.
+  budgetContext: { targetClipCount: number },
 ) {
   const queryClient = useQueryClient();
 
@@ -78,6 +87,23 @@ export function useClipDraftReview(
     },
   });
 
+  // 선택 변경 계측. 두 경로(카드 체크박스, Fill/Clear)가 같은 페이로드를 쓰도록
+  // 한 번만 정의한다.
+  // ⚠️ invalidate 직후라 clipDrafts prop이 아직 이전 값일 수 있다. 추세 파악
+  //    목적에는 충분하다고 보고 1차에서는 이 단순한 형태를 쓴다.
+  const trackSelectionChanged = () => {
+    const selectedCount = clipDrafts.filter((draft) => draft.selected).length;
+    void trackAnalyticsEvent(
+      "clip_review_selection_changed",
+      {
+        uploadedFileId,
+        selectedCount,
+        isFull: selectedCount >= budgetContext.targetClipCount,
+      },
+      { path: REVIEW_ANALYTICS_PATH },
+    );
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (input: SaveDraftInput) => {
       const result = await saveClipDraftEdit(input);
@@ -90,6 +116,13 @@ export function useClipDraftReview(
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: detailKey });
       const previous = queryClient.getQueryData<UploadedFileDetail>(detailKey);
+      // 이 뮤테이션은 구간·캡션 자동 저장에도 쓰인다. 선택이 실제로 바뀐
+      // 경우에만 계측하려고 이전 값과 대조해 context로 넘긴다.
+      const previousDraft = previous?.clipDrafts.find(
+        (draft) => draft.id === input.clipDraftId,
+      );
+      const selectionChanged =
+        previousDraft !== undefined && previousDraft.selected !== input.selected;
 
       if (previous) {
         queryClient.setQueryData<UploadedFileDetail>(detailKey, {
@@ -110,7 +143,7 @@ export function useClipDraftReview(
         });
       }
 
-      return { previous };
+      return { previous, selectionChanged };
     },
     onError: (error, _input, context) => {
       if (context?.previous) {
@@ -120,7 +153,13 @@ export function useClipDraftReview(
         error instanceof Error ? error.message : "Failed to save clip",
       );
     },
-    onSettled: invalidateDetail,
+    onSettled: async (_data, _error, _input, context) => {
+      await invalidateDetail();
+      if (!context?.selectionChanged) {
+        return;
+      }
+      trackSelectionChanged();
+    },
   });
 
   // "Apply to all"의 벌크 저장은 draft 컬렉션을 아는 이 훅이 소유한다.
@@ -160,6 +199,15 @@ export function useClipDraftReview(
     },
     onSuccess: async () => {
       await invalidateDetail();
+      void trackAnalyticsEvent(
+        "clip_review_confirmed",
+        {
+          uploadedFileId,
+          selectedCount: clipDrafts.filter((draft) => draft.selected).length,
+          budgetLimit: budgetContext.targetClipCount,
+        },
+        { path: REVIEW_ANALYTICS_PATH },
+      );
       toast.success("Clip generation started");
     },
     onError: (error) => {
@@ -178,6 +226,11 @@ export function useClipDraftReview(
     },
     onSuccess: async () => {
       await invalidateDetail();
+      void trackAnalyticsEvent(
+        "clip_review_custom_clip_added",
+        { uploadedFileId },
+        { path: REVIEW_ANALYTICS_PATH },
+      );
       toast.success("Custom clip added");
     },
     onError: (error) => {
@@ -191,8 +244,8 @@ export function useClipDraftReview(
   // 단일 카드 토글(saveMutation)과 동일하게 낙관적 갱신으로 헤더 카운트를
   // 즉시 일치시킨다. 일부만 성공한 채 실패할 수 있으므로 onSettled에서
   // 성공/실패 모두 서버 상태로 재동기화한다.
-  const setAllSelectionMutation = useMutation({
-    mutationFn: async (selected: boolean) => {
+  const setSelectionMutation = useMutation({
+    mutationFn: async (selectedIds: Set<string>) => {
       // 이미 같은 값이면 건너뛰는 최적화를 두어선 안 된다. mutationFn은
       // onMutate가 detail 캐시의 모든 draft.selected를 낙관적으로 뒤집은 뒤에
       // 실행되고, 그 사이 리렌더가 끼면 여기 clipDrafts가 갱신된 값으로
@@ -203,14 +256,14 @@ export function useClipDraftReview(
           clipDraftId: draft.id,
           startSeconds: draft.startSeconds,
           endSeconds: draft.endSeconds,
-          selected,
+          selected: selectedIds.has(draft.id),
         });
         if (!result.success) {
           throw new Error(result.error);
         }
       }
     },
-    onMutate: async (selected) => {
+    onMutate: async (selectedIds) => {
       await queryClient.cancelQueries({ queryKey: detailKey });
       const previous = queryClient.getQueryData<UploadedFileDetail>(detailKey);
 
@@ -219,15 +272,19 @@ export function useClipDraftReview(
           ...previous,
           clipDrafts: previous.clipDrafts.map((draft) => ({
             ...draft,
-            selected,
+            selected: selectedIds.has(draft.id),
           })),
         });
       }
 
       return { previous };
     },
-    onSettled: invalidateDetail,
-    onError: (error, _selected, context) => {
+    // Fill/Clear는 대상 전체를 다시 쓰므로 항상 선택 변경이다.
+    onSettled: async () => {
+      await invalidateDetail();
+      trackSelectionChanged();
+    },
+    onError: (error, _selectedIds, context) => {
       if (context?.previous) {
         queryClient.setQueryData(detailKey, context.previous);
       }
@@ -246,14 +303,22 @@ export function useClipDraftReview(
     addCustomClip: (range: ClipRange) => addCustomMutation.mutateAsync(range),
     // 의도가 이름에 드러나도록 boolean 파라미터 대신 두 액션으로 노출하고,
     // 형제 액션들과 동일하게 Promise를 반환한다(mutateAsync).
-    selectAll: () => setAllSelectionMutation.mutateAsync(true),
-    deselectAll: () => setAllSelectionMutation.mutateAsync(false),
+    // clipDrafts는 Gemini 랭킹 순으로 정렬되어 온다
+    // (index = moment.index ?? order, inngest/functions.ts →
+    //  clip-draft/api/index.ts의 orderBy index asc).
+    // 따라서 slice(0, limit)은 "상위 N개"가 맞다. 시간순이 아니다.
+    // 전체 선택은 draft가 항상 목표의 2배라 성립하지 않는다(main.py).
+    selectUpToBudget: (limit: number) =>
+      setSelectionMutation.mutateAsync(
+        new Set(clipDrafts.slice(0, limit).map((draft) => draft.id)),
+      ),
+    deselectAll: () => setSelectionMutation.mutateAsync(new Set<string>()),
     // 위젯(확정 다이얼로그)이 소비하는 공유 플래그. 카드 로컬 isSaving
     // (개별 카드 저장 표시)과 스코프가 다르므로 이름으로 구분한다.
     isSavingDraft: saveMutation.isPending,
     isApplyingToAll: applyStyleMutation.isPending,
     isConfirming: confirmMutation.isPending,
     isAddingCustom: addCustomMutation.isPending,
-    isSettingSelection: setAllSelectionMutation.isPending,
+    isSettingSelection: setSelectionMutation.isPending,
   };
 }
