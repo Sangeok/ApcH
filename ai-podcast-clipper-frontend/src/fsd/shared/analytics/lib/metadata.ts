@@ -8,8 +8,23 @@ export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
   login_started: ["provider"],
   dashboard_viewed: [],
   upload_file_selected: ["fileType", "fileSizeMb", "language", "clipCount"],
-  upload_options_changed: ["fileType", "fileSizeMb", "language", "clipCount"],
-  upload_started: ["fileType", "fileSizeMb", "language", "clipCount"],
+  upload_options_changed: [
+    "fileType",
+    "fileSizeMb",
+    "language",
+    "clipCount",
+    "reviewBeforeGenerate",
+  ],
+  // reviewBeforeGenerate는 getSafeUploadMetadata가 이미 싣고 있었으나 허용
+  // 목록에 없어 조용히 버려지고 있었다. 검토 단계를 켜는 비율이 clip_review_*
+  // 퍼널의 분모이므로 여기서 기록한다.
+  upload_started: [
+    "fileType",
+    "fileSizeMb",
+    "language",
+    "clipCount",
+    "reviewBeforeGenerate",
+  ],
   upload_prepare_failed: ["stage"],
   upload_s3_completed: ["fileType", "fileSizeMb"],
   upload_s3_failed: ["stage"],
