@@ -164,7 +164,9 @@ export default function PrivacyPage() {
                     </td>
                   </tr>
                   <tr className="border-border border-b">
-                    <td className="py-2 pr-4">Subscription and order records</td>
+                    <td className="py-2 pr-4">
+                      Subscription and order records
+                    </td>
                     <td className="py-2">
                       Plan, amount, status, and subscription period
                     </td>
@@ -292,6 +294,15 @@ export default function PrivacyPage() {
                   <td className="py-2 pr-4">Application hosting</td>
                   <td className="py-2">Seoul</td>
                 </tr>
+                <tr className="border-border border-b">
+                  <td className="py-2 pr-4">Sentry</td>
+                  <td className="py-2 pr-4">
+                    Error messages, stack traces, and the user ID of the account
+                    involved. Email addresses and names are not sent.
+                  </td>
+                  <td className="py-2 pr-4">Error monitoring</td>
+                  <td className="py-2">United States</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -339,6 +350,14 @@ export default function PrivacyPage() {
                   <td className="py-2">
                     90 days maximum for raw analytics events. User-linked rows
                     are deleted earlier when the linked account is deleted.
+                  </td>
+                </tr>
+                <tr className="border-border border-b">
+                  <td className="py-2 pr-4">Error reports</td>
+                  <td className="py-2">
+                    Held by Sentry under the retention period of our plan, then
+                    deleted automatically. Reports are stored outside our
+                    database and are not deleted by deleting an account.
                   </td>
                 </tr>
               </tbody>
