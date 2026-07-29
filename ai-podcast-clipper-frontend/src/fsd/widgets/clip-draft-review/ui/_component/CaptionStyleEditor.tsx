@@ -216,8 +216,12 @@ export default function CaptionStyleEditor({
             {previewText || "Caption preview"}
           </p>
         </div>
+        {/* 무엇이 다른지 말해야 한다. 캡션 좌표는 백엔드와 동일한 PlayResY 1920
+            기준으로 환산하므로 정확하고, 배경만 실제와 다르다 — 최종 클립은
+            프레임마다 화자를 따라가는 세로 크롭이다(main.py create_vertical_video). */}
         <p className="text-center text-[11px] text-muted-foreground">
-          Preview is approximate — final render may differ.
+          Caption size, color and position are accurate. The background is not —
+          the final clip is cropped to vertical and follows whoever is speaking.
         </p>
       </div>
     </div>

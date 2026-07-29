@@ -113,16 +113,23 @@ export default function AddCustomClipPanel({
                 idx >= selectedLo &&
                 idx <= selectedHi;
               return (
-                <span
+                // <button>으로 두면 Tab 도달과 Enter/Space 활성화가 브라우저
+                // 기본 동작으로 붙는다(onKeyDown 수동 구현 불필요).
+                // `inline`은 버튼 기본값 inline-block이 전사 문단의 줄바꿈
+                // 흐름을 바꾸는 걸 막는다 — 레이아웃은 기존 <span>과 동일하다.
+                // type="button"은 폼 안에 놓였을 때의 의도치 않은 제출을 막는다.
+                <button
                   key={`${idx}-${word.start}`}
+                  type="button"
+                  aria-pressed={inRange}
                   onClick={() => handleWordClick(idx)}
                   className={cn(
-                    "cursor-pointer rounded px-0.5",
+                    "inline cursor-pointer rounded px-0.5 text-left",
                     inRange && "bg-primary/20",
                   )}
                 >
                   {word.word}{" "}
-                </span>
+                </button>
               );
             })}
           </div>

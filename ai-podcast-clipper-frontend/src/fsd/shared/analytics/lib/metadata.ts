@@ -18,6 +18,18 @@ export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
   processing_scheduled: ["uploadedFileId", "recoveredByReconciliation"],
   processing_schedule_failed: ["uploadedFileId", "stage"],
   upload_detail_viewed: ["uploadedFileId", "status", "visibleClipsCount"],
+  clip_review_opened: [
+    "uploadedFileId",
+    "draftCount",
+    "budgetLimit",
+    "credits",
+  ],
+  clip_review_selection_changed: ["uploadedFileId", "selectedCount", "isFull"],
+  clip_review_custom_clip_added: ["uploadedFileId"],
+  // reason은 getGenerateBlockReason의 kind와 동일한 값이다.
+  // 이 이벤트가 "어디서 막히는가"에 직접 답한다.
+  clip_review_generate_blocked: ["uploadedFileId", "reason", "selectedCount"],
+  clip_review_confirmed: ["uploadedFileId", "selectedCount", "budgetLimit"],
   clip_viewed: ["clipId", "uploadedFileId"],
   billing_viewed: [],
   billing_cta_clicked: ["tier", "billingInterval"],
