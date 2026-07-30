@@ -300,7 +300,10 @@ export default function ClipDraftReviewSection({
       </div>
 
       <div className="grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-2">
-        <div className="overflow-hidden rounded-xl bg-black">
+        {/* self-start가 없으면 grid의 기본 align-items: stretch 때문에 이 검정
+            박스가 오른쪽 컬럼 높이까지 늘어나고, video는 원본 비율대로만
+            렌더되어 아래에 검정 여백이 남는다. */}
+        <div className="self-start overflow-hidden rounded-xl bg-black">
           {playUrl && (
             <video
               ref={videoRef}
