@@ -44,8 +44,7 @@ export function getSelectionBudget(input: {
  * 이 함수는 selected를 읽지 않는다.
  *
  * 파라미터 이름으로 전제를 드러내기 위해 내부에서 필터하지 않고 `drafts`로
- * 명명한다. 백엔드가 항상 목표의 2배를 인접 구간으로 만들기 때문에, 전체
- * clipDrafts를 넘기면 선택하지 않은 카드까지 겹침으로 표시된다.
+ * 명명한다. 전체 clipDrafts를 넘기면 선택하지 않은 카드까지 겹침으로 표시된다.
  *
  * 겹침 규칙의 원본은 3곳이 함께 바뀌어야 한다: 백엔드 identify_moments의
  * non-overlap 제약 → 서버 가드(features/upload/api/index.ts:448-460) → 이 함수.

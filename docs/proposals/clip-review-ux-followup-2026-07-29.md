@@ -52,9 +52,14 @@ reviewBeforeGenerate  Boolean  @default(false)
 
 **이 문서의 개선은 전부 "Review first"를 켠 업로드에만 적용된다.** 검토를 켜는 비율 자체가 얼마인지는 현재 측정되지 않으며(§1-(5)), 이 문서의 계측이 그 분모를 처음으로 만들어 준다. 계측 설계(§4.9)가 기존 activation 퍼널을 건드리지 않는 이유도 이 조건부 경로 때문이다.
 
-**(1) draft 개수는 항상 목표 개수의 정확히 2배다.**
+**(1) draft 개수는 목표 개수와 무관하다 — 백엔드는 2배를 요청할 뿐이다.**
 
-백엔드가 목표의 2배를 요청한다.
+백엔드가 목표의 2배를 요청한다. 다만 이는 프롬프트의 요청이고(`main.py:904`
+`Return exactly TARGET_COUNT moments if possible`) slice나 padding 같은 강제
+장치가 없으므로, 실제 draft 개수는 모델이 반환한 값이다 — 목표보다 많을 수도,
+적을 수도 있다. 실제로 목표 4에 draft 7개가 관측되었다(2026-07-30). 이 문서의
+설계는 개수 자체에 의존하지 않는다: 예산은 `targetClipCount`로만 계산하고
+`selectUpToBudget`은 `slice(0, limit)`이라 draft가 상한보다 적어도 동작한다.
 
 ```python
 # ai-podcast-clipper-backend/main.py:983

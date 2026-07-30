@@ -122,7 +122,8 @@ export function useClipDraftReview(
         (draft) => draft.id === input.clipDraftId,
       );
       const selectionChanged =
-        previousDraft !== undefined && previousDraft.selected !== input.selected;
+        previousDraft !== undefined &&
+        previousDraft.selected !== input.selected;
 
       if (previous) {
         queryClient.setQueryData<UploadedFileDetail>(detailKey, {
@@ -307,7 +308,6 @@ export function useClipDraftReview(
     // (index = moment.index ?? order, inngest/functions.ts →
     //  clip-draft/api/index.ts의 orderBy index asc).
     // 따라서 slice(0, limit)은 "상위 N개"가 맞다. 시간순이 아니다.
-    // 전체 선택은 draft가 항상 목표의 2배라 성립하지 않는다(main.py).
     selectUpToBudget: (limit: number) =>
       setSelectionMutation.mutateAsync(
         new Set(clipDrafts.slice(0, limit).map((draft) => draft.id)),

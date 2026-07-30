@@ -317,8 +317,11 @@ export default function ClipDraftReviewSection({
 
         <div className="flex max-h-[560px] flex-col gap-4 overflow-y-auto">
           <div className="flex items-center justify-end gap-2">
-            {/* draft는 항상 목표의 2배라 "전체 선택"은 성립하지 않는다.
-                예산만큼만 랭킹 상위에서 채운다. */}
+            {/* draft 개수는 목표와 무관하다 — 백엔드는 2배를 "요청"할 뿐이고
+                (main.py:904 "Return exactly TARGET_COUNT moments if possible")
+                강제 장치가 없어 목표보다 많이도, 적게도 온다. 그래서 상한을
+                넘길 수 있는 "전체 선택" 대신 예산만큼만 랭킹 상위에서 채운다.
+                slice(0, limit)은 draft가 상한보다 적어도 그대로 동작한다. */}
             <Button
               type="button"
               size="sm"
