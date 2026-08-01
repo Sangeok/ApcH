@@ -490,7 +490,6 @@ git commit -F <메시지 파일>
     ".": "./src/index.ts"
   },
   "scripts": {
-    "postinstall": "prisma generate",
     "db:generate:client": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
@@ -508,6 +507,8 @@ git commit -F <메시지 파일>
 ```
 
 `db:generate:client`와 `db:generate`는 다른 명령이다. 전자는 `prisma generate`(클라이언트 생성), 후자는 `prisma migrate dev`(마이그레이션 생성)다. Vercel Build Command 대안이 전자를 쓴다.
+
+**`postinstall`은 여기 넣지 않는다. Task 5에서 스키마와 함께 추가한다.** 지금 넣으면 `prisma generate`가 없는 스키마를 찾아 `npm install`이 exit 1로 죽는다. 의존성 설치 자체는 성공하지만 종료 코드가 1이라, 이 커밋을 체크아웃한 사람은 설치가 실패한 것으로 본다. 모든 커밋이 설치 가능한 상태로 남아야 bisect와 롤백이 의미를 갖는다.
 
 - [ ] **Step 2: `packages/db/tsconfig.json` 생성**
 
@@ -552,9 +553,11 @@ npm install
 npm ls -w @repo/db --depth=0
 ```
 
-Expected: `@repo/db@0.0.0 -> ./packages/db` 출력
+Expected: `npm install`이 **exit 0**, 그리고 `@repo/db@0.0.0 -> ./packages/db` 출력.
 
-`postinstall`의 `prisma generate`는 아직 `schema.prisma`가 없어서 실패할 수 있다. 실패해도 다음 Step으로 간다. Task 5에서 스키마가 들어오면 해결된다.
+`npm install`이 exit 1이면 `postinstall`이 들어가 있는 것이다. Step 1에서 뺐는지 확인한다.
+
+`packages/db/src/index.ts`가 아직 없다는 경고는 정상이다. npm은 설치 시점에 `main`/`types` 경로를 검증하지 않는다. Task 6에서 만든다.
 
 - [ ] **Step 5: 커밋**
 
@@ -651,7 +654,19 @@ export const db = globalForPrisma.prisma ?? createPrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 ```
 
-- [ ] **Step 6: Prisma CLI가 루트 `.env`를 찾는지 확인**
+- [ ] **Step 6: `postinstall`을 `packages/db/package.json`에 추가**
+
+Task 4에서 일부러 뺐던 것을 이제 넣는다. 스키마가 들어왔으므로 `prisma generate`가 동작한다.
+
+`"scripts"` 블록 맨 위에 추가한다.
+
+```json
+    "postinstall": "prisma generate",
+```
+
+이 스크립트가 있어야 Vercel 설치 단계에서 리눅스 엔진이 생성된다. 커밋된 엔진은 Windows 전용이라(§4.0) 이것 없이는 배포가 런타임에 죽는다.
+
+- [ ] **Step 7: Prisma CLI가 루트 `.env`를 찾는지 확인**
 
 ```bash
 npm run db:generate:client -w @repo/db
@@ -661,12 +676,24 @@ Expected: `Generated Prisma Client (...) to ./generated/prisma` 출력
 
 실패하면 `packages/db/package.json`의 스크립트를 `dotenv -e ../../.env -- prisma generate` 형태로 바꾸고 `dotenv-cli`를 devDependency에 추가한다.
 
-- [ ] **Step 7: 커밋**
+- [ ] **Step 8: 루트 설치가 다시 정상인지 확인**
+
+```bash
+npm install
+```
+
+Expected: **exit 0**. Task 4에서 뺐던 `postinstall`이 이제 스키마를 찾아 동작한다.
+
+- [ ] **Step 9: 커밋**
 
 ```bash
 git add -A
-git commit -m "refactor: move prisma schema, generated client, and db client into @repo/db"
+git commit -F <메시지 파일>
 ```
+
+메시지 주제는 `refactor: move prisma schema, generated client, and db client into @repo/db` 형태로 한다. 본문에 `generated/prisma`의 절대경로 재작성이 이 이동의 정상 결과임을 남긴다.
+
+> `git commit`은 인덱스 전체를 커밋한다. 커밋 전 `git status`로 무관한 변경이 없는지 확인한다.
 
 ---
 
