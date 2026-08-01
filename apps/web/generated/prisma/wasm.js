@@ -298,7 +298,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\ai-podcast-clipper-frontend\\generated\\prisma",
+      "value": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\apps\\web\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -312,7 +312,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\ai-podcast-clipper-frontend\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\apps\\web\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -326,6 +326,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {

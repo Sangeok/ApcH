@@ -1,0 +1,15 @@
+{
+  "name": "apch",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:push": "npm run db:push -w @repo/db",
+    "db:migrate": "npm run db:migrate -w @repo/db",
+    "db:studio": "npm run db:studio -w @repo/db"
+  },
+  "packageManager": "npm@10.9.2"
+}
