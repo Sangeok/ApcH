@@ -666,6 +666,18 @@ Task 4에서 일부러 뺐던 것을 이제 넣는다. 스키마가 들어왔으
 
 이 스크립트가 있어야 Vercel 설치 단계에서 리눅스 엔진이 생성된다. 커밋된 엔진은 Windows 전용이라(§4.0) 이것 없이는 배포가 런타임에 죽는다.
 
+- [ ] **Step 6b: `apps/web/package.json`에서 `postinstall` 제거**
+
+**같은 커밋에서 해야 한다.** Task 4의 대칭이다 — 그때는 스키마 없이 `postinstall`이 있었고, 지금은 `apps/web`의 `postinstall`이 스키마를 잃는다. 결과는 같다. `npm install`이 exit 1로 죽는다.
+
+```diff
+-    "postinstall": "prisma generate",
+```
+
+`postinstall`의 소유권이 `apps/web`에서 `@repo/db`로 넘어간다. 두 줄이 한 커밋 안에서 맞바뀌어야 어느 시점에도 "스키마 없는 `prisma generate`"가 존재하지 않는다.
+
+> 초안은 이 제거를 Task 8에 뒀는데 세 Task 늦다. Task 5·6·7이 전부 설치 불가 상태로 남는다. Task 8은 나머지 Prisma 의존성과 `db:*` 스크립트 정리만 한다.
+
 - [ ] **Step 7: Prisma CLI가 루트 `.env`를 찾는지 확인**
 
 ```bash
@@ -1087,10 +1099,9 @@ Vercel에서 web 함수의 `process.cwd()`는 Root Directory인 `apps/web`이다
 "db:generate": ...,
 "db:migrate": ...,
 "db:studio": ...,
-"postinstall": "prisma generate",
 ```
 
-`postinstall` 제거가 중요하다. 워크스페이스 설치 시 `packages/db`의 postinstall이 대신 돈다.
+`postinstall`은 **Task 5 Step 6b에서 이미 제거했다.** 여기 없어야 정상이다. 남아 있다면 Task 5가 제대로 적용되지 않은 것이고, 그렇다면 Task 5~7 커밋이 전부 설치 불가 상태였다는 뜻이다.
 
 - [ ] **Step 3: `apps/web/next.config.js`에 트레이싱 설정 추가**
 
