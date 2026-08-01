@@ -340,7 +340,7 @@ ApcH/
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "npm run dev -w apps/web",
-    "dev:admin": "npm run dev -w apps/admin",
+    "dev:admin": "npm run dev -w apps/admin",   // ⚠️ apps/admin 생성 후에 추가
     "build": "npm run build --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

@@ -81,6 +81,45 @@ admin 내부는 FSD를 적용하지 않는다. 화면 2개 규모에서 레이�
 
 ---
 
+## Task 0: `apps/web/CLAUDE.md` 선행 갱신
+
+**이 Task를 Task 14로 미루면 안 된다.** 모노레포 전환이 `apps/web`의 명령을 옮겼는데 `CLAUDE.md`가 옛 것을 그대로 말하고 있다. AI 에이전트가 이 파일을 사실로 읽으므로, 갱신 전까지 Task 1~13 내내 틀린 전제로 작업하게 된다.
+
+**Files:**
+- Modify: `apps/web/CLAUDE.md`
+
+- [ ] **Step 1: 전환으로 실제로 틀려진 것을 고친다**
+
+| 현재 서술 | 실제 |
+|---|---|
+| `npm run db:push` / `db:generate` / `db:migrate` / `db:studio` | `apps/web`에서 제거됨. `npm run db:push -w @repo/db` 형태 |
+| "Prisma Client regenerates automatically via postinstall hook" | `postinstall` 소유권이 `@repo/db`로 이전됨 |
+| "Schema located in `prisma/schema.prisma`" | `packages/db/prisma/schema.prisma` |
+| "Generated client in `generated/prisma/`" | `packages/db/generated/prisma/` |
+| `npm run dev` 등 앱 루트 기준 명령 | 저장소 루트에서 `npm run dev`, 또는 `-w apps/web` |
+| 테스트 명령 언급 없음 | `npm test -w apps/web` (러너는 `tsx`) |
+
+- [ ] **Step 2: 전환 이전부터 낡아 있던 것도 함께 고친다**
+
+이건 이 계획이 만든 문제는 아니지만 같은 파일이고 같은 종류의 해악이다.
+
+| 현재 서술 | 실제 |
+|---|---|
+| "Prisma + SQLite" | Postgres (Neon) + `@prisma/adapter-neon` |
+| "Credentials provider with bcrypt password hashing" | Google OAuth 전용 (2026-03-26에 Credentials 제거) |
+| `src/actions/` 디렉터리 설명 | 존재하지 않음. 서버 액션은 FSD 슬라이스의 `api/`에 있음 |
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add apps/web/CLAUDE.md
+git commit -m "docs: update CLAUDE.md for the monorepo layout"
+```
+
+> Task 14는 README와 설계 문서 Status를 담당한다. 여기서는 `CLAUDE.md`만 고친다 — 그것만이 이후 Task의 작업 품질에 직접 영향을 준다.
+
+---
+
 ## Task 1: admin 앱 스캐폴딩
 
 **Files:**
@@ -1945,7 +1984,12 @@ Expected: PASS
 
 **Interfaces:** 없음
 
-- [ ] **Step 1: `apps/web/CLAUDE.md` 갱신**
+- [ ] **Step 1: `apps/web/CLAUDE.md` — Task 0에서 이미 처리함**
+
+Task 0이 선행 갱신했다. 여기서는 그 이후 이 계획이 추가로 바꾼 것(어드민이 `apps/admin`으로 분리되었다는 사실)만 덧붙인다.
+
+<details>
+<summary>Task 0이 처리한 항목 (참고)</summary>
 
 아래 항목을 고친다. 현재 문서가 낡아서 AI 에이전트가 틀린 전제로 작업하게 되어 있다.
 
@@ -1956,9 +2000,16 @@ Expected: PASS
 | "Generated client in `generated/prisma/`" | `packages/db/generated/prisma/` |
 | "Schema located in `prisma/schema.prisma`" | `packages/db/prisma/schema.prisma` |
 | `~/*` → `./src/*` | 유지. 추가로 `@repo/db` 설명 필요 |
-| 어드민 관련 서술 | `apps/admin`으로 분리되었음을 명시 |
 
-Development Commands 절에 워크스페이스 명령을 추가한다.
+</details>
+
+**이 Task에서 추가로 할 것**은 하나다.
+
+| 항목 | 내용 |
+|---|---|
+| 어드민 관련 서술 | `apps/admin`으로 분리되었음을 명시. `/admin` 라우트가 web에 없다는 것 |
+
+Development Commands 절에 `dev:admin`을 추가한다. Task 0 시점에는 `apps/admin`이 없어서 넣을 수 없었다.
 
 ```bash
 npm run dev              # web (3000)
