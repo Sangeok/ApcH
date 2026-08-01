@@ -298,7 +298,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\apps\\web\\generated\\prisma",
+      "value": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\packages\\db\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -312,7 +312,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\apps\\web\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\hamso\\OneDrive\\Desktop\\git\\ApcH\\packages\\db\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
