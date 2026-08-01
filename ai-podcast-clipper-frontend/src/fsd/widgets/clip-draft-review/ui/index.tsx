@@ -6,6 +6,7 @@ import type { ClipDraft } from "generated/prisma";
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
+import { cn } from "~/fsd/shared/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -232,25 +233,82 @@ export default function ClipDraftReviewSection({
       <div className="flex flex-wrap items-start justify-between gap-4 border-b px-6 py-4">
         <div>
           <p className="text-muted-foreground text-sm">Review clip plan</p>
-          <h2 className="text-xl font-semibold">
-            {selectedCount} of {clipDrafts.length} moments selected
-          </h2>
+          {/* Before의 제목은 "4 of 7 moments selected"인데 바로 아래 안내는
+              "4 of 4 picked"였다 — 같은 분자에 분모가 둘이라 어느 쪽이 예산인지
+              읽히지 않는다. 제목은 예산(분모 = limit)만 말하고, 후보 개수는
+              아래 설명 문장으로 내린다. */}
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <h2 className="text-xl font-semibold">
+              {selectedCount} of {budget.limit} clips picked
+            </h2>
+            {/* 예산은 이 화면의 핵심 규칙인데 지금까지 12px 회색 산문에만
+                있었다. 개수를 개수로 보여준다. 같은 사실을 h2가 이미 말하므로
+                스크린리더에는 중복이라 숨긴다. */}
+            <div aria-hidden="true" className="flex items-center gap-1.5">
+              {Array.from({ length: budget.limit }, (_, slot) => (
+                <span
+                  key={slot}
+                  className={cn(
+                    "h-2 w-8 rounded-full",
+                    // 빈 칸도 같은 색의 옅은 톤으로 채운다 — "여기가 채워질
+                    // 자리"임이 색으로 드러난다.
+                    // 테두리(ring-border)만 남기는 안은 실패했다: --border가
+                    // oklch(0.922)라 1px ring으로는 흰 배경에서 사실상 안 보여,
+                    // 레일이 채워졌을 때만 존재하고 비면 사라졌다. 그러면
+                    // "N칸 중 몇 칸"이라는 예산의 형태가 전달되지 않는다.
+                    slot < budget.selectedCount ? "bg-picked" : "bg-picked/25",
+                  )}
+                />
+              ))}
+            </div>
+          </div>
           {/* 화면은 목표 개수만큼 이미 선택된 채로 열린다(inngest/functions.ts).
               즉 첫 렌더의 기본 상태가 remaining === 0이므로, 이 문구는 오류가
               아니라 정상 상태를 설명해야 한다 — "다 썼다"가 아니라 "교체하라". */}
           <p className="text-muted-foreground mt-1 text-xs">
+            {`${clipDrafts.length} moments suggested. `}
             {budget.remaining > 0
-              ? `${budget.selectedCount} of ${budget.limit} picked. ${budget.remaining} left.`
-              : `${budget.limit} of ${budget.limit} picked — swap one out to change your pick.`}
-            {` Each clip uses 1 credit; you have ${currentUserCredits}.`}
+              ? `${budget.remaining} slot${budget.remaining === 1 ? "" : "s"} left. `
+              : "Swap one out to change your pick. "}
+            {`Each clip uses 1 credit; you have ${currentUserCredits}.`}
           </p>
+          {/* 예산을 바꾸는 버튼이므로 예산 표시 옆에 둔다. 카드 목록 안에 두면
+              목록을 스크롤하는 순간 함께 화면 밖으로 나간다.
+              draft 개수는 목표와 무관하다 — 백엔드는 2배를 "요청"할 뿐이고
+              (main.py:904 "Return exactly TARGET_COUNT moments if possible")
+              강제 장치가 없어 목표보다 많이도, 적게도 온다. 그래서 상한을
+              넘길 수 있는 "전체 선택" 대신 예산만큼만 랭킹 상위에서 채운다.
+              slice(0, limit)은 draft가 상한보다 적어도 그대로 동작한다. */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={isSettingSelection || budget.isFull}
+              onClick={() => selectUpToBudget(budget.limit)}
+            >
+              Fill {budget.limit} slots
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={isSettingSelection || budget.selectedCount === 0}
+              onClick={() => deselectAll()}
+            >
+              Clear selection
+            </Button>
+          </div>
         </div>
         <div className="flex flex-col items-end gap-1">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button disabled={!canGenerate}>
-                Generate {selectedCount} {clipNoun} · {selectedCount}{" "}
-                {creditNoun}
+                {/* 0개일 때 "Generate 0 clips · 0 credits"는 셀 것이 없는데
+                    세고 있다. 개수는 고른 게 있을 때만 말한다. */}
+                {selectedCount === 0
+                  ? "Generate clips"
+                  : `Generate ${selectedCount} ${clipNoun} · ${selectedCount} ${creditNoun}`}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -281,7 +339,18 @@ export default function ClipDraftReviewSection({
           </AlertDialog>
           {generateBlockReason && (
             <div className="max-w-[260px] text-right">
-              <p className="text-destructive text-xs">
+              {/* "0개 선택"만 오류색을 쓰지 않는다. 나머지 3종(상한·크레딧·
+                  겹침)은 사용자가 고쳐야 할 문제지만, 빈 선택은 방금 Clear
+                  selection을 누른 정상 상태다. 의도한 조작에 경고색으로
+                  답하면 안 된다. */}
+              <p
+                className={cn(
+                  "text-xs",
+                  generateBlockReason.kind === "empty"
+                    ? "text-muted-foreground"
+                    : "text-destructive",
+                )}
+              >
                 {generateBlockReason.message}
               </p>
               {/* 크레딧 부족은 유일하게 사용자가 스스로 풀 수 있는 사유다.
@@ -299,48 +368,49 @@ export default function ClipDraftReviewSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-2">
-        {/* self-start가 없으면 grid의 기본 align-items: stretch 때문에 이 검정
-            박스가 오른쪽 컬럼 높이까지 늘어나고, video는 원본 비율대로만
-            렌더되어 아래에 검정 여백이 남는다. */}
-        <div className="self-start overflow-hidden rounded-xl bg-black">
-          {playUrl && (
-            <video
-              ref={videoRef}
-              src={playUrl}
-              controls
-              preload="metadata"
-              className="w-full rounded-md object-cover"
-            />
-          )}
+      {/* 플레이어는 참조물이고 후보 목록이 주역이므로 비대칭으로 나눈다.
+          50/50이면 16:9 플레이어(약 250px)가 목록 높이를 따라가지 못해
+          왼쪽 컬럼 아래가 통째로 빈다. */}
+      <div className="grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,360px)_1fr]">
+        {/* 이 컬럼은 플레이어(약 200px) 하나만 담는데 오른쪽 목록은 1800px가
+            넘어서, 아래로 큰 여백이 남는다. 360px 컬럼에 무엇을 쌓아도 채울 수
+            있는 크기가 아니다. 그리고 이 여백은 "긴 목록을 훑는 동안 플레이어가
+            계속 보여야 한다"(카드의 Preview가 여기서 재생된다)의 대가라,
+            없애려면 그 기능을 깎아야 한다.
+            그래서 채우지 않고 면으로 정의한다 — 배경이 있는 패널 안에 놓이면
+            같은 여백이 "빈 페이지"가 아니라 "프리뷰 패널"로 읽힌다.
+            면이 생기려면 바깥이 stretch로 늘어나야 하므로 self-start를 쓸 수
+            없다. sticky는 안쪽으로 옮긴다: 패널이 전체 높이를 차지하고 플레이어는
+            그 안에서 스크롤을 따라온다. */}
+        <div className="bg-muted/40 rounded-xl p-3">
+          {/* top-20 = 대시보드 헤더(sticky top-0, h-16 = 4rem) + 1rem 여백.
+              top-6으로 두면 스크롤 시 플레이어가 헤더 뒤로 들어간다. */}
+          <div className="lg:sticky lg:top-20">
+            <div className="overflow-hidden rounded-lg bg-black">
+              {playUrl && (
+                <video
+                  ref={videoRef}
+                  src={playUrl}
+                  controls
+                  preload="metadata"
+                  className="w-full"
+                />
+              )}
+            </div>
+            {/* 최종 산출물이 세로 영상이라는 사실은 지금까지 CaptionStyleEditor
+              안에만 있었는데, 그 패널은 카드마다 접혀 있어(styleOpen 기본 false)
+              사실상 노출되지 않았다. 크레딧을 쓰기 직전 가장 큰 시각 요소가
+              가로 플레이어이므로 그 바로 아래에 상시 표기한다.
+              크롭 가이드를 그리지는 않는다 — 화자 트래킹 결과는 렌더 중에
+              생성되어 검토 시점에 존재하지 않으므로 실제와 다른 정보가 된다. */}
+            <p className="text-muted-foreground mt-2 text-xs">
+              Source video. Each clip is cropped to vertical (9:16) and follows
+              whoever is speaking.
+            </p>
+          </div>
         </div>
 
-        <div className="flex max-h-[560px] flex-col gap-4 overflow-y-auto">
-          <div className="flex items-center justify-end gap-2">
-            {/* draft 개수는 목표와 무관하다 — 백엔드는 2배를 "요청"할 뿐이고
-                (main.py:904 "Return exactly TARGET_COUNT moments if possible")
-                강제 장치가 없어 목표보다 많이도, 적게도 온다. 그래서 상한을
-                넘길 수 있는 "전체 선택" 대신 예산만큼만 랭킹 상위에서 채운다.
-                slice(0, limit)은 draft가 상한보다 적어도 그대로 동작한다. */}
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              disabled={isSettingSelection || budget.isFull}
-              onClick={() => selectUpToBudget(budget.limit)}
-            >
-              Fill {budget.limit} slots
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              disabled={isSettingSelection || budget.selectedCount === 0}
-              onClick={() => deselectAll()}
-            >
-              Clear selection
-            </Button>
-          </div>
+        <div className="flex flex-col gap-4">
           <AddCustomClipPanel
             transcriptWords={transcriptWords}
             onAdd={addCustomClip}

@@ -29,6 +29,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-picked: var(--picked);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -64,6 +65,12 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  /* 이 팔레트의 유채색은 지금까지 destructive 하나뿐이었다(나머지는 전부
+     chroma 0). 그래서 "골랐다"를 뜻하는 색이 없고, 선택 상태를 primary로
+     칠하면 본문 텍스트와 같은 검정이 된다.
+     클립 검토는 크레딧을 확정하는 화면이라 고른 것과 안 고른 것이 한눈에
+     갈려야 한다. 용도는 그 하나뿐이다 — 일반 강조색으로 쓰지 말 것. */
+  --picked: oklch(0.55 0.16 255);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -98,6 +105,8 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  /* 카드 배경(oklch 0.205)에서도 읽히도록 라이트보다 밝게 잡는다. */
+  --picked: oklch(0.72 0.14 255);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);

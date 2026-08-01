@@ -125,7 +125,9 @@ export default function AddCustomClipPanel({
                   onClick={() => handleWordClick(idx)}
                   className={cn(
                     "inline cursor-pointer rounded px-0.5 text-left",
-                    inRange && "bg-primary/20",
+                    // 여기서 고르는 구간도 "고른 것"이므로 카드와 같은 색을
+                    // 쓴다. bg-primary/20은 회색이라 선택 표시로 읽히지 않았다.
+                    inRange && "bg-picked/25",
                   )}
                 >
                   {word.word}{" "}

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ClipDraft } from "generated/prisma";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
-import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import {
   CLIP_DURATION_LIMITS,
   type CaptionStyle,
@@ -18,6 +17,16 @@ import CaptionStyleEditor from "./CaptionStyleEditor";
 
 const STEP_SECONDS = 0.5;
 const AUTO_SAVE_DEBOUNCE_MS = 600;
+
+// 백엔드 프롬프트가 열거하는 값은 둘뿐이다
+// (main.py:899 `"type": <"qa" | "insight">`).
+// CSS capitalize로는 qa가 "Qa"가 되어 오히려 틀린 표기가 되므로 매핑한다.
+// 다만 프롬프트의 요청일 뿐 강제 장치가 없어 다른 값이 올 수 있으니,
+// 매핑에 없으면 원본을 그대로 보여준다(빈 칸으로 삼키지 않는다).
+const CLIP_TYPE_LABELS: Record<string, string> = {
+  qa: "Q&A",
+  insight: "Insight",
+};
 
 // draft.captionStyle(Prisma JsonValue) → shared CaptionStyle 강제 변환의 단일
 // 지점. 초기값과 스타일 에디터 오픈 동기화가 함께 사용한다.
@@ -221,22 +230,36 @@ export default function ClipDraftCard({
   return (
     <div
       className={cn(
-        "rounded-lg border p-4",
-        isActive && "ring-2 ring-primary",
-        !draft.selected && "opacity-70",
+        "rounded-lg border p-4 transition-colors",
+        // 3상태를 시각적으로 가른다. Before는 선택 여부를 opacity로만 구분해
+        // (1) 고른 카드와 안 고른 카드의 차이가 약했고 (2) 예산 때문에 잠긴
+        // 카드가 그냥 안 고른 카드와 똑같아 보였다. 게다가 후보 본문까지
+        // 흐려져서 이 화면의 본 과제인 "비교"가 방해받았다.
+        // 고른 것을 색으로 올리고, 흐리게 하는 건 잠긴 것에만 남긴다.
+        draft.selected && "border-picked bg-picked/5",
+        isBlockedByBudget && "border-dashed opacity-60",
+        // 겹침은 고쳐야 하는 상태이므로 위 색을 덮는다.
+        // cn은 twMerge라 같은 border-color 유틸리티는 뒤가 이긴다.
         isOverlapping && "border-destructive",
+        // 프리뷰 재생 중. 선택 여부와 다른 축이라 border가 아니라 ring이다.
+        isActive && "ring-primary ring-2",
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <label
           className={cn(
-            "flex items-start gap-2",
+            // min-w-0이 없으면 flex 자식의 기본 min-width:auto 때문에 아래
+            // line-clamp가 줄지 않고 카드를 밀어낸다.
+            "flex min-w-0 flex-1 items-start gap-2",
             isBlockedByBudget && "cursor-not-allowed",
           )}
         >
           <input
             type="checkbox"
-            className="mt-1"
+            // accent-color로 네이티브 체크박스에 색을 준다. shadcn Checkbox를
+            // 들이면 onChange → onCheckedChange로 저장 경로까지 바뀌므로,
+            // 상태 표현은 카드가 담당하게 두고 여기는 색만 맞춘다.
+            className="accent-picked mt-1 size-4"
             checked={draft.selected}
             disabled={isBlockedByBudget}
             aria-describedby={
@@ -244,12 +267,51 @@ export default function ClipDraftCard({
             }
             onChange={(event) => handleSelectedChange(event.target.checked)}
           />
-          <span>
-            <span className="block text-sm leading-snug font-semibold">
-              {draft.hook ?? `Clip #${draft.index + 1}`}
+          <span className="min-w-0">
+            {/* 식별 라인. Before는 순위·타입·구간이 hook 아래 배지 3개로
+                흩어져 있었고 셋 다 같은 무게라 아무것도 눈에 들어오지 않았다.
+                한 줄로 모아 위로 올리고 순위만 강조한다.
+                순위는 장식이 아니다 — clipDrafts는 Gemini 랭킹 순으로 오고
+                (orderBy index asc) Fill N slots가 상위 N개를 채우므로,
+                "AI가 몇 번째로 꼽았는가"는 사용자가 알아야 할 정보다. */}
+            <span className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+              <span className="text-foreground bg-muted rounded px-1.5 py-0.5 font-semibold tabular-nums">
+                #{draft.index + 1}
+              </span>
+              {draft.clipType && (
+                <span>
+                  {CLIP_TYPE_LABELS[draft.clipType] ?? draft.clipType}
+                </span>
+              )}
+              <span className="tabular-nums">
+                {formatTime(startSeconds)}–{formatTime(endSeconds)}
+              </span>
+              {/* 길이는 이 한 곳에서만 표시한다. 제한 위반은 색으로 알리고,
+                  위반의 결과("저장되지 않음")만 아래에서 문장으로 말한다. */}
+              <span
+                className={cn(
+                  "tabular-nums",
+                  !withinLimits && "text-destructive font-medium",
+                )}
+              >
+                {duration.toFixed(1)}s
+              </span>
+            </span>
+            {/* hook은 제목이 아니라 AI가 쓴 문장이라 clamp가 없으면 카드마다
+                4줄짜리 볼드 덩어리가 된다. 7개를 비교하는 게 이 화면의 과제라
+                카드 높이를 예측 가능하게 묶는다. */}
+            {/* ⚠️ line-clamp-*와 block을 같이 쓰면 안 된다. 둘 다 display를
+                건드리는데 번들에서 .block{display:block}이 line-clamp의
+                display:-webkit-box보다 뒤에 나와 clamp가 통째로 죽는다
+                (tailwind-merge도 서로 다른 그룹이라 정리해 주지 않는다).
+                아래 payoff가 실제로 그 상태였다 — clamp 2줄로 적혀 있었지만
+                화면에는 4줄로 나왔다. -webkit-box가 이미 블록 레벨이라
+                block은 없어도 된다. */}
+            <span className="mt-1.5 line-clamp-2 text-sm leading-snug font-semibold">
+              {draft.hook ?? "Untitled moment"}
             </span>
             {draft.payoff && (
-              <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs leading-snug">
+              <span className="text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-snug">
                 {draft.payoff}
               </span>
             )}
@@ -270,94 +332,103 @@ export default function ClipDraftCard({
         </div>
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-1">
-        {draft.clipType && <Badge variant="secondary">{draft.clipType}</Badge>}
-        <Badge variant="outline">
-          {formatTime(startSeconds)}–{formatTime(endSeconds)}
-        </Badge>
-        <Badge variant="outline">{duration.toFixed(1)}s</Badge>
-      </div>
-
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div>
-          <p className="mb-1 text-xs font-medium text-muted-foreground">
-            Start: {formatTime(startSeconds)}
+          {/* 식별 라인이 m:ss 범위를 담당하므로 여기서 되풀이하지 않는다.
+              이 필드는 초 단위 편집기이고, 라벨에 단위를 명시해야 위쪽의
+              "4:32.9"와 이 입력의 "272.9"가 같은 값의 두 표기가 아니라
+              서로 다른 역할로 읽힌다. */}
+          <p className="text-muted-foreground mb-1 text-xs font-medium">
+            Start (s)
           </p>
-          <div className="flex items-center gap-1">
-            <Button
+          {/* Before는 테두리 있는 박스 3개가 gap으로 떨어져 있어 카드마다
+              6개, 목록 전체로 42개의 상자가 깔렸다. 하나의 컨트롤로 묶는다.
+              폭은 w-fit + w-24다. 잘림을 고치려고 컬럼 전체(w-full)를 채웠더니
+              값 6~7자짜리 입력이 카드에서 가장 큰 요소가 되어, 부차적 컨트롤이
+              hook보다 무거워졌다. w-24면 "12345.678"까지 들어간다. */}
+          <div className="flex w-fit items-center rounded-md border">
+            <button
               type="button"
-              size="sm"
-              variant="outline"
+              aria-label="Nudge start back"
+              className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-l-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
               onClick={() => adjustStart(-STEP_SECONDS)}
             >
-              -
-            </Button>
+              {/* 하이픈이 아니라 마이너스 기호. 식별 라인의 범위 대시(–)와
+                  헷갈리지 않게 한다. */}
+              −
+            </button>
             <input
               type="number"
               step={0.1}
               min={0}
+              // 위 <p>는 label 요소가 아니라 이 입력의 접근 가능한 이름이 되지
+              // 못한다. 라벨 문구를 고치는 김에 이름을 붙인다.
+              aria-label="Start seconds"
               value={startSeconds}
               onChange={(event) =>
                 setStartSeconds(Math.max(0, Number(event.target.value)))
               }
-              className="w-20 rounded border px-2 py-1 text-sm"
+              // 반올림은 onChange가 아니라 blur에서 한다. 입력마다 반올림하면
+              // "272." 같은 입력 중간 상태가 272로 덮여 소수점을 칠 수 없다.
+              onBlur={() => setStartSeconds(roundTenth(startSeconds))}
+              className="w-24 border-x px-2 py-1.5 text-center text-sm tabular-nums focus-visible:outline-none"
             />
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="outline"
+              aria-label="Nudge start forward"
+              className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-r-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
               onClick={() => adjustStart(STEP_SECONDS)}
             >
               +
-            </Button>
+            </button>
           </div>
         </div>
 
         <div>
-          <p className="mb-1 text-xs font-medium text-muted-foreground">
-            End: {formatTime(endSeconds)}
+          <p className="text-muted-foreground mb-1 text-xs font-medium">
+            End (s)
           </p>
-          <div className="flex items-center gap-1">
-            <Button
+          <div className="flex w-fit items-center rounded-md border">
+            <button
               type="button"
-              size="sm"
-              variant="outline"
+              aria-label="Nudge end back"
+              className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-l-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
               onClick={() => adjustEnd(-STEP_SECONDS)}
             >
-              -
-            </Button>
+              −
+            </button>
             <input
               type="number"
               step={0.1}
               min={0}
+              aria-label="End seconds"
               value={endSeconds}
               onChange={(event) =>
                 setEndSeconds(Math.max(0, Number(event.target.value)))
               }
-              className="w-20 rounded border px-2 py-1 text-sm"
+              onBlur={() => setEndSeconds(roundTenth(endSeconds))}
+              className="w-24 border-x px-2 py-1.5 text-center text-sm tabular-nums focus-visible:outline-none"
             />
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="outline"
+              aria-label="Nudge end forward"
+              className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-r-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
               onClick={() => adjustEnd(STEP_SECONDS)}
             >
               +
-            </Button>
+            </button>
           </div>
         </div>
       </div>
 
-      <p
-        className={cn(
-          "mt-2 text-xs",
-          withinLimits ? "text-muted-foreground" : "text-destructive",
-        )}
-      >
-        Length: {duration.toFixed(1)}s
-        {!withinLimits &&
-          ` — not saved (must be ${CLIP_DURATION_LIMITS.MIN_SECONDS}-${CLIP_DURATION_LIMITS.MAX_SECONDS}s)`}
-      </p>
+      {/* Before는 길이를 배지와 여기 두 곳에 렌더했다. 값은 배지가 갖고,
+          여기서는 위반했을 때 그 결과만 말한다 — 정상 상태에서 이 줄은 없다. */}
+      {!withinLimits && (
+        <p className="text-destructive mt-2 text-xs">
+          Not saved — length must be {CLIP_DURATION_LIMITS.MIN_SECONDS}–
+          {CLIP_DURATION_LIMITS.MAX_SECONDS}s.
+        </p>
+      )}
 
       {isOverlapping && (
         <p className="text-destructive mt-1 text-xs">
@@ -375,19 +446,28 @@ export default function ClipDraftCard({
       )}
 
       {previewText && (
-        <p className="mt-2 line-clamp-3 rounded bg-muted p-2 text-xs">
+        <p className="bg-muted mt-2 line-clamp-3 rounded p-2 text-xs">
           {previewText}
         </p>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button type="button" size="sm" variant="ghost" onClick={resetToAi}>
+      {/* 카드를 "내용"과 "부가 조작"으로 가른다. Before는 컨테이너 없는 ghost
+          버튼 2개가 본문과 같은 크기로 떠 있어 hook과 무게를 다퉜다. */}
+      <div className="mt-3 flex flex-wrap items-center gap-1 border-t pt-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
+          onClick={resetToAi}
+        >
           Reset to AI suggestion
         </Button>
         <Button
           type="button"
           size="sm"
           variant="ghost"
+          className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
           onClick={handleToggleStyleOpen}
         >
           {styleOpen ? "Hide caption style" : "Caption style"}
