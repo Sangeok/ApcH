@@ -1044,7 +1044,23 @@ import type {
 } from "../model/types";
 ```
 
-`Prisma`가 `import type`이 아니라 값 임포트로 바뀐 것에 주의한다. 82행의 `input.metadata as Prisma.InputJsonValue | undefined`는 타입 위치라 둘 다 동작하지만, `verbatimModuleSyntax`가 켜져 있으므로 값 임포트로 통일하는 편이 안전하다.
+**`Prisma`는 이 파일에서 `import type`이어야 한다.** 82행의 `input.metadata as Prisma.InputJsonValue | undefined`가 유일한 사용처이고 타입 위치다. 값으로 임포트하면 ESLint `consistent-type-imports`가 경고를 내고, `verbatimModuleSyntax` 아래에서는 런타임에 쓰지도 않는 임포트문이 그대로 남는다.
+
+```ts
+import { ANALYTICS_EVENT_NAMES, db } from "@repo/db";
+import type { Prisma } from "@repo/db";
+```
+
+> 초안은 "`verbatimModuleSyntax`가 켜져 있으니 값 임포트로 통일하는 편이 안전하다"고 적었는데 거꾸로다. `verbatimModuleSyntax`는 임포트 종류를 **사용처와 정확히 일치시키라**는 옵션이지 값 임포트를 선호하라는 게 아니다. 전환 전 `npm run check`가 경고 0이었으므로, 이 한 줄이 경고 0→1 회귀를 만든다.
+
+`Prisma`를 **값으로** 쓰는 파일은 따로 있다. 아래 두 곳은 `instanceof` 검사라 값 임포트가 맞다.
+
+```
+apps/web/src/fsd/entities/uploaded-file/api/index.ts   Prisma.PrismaClientKnownRequestError
+apps/web/src/fsd/features/upload/api/index.ts          Prisma.PrismaClientKnownRequestError
+```
+
+일괄 치환 후 `npm run check`가 `consistent-type-imports` 경고를 내는 파일이 있으면 그 파일만 `import type`으로 바꾼다.
 
 - [ ] **Step 9: 타입 체크와 테스트**
 
