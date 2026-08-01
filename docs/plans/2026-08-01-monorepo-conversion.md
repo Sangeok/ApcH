@@ -1255,17 +1255,31 @@ npm test -w apps/web
 
 Expected: FAIL. `.mjs`에서 `.ts`를 직접 임포트할 수 없어 `ERR_UNKNOWN_FILE_EXTENSION` 또는 유사 에러가 난다.
 
-- [ ] **Step 3: 스크립트에 스트리핑 플래그가 있는지 확인**
+- [ ] **Step 3: 러너를 `tsx`로 바꾼다**
 
-Task 1 Step 4에서 이미 `--experimental-strip-types`를 넣었다. 이 테스트도 `.ts`를 임포트하므로 같은 플래그에 의존한다.
+**`node --experimental-strip-types`로는 이 테스트를 쓸 수 없다.** Task 1이 넣은 그 플래그는 `.ts` 리프 모듈을 직접 임포트하는 기존 4개 테스트에는 충분했지만, 이 테스트가 임포트해야 하는 shim은 세 겹의 벽에 막힌다.
 
-```bash
-grep '"test"' apps/web/package.json
+```
+1차  event-catalog.ts:5  export {...} from "./lib/metadata"   확장자 없음
+2차  @repo/db index.ts   export {...} from "./client"          확장자 없음
+3차  generated/prisma    CJS 디렉터리 임포트
 ```
 
-Expected: `--experimental-strip-types`가 포함되어 있다. 없으면 Task 1이 제대로 적용되지 않은 것이므로 먼저 고친다.
+번들러(Next.js)는 확장자 없는 임포트를 해석하지만 Node ESM은 하지 않는다. 확장자를 붙이는 우회는 `allowImportingTsExtensions`를 요구하고, 그걸 켜도 3차 벽에서 `ERR_UNSUPPORTED_DIR_IMPORT`로 막힌다. `@repo/db`를 Node 네이티브로 임포트 가능하게 만드는 것은 Prisma 생성 코드의 성질이라 이 계획의 범위가 아니다.
 
-Node가 22.6 미만이면 이 방식을 쓸 수 없다. 그때는 이 테스트를 `.test.ts`로 만들고 `tsx`를 devDependency로 추가한 뒤 스크립트를 `tsx --test`로 바꾼다.
+```bash
+npm install -D tsx -w apps/web
+```
+
+`apps/web/package.json`의 `test` 스크립트를 바꾼다.
+
+```json
+    "test": "tsx --test \"src/**/*.test.mjs\"",
+```
+
+**조건: 기존 17개 테스트가 그대로 통과해야 한다.** 러너를 바꾸는 것이므로 회귀가 없는지 먼저 확인한다.
+
+> 남는 한계: `@repo/db`는 여전히 bare node로 임포트되지 않는다. `tsx`가 가려줄 뿐이다. 앞으로 `@repo/db`를 거치는 Node 네이티브 테스트를 쓰려 하면 같은 벽을 만난다.
 
 - [ ] **Step 4: 통과 확인**
 
