@@ -1,1 +1,1 @@
-export type { ClipDraft } from "generated/prisma";
+export type { ClipDraft } from "@repo/db";

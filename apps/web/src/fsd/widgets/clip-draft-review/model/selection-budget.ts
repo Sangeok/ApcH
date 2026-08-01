@@ -1,4 +1,4 @@
-import type { ClipDraft } from "generated/prisma";
+import type { ClipDraft } from "@repo/db";
 
 /**
  * 선택 예산. **선택만** 다루며 크레딧은 포함하지 않는다.

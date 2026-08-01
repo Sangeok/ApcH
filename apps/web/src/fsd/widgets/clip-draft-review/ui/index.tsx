@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import type { ClipDraft } from "generated/prisma";
+import type { ClipDraft } from "@repo/db";
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";

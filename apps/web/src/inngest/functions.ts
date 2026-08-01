@@ -1,4 +1,4 @@
-import type { Prisma } from "generated/prisma";
+import type { Prisma } from "@repo/db";
 import { env } from "~/env";
 import {
   countClipsForAttemptS3Keys,

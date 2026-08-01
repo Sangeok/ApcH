@@ -1,8 +1,7 @@
 import "server-only";
 
-import type { Prisma } from "generated/prisma";
-import { ANALYTICS_EVENT_NAMES } from "~/fsd/shared/analytics/event-catalog";
-import { db } from "~/server/db";
+import { ANALYTICS_EVENT_NAMES, db } from "@repo/db";
+import type { Prisma } from "@repo/db";
 import { ANALYTICS_FUNNELS } from "../model/funnels";
 import {
   buildDropOffReportFromEvents,

@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Prisma } from "generated/prisma";
+import type { Prisma } from "@repo/db";
 import { inngest } from "~/inngest/client";
 import { db } from "~/server/db";
 import {

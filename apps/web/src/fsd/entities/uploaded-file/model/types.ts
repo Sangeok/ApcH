@@ -1,4 +1,4 @@
-import type { Clip, ClipDraft } from "generated/prisma";
+import type { Clip, ClipDraft } from "@repo/db";
 import type { ProcessingStatus } from "./processing-status";
 
 export interface ActiveUploadedFileQueueState {

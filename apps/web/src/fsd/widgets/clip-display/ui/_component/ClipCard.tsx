@@ -1,6 +1,6 @@
 "use client";
 
-import type { Clip } from "generated/prisma";
+import type { Clip } from "@repo/db";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getClipPlayUrl } from "~/fsd/features/clip/api";

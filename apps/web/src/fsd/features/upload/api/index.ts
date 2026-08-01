@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma } from "generated/prisma";
+import { Prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";

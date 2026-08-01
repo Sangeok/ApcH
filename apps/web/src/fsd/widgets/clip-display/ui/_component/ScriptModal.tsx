@@ -1,6 +1,6 @@
 "use client";
 
-import type { Clip } from "generated/prisma";
+import type { Clip } from "@repo/db";
 import { Copy, X } from "lucide-react";
 import { toast } from "sonner";
 import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";

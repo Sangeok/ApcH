@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Prisma } from "generated/prisma";
+import { Prisma } from "@repo/db";
 import { inngest } from "~/inngest/client";
 import { db } from "~/server/db";
 import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";

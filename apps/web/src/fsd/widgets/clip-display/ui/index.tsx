@@ -1,6 +1,6 @@
 "use client";
 
-import type { Clip } from "generated/prisma";
+import type { Clip } from "@repo/db";
 import { useOptimistic } from "react";
 import { deleteClip } from "~/fsd/features/clip/api";
 import ClipCard from "./_component/ClipCard";

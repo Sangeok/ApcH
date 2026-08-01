@@ -1,6 +1,6 @@
 "use client";
 
-import type { Clip } from "generated/prisma";
+import type { Clip } from "@repo/db";
 import {
   Check,
   Copy,

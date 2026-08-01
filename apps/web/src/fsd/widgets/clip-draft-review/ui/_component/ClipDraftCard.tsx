@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ClipDraft } from "generated/prisma";
+import type { ClipDraft } from "@repo/db";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {

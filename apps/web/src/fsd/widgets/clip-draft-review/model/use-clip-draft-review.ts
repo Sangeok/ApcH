@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { ClipDraft } from "generated/prisma";
+import type { ClipDraft } from "@repo/db";
 import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
 import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
 import {

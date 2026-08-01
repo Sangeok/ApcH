@@ -1,7 +1,7 @@
 import "server-only";
 
 // Prisma.JsonNull 값을 쓰므로 type-only import가 아니어야 한다.
-import { Prisma } from "generated/prisma";
+import { Prisma } from "@repo/db";
 import { db } from "~/server/db";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
 

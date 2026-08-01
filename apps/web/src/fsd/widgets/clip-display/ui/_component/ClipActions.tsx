@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import type { Clip } from "generated/prisma";
+import type { Clip } from "@repo/db";
 import {
   Copy,
   Download,
