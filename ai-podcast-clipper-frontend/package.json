@@ -19,6 +19,7 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "start": "next start",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.mjs\"",
     "typecheck": "tsc --noEmit",
     "dev:polar": "polar listen http://localhost:3000/api/webhooks/polar",
     "ngrok": "ngrok http 3000"
