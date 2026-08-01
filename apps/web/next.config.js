@@ -4,8 +4,12 @@
 // 이 dotenv 로드보다 먼저 실행되지 않도록 src/env.js는 동적 import로 불러온다.
 import { config as loadEnv } from "dotenv";
 import { withSentryConfig } from "@sentry/nextjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 loadEnv({ path: "../../.env" });
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
@@ -15,6 +19,12 @@ await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
+  // Prisma 엔진이 packages/db/generated/prisma/ 에 있어 앱 Root Directory
+  // 바깥이다. 트레이싱 루트를 저장소 루트로 올리지 않으면 @vercel/nft가
+  // 엔진을 함수 번들에 넣지 않고, 빌드는 성공한 뒤 첫 DB 접근에서
+  // "Query Engine not found"로 500이 난다.
+  outputFileTracingRoot: path.join(__dirname, "../../"),
+  transpilePackages: ["@repo/db"],
   serverExternalPackages: ["@prisma/adapter-neon"],
   images: {
     remotePatterns: [
