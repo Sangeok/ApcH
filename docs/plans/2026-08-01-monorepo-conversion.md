@@ -245,15 +245,79 @@ ls -a apps/web | grep -E "node_modules|\.next|\.npmrc|package-lock"
 
 Expected: 아무것도 출력되지 않음
 
-- [ ] **Step 7: 루트에서 설치**
+- [ ] **Step 7: 기존 lockfile을 루트로 시드**
+
+**이 단계를 건너뛰면 안 된다.** 빈 상태에서 `npm install`을 돌리면 npm이 모든 `^` 범위를 재해석해 전이 의존성이 올라간다. 실측 결과 4개 패키지군이 움직였고 그중 둘이 실제 실패를 냈다.
+
+| 패키지 | 고정본 | 재해석 시 | 증상 |
+|---|---|---|---|
+| `@polar-sh/sdk` | 0.46.6 | 0.46.7 | `polar/route.ts:40,143` TS2322 (필드가 nullable로 바뀜) |
+| `@typescript-eslint/*` | 8.46.4 | 8.65.0 | `next lint` projectService 에러 폭주 |
+| `eslint-config-next` | 15.5.6 | 15.5.22 | 위와 연동 |
+| `prisma` | 6.19.1 | 6.19.3 | `generated/prisma` 12개 파일 재생성 diff |
+
+Task 2의 목적은 구조 이동이다. 여기에 의존성 업그레이드가 섞이면 Phase 0 검증(Task 10)이 실패했을 때 **이동 탓인지 새 의존성 탓인지 가릴 수 없다.**
+
+```bash
+git show HEAD:ai-podcast-clipper-frontend/package-lock.json > package-lock.json
+```
+
+- [ ] **Step 8: 루트에서 설치**
 
 ```bash
 npm install
 ```
 
-Expected: 성공. 루트에 `package-lock.json`이 생기고 `node_modules/`가 만들어진다.
+npm이 기존 lockfile의 `resolved` 버전을 유지하면서 워크스페이스 구조로 재작성한다. 루트에 `node_modules/`가 만들어진다.
 
-- [ ] **Step 8: 워크스페이스 인식 확인**
+- [ ] **Step 9: 버전이 고정됐는지 확인**
+
+```bash
+node -e "const l=require('./package-lock.json');for(const k of ['node_modules/@polar-sh/sdk','node_modules/@typescript-eslint/parser','node_modules/eslint-config-next','node_modules/prisma'])console.log(k, l.packages[k]?.version)"
+```
+
+Expected:
+
+```
+node_modules/@polar-sh/sdk 0.46.6
+node_modules/@typescript-eslint/parser 8.46.4
+node_modules/eslint-config-next 15.5.6
+node_modules/prisma 6.19.1
+```
+
+하나라도 다르면 시드가 먹지 않은 것이다. `node_modules/`와 `package-lock.json`을 지우고 Step 7부터 다시 한다.
+
+- [ ] **Step 10: `generated/prisma`가 재생성으로 더럽혀지지 않았는지 확인**
+
+`postinstall`의 `prisma generate`가 돈다. Prisma 버전이 같으면 산출물도 같아야 한다.
+
+```bash
+git status --porcelain apps/web/generated
+```
+
+Expected: `edge.js`, `index.js`, `wasm.js`, `schema.prisma`, `package.json` 정도만 변경으로 뜬다. **이건 정상이다.**
+
+생성된 Prisma 클라이언트는 **생성 시점의 절대경로를 파일 안에 박는다.**
+
+```diff
+- "value": "C:\\...\\ApcH\\ai-podcast-clipper-frontend\\generated\\prisma"
++ "value": "C:\\...\\ApcH\\apps\\web\\generated\\prisma"
+```
+
+디렉터리를 옮겼으니 경로가 바뀌는 것이 맞고, 어떤 버전 고정으로도 막을 수 없다. **재생성본을 커밋한다.** 옛 값은 이제 존재하지 않는 디렉터리를 가리킨다.
+
+반면 `runtime/*.js` 같은 파일에서 **버전 문자열이나 로직이 바뀌면** 그건 Prisma 버전이 고정되지 않은 것이다. Step 9로 돌아간다. 구분 기준:
+
+| 변경 내용 | 판정 |
+|---|---|
+| 절대경로(`\\ApcH\\...`), `"postinstall": false` | 정상. 커밋 |
+| `"version": "6.19.x"`, 런타임 코드 변경 | 버전 고정 실패. Step 9로 |
+
+> 이 절대경로 박힘은 "생성 클라이언트를 커밋한다"는 기존 컨벤션이 안고 있는 성질이다. 다른 사람이 클론하면 이 머신의 경로를 가리키는 파일을 받는다. Vercel은 `postinstall`로 다시 만들므로 배포에는 영향이 없고, 로컬에서도 첫 `npm install`이 덮어쓴다. 이 계획의 범위 밖이지만 `generated/`를 계속 커밋할지는 언젠가 재검토할 값어치가 있다.
+
+> 의존성 업그레이드는 이 계획의 범위가 아니다. 별건으로, 자체 테스트와 롤백 경로를 가진 변경으로 다룬다. 특히 `@polar-sh/sdk` 0.46.7의 nullable 변경은 웹훅 처리 코드를 손봐야 하므로 결제 경로 회귀 테스트가 따라야 한다.
+
+- [ ] **Step 11: 워크스페이스 인식 확인**
 
 ```bash
 npm ls -w apps/web --depth=0
@@ -261,16 +325,18 @@ npm ls -w apps/web --depth=0
 
 Expected: `ai-podcast-clipper-frontend@0.1.0 -> ./apps/web` 형태로 출력
 
-- [ ] **Step 9: 테스트와 타입 체크 통과 확인**
+- [ ] **Step 12: 테스트와 타입 체크 통과 확인**
 
 ```bash
 npm test -w apps/web
 npm run check -w apps/web
 ```
 
-Expected: 둘 다 PASS
+Expected: 둘 다 PASS. `npm test`는 `# pass 17 / # fail 0`.
 
-- [ ] **Step 10: 커밋**
+여기서 `polar/route.ts`의 TS2322나 `next lint`의 projectService 에러가 나오면 **소스를 고치지 말고 Step 9로 돌아간다.** 두 증상 모두 버전 고정 실패의 신호다.
+
+- [ ] **Step 13: 커밋**
 
 ```bash
 git add -A
@@ -511,6 +577,8 @@ git ls-files packages/db/generated | wc -l
 ```
 
 Expected: `27`. Step 1과 같아야 한다. 다르면 `.gitignore`가 파일을 삼킨 것이므로 Task 4 Step 3과 이 Task Step 3을 다시 본다.
+
+> **경로 재작성이 또 일어난다.** 생성 클라이언트가 절대경로를 박고 있어(Task 2 Step 10 참조), 이번 이동으로 `apps/web/generated/prisma` → `packages/db/generated/prisma`로 값이 바뀐다. 다음 `npm install`의 `postinstall`이 그 값을 갱신하므로 그 diff도 함께 커밋한다. 정상이다. 버전 문자열이나 런타임 코드가 바뀌면 그때만 문제다.
 
 - [ ] **Step 5: `packages/db/src/client.ts` 재작성**
 
