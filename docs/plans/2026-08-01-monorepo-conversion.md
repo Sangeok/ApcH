@@ -899,10 +899,21 @@ Expected: 에러 없음
 - [ ] **Step 5: 이벤트 개수가 28개인지 확인**
 
 ```bash
-node -e "const s=require('fs').readFileSync('packages/db/src/analytics-contract.ts','utf8');const m=s.slice(s.indexOf('ANALYTICS_EVENT_NAMES = ['),s.indexOf('] as const;')).match(/\"[a-z_]+\"/g);console.log(m.length)"
+node -e "const s=require('fs').readFileSync('packages/db/src/analytics-contract.ts','utf8');const m=s.slice(s.indexOf('ANALYTICS_EVENT_NAMES = ['),s.indexOf('] as const;')).match(/\"[a-z0-9_]+\"/g);console.log(m.length)"
 ```
 
 Expected: `28`
+
+문자 클래스에 `0-9`가 있어야 한다. `[a-z_]+`로 쓰면 `upload_s3_completed`와 `upload_s3_failed`가 숫자 `3` 때문에 빠져 **26**이 나온다. 초안이 그렇게 적혀 있었고, 그대로 두면 멀쩡한 계약을 보고 "이벤트 2개가 사라졌다"며 없는 문제를 쫓게 된다.
+
+개수보다 확실한 검증은 소스와 직접 대조하는 것이다.
+
+```bash
+diff <(sed -n '/ANALYTICS_EVENT_NAMES = \[/,/\] as const;/p' apps/web/src/fsd/shared/analytics/event-catalog.ts) \
+     <(sed -n '/ANALYTICS_EVENT_NAMES = \[/,/\] as const;/p' packages/db/src/analytics-contract.ts)
+```
+
+Expected: 출력 없음(완전 일치). 개수가 같아도 이름이 다르면 이 검사만 잡아낸다.
 
 - [ ] **Step 6: 커밋**
 
