@@ -390,15 +390,27 @@ npm install -D dotenv -w apps/web
 
 - [ ] **Step 5: `next.config.js` 최상단에 선로드 추가**
 
-`apps/web/next.config.js`의 맨 위, 기존 주석 블록 **위에** 넣는다. 임포트 순서가 실행 순서이므로 `./src/env.js`보다 앞이어야 한다.
+`apps/web/next.config.js`의 임포트 블록과 `./src/env.js` 호출을 아래로 바꾼다.
 
 ```js
 // 루트 .env 유일본을 읽는다. Next.js는 process.cwd() 기준으로만 .env를
 // 자동 로드하는데 cwd가 apps/web이므로 루트 파일이 자동으로는 안 읽힌다.
-// 이 두 줄은 아래 ./src/env.js 검증보다 반드시 먼저 실행되어야 한다.
-import { config } from "dotenv";
-config({ path: "../../.env" });
+// ESM 정적 import는 모두 본문보다 먼저 평가되므로, ./src/env.js 검증이
+// 이 dotenv 로드보다 먼저 실행되지 않도록 동적 import로 불러온다.
+import { config as loadEnv } from "dotenv";
+import { withSentryConfig } from "@sentry/nextjs";
+
+loadEnv({ path: "../../.env" });
+
+await import("./src/env.js");
 ```
+
+**함정이 둘이다. 실행에서 둘 다 걸렸다.**
+
+1. **`config`라는 이름을 쓰면 안 된다.** 파일 아래쪽에 `const config = { ... }`(NextConfig 객체)가 이미 있어 충돌한다. `loadEnv`로 별칭한다.
+2. **`import "./src/env.js"`를 정적 import로 두면 동작하지 않는다.** ESM은 정적 import를 전부 본문보다 먼저 평가한다. `loadEnv()` 호출보다 아래에 적어도 먼저 실행되어 `Invalid environment variables`가 난다. "위에 쓰면 먼저 실행된다"는 직관이 여기서는 틀린다. `await import()`(동적 import)여야 실행 시점이 본문 순서를 따른다.
+
+동적 import는 top-level await를 쓴다. Next 15.5.7 + Node 22 조합에서 동작을 확인했다.
 
 - [ ] **Step 6: 개발 서버가 루트 `.env`를 읽는지 확인**
 
@@ -418,12 +430,38 @@ npm run build -w apps/web
 
 Expected: 성공
 
-- [ ] **Step 8: 커밋**
+- [ ] **Step 8: `generated/prisma` 재생성분 확인**
+
+`npm install`의 `postinstall`이 돌면서 3개 파일이 바뀐다.
 
 ```bash
-git add .env.example apps/web/package.json apps/web/next.config.js package-lock.json
-git commit -m "chore: move .env to repo root and preload it in next.config"
+git diff --stat apps/web/generated
 ```
+
+Expected: `edge.js`, `index.js`, `wasm.js` 3개. 내용은 아래 한 줄이 사라진 것뿐이다.
+
+```diff
+     "rootEnvPath": null,
+-    "schemaEnvPath": "../../.env"
++    "rootEnvPath": null
+```
+
+Prisma는 생성 시점에 찾은 `.env` 위치를 클라이언트에 기록해둔다. `apps/web/.env`가 사라졌으니 기록할 값이 없어진 것이고, **이 이동의 정상적인 결과다.** 커밋한다.
+
+런타임에는 영향이 없다. 이 값은 Prisma가 스스로 `.env`를 읽을 때 쓰는데, 이제 `next.config.js`의 dotenv가 `process.env`를 먼저 채우고 Vercel은 환경변수를 직접 주입한다.
+
+`"version"`이나 런타임 코드가 바뀌었다면 그건 다른 문제다 — Task 2 Step 10의 판별 기준을 따른다.
+
+- [ ] **Step 9: 커밋**
+
+```bash
+git add .env.example apps/web/package.json apps/web/next.config.js package-lock.json apps/web/generated
+git commit -F <메시지 파일>
+```
+
+메시지는 `chore: move .env to repo root and preload it in next.config` 형태로 하되, 본문에 동적 import를 쓴 이유(ESM 호이스팅)를 남긴다. 나중에 "왜 여기만 `await import`지" 하고 정적으로 되돌리는 일을 막는다.
+
+> `git commit`은 마지막에 `add`한 것이 아니라 **인덱스 전체**를 커밋한다. 커밋 전 `git status`로 무관한 변경이 스테이징되어 있지 않은지 확인한다.
 
 ---
 
