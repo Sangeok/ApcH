@@ -115,29 +115,47 @@ src/fsd/shared/analytics/lib/normalize-path.test.mjs
 src/fsd/widgets/clip-draft-review/model/selection-budget.test.mjs
 ```
 
-- [ ] **Step 3: `test` 스크립트 추가**
+- [ ] **Step 3: Node 버전 확인**
+
+```bash
+node --version
+```
+
+각 `.test.mjs`가 `.ts` 형제 모듈을 임포트한다. Node가 `.ts`를 읽으려면 조건이 있다.
+
+| Node 버전 | 필요한 것 |
+|---|---|
+| ≥ 22.18 또는 ≥ 23.6 | 없음. 타입 스트리핑이 기본 동작 |
+| 22.6 ~ 22.17 | `--experimental-strip-types` 플래그 |
+| < 22.6 | 이 방식 불가. `tsx` 도입 필요 |
+
+**이 저장소의 검증 환경은 v22.13.1이라 플래그가 필요하다.** 플래그 없이 돌리면 4개 파일이 전부 `ERR_UNKNOWN_FILE_EXTENSION ".ts"`로 로드에 실패한다(`# pass 0 / # fail 4`).
+
+- [ ] **Step 4: `test` 스크립트 추가**
 
 `ai-podcast-clipper-frontend/package.json`의 `"scripts"` 안, `"start": "next start",` 다음 줄에 추가한다.
 
 ```json
-    "test": "node --test \"src/**/*.test.mjs\"",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.mjs\"",
 ```
 
-- [ ] **Step 4: 4개 파일이 모두 실행되고 통과하는지 확인**
+Node가 22.18 이상이면 플래그를 빼도 되지만, 넣어두면 낮은 버전에서도 동작하고 높은 버전에서는 무시된다. 그대로 둔다.
+
+- [ ] **Step 5: 4개 파일이 모두 실행되고 통과하는지 확인**
 
 ```bash
 npm test
 ```
 
-Expected: PASS. 출력 마지막에 `# fail 0`이 있어야 한다. `# tests` 수가 0이면 glob이 안 먹은 것이므로 Step 5로 가지 말고 아래 대안을 쓴다.
+Expected: `# tests 17`, `# pass 17`, `# fail 0`
 
-glob이 안 먹을 경우(셸에 따라 다름) 스크립트를 이렇게 바꾼다.
+`# tests`가 0이면 glob이 안 먹은 것이다(셸에 따라 다름). 그때만 아래 형태로 바꾼다.
 
 ```json
-    "test": "node --test --test-reporter=spec src/fsd/entities/analytics-event/model/reporting.test.mjs src/fsd/shared/analytics/lib/metadata.test.mjs src/fsd/shared/analytics/lib/normalize-path.test.mjs src/fsd/widgets/clip-draft-review/model/selection-budget.test.mjs",
+    "test": "node --experimental-strip-types --test --test-reporter=spec src/fsd/entities/analytics-event/model/reporting.test.mjs src/fsd/shared/analytics/lib/metadata.test.mjs src/fsd/shared/analytics/lib/normalize-path.test.mjs src/fsd/widgets/clip-draft-review/model/selection-budget.test.mjs",
 ```
 
-- [ ] **Step 5: 커밋**
+- [ ] **Step 6: 커밋**
 
 ```bash
 git add ai-podcast-clipper-frontend/package.json
@@ -1066,21 +1084,17 @@ npm test -w apps/web
 
 Expected: FAIL. `.mjs`에서 `.ts`를 직접 임포트할 수 없어 `ERR_UNKNOWN_FILE_EXTENSION` 또는 유사 에러가 난다.
 
-- [ ] **Step 3: TypeScript 스트리핑을 켠다**
+- [ ] **Step 3: 스크립트에 스트리핑 플래그가 있는지 확인**
 
-Node 22.6+ 에서 동작한다. `apps/web/package.json`의 `test` 스크립트를 바꾼다.
-
-```json
-    "test": "node --experimental-strip-types --test \"src/**/*.test.mjs\"",
-```
-
-Node 버전 확인:
+Task 1 Step 4에서 이미 `--experimental-strip-types`를 넣었다. 이 테스트도 `.ts`를 임포트하므로 같은 플래그에 의존한다.
 
 ```bash
-node --version
+grep '"test"' apps/web/package.json
 ```
 
-22.6 미만이면 이 방법을 쓸 수 없다. 대안: 테스트 파일에서 `.ts` 대신 `@repo/db`를 직접 임포트하고 metadata는 `./lib/metadata.ts` 대신 값을 하드코딩 대조하지 말고, **이 테스트를 `.test.ts`로 만들고 `tsx`를 devDependency로 추가한 뒤** 스크립트를 `tsx --test`로 바꾼다.
+Expected: `--experimental-strip-types`가 포함되어 있다. 없으면 Task 1이 제대로 적용되지 않은 것이므로 먼저 고친다.
+
+Node가 22.6 미만이면 이 방식을 쓸 수 없다. 그때는 이 테스트를 `.test.ts`로 만들고 `tsx`를 devDependency로 추가한 뒤 스크립트를 `tsx --test`로 바꾼다.
 
 - [ ] **Step 4: 통과 확인**
 
