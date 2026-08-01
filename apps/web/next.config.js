@@ -4,6 +4,7 @@
 // 이 dotenv 로드보다 먼저 실행되지 않도록 src/env.js는 동적 import로 불러온다.
 import { config as loadEnv } from "dotenv";
 import { withSentryConfig } from "@sentry/nextjs";
+import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,6 +27,25 @@ const config = {
   outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@repo/db"],
   serverExternalPackages: ["@prisma/adapter-neon"],
+  // outputFileTracingRoot만으로는 부족했다. 2026-08-01 dev 프리뷰 배포에서
+  // 확인한 실패:
+  //
+  //   Prisma Client could not locate the Query Engine for runtime
+  //   "rhel-openssl-3.0.x"
+  //   The following locations have been searched:
+  //     /var/task/apps/web/generated/prisma        <- 이동해서 없음
+  //     /vercel/path0/packages/db/generated/prisma <- 빌드 머신 경로
+  //
+  // 생성 클라이언트가 빌드 시점 절대경로(/vercel/path0/...)를 박는데 런타임
+  // 함수 루트는 /var/task/ 다. 트레이싱이 엔진을 번들에 넣더라도 Prisma가
+  // 찾는 목록에 그 위치가 없다. 이 플러그인이 엔진을 번들 옆으로 복사해
+  // 탐색 경로와 실제 위치를 맞춘다.
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    return config;
+  },
   images: {
     remotePatterns: [
       {
