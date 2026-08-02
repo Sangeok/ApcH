@@ -38,6 +38,7 @@ apps/admin/
 ├─ eslint.config.js            [신규] web에서 복사
 ├─ prettier.config.js          [신규] web에서 복사
 ├─ vercel.json                 [신규] regions: ["icn1"]
+├─ .gitignore                  [신규] web에서 복사. generated/ 는 무시하지 않는다
 └─ src/
    ├─ env.js                   [신규] 필요한 10개만
    ├─ middleware.ts            [신규]
@@ -243,6 +244,7 @@ git commit -m "docs: update CLAUDE.md for the monorepo layout"
 cp apps/web/postcss.config.js apps/admin/postcss.config.js
 cp apps/web/eslint.config.js apps/admin/eslint.config.js
 cp apps/web/prettier.config.js apps/admin/prettier.config.js
+cp apps/web/.gitignore apps/admin/.gitignore
 cp apps/web/.npmrc apps/admin/.npmrc 2>/dev/null || true
 mkdir -p apps/admin/src/styles
 cp apps/web/src/styles/globals.css apps/admin/src/styles/globals.css
