@@ -1483,19 +1483,53 @@ export default async function AdminObservabilityRoute() {
 }
 ```
 
-- [ ] **Step 9: 타입 체크**
+- [ ] **Step 9: 최소 `next.config.js` 작성**
+
+라우트가 생기는 순간 빌드가 `src/env.js`를 평가한다(`auth/config.ts`가 `env`를 임포트하므로). 루트 `.env`를 읽는 설정이 없으면 `Failed to collect page data`로 죽는다.
+
+**Task 9까지 미룰 수 없다.** 이 Task의 게이트가 "빌드 성공"인데, 그 게이트를 통과시키는 데 필요한 최소 조건이 여기 있어야 한다.
+
+```js
+// apps/admin/next.config.js
+// 루트 .env 유일본을 읽는다. Next.js는 process.cwd() 기준으로만 .env를
+// 자동 로드하는데 cwd가 apps/admin이므로 루트 파일이 자동으로는 안 읽힌다.
+// ESM 정적 import는 모두 본문보다 먼저 평가되므로, ./src/env.js 검증이
+// 이 dotenv 로드보다 먼저 실행되지 않도록 동적 import로 불러온다.
+import { config as loadEnv } from "dotenv";
+
+loadEnv({ path: "../../.env" });
+
+await import("./src/env.js");
+
+/** @type {import("next").NextConfig} */
+const config = {
+  transpilePackages: ["@repo/db"],
+  serverExternalPackages: ["@prisma/adapter-neon"],
+};
+
+export default config;
+```
+
+Task 9가 여기에 `outputFileTracingRoot`, `PrismaPlugin`, 축소 CSP, Sentry 래핑을 더한다. **지금은 빌드가 도는 최소 형태만 만든다.**
+
+`config`라는 이름과 정적 import의 함정은 `apps/web/next.config.js`와 동일하다. 그쪽 주석을 참고할 것.
+
+- [ ] **Step 10: 타입 체크와 빌드**
 
 ```bash
 npm run typecheck -w apps/admin
+npm run build -w apps/admin
 ```
 
-Expected: 에러 없음
+Expected: 둘 다 성공. 빌드가 라우트 표를 출력한다(`/`, `/analytics`, `/login`, `/observability`, `/api/auth/[...nextauth]`, `/robots.txt`, Middleware).
 
-- [ ] **Step 10: 커밋**
+**여기서 처음으로 `apps/admin`이 빌드된다.** Task 1~7 동안 `Couldn't find any 'pages' or 'app' directory`로 실패하던 것이 해소된다.
+
+- [ ] **Step 11: 커밋**
 
 ```bash
-git add apps/admin/src/app apps/admin/src/ui
-git commit -m "feat: add admin routes with login page and analytics dashboard"
+git add apps/admin/src/app apps/admin/src/ui apps/admin/next.config.js
+git commit -F <메시지 파일>
 ```
 
 ---
@@ -1509,22 +1543,26 @@ git commit -m "feat: add admin routes with login page and analytics dashboard"
 - Consumes: Task 1의 `src/env.js`
 - Produces: 빌드 가능한 admin 앱
 
-- [ ] **Step 1: `next.config.js` 작성**
+- [ ] **Step 1: `next.config.js` 확장**
 
-web에서 복사하되 CSP를 줄이고 트레이싱을 넣는다.
+Task 8이 만든 최소 설정에 트레이싱·CSP·Sentry를 더한다. **새로 쓰는 게 아니라 확장이다** — dotenv 선로드와 `await import("./src/env.js")`는 이미 있고 그 형태를 바꾸면 안 된다.
 
 ```js
-// 루트 .env 유일본을 읽는다. env.js 검증보다 먼저 실행되어야 한다.
+// 루트 .env 유일본을 읽는다. Next.js는 process.cwd() 기준으로만 .env를
+// 자동 로드하는데 cwd가 apps/admin이므로 루트 파일이 자동으로는 안 읽힌다.
+// ESM 정적 import는 모두 본문보다 먼저 평가되므로, ./src/env.js 검증이
+// 이 dotenv 로드보다 먼저 실행되지 않도록 동적 import로 불러온다.
 import { config as loadEnv } from "dotenv";
-loadEnv({ path: "../../.env" });
-
-import "./src/env.js";
-
+import { withSentryConfig } from "@sentry/nextjs";
+import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { withSentryConfig } from "@sentry/nextjs";
+
+loadEnv({ path: "../../.env" });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -1534,6 +1572,17 @@ const config = {
   outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@repo/db"],
   serverExternalPackages: ["@prisma/adapter-neon"],
+  // outputFileTracingRoot 만으로는 부족하다. 2026-08-01 web 배포에서 실측했다.
+  // 생성 클라이언트가 빌드 시점 절대경로(/vercel/path0/...)를 파일에 박는데
+  // 런타임 함수 루트는 /var/task/ 다. 트레이싱이 엔진을 번들에 넣더라도
+  // Prisma 가 찾는 목록에 그 위치가 없다. 이 플러그인이 엔진을 번들 옆으로
+  // 복사해 두 규칙을 맞춘다. admin 도 DB 를 읽으므로 똑같이 필요하다.
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    return config;
+  },
   async headers() {
     if (process.env.NODE_ENV === "development") return [];
     return [
