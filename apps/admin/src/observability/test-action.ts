@@ -10,7 +10,7 @@ import {
 } from "./index";
 
 /**
- * DSN·네트워크·beforeSend·flush·environment 태그가 전부 통하는지
+ * DSN·네트워크·flush·environment 태그가 전부 통하는지
  * 실제 실패를 기다리지 않고 확인하는 용도.
  *
  * ⚠️ 반환 타입이 모든 결과를 담지 않는다. 비관리자 호출은 `requireAdmin()`이
