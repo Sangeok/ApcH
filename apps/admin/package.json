@@ -14,6 +14,11 @@
   },
   "dependencies": {
     "@repo/db": "*",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^2.2.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.215.0",
+    "@opentelemetry/instrumentation": "^0.220.0",
+    "@opentelemetry/sdk-trace-base": "^2.7.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@sentry/nextjs": "^10.68.0",
     "@t3-oss/env-nextjs": "^0.12.0",
