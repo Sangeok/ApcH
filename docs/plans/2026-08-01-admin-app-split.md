@@ -148,7 +148,7 @@ git commit -m "docs: update CLAUDE.md for the monorepo layout"
     "check": "next lint && tsc --noEmit",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test \"src/**/*.test.mjs\""
+    "test": "tsx --test \"src/**/*.test.mjs\""
   },
   "dependencies": {
     "@repo/db": "*",
@@ -180,12 +180,19 @@ git commit -m "docs: update CLAUDE.md for the monorepo layout"
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.15",
+    "tsx": "^4.23.1",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0"
   }
 }
 ```
+
+**테스트 러너는 `tsx`다.** 초안은 `node --experimental-strip-types`를 적었는데, 이 계획서를 쓴 뒤 모노레포 전환 작업에서 그 방식의 한계가 드러났다. `.test.mjs`가 `@repo/db`를 거치는 순간 Node ESM이 세 겹의 벽에 막힌다(확장자 없는 임포트 2회 + Prisma CJS 디렉터리 임포트). `apps/web`이 이미 `tsx`로 옮겼으므로 admin도 맞춘다.
+
+지금 계획된 admin 테스트는 전부 순수 모듈이라 strip-types로도 돌긴 한다. 그래도 맞추는 이유는 두 가지다. 한 저장소에 러너가 둘이면 "왜 여기만 다르지"가 반복되고, `@repo/db`를 건드리는 테스트를 처음 쓰는 사람이 원인을 알 수 없는 에러를 만난다.
+
+`tsx`를 devDependency로 **명시 선언한다.** 루트에 호이스팅되어 있어 선언 없이도 돌지만, 그건 `apps/web`의 의존성에 기대는 것이다(Task 1의 `typescript-eslint`와 같은 문제).
 
 `next-themes`가 없는 것을 확인한다. sonner atom을 복사할 때 `useTheme()`을 제거할 것이다(Task 6).
 
