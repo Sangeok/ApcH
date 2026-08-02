@@ -1,0 +1,23 @@
+# Prisma 생성 산출물의 줄바꿈 처리.
+#
+# 이 저장소는 core.autocrlf=true 이고 generated/prisma 는 커밋 대상이다.
+# prisma generate 가 LF 로 쓰는데 git 은 CRLF 를 기대해서, npm install 이
+# 돌 때마다 20여 개 파일이 "변경됨"으로 뜬다. 내용은 0줄 차이다.
+#
+# 매번 git checkout 으로 되돌리는 방식은 언젠가 놓친다. 놓치면 무의미한
+# 20파일이 커밋에 섞이고, 진짜 변경(절대경로 재작성 vs 버전 드리프트)을
+# 가려내기 어려워진다.
+#
+# 텍스트는 eol=lf 로 고정하되 text 로 남겨 diff 는 계속 읽을 수 있게 한다.
+# 이 디렉터리의 diff 를 읽는 것은 실제로 필요하다 — 경로 재작성은 정상이고
+# 버전 문자열 변경은 문제라서, 둘을 눈으로 구분해야 한다.
+packages/db/generated/**/*.js    text eol=lf
+packages/db/generated/**/*.mjs   text eol=lf
+packages/db/generated/**/*.ts    text eol=lf
+packages/db/generated/**/*.json  text eol=lf
+packages/db/generated/**/*.prisma text eol=lf
+
+# 쿼리 엔진은 바이너리다. text 로 다루면 줄바꿈 변환이 들어가 파일이 깨진다.
+# 위 규칙을 `**` 로 뭉뚱그렸다가 실제로 이 두 파일이 변경으로 뜬 적이 있다.
+packages/db/generated/**/*.node  binary
+packages/db/generated/**/*.wasm  binary
