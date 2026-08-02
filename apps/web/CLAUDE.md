@@ -2,175 +2,209 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Repository Layout
+
+This is an **npm workspaces monorepo**. This file describes `apps/web`.
+
+```
+ApcH/
+├─ package.json          workspaces: ["apps/*", "packages/*"]
+├─ .env                  단일본. 앱과 Prisma CLI가 공유
+├─ apps/
+│  └─ web/               이 문서가 설명하는 앱 (a-pch.com)
+├─ packages/
+│  └─ db/                @repo/db — Prisma + analytics 계약
+└─ ai-podcast-clipper-backend/   Python (Modal). 워크스페이스 대상 아님
+```
+
+`apps/admin`은 아직 없다. 어드민 화면은 현재 `apps/web/src/app/admin/`에 있고, 별도 배포로 분리하는 계획이 `docs/plans/2026-08-01-admin-app-split.md`에 있다.
+
 ## Project Overview
 
-AI Podcast Clipper is a Next.js 15 application built with the T3 Stack that processes podcast videos into AI-generated clips. The frontend handles user authentication, file uploads to S3, and displays processed clips. Video processing happens asynchronously via Inngest workers that call an external Modal.run endpoint.
+AI Podcast Clipper는 팟캐스트 영상을 AI 클립으로 만드는 Next.js 15 앱이다. 인증, S3 업로드, 클립 표시를 담당하고, 영상 처리는 Inngest 워커가 외부 Modal.run 엔드포인트를 호출해 비동기로 처리한다.
 
 ## Development Commands
 
-### Core Workflows
+**대부분 저장소 루트에서 실행한다.** 워크스페이스 플래그(`-w`)가 붙는 명령은 어디서 실행하든 동일하게 동작한다.
 
 ```bash
-# Development
-npm run dev                    # Start Next.js dev server with Turbo
-npm run inngest-dev           # Start Inngest dev server for testing workers
+# 개발
+npm run dev                      # web 개발 서버 (Turbopack, :3000)
+npm run inngest-dev -w apps/web  # Inngest 개발 서버 (:8288)
 
-# Database
-npm run db:push               # Push schema changes to database (development)
-npm run db:generate           # Generate migrations
-npm run db:migrate            # Run migrations (production)
-npm run db:studio             # Open Prisma Studio
+# 데이터베이스 — @repo/db 가 소유한다
+npm run db:push -w @repo/db      # 스키마를 DB에 반영 (개발)
+npm run db:generate -w @repo/db  # 마이그레이션 생성 (prisma migrate dev)
+npm run db:migrate -w @repo/db   # 마이그레이션 적용 (prisma migrate deploy)
+npm run db:studio -w @repo/db    # Prisma Studio
 
-# Code Quality
-npm run check                 # Run linter and type checker together
-npm run typecheck             # TypeScript type checking only
-npm run lint                  # Run ESLint
-npm run lint:fix              # Auto-fix linting issues
-npm run format:check          # Check code formatting
-npm run format:write          # Auto-format code
+# 코드 품질
+npm run check --workspaces       # lint + typecheck (전 워크스페이스)
+npm run test --workspaces        # 테스트 (전 워크스페이스)
+npm run check -w apps/web        # web만
+npm run typecheck -w apps/web
+npm run lint:fix -w apps/web
+npm run format:write -w apps/web
 
-# Build & Deploy
-npm run build                 # Production build
-npm run preview               # Build and start production server
-npm run start                 # Start production server
+# 빌드
+npm run build --workspaces
+npm run build -w apps/web
+npm run preview -w apps/web      # 빌드 후 프로덕션 서버 기동
 ```
+
+루트 `package.json`에 `db:push` / `db:migrate` / `db:studio` 축약이 있어 `npm run db:push`만으로도 된다.
+
+### 테스트
+
+Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈을 임포트하는데, Node ESM은 확장자 없는 임포트를 해석하지 못하고 `@repo/db`는 CJS 디렉터리 임포트를 거쳐야 해서 bare node로는 돌지 않는다.
+
+```bash
+npm test -w apps/web
+```
+
+현재 5개 파일, 20개 테스트.
+
+| 파일 | 지키는 것 |
+|---|---|
+| `shared/analytics/event-catalog.test.mjs` | shim이 `ANALYTICS_METADATA_KEYS_BY_EVENT` 재수출을 잃지 않는 것. **이 줄이 사라지면 타입 에러 없이 계측만 조용히 멈춘다** |
+| `entities/analytics-event/model/reporting.test.mjs` | 퍼널 집계 로직 |
+| `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키 |
+| `shared/analytics/lib/normalize-path.test.mjs` | 경로 정규화 |
+| `widgets/clip-draft-review/model/selection-budget.test.mjs` | 클립 선택 예산 |
 
 ## Architecture
 
 ### Feature-Sliced Design (FSD)
 
-The codebase follows Feature-Sliced Design methodology in `src/fsd/`:
+`src/fsd/` 아래 5개 레이어.
 
-**Layers (top to bottom)**:
+| 레이어 | 슬라이스 |
+|---|---|
+| `pages/` | admin-analytics, admin-observability, ai-podcast-clipper, compare, dashboard, features, guides, home, podcast-to-shorts, pricing, product-tour, resources, upload-detail, youtube-shorts-generator |
+| `widgets/` | clip-display, clip-draft-review, dashboard-header, login-form, site-footer, site-header, uploaded-file-list |
+| `features/` | auth, billing, clip, clip-review, handle-order-*, handle-subscription-*, observability-test, upload |
+| `entities/` | analytics-event, clip, clip-draft, order, processing-dispatch, subscription, uploaded-file, user |
+| `shared/` | analytics, api, config, lib, observability, ui |
 
-- `pages/` - Route-level orchestration (home, dashboard, uploadDetail)
-- `widgets/` - Composite UI blocks (clip-display, uploaded-file-list, loginForm, signupForm, dashboard-header)
-- `features/` - User interactions with business logic (upload)
-- `entity/` - Business entities and their models (auth/model/schemas)
-- `shared/` - Reusable utilities and UI primitives
-  - `lib/` - Utilities (utils.ts, auth.ts)
-  - `ui/atoms/` - Base components (button, input, card, etc.)
+**규칙**
 
-**Key Rules**:
+- 상위 레이어는 하위 레이어만 임포트한다 (역방향 금지)
+- 같은 레이어 안에서의 peer 임포트 금지
+- 각 슬라이스는 `ui/`, `model/`, `api/`, `lib/` 하위로 자족한다
 
-- Higher layers can import from lower layers only (no upward imports)
-- Peer imports within same layer are forbidden
-- Each slice is self-contained with ui/, model/, constants/ subfolders
+### 서버 액션
 
-### Server-Side Architecture
+`src/actions/` 디렉터리는 **없다.** 서버 액션은 각 feature 슬라이스의 `api/index.ts`에 `"use server"`와 함께 있다.
 
-**NextAuth.js Authentication** (`src/server/auth/`):
+```
+features/billing/api/index.ts            결제·체크아웃
+features/clip/api/index.ts               클립 조회·삭제·URL 생성
+features/clip-review/api/index.ts        생성 전 클립 검토
+features/observability-test/api/index.ts Sentry 전송 경로 점검 (어드민 전용)
+features/upload/api/index.ts             업로드 준비·확정·처리 스케줄링
+```
 
-- Uses Prisma adapter with SQLite database
-- Credentials provider with bcrypt password hashing
-- JWT session strategy (not database sessions)
-- Session includes user.id via JWT callbacks
+인가는 **액션 본문 최상단**에서 강제한다. Server Action은 레이아웃과 무관하게 직접 POST로 호출되는 독립 엔드포인트라 레이아웃 가드로는 보호되지 않는다.
 
-**Inngest Background Jobs** (`src/inngest/`):
+### 인증 (`src/server/auth/`)
 
-- `processVideo` function handles async video processing
-- Concurrency limited to 1 per user (via userId key)
-- Workflow: check credits → call Modal endpoint → parse response → create clips in DB → deduct credits
-- Fallback to S3 listing if backend doesn't return clip metadata
-- Retries: 1 attempt
+- **Google OAuth 전용.** Credentials(이메일/비밀번호)는 2026-03-26에 제거됐다. bcrypt 의존성도 없다
+- JWT 세션 전략 (`config.edge.ts:13`). Prisma adapter를 쓰지만 세션은 DB에 저장하지 않는다
+- `config.edge.ts`는 Edge 런타임 호환용으로 Prisma·env 의존이 없다. `middleware.ts`가 이것만 쓰고, `config.ts`가 이를 확장한다
+- 어드민 판별은 DB 역할이 아니라 `env.ADMIN_EMAILS` 콤마 구분 화이트리스트 (`shared/api/admin-guard.ts`)
 
-**Database (Prisma + SQLite)**:
+### 데이터베이스
 
-- Schema located in `prisma/schema.prisma`
-- Generated client in `generated/prisma/` (not `node_modules`)
-- Key models: User, UploadedFile, Clip
-- User credits system: default 3 credits, decremented per clip processed
+**Postgres (Neon)** + `@prisma/adapter-neon` 드라이버 어댑터. SQLite가 아니다.
 
-### Server Actions (`src/actions/`)
+- 스키마: `packages/db/prisma/schema.prisma`
+- 생성 클라이언트: `packages/db/generated/prisma/` — **git 추적 대상이다**(27개 파일). `.gitignore`에 넣지 말 것. tmp 찌꺼기 규칙만 `packages/db/.gitignore`에 있다
+- 모델: Account, Session, VerificationToken, User, UploadedFile, Clip, ClipDraft, ProcessingDispatch, Subscription, Order, AnalyticsEvent
+- 크레딧: 기본 3, 클립당 1 차감
 
-All server actions use `"use server"` directive:
+```typescript
+import { db } from "~/server/db";   // 앱 내부 간접 계층 (@repo/db 재수출)
+import { db } from "@repo/db";      // 패키지 직접
+```
 
-- `auth.ts` - User signup/login with bcrypt
-- `s3.ts` - Presigned URL generation for file uploads
-- `generation.ts` - Video processing trigger, clip URL generation, clip deletion
-- `uploaded-files.ts` - CRUD operations for uploaded files
+`~/server/db`는 한 줄짜리 shim이다. 둘 다 같은 인스턴스를 준다.
 
-### Environment Variables
+### `@repo/db` 공개 표면
 
-Managed via `@t3-oss/env-nextjs` in `src/env.js`:
+```typescript
+export { db }                          // Prisma 클라이언트
+export { Prisma }                      // 네임스페이스 (값). instanceof 검사용
+export type * from "generated/prisma"  // 모델 타입 (Clip, ClipDraft, ...)
+export * from "./analytics-contract"   // 아래 참조
+```
 
-- Type-safe validation with Zod
-- Separate server/client schemas
-- Required vars: AUTH_SECRET, DATABASE_URL, AWS credentials, S3_BUCKET_NAME, PROCESS_VIDEO_ENDPOINT
+**`export type *`는 타입만 내보낸다.** 스키마에 enum을 추가하고 그 값을 런타임에 쓰려면 `export { SomeEnum }`을 명시적으로 추가해야 한다. 빠뜨리면 `undefined`가 되고 `tsc`가 잡지 못한다.
 
-## Key Implementation Details
+### analytics 계약 — 손댈 때 주의
 
-### Video Processing Flow
+`packages/db/src/analytics-contract.ts`가 이벤트 이름 28개, 퍼널 정의, 관련 타입을 **한 곳에서** 정의한다. web이 쓰고(기록), 앞으로 admin이 읽는다(집계).
 
-1. User uploads file → presigned S3 URL generated (`s3.ts`)
-2. File uploaded to S3 with structure: `{userId}/{uuid}/original.mp4`
-3. `processVideo()` action triggered → sends Inngest event
-4. Inngest worker calls Modal endpoint with s3Key and language
-5. Backend returns clips array with metadata (startSeconds, endSeconds, scriptText, s3Key)
-6. Worker creates Clip records in DB with metadata
-7. If backend doesn't return clips, fallback to S3 listing for `clip_*.mp4` files
-8. Credits deducted, status updated to "processed"
+`ANALYTICS_FUNNELS`의 `satisfies Record<FunnelId, readonly AnalyticsEventName[]>` 절이 "퍼널 단계는 실제 존재하는 이벤트 이름이어야 한다"를 컴파일 타임에 강제한다. **이 방어선은 양쪽이 같은 파일을 볼 때만 작동한다.** 계약을 복사해 두 벌로 만들면 한쪽에서 rename해도 다른 쪽은 통과하고, 대시보드가 에러 없이 0을 보여준다.
 
-### Status Flow for UploadedFile
+`ANALYTICS_METADATA_KEYS_BY_EVENT`는 web 전용이라 계약에 없다. `shared/analytics/event-catalog.ts`가 재수출한다.
 
-- `queued` (default) → `processing` → `processed` | `failed` | `no credits`
-- Status checked in UI to show processing timeline
+### Inngest (`src/inngest/`)
 
-### S3 Key Patterns
+- `client.ts` — 클라이언트와 앱 id
+- `functions.ts` — `processVideo` 등. 사용자별 동시성 1 (userId 키), 재시도 1회
+- 흐름: 크레딧 확인 → Modal 호출 → 응답 파싱 → Clip 레코드 생성 → 크레딧 차감
+- 백엔드가 클립 메타데이터를 안 주면 S3 목록으로 폴백
 
-- Original upload: `{userId}/{uuid}/original.mp4`
-- Generated clips: `{uploadPrefix}/attempt-{attempt}/clip_{index}.mp4`
-- Presigned URLs expire in 3600 seconds
+### 환경 변수
 
-### Authentication Patterns
+`src/env.js`에서 `@t3-oss/env-nextjs` + Zod로 검증한다. 빌드 시점에 검증되므로 새 변수는 여기 스키마에 먼저 추가해야 한다.
 
-- Server actions use `await auth()` from `~/server/auth`
-- Session contains: `{ user: { id, name, email, image } }`
-- Protected routes should check `session?.user?.id`
+**`.env`는 저장소 루트에 있다.** Next.js는 `process.cwd()` 기준으로만 `.env`를 자동 로드하는데 cwd가 `apps/web`이라, `next.config.js` 최상단에서 dotenv로 명시 로드한다.
+
+```js
+import { config as loadEnv } from "dotenv";
+loadEnv({ path: "../../.env" });
+await import("./src/env.js");
+```
+
+**`await import`를 정적 import로 되돌리면 안 된다.** ESM은 정적 import를 전부 본문보다 먼저 평가하므로, `src/env.js` 검증이 dotenv보다 먼저 돌아 `Invalid environment variables`가 난다.
 
 ## Path Aliases
 
-TypeScript `baseUrl` is set to `.` with path mapping:
+`tsconfig.json`의 `baseUrl`은 `.`, 매핑은 `~/*` → `./src/*`.
 
-- `~/*` → `./src/*`
+- 앱 내부는 `~/*`를 쓴다. 슬라이스 경계를 넘는 상대 경로는 금지
+- 패키지는 `@repo/db`로 임포트한다
 
-Always use `~/*` imports, never relative paths across feature boundaries.
+## 배포 (Vercel)
 
-## Database Operations
+| 설정 | 값 |
+|---|---|
+| Root Directory | **`apps/web`** |
+| Region | `icn1` |
 
-**When modifying schema**:
+`next.config.js`에 두 가지가 함께 있어야 Prisma가 런타임에 동작한다.
 
-1. Edit `prisma/schema.prisma`
-2. Run `npm run db:push` (dev) or `npm run db:generate` + `npm run db:migrate` (prod)
-3. Prisma Client regenerates automatically via postinstall hook
-
-**Database client import**:
-
-```typescript
-import { db } from "~/server/db";
+```js
+outputFileTracingRoot: path.join(__dirname, "../../"),  // 엔진을 빌드 산출물에 포함
+webpack: (config, { isServer }) => {                     // 엔진을 번들 옆으로 복사
+  if (isServer) config.plugins = [...config.plugins, new PrismaPlugin()];
+  return config;
+},
 ```
 
-## Styling
+**둘 다 필요하다.** 생성 클라이언트가 빌드 시점 절대경로(`/vercel/path0/...`)를 파일에 박는데 런타임 함수 루트는 `/var/task/`다. 트레이싱만으로는 엔진이 번들에 들어가도 Prisma가 찾는 위치에 없다. 2026-08-01 배포에서 실측으로 확인했다.
 
-- Tailwind CSS 4.0 with custom configuration
-- shadcn/ui components in `src/fsd/shared/ui/atoms/`
-- `cn()` utility from `~/fsd/shared/lib/utils` for conditional classes
-- Radix UI primitives as component base
-
-## Testing Inngest Locally
-
-1. Run `npm run inngest-dev` in separate terminal
-2. Inngest dev server runs on http://localhost:8288
-3. Events sent via `inngest.send()` will be visible in dev UI
-4. Test video processing without hitting production Modal endpoint
+`packages/db`의 `postinstall`이 리눅스 엔진을 생성한다. 커밋된 엔진은 Windows 전용이라 이것 없이는 배포가 런타임에 죽는다.
 
 ## Common Gotchas
 
-- Prisma client is generated to `generated/prisma/`, not `node_modules/@prisma/client`
-- NextAuth uses JWT sessions, not database sessions (despite Prisma adapter)
-- Inngest concurrency key prevents parallel processing for same user
-- S3 operations require checking both DB records and actual S3 objects (eventual consistency)
-- Environment variables are validated at build time - add new vars to `src/env.js` schema
+- Prisma 클라이언트는 `packages/db/generated/prisma/`에 생성된다. `node_modules/@prisma/client`가 아니다
+- 생성 클라이언트는 **생성 시점의 절대경로를 파일에 박는다.** 디렉터리를 옮기면 그 값이 재작성되고, 그 diff는 정상이다. `"version"`이나 런타임 코드가 바뀌면 그때만 문제다
+- NextAuth는 Prisma adapter를 쓰지만 JWT 세션이다. DB에 세션 행이 쌓이지 않는다
+- S3는 결과적 일관성이 있어 DB 레코드와 실제 객체를 함께 확인해야 한다
+- `npm install` 후 `generated/prisma`가 CRLF로 바뀌어 20여 개 파일이 변경으로 뜰 수 있다. `git diff --ignore-cr-at-eol --numstat`가 0이면 내용 변화가 없는 것이므로 되돌린다
+- `@repo/db`는 bare `node`로 임포트되지 않는다(확장자 없는 임포트 + Prisma CJS 디렉터리 임포트). 테스트는 `tsx`로 돌린다
 
 ## CRITICAL: File Editing on Windows
 
@@ -191,3 +225,5 @@ MultiEdit(file_path: "D:/repos/project/file.tsx", ...)
 Edit(file_path: "D:\repos\project\file.tsx", ...)
 MultiEdit(file_path: "D:\repos\project\file.tsx", ...)
 ```
+
+Bash 도구에서는 반대로 정방향 슬래시를 쓴다. 그리고 Bash 도구에 PowerShell here-string(`@'...'@`) 문법을 쓰면 리터럴 `@`가 들어간다 — 커밋 메시지는 `git commit -F <파일>`로 넘긴다.
