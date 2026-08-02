@@ -154,7 +154,7 @@ The two apps deploy as separate Vercel projects, with `Root Directory` set to
 ### Backend Setup
 
 ```bash
-cd ai-podcast-clipper-backend
+cd apps/backend
 
 # Create Modal secret with required environment variables
 modal secret create ai-podcast-clipper-secret \
@@ -260,16 +260,16 @@ ApcH/
 │   │       │   ├── entities/       # domain models
 │   │       │   └── shared/         # analytics, ui, lib
 │   │       └── inngest/            # async video pipeline workers
-│   └── admin/                      # admin.a-pch.com — internal dashboard
-│       └── src/
-│           ├── app/                # /login, /analytics, /observability
-│           ├── analytics/          # aggregation queries
-│           └── auth/               # standalone auth (ADMIN_EMAILS allowlist)
-├── packages/
-│   └── db/                         # @repo/db
-│       ├── prisma/schema.prisma    # database schema
-│       └── src/analytics-contract.ts   # event names, funnels, shared types
-└── ai-podcast-clipper-backend/     # Python (Modal). Not an npm workspace
+│   ├── admin/                      # admin.a-pch.com — internal dashboard
+│   │   └── src/
+│   │       ├── app/                # /login, /analytics, /observability
+│   │       ├── analytics/          # aggregation queries
+│   │       └── auth/               # standalone auth (ADMIN_EMAILS allowlist)
+│   └── backend/                    # Python (Modal). No package.json, so not an npm workspace
+└── packages/
+    └── db/                         # @repo/db
+        ├── prisma/schema.prisma    # database schema
+        └── src/analytics-contract.ts   # event names, funnels, shared types
 ```
 
 `packages/db` exists so the analytics contract has exactly one definition. `web`
@@ -280,7 +280,7 @@ would silently report zero.
 ### Backend Structure
 
 ```
-ai-podcast-clipper-backend/
+apps/backend/
 ├── main.py                     # Modal app entry point
 ├── asd/                        # Columbia ASD model
 │   ├── Columbia_test.py        # Active speaker detection

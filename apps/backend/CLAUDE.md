@@ -16,6 +16,28 @@ Deployed on Modal.com for serverless GPU execution with L40S GPUs.
 
 ## Development Commands
 
+### Local venv
+
+이 앱은 `.venv` 를 저장소 안에 두지 않는다. 저장소가 OneDrive 동기화 폴더
+(`OneDrive/Desktop/git/ApcH`) 안에 있어서, 수 GB짜리 torch/CUDA 패키지가
+그대로 클라우드로 업로드되고 OneDrive 스캐너가 `site-packages` 하위에
+디렉터리 핸들을 잡는다. 실제로 이 핸들 때문에 폴더 rename 이 막힌 적이 있다.
+
+```bash
+# 위치: OneDrive 밖
+C:\Users\hamso\venvs\apch-backend
+
+# 재생성
+python -m venv C:\Users\hamso\venvs\apch-backend
+C:\Users\hamso\venvs\apch-backend\Scripts\python.exe -m pip install -r requirements.txt
+
+# 사용
+C:\Users\hamso\venvs\apch-backend\Scripts\activate
+```
+
+Modal 은 배포 시 `requirements.txt` 로 자체 이미지를 빌드하므로, 이 venv 는
+로컬에서 파이썬을 직접 돌릴 때만 필요하다. 배포에는 없어도 된다.
+
 ### Local Testing
 
 ```bash

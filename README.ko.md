@@ -154,7 +154,7 @@ npm run inngest-dev -w apps/web
 ### 백엔드 설정
 
 ```bash
-cd ai-podcast-clipper-backend
+cd apps/backend
 
 # 필요한 환경 변수로 Modal secret 생성
 modal secret create ai-podcast-clipper-secret \
@@ -260,16 +260,16 @@ ApcH/
 │   │       │   ├── entities/       # 도메인 모델
 │   │       │   └── shared/         # analytics, ui, lib
 │   │       └── inngest/            # 비동기 영상 파이프라인 워커
-│   └── admin/                      # admin.a-pch.com — 내부 대시보드
-│       └── src/
-│           ├── app/                # /login, /analytics, /observability
-│           ├── analytics/          # 집계 쿼리
-│           └── auth/               # 자체 인증 (ADMIN_EMAILS 화이트리스트)
-├── packages/
-│   └── db/                         # @repo/db
-│       ├── prisma/schema.prisma    # 데이터베이스 스키마
-│       └── src/analytics-contract.ts   # 이벤트 이름, 퍼널, 공용 타입
-└── ai-podcast-clipper-backend/     # Python (Modal). npm 워크스페이스 아님
+│   ├── admin/                      # admin.a-pch.com — 내부 대시보드
+│   │   └── src/
+│   │       ├── app/                # /login, /analytics, /observability
+│   │       ├── analytics/          # 집계 쿼리
+│   │       └── auth/               # 자체 인증 (ADMIN_EMAILS 화이트리스트)
+│   └── backend/                    # Python (Modal). package.json 이 없어 npm 워크스페이스 아님
+└── packages/
+    └── db/                         # @repo/db
+        ├── prisma/schema.prisma    # 데이터베이스 스키마
+        └── src/analytics-contract.ts   # 이벤트 이름, 퍼널, 공용 타입
 ```
 
 `packages/db`가 존재하는 이유는 analytics 계약의 정의를 하나로 두기 위해서입니다.
@@ -279,7 +279,7 @@ web이 이벤트를 기록하고 admin이 집계하는데, 계약을 복사해 �
 ### 백엔드 구조
 
 ```
-ai-podcast-clipper-backend/
+apps/backend/
 ├── main.py                     # Modal 앱 엔트리포인트
 ├── asd/                        # Columbia ASD 모델
 │   ├── Columbia_test.py        # Active speaker detection
