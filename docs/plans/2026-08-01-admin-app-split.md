@@ -180,14 +180,21 @@ git commit -m "docs: update CLAUDE.md for the monorepo layout"
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.15",
     "tw-animate-css": "^1.4.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.27.0"
   }
 }
 ```
 
 `next-themes`가 없는 것을 확인한다. sonner atom을 복사할 때 `useTheme()`을 제거할 것이다(Task 6).
 
+**`typescript-eslint`를 빠뜨리면 안 된다.** `eslint.config.js`가 `import tseslint from "typescript-eslint"`로 직접 임포트한다. 선언하지 않아도 `apps/web`에서 호이스팅되어 당장은 동작하지만, web이 이 의존성을 버리는 순간 admin의 lint가 원인 불명으로 깨진다. 워크스페이스가 남의 의존성에 기대는 상태를 만들지 않는다.
+
+버전은 `apps/web/package.json`과 맞춘다. **계획서 값과 `apps/web` 값이 다르면 `apps/web`이 이긴다** — 계획서 숫자는 손으로 옮겨 적은 것이라 오타 가능성이 있다.
+
 포트를 3001로 둔 이유: web이 3000을 쓰므로 둘을 동시에 띄울 수 있어야 한다.
+
+> **이 시점에는 `npm run check -w apps/admin`과 `npm run build -w apps/admin`이 실패한다.** `app` 디렉터리가 없어 Next가 `Couldn't find any 'pages' or 'app' directory`로 죽는다. Task 8이 라우트를 만들면 해결된다. 통과시키려고 플레이스홀더 라우트를 만들지 않는다. `npm install`과 `npm test -w apps/web`은 이 구간에서도 성공해야 한다.
 
 - [ ] **Step 2: `apps/admin/tsconfig.json` 생성**
 
