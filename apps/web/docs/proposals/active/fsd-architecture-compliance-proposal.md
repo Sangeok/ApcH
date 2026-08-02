@@ -943,3 +943,52 @@ Phase 1 단일 PR은 entities 5개 신설 + Inngest 전체 전환 + 웹훅/포�
 - 선행 제안 문서: `docs/proposals/api-layer-separation-proposal.md` (Server Actions/Queries 분리 — Phase 1과 병행 가능)
 - FSD 공식 문서: https://feature-sliced.design/
 - 아키텍처 경계 린터: https://github.com/feature-sliced/steiger
+
+---
+
+## Audit (2026-08-03)
+
+이 문서의 위반 항목을 현재 코드와 대조했다. 대부분 해소됐고 네 가지가
+남았다. 남은 것만 보면 되므로 처음부터 다시 감사하지 않아도 된다.
+
+### 해소됨
+
+| 항목 | 확인 |
+| --- | --- |
+| V-Critical `entities/` 레이어 신설 | 8개 슬라이스 존재 (analytics-event, clip, clip-draft, order, processing-dispatch, subscription, uploaded-file, user) |
+| V8 안티패턴 세그먼트 | `shared/types`, `shared/hooks`, `pages/dashboard/hooks`, `features/billing/constants` 네 곳 모두 사라짐 |
+| `features/billing/constants/` → `config/` | 현재 세그먼트는 api, config, model, ui |
+| V11a 인용된 두 위반 | `pages/upload-detail/ui/index.tsx:13`, `widgets/clip-display/ui/index.tsx:6` 모두 해당 import 없음 |
+| 3-4 슬라이스 Public API (일부) | entities 8/8, features 8/9 |
+
+### 남음
+
+**1. `widgets/` 슬라이스에 `index.ts`가 하나도 없다 (0/7)**
+
+clip-display, clip-draft-review, dashboard-header, login-form, site-footer,
+site-header, uploaded-file-list.
+
+**2. 크로스 슬라이스 세그먼트 직접 참조**
+
+```
+entities/processing-dispatch/api/index.ts:14  → entities/uploaded-file/model/attempt-prefix
+features/upload/model/query-options.ts:2,3,7  → entities/uploaded-file/model/{polling,query-keys,types}
+features/upload/model/use-reprocess-uploaded-file.ts:4 → entities/uploaded-file/model/query-keys
+```
+
+`entities/uploaded-file/index.ts`는 존재하므로 Public API를 거치도록 바꿀 수 있다.
+
+**3. V11b 인트라 슬라이스 절대경로 자기참조**
+
+```
+features/billing/ui/PlanCard.tsx:14          → ~/fsd/features/billing/api
+features/billing/ui/SubscriptionStatus.tsx:15 → ~/fsd/features/billing/api
+features/billing/ui/OrderHistory.tsx:16       → ~/fsd/features/billing/model/types
+```
+
+§5.3 위반은 아니지만 문서가 상대경로를 권장한 항목이다.
+
+**4. 경계 자동 검출 미도입**
+
+`steiger`도 `@feature-sliced/eslint-config`도 의존성과 eslint 설정 어디에도
+없다. 3-5의 CI 권장이 미적용이다.
