@@ -29,7 +29,7 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 │  └──────────────┘  └──────────────┘  └────────────────────┘     │
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │      NextAuth + Prisma (SQLite)                          │   │
+│  │      NextAuth + Prisma (PostgreSQL)                      │   │
 │  │      User Management & Credit System                     │   │
 │  └──────────────────────────────────────────────────────────┘   │
 └──────────────────────────────┬──────────────────────────────────┘
@@ -76,7 +76,7 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 
 - **Framework**: Next.js 15 (App Router)
 - **Authentication**: NextAuth.js 5.0
-- **Database**: Prisma + SQLite
+- **Database**: Prisma + PostgreSQL (Neon)
 - **Styling**: Tailwind CSS 4.0 + shadcn/ui
 - **Architecture**: Feature-Sliced Design (FSD)
 - **Form Handling**: React Hook Form + Zod
@@ -108,10 +108,11 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 
 ### Frontend Setup
 
-```bash
-cd ai-podcast-clipper-frontend
+This repository is an **npm workspaces monorepo**. Run every command from the
+repository root — there is a single `.env` and a single lockfile.
 
-# Install dependencies
+```bash
+# Install dependencies for all workspaces
 npm install
 
 # Configure environment variables
@@ -129,17 +130,26 @@ cp .env.example .env
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 
+- ADMIN_EMAILS                    # comma-separated allowlist for the admin app
+
 # Initialize database
 npm run db:push
 
-# Start development server
-npm run dev
+# Start development servers
+npm run dev                       # web
+npm run dev:admin                 # admin
 
 # Start Inngest development server (separate terminal)
-npm run inngest-dev
+npm run inngest-dev -w apps/web
 ```
 
-Frontend will be available at http://localhost:3000
+| App | Local | Production |
+|---|---|---|
+| `apps/web` | http://localhost:3000 | https://a-pch.com |
+| `apps/admin` | http://localhost:3001 | https://admin.a-pch.com |
+
+The two apps deploy as separate Vercel projects, with `Root Directory` set to
+`apps/web` and `apps/admin` respectively.
 
 ### Backend Setup
 
@@ -233,28 +243,39 @@ modal run main.py
 
 ## Development
 
-### Frontend Structure (FSD)
+### Repository Structure
 
 ```
-ai-podcast-clipper-frontend/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/                # API routes
-│   │   ├── dashboard/          # Dashboard pages
-│   │   ├── login/              # Authentication pages
-│   │   └── signup/
-│   ├── fsd/                    # Feature-Sliced Design
-│   │   ├── pages/              # Page components
-│   │   │   ├── dashboard/
-│   │   │   ├── home/
-│   │   │   └── uploadDetail/
-│   │   ├── shared/             # Shared utilities
-│   │   └── widgets/            # Reusable widgets
-│   └── components/             # UI components (shadcn)
-└── prisma/
-    ├── schema.prisma           # Database schema
-    └── db.sqlite               # SQLite database
+ApcH/
+├── package.json                    # npm workspaces: apps/*, packages/*
+├── .env                            # single file, shared by both apps and Prisma
+├── apps/
+│   ├── web/                        # a-pch.com — the product
+│   │   └── src/
+│   │       ├── app/                # Next.js App Router
+│   │       ├── fsd/                # Feature-Sliced Design
+│   │       │   ├── pages/          # page components
+│   │       │   ├── widgets/        # composite blocks
+│   │       │   ├── features/       # server actions + interactions
+│   │       │   ├── entities/       # domain models
+│   │       │   └── shared/         # analytics, ui, lib
+│   │       └── inngest/            # async video pipeline workers
+│   └── admin/                      # admin.a-pch.com — internal dashboard
+│       └── src/
+│           ├── app/                # /login, /analytics, /observability
+│           ├── analytics/          # aggregation queries
+│           └── auth/               # standalone auth (ADMIN_EMAILS allowlist)
+├── packages/
+│   └── db/                         # @repo/db
+│       ├── prisma/schema.prisma    # database schema
+│       └── src/analytics-contract.ts   # event names, funnels, shared types
+└── ai-podcast-clipper-backend/     # Python (Modal). Not an npm workspace
 ```
+
+`packages/db` exists so the analytics contract has exactly one definition. `web`
+writes events and `admin` aggregates them; if the contract were duplicated,
+renaming an event on one side would still compile on the other and the dashboard
+would silently report zero.
 
 ### Backend Structure
 

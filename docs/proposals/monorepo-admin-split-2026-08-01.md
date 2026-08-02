@@ -1,9 +1,50 @@
 # 모노레포 전환 + 어드민 앱 분리 배포 개발 문서
 
 Date: 2026-08-01
-Status: **Proposed** — 미해결 질문 없음(§Open Questions). 구현 계획서 작성 대기.
+Status: **Implemented** (2026-08-02) — 계획서: `docs/plans/2026-08-01-monorepo-conversion.md`, `docs/plans/2026-08-01-admin-app-split.md`
 
 분류: **refactoring/infra** — 사용자 대면 동작을 바꾸지 않는 것이 목적이다. 어드민 화면의 기능은 그대로 두고 배포 경계와 저장소 구조만 바꾼다. 유일한 동작 변화는 어드민 접근 경로(`a-pch.com/admin/*` → `admin.a-pch.com/*`)와 어드민 로그인 방식이다.
+
+---
+
+## 구현 결과 (2026-08-02)
+
+두 앱 모두 프로덕션에서 동작한다. `a-pch.com`, `admin.a-pch.com`.
+
+### 계약 방어선 검증 — 이 문서의 핵심 논거
+
+§3 결정 3은 "analytics 계약을 복사하면 한쪽에서 이벤트 이름을 바꿔도 다른 쪽은 통과하고, 대시보드가 에러 없이 0을 보여준다"를 근거로 `packages/db`를 만들자고 했다. 두 앱이 모두 존재하게 된 뒤 실제로 확인했다.
+
+`packages/db/src/analytics-contract.ts`의 `ANALYTICS_EVENT_NAMES`에서 `clip_review_confirmed`를 `clip_review_completed`로 바꾸고 양쪽을 타입체크했다.
+
+| 앱 | 결과 | 실패 지점 |
+|---|---|---|
+| admin | **FAIL** | `analytics-contract.ts:118` — `ANALYTICS_FUNNELS`의 `satisfies Record<FunnelId, readonly AnalyticsEventName[]>` |
+| web | **FAIL** | 위와 같은 줄 **+** `widgets/clip-draft-review/model/use-clip-draft-review.ts:204`의 호출부 |
+
+admin은 이벤트 이름을 직접 쓰지 않는데도 걸렸다. 퍼널 정의가 같은 파일에 있기 때문이다. 계약이 두 벌이었다면 admin은 조용히 통과했을 것이다. **논거가 성립한다.**
+
+### 검증 중 발견한 구멍 하나
+
+web의 `shared/analytics/lib/metadata.ts`가 정의하는 `ANALYTICS_METADATA_KEYS_BY_EVENT`는 조회 시 `as keyof typeof` 캐스트를 쓴다. 계약에 **타입으로 묶여 있지 않다.** 위 실험에서 이 파일은 컴파일 에러를 내지 않았다.
+
+대신 런타임 테스트 2건이 잡았다.
+
+```
+not ok 1 - shim이 이벤트 이름 28개를 그대로 내보낸다
+not ok 3 - 모든 이벤트 이름에 metadata 정의가 있다
+           error: 'metadata 정의 누락: clip_review_completed'
+```
+
+방어는 되고 있지만 방어선의 종류가 다르다 — 타입이 아니라 테스트다. 테스트를 지우면 이벤트 이름을 바꿨을 때 메타데이터 정의가 조용히 고아가 된다. `apps/web/CLAUDE.md`에 기록했다.
+
+### 계획 대비 편차
+
+| 항목 | 계획 | 실제 |
+|---|---|---|
+| Prisma 엔진 트레이싱 | `outputFileTracingRoot`면 충분 | **부족했다.** `@prisma/nextjs-monorepo-workaround-plugin`을 함께 걸어야 런타임에 엔진을 찾는다. 생성 클라이언트가 빌드 시점 절대경로(`/vercel/path0/...`)를 파일에 박는데 런타임 루트는 `/var/task/`다 |
+| admin 의존성 | `@sentry/nextjs`만 선언하면 됨 | `@sentry/node-core`의 OpenTelemetry peer 5개를 명시 선언해야 했다. 루트 `.npmrc`의 `legacy-peer-deps=true`가 peer 자동 설치를 막고, Vercel이 `Root Directory=apps/admin` 기준으로 가지치기하면 좁은 트리에서 빠진다. 로컬과 web은 트리가 넓어 다른 경로로 들어와 있었다 |
+| web 정리 범위 | `api/index.ts`만 교체 | 엔티티 배럴 `index.ts`도 함께 고쳐야 했다(삭제 대상 4함수를 재수출). `model/types.ts`·`model/funnels.ts`는 유일한 사용처가 어드민이라 고아가 되어 함께 삭제 |
 
 ---
 

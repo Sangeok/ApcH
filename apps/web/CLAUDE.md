@@ -11,13 +11,16 @@ ApcH/
 ├─ package.json          workspaces: ["apps/*", "packages/*"]
 ├─ .env                  단일본. 앱과 Prisma CLI가 공유
 ├─ apps/
-│  └─ web/               이 문서가 설명하는 앱 (a-pch.com)
+│  ├─ web/               이 문서가 설명하는 앱 (a-pch.com)
+│  └─ admin/             어드민 앱 (admin.a-pch.com). 별도 Vercel 프로젝트
 ├─ packages/
 │  └─ db/                @repo/db — Prisma + analytics 계약
 └─ ai-podcast-clipper-backend/   Python (Modal). 워크스페이스 대상 아님
 ```
 
-`apps/admin`은 아직 없다. 어드민 화면은 현재 `apps/web/src/app/admin/`에 있고, 별도 배포로 분리하는 계획이 `docs/plans/2026-08-01-admin-app-split.md`에 있다.
+어드민 화면은 2026-08-02에 `apps/admin`으로 분리됐다. **web에는 `/admin` 라우트가 없다.** 어드민 관련 코드(`app/admin/`, `pages/admin-*`, `features/observability-test`, `shared/api/admin-guard.ts`, `env.ADMIN_EMAILS`, analytics 리포팅 집계)는 전부 제거됐으니 web에서 찾지 말 것.
+
+두 앱은 `@repo/db`만 공유한다. UI 컴포넌트와 인증 설정은 각자 자기 것을 가진다 — 공유하지 않기로 한 결정이다(`docs/proposals/monorepo-admin-split-2026-08-01.md` 결정 2).
 
 ## Project Overview
 
@@ -30,6 +33,7 @@ AI Podcast Clipper는 팟캐스트 영상을 AI 클립으로 만드는 Next.js 1
 ```bash
 # 개발
 npm run dev                      # web 개발 서버 (Turbopack, :3000)
+npm run dev:admin                # admin 개발 서버 (Turbopack, :3001)
 npm run inngest-dev -w apps/web  # Inngest 개발 서버 (:8288)
 
 # 데이터베이스 — @repo/db 가 소유한다
@@ -62,13 +66,12 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 5개 파일, 20개 테스트.
+현재 4개 파일, 17개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
 | `shared/analytics/event-catalog.test.mjs` | shim이 `ANALYTICS_METADATA_KEYS_BY_EVENT` 재수출을 잃지 않는 것. **이 줄이 사라지면 타입 에러 없이 계측만 조용히 멈춘다** |
-| `entities/analytics-event/model/reporting.test.mjs` | 퍼널 집계 로직 |
-| `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키 |
+| `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키. **`ANALYTICS_METADATA_KEYS_BY_EVENT`는 `as keyof typeof` 캐스트를 써서 계약에 타입으로 묶여 있지 않다.** 이벤트 이름을 바꿨을 때 메타데이터 정의가 고아가 되는 걸 잡는 건 타입이 아니라 이 테스트다 |
 | `shared/analytics/lib/normalize-path.test.mjs` | 경로 정규화 |
 | `widgets/clip-draft-review/model/selection-budget.test.mjs` | 클립 선택 예산 |
 
@@ -80,9 +83,9 @@ npm test -w apps/web
 
 | 레이어 | 슬라이스 |
 |---|---|
-| `pages/` | admin-analytics, admin-observability, ai-podcast-clipper, compare, dashboard, features, guides, home, podcast-to-shorts, pricing, product-tour, resources, upload-detail, youtube-shorts-generator |
+| `pages/` | ai-podcast-clipper, compare, dashboard, features, guides, home, podcast-to-shorts, pricing, product-tour, resources, upload-detail, youtube-shorts-generator |
 | `widgets/` | clip-display, clip-draft-review, dashboard-header, login-form, site-footer, site-header, uploaded-file-list |
-| `features/` | auth, billing, clip, clip-review, handle-order-*, handle-subscription-*, observability-test, upload |
+| `features/` | auth, billing, clip, clip-review, handle-order-*, handle-subscription-*, upload |
 | `entities/` | analytics-event, clip, clip-draft, order, processing-dispatch, subscription, uploaded-file, user |
 | `shared/` | analytics, api, config, lib, observability, ui |
 
@@ -100,7 +103,6 @@ npm test -w apps/web
 features/billing/api/index.ts            결제·체크아웃
 features/clip/api/index.ts               클립 조회·삭제·URL 생성
 features/clip-review/api/index.ts        생성 전 클립 검토
-features/observability-test/api/index.ts Sentry 전송 경로 점검 (어드민 전용)
 features/upload/api/index.ts             업로드 준비·확정·처리 스케줄링
 ```
 
@@ -111,7 +113,7 @@ features/upload/api/index.ts             업로드 준비·확정·처리 스케
 - **Google OAuth 전용.** Credentials(이메일/비밀번호)는 2026-03-26에 제거됐다. bcrypt 의존성도 없다
 - JWT 세션 전략 (`config.edge.ts:13`). Prisma adapter를 쓰지만 세션은 DB에 저장하지 않는다
 - `config.edge.ts`는 Edge 런타임 호환용으로 Prisma·env 의존이 없다. `middleware.ts`가 이것만 쓰고, `config.ts`가 이를 확장한다
-- 어드민 판별은 DB 역할이 아니라 `env.ADMIN_EMAILS` 콤마 구분 화이트리스트 (`shared/api/admin-guard.ts`)
+- 보호 경로는 `/dashboard`뿐이다. 어드민 판별(`ADMIN_EMAILS` 화이트리스트)은 `apps/admin`으로 갔다
 
 ### 데이터베이스
 

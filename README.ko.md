@@ -29,7 +29,7 @@ AI Podcast Clipper (ApcH)는 팟캐스트 에피소드에서 “바이럴 될 �
 │  └──────────────┘  └──────────────┘  └────────────────────┘     │
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │      NextAuth + Prisma (SQLite)                          │   │
+│  │      NextAuth + Prisma (PostgreSQL)                      │   │
 │  │      User Management & Credit System                     │   │
 │  └──────────────────────────────────────────────────────────┘   │
 └──────────────────────────────┬──────────────────────────────────┘
@@ -76,7 +76,7 @@ AI Podcast Clipper (ApcH)는 팟캐스트 에피소드에서 “바이럴 될 �
 
 - **프레임워크**: Next.js 15 (App Router)
 - **인증**: NextAuth.js 5.0
-- **데이터베이스**: Prisma + SQLite
+- **데이터베이스**: Prisma + PostgreSQL (Neon)
 - **스타일링**: Tailwind CSS 4.0 + shadcn/ui
 - **아키텍처**: Feature-Sliced Design (FSD)
 - **폼 처리**: React Hook Form + Zod
@@ -108,10 +108,11 @@ AI Podcast Clipper (ApcH)는 팟캐스트 에피소드에서 “바이럴 될 �
 
 ### 프론트엔드 설정
 
-```bash
-cd ai-podcast-clipper-frontend
+이 저장소는 **npm workspaces 모노레포**입니다. 모든 명령은 저장소 루트에서
+실행합니다 — `.env`도 lockfile도 하나뿐입니다.
 
-# 의존성 설치
+```bash
+# 전 워크스페이스 의존성 설치
 npm install
 
 # 환경 변수 설정
@@ -129,17 +130,26 @@ cp .env.example .env
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 
+- ADMIN_EMAILS                    # 어드민 앱의 콤마 구분 화이트리스트
+
 # DB 초기화
 npm run db:push
 
 # 개발 서버 실행
-npm run dev
+npm run dev                       # web
+npm run dev:admin                 # admin
 
 # Inngest 개발 서버 실행(별도 터미널)
-npm run inngest-dev
+npm run inngest-dev -w apps/web
 ```
 
-프론트엔드는 `http://localhost:3000` 에서 확인할 수 있습니다.
+| 앱 | 로컬 | 프로덕션 |
+|---|---|---|
+| `apps/web` | http://localhost:3000 | https://a-pch.com |
+| `apps/admin` | http://localhost:3001 | https://admin.a-pch.com |
+
+두 앱은 각각 별도의 Vercel 프로젝트로 배포되며, `Root Directory`가 각각
+`apps/web`과 `apps/admin`으로 설정되어 있습니다.
 
 ### 백엔드 설정
 
@@ -233,28 +243,38 @@ modal run main.py
 
 ## 개발
 
-### 프론트엔드 구조(FSD)
+### 저장소 구조
 
 ```
-ai-podcast-clipper-frontend/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/                # API routes
-│   │   ├── dashboard/          # Dashboard pages
-│   │   ├── login/              # Authentication pages
-│   │   └── signup/
-│   ├── fsd/                    # Feature-Sliced Design
-│   │   ├── pages/              # Page components
-│   │   │   ├── dashboard/
-│   │   │   ├── home/
-│   │   │   └── uploadDetail/
-│   │   ├── shared/             # Shared utilities
-│   │   └── widgets/            # Reusable widgets
-│   └── components/             # UI components (shadcn)
-└── prisma/
-    ├── schema.prisma           # Database schema
-    └── db.sqlite               # SQLite database
+ApcH/
+├── package.json                    # npm workspaces: apps/*, packages/*
+├── .env                            # 단일본. 두 앱과 Prisma CLI가 공유
+├── apps/
+│   ├── web/                        # a-pch.com — 서비스
+│   │   └── src/
+│   │       ├── app/                # Next.js App Router
+│   │       ├── fsd/                # Feature-Sliced Design
+│   │       │   ├── pages/          # 페이지 컴포넌트
+│   │       │   ├── widgets/        # 복합 블록
+│   │       │   ├── features/       # 서버 액션과 상호작용
+│   │       │   ├── entities/       # 도메인 모델
+│   │       │   └── shared/         # analytics, ui, lib
+│   │       └── inngest/            # 비동기 영상 파이프라인 워커
+│   └── admin/                      # admin.a-pch.com — 내부 대시보드
+│       └── src/
+│           ├── app/                # /login, /analytics, /observability
+│           ├── analytics/          # 집계 쿼리
+│           └── auth/               # 자체 인증 (ADMIN_EMAILS 화이트리스트)
+├── packages/
+│   └── db/                         # @repo/db
+│       ├── prisma/schema.prisma    # 데이터베이스 스키마
+│       └── src/analytics-contract.ts   # 이벤트 이름, 퍼널, 공용 타입
+└── ai-podcast-clipper-backend/     # Python (Modal). npm 워크스페이스 아님
 ```
+
+`packages/db`가 존재하는 이유는 analytics 계약의 정의를 하나로 두기 위해서입니다.
+web이 이벤트를 기록하고 admin이 집계하는데, 계약을 복사해 두 벌로 만들면 한쪽에서
+이벤트 이름을 바꿔도 다른 쪽은 그대로 컴파일되고 대시보드가 조용히 0을 보여줍니다.
 
 ### 백엔드 구조
 
