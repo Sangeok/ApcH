@@ -1,13 +1,13 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-06-15"
 approved-by: null
 approved-at: null
 approval-scope: null
-completed-at: null
-verification-summary: null
+completed-at: "2026-06-15"
+verification-summary: "2026-08-02 코드 대조: 권위 신호 페이지 about, security, changelog, contact, how-it-works 존재"
 closed-at: null
 closed-by: null
 closed-reason: null

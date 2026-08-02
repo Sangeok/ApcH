@@ -1,13 +1,13 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-05-09"
 approved-by: null
 approved-at: null
 approval-scope: null
-completed-at: null
-verification-summary: null
+completed-at: "2026-05-09"
+verification-summary: "2026-08-02 코드 대조: 검색 의도별 랜딩 compare, features, guides, podcast-to-shorts, youtube-shorts-generator, product-tour 존재"
 closed-at: null
 closed-by: null
 closed-reason: null

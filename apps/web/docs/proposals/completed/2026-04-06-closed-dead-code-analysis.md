@@ -1,6 +1,6 @@
 ---
-status: "pending"
-stage: "draft"
+status: "closed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-04-06"
 approved-by: null
@@ -8,9 +8,9 @@ approved-at: null
 approval-scope: null
 completed-at: null
 verification-summary: null
-closed-at: null
-closed-by: null
-closed-reason: null
+closed-at: "2026-08-02"
+closed-by: "HamSangEok"
+closed-reason: "superseded"
 owners: []
 related: []
 ---
@@ -298,3 +298,26 @@ shadcn/ui 컴포넌트는 전체 세트를 하나의 파일로 관리하는 것�
 ### Barrel index.ts 확인
 
 `src/fsd/**/index.ts` 패턴으로 전수 검색한 결과 FSD 레이어 내에 barrel 파일이 다수 존재한다 (`features/billing/api/index.ts`, `features/clip/api/index.ts`, `features/upload/api/index.ts` 등). 그러나 이 barrel 파일들이 본 보고서에서 dead로 판정한 심볼을 re-export하는 경우는 없으므로, "import처 없음"이라는 판정이 곧 "사용처 없음"과 동일하다. 분석 결과의 신뢰도를 추가로 보강한다.
+
+## Completion or Closure Notes (2026-08-02)
+
+이 분석은 실행하지 않고 닫는다. 일부는 이미 실행됐고, 나머지는 전제가
+무효가 됐다.
+
+| 삭제 후보 | 2026-08-02 현재 |
+| --- | --- |
+| `src/actions/uploaded-files.ts` | 삭제됨 |
+| `src/fsd/pages/dashboard/model/type.ts` | 삭제됨 |
+| `src/fsd/shared/lib/error-logger.ts` | 삭제됨 |
+| `src/fsd/shared/api/result.ts` | **9곳에서 사용 중** |
+| `src/fsd/shared/ui/atoms/badge.tsx` | **15곳에서 사용 중** |
+| `src/fsd/shared/ui/atoms/card.tsx` | **22곳에서 사용 중** |
+| `src/fsd/shared/ui/atoms/table.tsx` | **2곳에서 사용 중** |
+| `src/fsd/shared/ui/atoms/field.tsx` | 참조 0곳. 여전히 미사용 |
+
+즉 이 문서는 "미결"이 아니라 **낡았다.** 실행할 것은 실행됐고, 남은
+후보 5개 중 4개는 그 뒤 실제로 쓰이기 시작해 삭제 대상이 아니게 됐다.
+
+유일하게 남은 것은 `atoms/field.tsx` 하나다. 이 문서를 되살려 쓰는 것보다
+현재 코드베이스를 기준으로 새 proposal을 쓰는 편이 낫다. 이 문서의 나머지
+근거를 그대로 신뢰하면 사용 중인 파일을 지우게 된다.

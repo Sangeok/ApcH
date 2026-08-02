@@ -1,13 +1,13 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-04-10"
 approved-by: null
 approved-at: null
 approval-scope: null
-completed-at: null
-verification-summary: null
+completed-at: "2026-04-10"
+verification-summary: "2026-08-02 코드 대조: ScriptModal, YoutubeMetadataModal 둘 다 shared/ui/atoms/sheet 의 Sheet 사용"
 closed-at: null
 closed-by: null
 closed-reason: null

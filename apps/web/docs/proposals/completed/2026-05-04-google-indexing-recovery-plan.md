@@ -1,13 +1,13 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-05-04"
 approved-by: null
 approved-at: null
 approval-scope: null
-completed-at: null
-verification-summary: null
+completed-at: "2026-05-04"
+verification-summary: "후속 문서 2026-05-09-google-search-visibility-growth-plan 이 Search Console 색인 확인을 기록함"
 closed-at: null
 closed-by: null
 closed-reason: null

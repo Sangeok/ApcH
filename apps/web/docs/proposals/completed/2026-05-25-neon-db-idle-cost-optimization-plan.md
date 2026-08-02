@@ -1,13 +1,13 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-05-25"
 approved-by: null
 approved-at: null
 approval-scope: null
-completed-at: null
-verification-summary: null
+completed-at: "2026-05-25"
+verification-summary: "2026-08-02 코드 대조: model/polling.ts 의 ACTIVE_UPLOAD_POLLING_INTERVAL_MS 2곳 사용, QueueStatus 의 router.refresh 폴링 제거, sweep 통합"
 closed-at: null
 closed-by: null
 closed-reason: null
