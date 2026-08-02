@@ -1,1 +1,0 @@
-export { sendObservabilityTestEvent } from "./api";

@@ -1,8 +1,1 @@
-export {
-  cleanupExpiredAnalyticsEvents,
-  getAnalyticsOverview,
-  getDropOffReport,
-  getFunnelReport,
-  getRecentFailureEvents,
-  recordAnalyticsEvent,
-} from "./api";
+export { cleanupExpiredAnalyticsEvents, recordAnalyticsEvent } from "./api";
