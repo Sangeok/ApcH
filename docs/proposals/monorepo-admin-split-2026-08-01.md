@@ -870,9 +870,9 @@ npm run db:generate:client -w @repo/db && next build
 
 **서브도메인 연결** — `a-pch.com`은 Vercel Domains에서 구매했고 nameserver를 Vercel이 자동 관리한다는 서술이 `ai-podcast-clipper-frontend/docs/specs/custom-domain-a-pch-setup-proposal.md` §1.1에 있다. 사실이면 외부 레지스트라에서 CNAME을 넣는 작업이 없다.
 
-> ⚠️ **이 근거는 git으로 검증되지 않는다.** 해당 문서는 `.gitignore:55`(`/docs/*`)로 **추적되지 않는 로컬 전용 파일**이다(`ai-podcast-clipper-frontend/docs/` 아래 추적 파일은 `conventions/tanstack-query-fsd-guidelines.md` 하나뿐). 또한 작성일이 2026-04-17이고 당시 상태를 "구매 완료, 프로젝트 미연결"로 적고 있어, 현재 연결 상태를 보증하지 않는다.
+> **확인됨 (2026-08-02)**: 사용자가 Vercel Domains 구매를 확인했다. 서브도메인 추가는 대시보드에서 프로젝트에 연결하는 것으로 끝나고 외부 레지스트라 작업이 없다.
 >
-> **Phase 4 착수 전에 Vercel 대시보드에서 직접 확인한다**: `a-pch.com`이 web 프로젝트에 연결되어 있는가, nameserver가 `ns1/ns2.vercel-dns.com`인가. 외부 레지스트라 관리 상태라면 서브도메인 추가에 DNS 레코드 작업이 추가된다.
+> 원래 근거로 든 `custom-domain-a-pch-setup-proposal.md`는 `.gitignore:55`(`/docs/*`)로 추적되지 않는 로컬 전용 파일이었고, 작성 시점(2026-04-17) 상태를 "구매 완료, 프로젝트 미연결"로 적고 있어 현재를 보증하지 못했다. 그래서 계획 리뷰에서 미검증으로 분류했고, 지금 직접 확인으로 닫았다.
 
 ```
 Vercel → admin 프로젝트 → Settings → Domains → Add

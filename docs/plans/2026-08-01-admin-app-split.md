@@ -38,6 +38,7 @@ apps/admin/
 ├─ eslint.config.js            [신규] web에서 복사
 ├─ prettier.config.js          [신규] web에서 복사
 ├─ vercel.json                 [신규] regions: ["icn1"]
+├─ .gitignore                  [신규] web에서 복사. generated/ 는 무시하지 않는다
 └─ src/
    ├─ env.js                   [신규] 필요한 10개만
    ├─ middleware.ts            [신규]
@@ -147,7 +148,7 @@ git commit -m "docs: update CLAUDE.md for the monorepo layout"
     "check": "next lint && tsc --noEmit",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test \"src/**/*.test.mjs\""
+    "test": "tsx --test \"src/**/*.test.mjs\""
   },
   "dependencies": {
     "@repo/db": "*",
@@ -179,15 +180,29 @@ git commit -m "docs: update CLAUDE.md for the monorepo layout"
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.15",
+    "tsx": "^4.23.1",
     "tw-animate-css": "^1.4.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.27.0"
   }
 }
 ```
 
+**테스트 러너는 `tsx`다.** 초안은 `node --experimental-strip-types`를 적었는데, 이 계획서를 쓴 뒤 모노레포 전환 작업에서 그 방식의 한계가 드러났다. `.test.mjs`가 `@repo/db`를 거치는 순간 Node ESM이 세 겹의 벽에 막힌다(확장자 없는 임포트 2회 + Prisma CJS 디렉터리 임포트). `apps/web`이 이미 `tsx`로 옮겼으므로 admin도 맞춘다.
+
+지금 계획된 admin 테스트는 전부 순수 모듈이라 strip-types로도 돌긴 한다. 그래도 맞추는 이유는 두 가지다. 한 저장소에 러너가 둘이면 "왜 여기만 다르지"가 반복되고, `@repo/db`를 건드리는 테스트를 처음 쓰는 사람이 원인을 알 수 없는 에러를 만난다.
+
+`tsx`를 devDependency로 **명시 선언한다.** 루트에 호이스팅되어 있어 선언 없이도 돌지만, 그건 `apps/web`의 의존성에 기대는 것이다(Task 1의 `typescript-eslint`와 같은 문제).
+
 `next-themes`가 없는 것을 확인한다. sonner atom을 복사할 때 `useTheme()`을 제거할 것이다(Task 6).
 
+**`typescript-eslint`를 빠뜨리면 안 된다.** `eslint.config.js`가 `import tseslint from "typescript-eslint"`로 직접 임포트한다. 선언하지 않아도 `apps/web`에서 호이스팅되어 당장은 동작하지만, web이 이 의존성을 버리는 순간 admin의 lint가 원인 불명으로 깨진다. 워크스페이스가 남의 의존성에 기대는 상태를 만들지 않는다.
+
+버전은 `apps/web/package.json`과 맞춘다. **계획서 값과 `apps/web` 값이 다르면 `apps/web`이 이긴다** — 계획서 숫자는 손으로 옮겨 적은 것이라 오타 가능성이 있다.
+
 포트를 3001로 둔 이유: web이 3000을 쓰므로 둘을 동시에 띄울 수 있어야 한다.
+
+> **이 시점에는 `npm run check -w apps/admin`과 `npm run build -w apps/admin`이 실패한다.** `app` 디렉터리가 없어 Next가 `Couldn't find any 'pages' or 'app' directory`로 죽는다. Task 8이 라우트를 만들면 해결된다. 통과시키려고 플레이스홀더 라우트를 만들지 않는다. `npm install`과 `npm test -w apps/web`은 이 구간에서도 성공해야 한다.
 
 - [ ] **Step 2: `apps/admin/tsconfig.json` 생성**
 
@@ -236,6 +251,7 @@ git commit -m "docs: update CLAUDE.md for the monorepo layout"
 cp apps/web/postcss.config.js apps/admin/postcss.config.js
 cp apps/web/eslint.config.js apps/admin/eslint.config.js
 cp apps/web/prettier.config.js apps/admin/prettier.config.js
+cp apps/web/.gitignore apps/admin/.gitignore
 cp apps/web/.npmrc apps/admin/.npmrc 2>/dev/null || true
 mkdir -p apps/admin/src/styles
 cp apps/web/src/styles/globals.css apps/admin/src/styles/globals.css
@@ -1467,19 +1483,53 @@ export default async function AdminObservabilityRoute() {
 }
 ```
 
-- [ ] **Step 9: 타입 체크**
+- [ ] **Step 9: 최소 `next.config.js` 작성**
+
+라우트가 생기는 순간 빌드가 `src/env.js`를 평가한다(`auth/config.ts`가 `env`를 임포트하므로). 루트 `.env`를 읽는 설정이 없으면 `Failed to collect page data`로 죽는다.
+
+**Task 9까지 미룰 수 없다.** 이 Task의 게이트가 "빌드 성공"인데, 그 게이트를 통과시키는 데 필요한 최소 조건이 여기 있어야 한다.
+
+```js
+// apps/admin/next.config.js
+// 루트 .env 유일본을 읽는다. Next.js는 process.cwd() 기준으로만 .env를
+// 자동 로드하는데 cwd가 apps/admin이므로 루트 파일이 자동으로는 안 읽힌다.
+// ESM 정적 import는 모두 본문보다 먼저 평가되므로, ./src/env.js 검증이
+// 이 dotenv 로드보다 먼저 실행되지 않도록 동적 import로 불러온다.
+import { config as loadEnv } from "dotenv";
+
+loadEnv({ path: "../../.env" });
+
+await import("./src/env.js");
+
+/** @type {import("next").NextConfig} */
+const config = {
+  transpilePackages: ["@repo/db"],
+  serverExternalPackages: ["@prisma/adapter-neon"],
+};
+
+export default config;
+```
+
+Task 9가 여기에 `outputFileTracingRoot`, `PrismaPlugin`, 축소 CSP, Sentry 래핑을 더한다. **지금은 빌드가 도는 최소 형태만 만든다.**
+
+`config`라는 이름과 정적 import의 함정은 `apps/web/next.config.js`와 동일하다. 그쪽 주석을 참고할 것.
+
+- [ ] **Step 10: 타입 체크와 빌드**
 
 ```bash
 npm run typecheck -w apps/admin
+npm run build -w apps/admin
 ```
 
-Expected: 에러 없음
+Expected: 둘 다 성공. 빌드가 라우트 표를 출력한다(`/`, `/analytics`, `/login`, `/observability`, `/api/auth/[...nextauth]`, `/robots.txt`, Middleware).
 
-- [ ] **Step 10: 커밋**
+**여기서 처음으로 `apps/admin`이 빌드된다.** Task 1~7 동안 `Couldn't find any 'pages' or 'app' directory`로 실패하던 것이 해소된다.
+
+- [ ] **Step 11: 커밋**
 
 ```bash
-git add apps/admin/src/app apps/admin/src/ui
-git commit -m "feat: add admin routes with login page and analytics dashboard"
+git add apps/admin/src/app apps/admin/src/ui apps/admin/next.config.js
+git commit -F <메시지 파일>
 ```
 
 ---
@@ -1493,22 +1543,26 @@ git commit -m "feat: add admin routes with login page and analytics dashboard"
 - Consumes: Task 1의 `src/env.js`
 - Produces: 빌드 가능한 admin 앱
 
-- [ ] **Step 1: `next.config.js` 작성**
+- [ ] **Step 1: `next.config.js` 확장**
 
-web에서 복사하되 CSP를 줄이고 트레이싱을 넣는다.
+Task 8이 만든 최소 설정에 트레이싱·CSP·Sentry를 더한다. **새로 쓰는 게 아니라 확장이다** — dotenv 선로드와 `await import("./src/env.js")`는 이미 있고 그 형태를 바꾸면 안 된다.
 
 ```js
-// 루트 .env 유일본을 읽는다. env.js 검증보다 먼저 실행되어야 한다.
+// 루트 .env 유일본을 읽는다. Next.js는 process.cwd() 기준으로만 .env를
+// 자동 로드하는데 cwd가 apps/admin이므로 루트 파일이 자동으로는 안 읽힌다.
+// ESM 정적 import는 모두 본문보다 먼저 평가되므로, ./src/env.js 검증이
+// 이 dotenv 로드보다 먼저 실행되지 않도록 동적 import로 불러온다.
 import { config as loadEnv } from "dotenv";
-loadEnv({ path: "../../.env" });
-
-import "./src/env.js";
-
+import { withSentryConfig } from "@sentry/nextjs";
+import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { withSentryConfig } from "@sentry/nextjs";
+
+loadEnv({ path: "../../.env" });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -1518,6 +1572,17 @@ const config = {
   outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@repo/db"],
   serverExternalPackages: ["@prisma/adapter-neon"],
+  // outputFileTracingRoot 만으로는 부족하다. 2026-08-01 web 배포에서 실측했다.
+  // 생성 클라이언트가 빌드 시점 절대경로(/vercel/path0/...)를 파일에 박는데
+  // 런타임 함수 루트는 /var/task/ 다. 트레이싱이 엔진을 번들에 넣더라도
+  // Prisma 가 찾는 목록에 그 위치가 없다. 이 플러그인이 엔진을 번들 옆으로
+  // 복사해 두 규칙을 맞춘다. admin 도 DB 를 읽으므로 똑같이 필요하다.
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    return config;
+  },
   async headers() {
     if (process.env.NODE_ENV === "development") return [];
     return [
