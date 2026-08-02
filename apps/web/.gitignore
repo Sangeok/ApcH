@@ -44,9 +44,3 @@ yarn-error.log*
 
 # idea files
 .idea
-
-# docs
-/docs/*
-!/docs/conventions/
-/docs/conventions/*
-!/docs/conventions/tanstack-query-fsd-guidelines.md
