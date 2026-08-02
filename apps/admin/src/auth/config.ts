@@ -2,15 +2,11 @@ import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 
 import { env } from "~/env";
+import { parseAdminEmails } from "~/lib/parse-admin-emails";
 import { authConfigEdge } from "./config.edge";
 
 function getAdminEmailSet() {
-  return new Set(
-    (env.ADMIN_EMAILS ?? "")
-      .split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
+  return parseAdminEmails(env.ADMIN_EMAILS);
 }
 
 export const authConfig = {
