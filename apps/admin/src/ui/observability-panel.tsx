@@ -25,8 +25,7 @@ export function ObservabilityTestPanel() {
     <section className="bg-card mx-auto mt-10 max-w-md rounded-xl border p-6">
       <h1 className="text-lg font-semibold">Sentry 도달 테스트</h1>
       <p className="text-muted-foreground mt-1 text-sm">
-        DSN · 네트워크 · beforeSend · flush · environment 태그를 한 번에
-        검증합니다.
+        DSN · 네트워크 · flush · environment 태그를 한 번에 검증합니다.
       </p>
       <Button
         type="button"
