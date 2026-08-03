@@ -12,10 +12,10 @@ ApcH/
 ├─ .env                  단일본. 앱과 Prisma CLI가 공유
 ├─ apps/
 │  ├─ web/               이 문서가 설명하는 앱 (a-pch.com)
-│  └─ admin/             어드민 앱 (admin.a-pch.com). 별도 Vercel 프로젝트
-├─ packages/
-│  └─ db/                @repo/db — Prisma + analytics 계약
-└─ ai-podcast-clipper-backend/   Python (Modal). 워크스페이스 대상 아님
+│  ├─ admin/             어드민 앱 (admin.a-pch.com). 별도 Vercel 프로젝트
+│  └─ backend/           Python (Modal). package.json 이 없어 워크스페이스 대상 아님
+└─ packages/
+   └─ db/                @repo/db — Prisma + analytics 계약
 ```
 
 어드민 화면은 2026-08-02에 `apps/admin`으로 분리됐다. **web에는 `/admin` 라우트가 없다.** 어드민 관련 코드(`app/admin/`, `pages/admin-*`, `features/observability-test`, `shared/api/admin-guard.ts`, `env.ADMIN_EMAILS`, analytics 리포팅 집계)는 전부 제거됐으니 web에서 찾지 말 것.

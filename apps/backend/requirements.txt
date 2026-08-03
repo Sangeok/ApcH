@@ -1,0 +1,40 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+torch==2.4.1+cu121
+torchaudio==2.4.1+cu121
+torchvision==0.19.1+cu121
+
+whisperx
+pyannote.audio
+
+# whisperx 가 끌어오는 ctranslate2 는 pkg_resources 를 import 하는데, 이
+# 모듈은 setuptools 81 에서 제거됐다. 상한을 열어두면 최신 setuptools 가
+# 잡혀 ModuleNotFoundError: pkg_resources 로 죽는다.
+setuptools<81
+
+matplotlib>=3.8,<3.10
+
+tqdm
+opencv-python
+ffmpegcv
+numpy
+python_speech_features
+scipy
+scenedetect
+scikit-learn
+gdown
+pandas
+# 위에서 torch 를 2.4.1 로 고정했으므로 transformers 도 함께 고정한다.
+# 열어두면 5.x 가 잡히고, 5.x 는 torch.distributed.tensor.DTensor 를 요구해서
+# 2.4.1 에서 ImportError 가 난다. main.py 최상단의 `import whisperx` 가
+# transformers 를 끌어오고 modal deploy 는 스크립트를 로컬에서 import 하므로,
+# 이게 깨지면 배포 자체가 시작되지 않는다.
+transformers==4.46.3
+accelerate
+datasets
+google-genai
+pysubs2
+boto3
+requests
+fastapi[standard]
+modal==1.2.1

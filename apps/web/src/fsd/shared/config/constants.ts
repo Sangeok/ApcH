@@ -32,7 +32,7 @@ export const YOUTUBE_DESCRIPTION_MAX_LENGTH = 5000;
 
 /**
  * Clip duration limits. Must stay in sync with
- * ai-podcast-clipper-backend/main.py MIN_CLIP_DURATION / MAX_CLIP_DURATION.
+ * apps/backend/main.py MIN_CLIP_DURATION / MAX_CLIP_DURATION.
  */
 export const CLIP_DURATION_LIMITS = {
   MIN_SECONDS: 30,
@@ -41,7 +41,7 @@ export const CLIP_DURATION_LIMITS = {
 
 /**
  * Caption style editing options. Defaults must stay in sync with the hardcoded
- * values in ai-podcast-clipper-backend/main.py:
+ * values in apps/backend/main.py:
  * create_subtitles_with_ffmpeg (en: fontsize 122, max_word 5) /
  * create_korean_subtitles_with_ffmpeg (kr: fontsize 130, max_word 3),
  * and with resolve_caption_style's validation ranges.
