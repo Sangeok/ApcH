@@ -20,7 +20,7 @@ ApcH/
 
 어드민 화면은 2026-08-02에 `apps/admin`으로 분리됐다. **web에는 `/admin` 라우트가 없다.** 어드민 관련 코드(`app/admin/`, `pages/admin-*`, `features/observability-test`, `shared/api/admin-guard.ts`, `env.ADMIN_EMAILS`, analytics 리포팅 집계)는 전부 제거됐으니 web에서 찾지 말 것.
 
-두 앱은 `@repo/db`만 공유한다. UI 컴포넌트와 인증 설정은 각자 자기 것을 가진다 — 공유하지 않기로 한 결정이다(`docs/proposals/monorepo-admin-split-2026-08-01.md` 결정 2).
+두 앱은 `@repo/db`만 공유한다. UI 컴포넌트와 인증 설정은 각자 자기 것을 가진다 — 공유하지 않기로 한 결정이다(`docs/proposals/completed/2026-08-02-monorepo-admin-split.md` 결정 2).
 
 ## Project Overview
 
