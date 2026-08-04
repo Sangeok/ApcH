@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI-powered podcast clipper backend that automatically extracts short-form clips (30-60s) from long-form podcast videos. The system performs:
+AI-powered podcast clipper backend that automatically extracts short-form clips (30-90s) from long-form podcast videos. The system performs:
 
 1. **Transcription**: Word-level timestamps using WhisperX
 2. **Moment Detection**: AI-powered identification of Q&A segments using Gemini
@@ -84,9 +84,9 @@ The local entrypoint uses hardcoded test credentials:
 **Stage 2: Moment Identification** (`identify_moments()`)
 
 - Gemini 2.5 Flash with structured JSON output
-- Prompt engineering for Q&A extraction (30-60s clips)
-- Critical constraints: no overlap, sentence boundaries, max 60s
-- Returns: `[{"start": seconds, "end": seconds}, ...]`
+- Prompt engineering for Q&A extraction (30-90s clips)
+- Critical constraints: no overlap, sentence boundaries, max 90s. The bounds live in `MAX_CLIP_DURATION` / `MIN_CLIP_DURATION` (`main.py:85-86`) and are shared by the analyze, render, and auto paths
+- Returns: `[{"start": seconds, "end": seconds, "type": "qa" | "insight", "hook": str, "payoff": str}, ...]`. `type`, `hook`, and `payoff` were added after the original start/end pair and are consumed at `main.py:1012-1014`
 
 **Stage 3: Clip Processing** (`process_clip()` for each moment)
 
@@ -100,10 +100,20 @@ The local entrypoint uses hardcoded test credentials:
    - Smart cropping: follows highest-scoring speaker face
    - Fallback: blurred background with centered content
    - 1080x1920 output with GPU-accelerated encoding
-4. **Subtitle Overlay**: `create_subtitles_with_ffmpeg()`
-   - ASS format with Anton font (140px, white with shadow)
-   - Max 5 words per subtitle
-   - Bottom-aligned (margin: 50px)
+4. **Subtitle Overlay**: `create_subtitles_with_ffmpeg()` (English) / `create_korean_subtitles_with_ffmpeg()` (Korean)
+   - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:133`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
+   - Defaults differ by language:
+
+     | | English (`main.py:257-259`) | Korean (`main.py:366-368`) |
+     |---|---|---|
+     | font | Anton (`main.py:323`) | Noto Sans KR (`main.py:522`) |
+     | fontsize | 122 | 130 |
+     | words per line | 5 | 3 |
+     | marginv | 165 | 155 |
+
+   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:108-112`)
+   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:115-118`)
+   - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` as `#RRGGBB` (defaults to white)
 5. **S3 Upload**: Final clip uploaded to same directory as source
 
 ### Columbia ASD Integration (asd/)
