@@ -63,7 +63,7 @@ The local entrypoint uses hardcoded test credentials:
 ### Modal Serverless Execution
 
 - **Container Image**: CUDA 12.4 + Python 3.12 with GPU support
-- **GPU**: L40S with 900s timeout
+- **GPU**: L40S with 3600s timeout
 - **Persistent Volume**: `/root/.cache/torch` for model caching (prevents redownloads)
 - **Secrets**: `ai-podcast-clipper-secret` contains AWS credentials, auth token, and Gemini API key
 
@@ -170,7 +170,6 @@ Key packages in requirements.txt:
 
 ## Current Known Issues
 
-- Only processes first 3 clips from identified moments (hardcoded `[:3]` in line 482)
 - Gemini responses may include markdown code fences that need stripping
 - No error handling for failed S3 uploads
 - Temporary directories cleaned up regardless of processing success

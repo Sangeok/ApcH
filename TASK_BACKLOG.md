@@ -7,10 +7,6 @@
 
 ## Backend / Pipeline
 
-- [ ] **BUG-01**: 클립 처리 개수가 3개로 하드코딩되어 있음
-  - area: apps/backend
-  - source: README Known Issues
-
 - [ ] **BUG-02**: 한국어 번역 API 실패 시 영어로 조용히 폴백됨 (사용자에게 알림 없음)
   - area: apps/backend
   - source: README Known Issues
@@ -32,10 +28,6 @@
 - [ ] **FEAT-01**: Credit System 마무리 (현재 개발 중 상태)
   - area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   - source: README "Currently in Development"
-
-- [ ] **FEAT-02**: Stripe 결제 연동 (계획 단계)
-  - area: apps/web/src/fsd + 외부 연동
-  - source: README "planned"
 
 ## 비고
 

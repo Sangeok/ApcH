@@ -12,7 +12,7 @@
   agent: web-dev
   area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   status: 승인대기
-  근거: 현재 "개발 중" 상태로 남아 결제 흐름의 기반이 되는 항목. Stripe 등 확장 기능 전에 크레딧 시스템을 완성해야 후속 작업이 안정적으로 얹힌다.
+  근거: 현재 "개발 중" 상태로 남아 결제 흐름의 기반이 되는 항목. 결제 자체는 Polar로 이미 동작하므로, 크레딧 시스템을 완성해야 후속 작업이 안정적으로 얹힌다.
 - [ ] BUG-05: 파이프라인 중간 실패 시 크레딧 차감/환불 정합성 오류
   agent: web-dev
   area: apps/web/src/inngest/functions.ts + apps/web/src/fsd/entities/uploaded-file/api + apps/web/src/fsd/entities/user/api
