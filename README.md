@@ -10,7 +10,7 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 
 ### Key Features
 
-- **AI-Powered Highlight Extraction**: Gemini 2.5 automatically identifies engaging Q&A segments (30-60 seconds)
+- **AI-Powered Highlight Extraction**: Gemini 2.5 automatically identifies engaging Q&A segments (30-90 seconds)
 - **Word-Level Transcription**: WhisperX provides word-level timestamps for precise subtitles
 - **Active Speaker Detection**: Columbia ASD tracks speakers with intelligent face cropping
 - **Vertical Video Generation**: Converts landscape videos to 1080x1920 portrait format (smart crop or blur background)
@@ -47,13 +47,13 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 ┌──────────────────────────────┴───────────────────────────────────┐
 │          Backend (Modal.com Serverless GPU)                      │
 │  ┌────────────────────────────────────────────────────────────┐  │
-│  │  Processing Pipeline (L40S GPU - 900s timeout)             │  │
+│  │  Processing Pipeline (L40S GPU - 3600s timeout)            │  │
 │  │                                                            │  │
 │  │  1. WhisperX Transcription                                 │  │
 │  │     └─> Word-level timestamps (large-v2 model)             │  │
 │  │                                                            │  │
 │  │  2. Gemini Highlight Detection                             │  │
-│  │     └─> Identify Q&A clips (30-60s, non-overlapping)       │  │
+│  │     └─> Identify Q&A clips (30-90s, non-overlapping)       │  │
 │  │                                                            │  │
 │  │  3. Columbia ASD (Active Speaker Detection)                │  │
 │  │     └─> Face tracking + speaker scoring                    │  │
@@ -82,6 +82,8 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 - **Form Handling**: React Hook Form + Zod
 - **File Upload**: AWS S3 presigned URLs
 - **Workflows**: Inngest (async job orchestration)
+- **Billing**: Polar (checkout, customer portal, webhooks), gated by `NEXT_PUBLIC_SUBSCRIPTION_ENABLED`
+- **Monitoring**: Sentry
 
 ### Backend
 
@@ -89,7 +91,7 @@ AI Podcast Clipper (ApcH) is an intelligent video processing platform that extra
 - **GPU**: L40S with CUDA 12.4
 - **AI Models**:
   - WhisperX (large-v2): Speech-to-text transcription
-  - Gemini 2.5 Flash/Pro: Highlight detection and translation
+  - Gemini 2.5 Flash: Highlight detection, Korean translation, YouTube metadata
   - Columbia ASD: Active speaker detection
 - **Video Processing**: FFmpeg, ffmpegcv (GPU-accelerated)
 - **Subtitle Generation**: pysubs2 (ASS format)
@@ -118,20 +120,6 @@ npm install
 # Configure environment variables
 cp .env.example .env
 
-# Required environment variables in .env:
-- AUTH_SECRET
-
-- DATABASE_URL
-- PROCESS_VIDEO_ENDPOINT
-- PROCESS_VIDEO_ENDPOINT_AUTH
-
-- S3_BUCKET_NAME
-- AWS_REGION
-- AWS_ACCESS_KEY_ID
-- AWS_SECRET_ACCESS_KEY
-
-- ADMIN_EMAILS                    # comma-separated allowlist for the admin app
-
 # Initialize database
 npm run db:push
 
@@ -143,6 +131,15 @@ npm run dev:admin                 # admin
 npm run inngest-dev -w apps/web
 ```
 
+`.env.example` lists the variables — auth (`AUTH_SECRET`, `AUTH_URL`,
+`AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`), the database, S3, the Modal endpoint,
+Inngest keys, Polar billing, Sentry, and `ADMIN_EMAILS` for the admin app.
+`apps/web/src/env.js` is what enforces them: it validates at build time and
+fails the build when a required variable is missing, so start there when a build
+complains rather than trusting any list. This README deliberately does not repeat
+the list — a duplicated list drifts, and the variable it drops is always the one
+nobody copied.
+
 | App | Local | Production |
 |---|---|---|
 | `apps/web` | http://localhost:3000 | https://a-pch.com |
@@ -153,6 +150,10 @@ The two apps deploy as separate Vercel projects, with `Root Directory` set to
 
 ### Backend Setup
 
+The local Python venv is kept outside the repository; `apps/backend/CLAUDE.md`
+records the path and the reason. Modal builds its own image from
+`requirements.txt`, so the venv is only needed to run Python locally.
+
 ```bash
 cd apps/backend
 
@@ -162,7 +163,8 @@ modal secret create ai-podcast-clipper-secret \
   AWS_SECRET_ACCESS_KEY=<your-aws-secret> \
   AWS_DEFAULT_REGION=ap-southeast-2 \
   GEMINI_API_KEY=<your-gemini-key> \
-  AUTH_TOKEN=<generate-secure-token>
+  AUTH_TOKEN=<generate-secure-token> \
+  MODAL_WEBHOOK_SECRET=<same value as MODAL_WEBHOOK_SECRET in .env>
 
 # Deploy to Modal
 modal deploy main.py
@@ -177,17 +179,28 @@ modal run main.py
 
 1. **Sign Up / Log In**: Create an account at `/signup` or log in at `/login`
 2. **Upload Podcast**: Navigate to `/dashboard` and upload an MP4 video to S3
-3. **Select Language**: Choose English or Korean subtitles
-4. **Processing**: Inngest triggers Modal endpoint, processing takes 5-15 minutes
-5. **View Clips**: Navigate to upload detail page to see generated clips
-6. **Download**: Click on clips to download vertical videos
+3. **Choose Options**: Subtitle language (English or Korean), how many clips to
+   generate (1-4, default 3), and whether to review the AI's picks before rendering
+4. **Analysis**: Inngest calls the Modal endpoint in `analyze` mode — WhisperX
+   transcription plus Gemini moment detection
+5. **Review** (when enabled): The run stops at `review_pending` and the proposals
+   are stored as `ClipDraft` rows. Adjust each clip's start/end, deselect clips
+   you do not want, and override caption style per clip. The AI's original range
+   is kept separately (`aiStartSeconds` / `aiEndSeconds`) so a reset is possible.
+6. **Render**: Confirmed segments go back to Modal in `render` mode
+7. **View & Download**: Open the upload detail page for the clip gallery and
+   download the vertical videos
 
-### Credit System (Currently in Development)
+### Credits & Billing
 
-- New users receive 3 free credits
-- Each video processing consumes 1 credit
-- Credits required before processing starts
-- Credit purchase via Stripe integration (planned)
+- New accounts start with 3 free credits (`User.credits` defaults to 3)
+- Credits are deducted after a successful run, one per generated clip — a
+  completed 3-clip run spends the whole trial balance. A failed or partial run
+  consumes nothing.
+- Paid plans run on **Polar**, not Stripe: `/api/checkout`, `/api/portal`, and
+  `/api/webhooks/polar`, with `Subscription` and `Order` rows in the database
+- Billing lives at `/dashboard/billing` and the whole flow is gated by
+  `NEXT_PUBLIC_SUBSCRIPTION_ENABLED`
 
 ## API Documentation
 
@@ -211,19 +224,37 @@ modal run main.py
 ```json
 {
   "s3_key": "user-id/video-name.mp4",
-  "language": "English" // or "Korean"
+  "clip_count": 3,
+  "language": "Korean",
+  "callback_url": "https://a-pch.com/api/webhooks/modal",
+  "uploaded_file_id": "clx...",
+  "mode": "auto"
 }
 ```
 
-**Response**:
+- `s3_key` and `clip_count` are required. `clip_count` has no default — omitting
+  it returns `422`.
+- `language`: `"English"` or `"Korean"` (default `"Korean"`).
+- `mode`: `"auto"` (transcribe → detect → render), `"analyze"` (stop after
+  detection, for the review step), or `"render"` (render supplied `moments`).
+  Default `"auto"`.
+- `callback_url` decides the execution model. With it the call is dispatched via
+  `.spawn()` and returns immediately; without it the endpoint runs the pipeline
+  synchronously and returns its result.
+- `moments`, `transcript_s3_key`, `output_prefix`, and `attempt` are used by
+  `render` mode.
+
+**Response** (async — `callback_url` present):
 
 ```json
 {
-  "status": "ok",
-  "clips_planned": 3,
-  "s3_prefix": "user-id"
+  "status": "accepted",
+  "call_id": "fc-..."
 }
 ```
+
+Without `callback_url` the endpoint returns the pipeline result itself rather
+than an acknowledgement.
 
 ### Processing Details
 
@@ -236,9 +267,9 @@ modal run main.py
 
 **Constraints**:
 
-- Maximum 3 clips processed per video
-- Clip duration: 30-60 seconds
-- Timeout: 900 seconds (15 minutes)
+- Clips per video: 1-4, chosen by the user (default 3)
+- Clip duration: 30-90 seconds — moments outside the range are dropped
+- Timeout: 3600 seconds (60 minutes)
 - GPU: L40S (48GB VRAM)
 
 ## Development
@@ -286,7 +317,8 @@ apps/backend/
 │   ├── Columbia_test.py        # Active speaker detection
 │   ├── ASD.py                  # Model architecture
 │   └── weight/                 # Model weights
-├── requirements.txt            # Python dependencies
+├── requirements.txt            # Python dependencies (torch pinned, so are its peers)
+├── CLAUDE.md                   # backend conventions, incl. where the venv lives
 └── ytdownload.py               # YouTube download utility
 ```
 
@@ -296,7 +328,13 @@ apps/backend/
 
 - `/` - Feature showcase homepage
 - `/dashboard` - User dashboard with upload queue
-- `/dashboard/uploads/[id]` - Clip gallery and processing timeline
+- `/dashboard/uploads/[uploadedFileId]` - Clip review, gallery, and processing timeline
+- `/dashboard/billing` - Plan and credit balance (Polar)
+- `/login`, `/signup`, `/privacy`, `/terms`
+- `(public-marketing)/` - marketing and SEO route group: `/pricing`, `/features`,
+  `/how-it-works`, `/product-tour`, `/compare`, `/guides/[slug]`, `/about`,
+  `/contact`, `/security`, `/changelog`, and the landing pages
+  `/ai-podcast-clipper`, `/podcast-to-shorts`, `/youtube-shorts-generator`
 
 **Backend Functions**:
 
@@ -309,7 +347,6 @@ apps/backend/
 
 ## Known Issues & Limitations
 
-- Only the first 3 clips are processed per video (hardcoded limit)
 - Korean translation may fallback to English on API errors
 - No error handling for S3 upload failures
 - Temporary directory cleanup regardless of success
