@@ -1,6 +1,10 @@
 "use client";
 
 import { Suspense, useEffect, useRef } from "react";
+import {
+  isPartialClipResultCode,
+  PARTIAL_CLIPS_INSUFFICIENT,
+} from "~/fsd/entities/uploaded-file/model/clip-generation-outcome";
 import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
 import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
 import { UploadedFileActions } from "~/fsd/features/upload";
@@ -92,6 +96,23 @@ export default function UploadDetailPage({
           currentUserCredits={currentUserCredits}
         />
       </header>
+
+      {status === "processed" && isPartialClipResultCode(failureCode) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {failureCode === PARTIAL_CLIPS_INSUFFICIENT
+                ? "Fewer clips than requested"
+                : "Processing stopped before all clips were done"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            {failureCode === PARTIAL_CLIPS_INSUFFICIENT
+              ? "Processing finished without an error but produced fewer clips than requested. Reprocessing costs credits again and may return the same result."
+              : "The clips below finished before processing failed. Reprocessing may produce more clips and will cost credits again."}
+          </CardContent>
+        </Card>
+      )}
 
       {isUnderReview && (
         <ClipDraftReviewSection

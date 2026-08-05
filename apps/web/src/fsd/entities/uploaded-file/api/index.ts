@@ -721,7 +721,11 @@ export async function startUploadedFileProcessingAttempt(
 export async function markUploadedFileAttemptProcessed(
   uploadedFileId: string,
   attempt: number,
-  options?: { tx?: Prisma.TransactionClient; now?: Date },
+  options?: {
+    tx?: Prisma.TransactionClient;
+    now?: Date;
+    noteCode?: string | null;
+  },
 ) {
   const now = options?.now ?? new Date();
 
@@ -735,7 +739,7 @@ export async function markUploadedFileAttemptProcessed(
       status: "processed",
       terminalStatusAt: now,
       lastSuccessfulAttempt: attempt,
-      failureCode: null,
+      failureCode: options?.noteCode ?? null,
     },
   });
 }
@@ -802,6 +806,7 @@ export async function completeUploadedFileProcessingAttempt(args: {
   attempt: number;
   userId: string;
   clipsFound: number;
+  noteCode?: string | null;
   now?: Date;
 }): Promise<{ completed: boolean }> {
   return db.$transaction(async (tx) => {
@@ -811,6 +816,7 @@ export async function completeUploadedFileProcessingAttempt(args: {
       {
         tx,
         now: args.now,
+        noteCode: args.noteCode,
       },
     );
 

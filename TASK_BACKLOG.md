@@ -21,10 +21,6 @@
 
 ## Credit / Billing
 
-- [ ] **BUG-05**: 요청보다 적은 클립이 생성되면 실패로 처리돼 만들어진 클립이 버려짐 (사용자는 0개 수령, 재시도해도 동일)
-  - area: apps/web/src/inngest/functions.ts + apps/web/src/fsd/entities/uploaded-file/api + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/upload-detail
-  - source: README Known Issues (원 표현 "크레딧 차감/환불 정합성 오류"는 2026-08-05 코드 확인에서 오진으로 판명 — 원장은 정합적이다)
-
 - [ ] **FEAT-01**: Credit System 마무리 (현재 개발 중 상태)
   - area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   - source: README "Currently in Development"
