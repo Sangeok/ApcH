@@ -15,6 +15,10 @@ import {
   markUploadedFileAttemptReviewPending,
   startUploadedFileProcessingAttempt,
 } from "~/fsd/entities/uploaded-file";
+import {
+  resolveModalPollAction,
+  resolvePartialClipNoteCode,
+} from "~/fsd/entities/uploaded-file/model/clip-generation-outcome";
 import { createClipDraftsBulk } from "~/fsd/entities/clip-draft";
 import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
@@ -517,7 +521,15 @@ export const processVideo = inngest.createFunction(
           async () => countGeneratedClipKeys(outputPrefix),
         );
 
-        if (generatedClipCount >= clipCount) {
+        const pollAction = resolveModalPollAction({
+          generatedClipCount,
+          clipCount,
+          modalCallbackReceived,
+          hasBackendFailure: backendFailureMessage !== null,
+          backendClipCount: backendClips?.length ?? null,
+        });
+
+        if (pollAction === "detected") {
           if (!modalCallbackReceived) {
             const metadataResult = await step.waitForEvent(
               "wait-for-modal-metadata-after-s3-complete",
@@ -542,7 +554,34 @@ export const processVideo = inngest.createFunction(
           break;
         }
 
-        if (backendFailureMessage) {
+        if (pollAction === "settle") {
+          const promisedClipCount = backendClips?.length ?? 0;
+
+          await step.sleep(
+            "wait-for-partial-clips-settle",
+            MODAL_METADATA_GRACE_INTERVAL,
+          );
+
+          generatedClipCount = await step.run(
+            "recount-generated-clips-after-settle",
+            async () => countGeneratedClipKeys(outputPrefix),
+          );
+
+          if (generatedClipCount < promisedClipCount) {
+            console.warn("Modal reported more clips than S3 exposed", {
+              uploadedFileId,
+              attempt,
+              generatedClipCount,
+              promisedClipCount,
+              expectedClipCount: clipCount,
+            });
+          }
+
+          generatedClipsDetected = true;
+          break;
+        }
+
+        if (pollAction === "failed") {
           break;
         }
       }
@@ -584,7 +623,7 @@ export const processVideo = inngest.createFunction(
         },
       );
 
-      if (backendFailureMessage && clipsFound >= clipCount) {
+      if (backendFailureMessage && clipsFound > 0) {
         console.warn(
           "Modal reported failure after expected clips were generated",
           backendFailureMessage,
@@ -633,27 +672,6 @@ export const processVideo = inngest.createFunction(
         return { skipped: false, status: "no_clips_generated" };
       }
 
-      if (clipsFound < clipCount) {
-        await step.run("mark-incomplete-clips-generated", async () => {
-          await markUploadedFileAttemptFailed(
-            uploadedFileId,
-            attempt,
-            "incomplete_clips_generated",
-            {
-              now: new Date(),
-              statuses: ["processing"],
-            },
-          );
-        });
-
-        return {
-          skipped: false,
-          status: "incomplete_clips_generated",
-          clipsFound,
-          expectedClips: clipCount,
-        };
-      }
-
       const completion = await step.run(
         "complete-processing-attempt",
         async () => {
@@ -662,6 +680,11 @@ export const processVideo = inngest.createFunction(
             attempt,
             userId: context.userId,
             clipsFound,
+            noteCode: resolvePartialClipNoteCode({
+              clipsFound,
+              expectedClipCount: clipCount,
+              backendFailureMessage,
+            }),
             now: new Date(),
           });
         },
