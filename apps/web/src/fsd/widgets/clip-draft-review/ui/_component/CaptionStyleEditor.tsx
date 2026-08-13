@@ -200,7 +200,7 @@ export default function CaptionStyleEditor({
       <div className="flex flex-col gap-2">
         <div
           className={cn(
-            "relative mx-auto flex w-[180px] overflow-hidden rounded-lg bg-gradient-to-b from-slate-700 to-slate-900",
+            "relative mx-auto flex w-[180px] flex-col overflow-hidden rounded-lg bg-gradient-to-b from-slate-700 to-slate-900",
             justifyClass,
           )}
           style={{ height: PREVIEW_HEIGHT_PX }}
