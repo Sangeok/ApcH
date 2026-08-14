@@ -48,7 +48,10 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
     .run_commands([
         "mkdir -p /usr/share/fonts/truetype/custom",
         "wget -O /usr/share/fonts/truetype/custom/Anton-Regular.ttf https://raw.githubusercontent.com/google/fonts/main/ofl/anton/Anton-Regular.ttf",
-        "wget -O /usr/share/fonts/truetype/custom/NotoSansKR-Bold.otf https://fonts.gstatic.com/ea/notosanskr/v2/NotoSansKR-Bold.otf",
+        # 구 경로(fonts.gstatic.com/ea/notosanskr/v2/...)는 2026-08 기준 404다.
+        # 공식 noto-cjk 저장소의 같은 파일로 바꿨다 — 패밀리명 "Noto Sans KR",
+        # 굵기 Bold로 동일하므로 렌더 결과는 그대로다(아래 fontname과 맞물린다).
+        "wget -O /usr/share/fonts/truetype/custom/NotoSansKR-Bold.otf https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/SubsetOTF/KR/NotoSansKR-Bold.otf",
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True))
@@ -130,7 +133,7 @@ def parse_hex_color(value):
     return pysubs2.Color(r, g, b)
 
 
-def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_word: int, default_marginv: int) -> dict:
+def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_word: int, default_marginv: int, default_outline: float) -> dict:
     """사용자 캡션 스타일을 언어별 기본값 위에 얹어 ASS 스타일 파라미터로 해석한다.
 
     잘못된/누락된 값은 조용히 기본값으로 대체한다 (렌더 실패보다 기본 스타일 출력이 낫다).
@@ -151,12 +154,24 @@ def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_w
 
     primary_color = parse_hex_color(style.get("color")) or pysubs2.Color(255, 255, 255)
 
+    # isinstance(True, int)가 참이므로 bool을 먼저 걸러야 True가 두께 1로 새지 않는다.
+    outline_width = style.get("outlineWidth")
+    if isinstance(outline_width, bool) or not isinstance(outline_width, (int, float)) or not (0 <= outline_width <= 6):
+        outline_width = default_outline
+
+    outline_color = parse_hex_color(style.get("outlineColor")) or pysubs2.Color(0, 0, 0)
+
+    uppercase = style.get("uppercase") is True
+
     return {
         "alignment": CAPTION_POSITION_ALIGNMENT[position],
         "marginv": default_marginv if position == "middle" else CAPTION_POSITION_MARGINV[position],
         "fontsize": int(fontsize),
         "max_word": max_word,
         "primary_color": primary_color,
+        "outline": float(outline_width),
+        "outline_color": outline_color,
+        "uppercase": uppercase,
     }
 
 def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path, output_path, framerate=25):
@@ -257,6 +272,7 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
         default_fontsize=122,
         default_max_word=max_word,
         default_marginv=165,
+        default_outline=1.1,
     )
     max_word = resolved["max_word"]
 
@@ -322,11 +338,15 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
     new_style = pysubs2.SSAStyle()
     new_style.fontname = "Anton"
     new_style.fontsize = resolved["fontsize"]
-    new_style.primary_color = resolved["primary_color"]
-    new_style.border_style = 1
-    new_style.outline = 1.1
+    # pysubs2 SSAStyle은 dataclass라 없는 속성 대입이 조용히 무시된다.
+    # 속성명에 밑줄이 없다(primarycolor/borderstyle/outlinecolor/backcolor) —
+    # 밑줄로 적으면 에러 없이 해당 스타일이 전부 기본값으로 렌더된다.
+    new_style.primarycolor = resolved["primary_color"]
+    new_style.borderstyle = 1
+    new_style.outline = resolved["outline"]
+    new_style.outlinecolor = resolved["outline_color"]
     new_style.shadow = 6.5
-    new_style.shadowcolor = pysubs2.Color(12, 12, 12, 210)
+    new_style.backcolor = pysubs2.Color(12, 12, 12, 210)
     new_style.alignment = resolved["alignment"]
     new_style.marginl = 44
     new_style.marginr = 44
@@ -340,6 +360,8 @@ def create_subtitles_with_ffmpeg(transcript_segments: list, clip_start: float, c
         # create ssa time object for start and end time
         start_time = pysubs2.make_time(s=start)
         end_time = pysubs2.make_time(s=end)
+        if resolved["uppercase"]:
+            text = text.upper()
         line = pysubs2.SSAEvent(start=start_time, end=end_time, style=style_name, text=text)
         subs.events.append(line)
     
@@ -366,6 +388,7 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
         default_fontsize=130,
         default_max_word=max_word,
         default_marginv=155,
+        default_outline=1.3,
     )
     max_word = resolved["max_word"]
 
@@ -521,11 +544,13 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
     korean_style = pysubs2.SSAStyle()
     korean_style.fontname = "Noto Sans KR"  # 한글 폰트
     korean_style.fontsize = resolved["fontsize"]
-    korean_style.primary_color = resolved["primary_color"]
-    korean_style.border_style = 1
-    korean_style.outline = 1.3
+    # 속성명 밑줄 금지 — 위 create_subtitles_with_ffmpeg의 주석 참고.
+    korean_style.primarycolor = resolved["primary_color"]
+    korean_style.borderstyle = 1
+    korean_style.outline = resolved["outline"]
+    korean_style.outlinecolor = resolved["outline_color"]
     korean_style.shadow = 6.5
-    korean_style.shadowcolor = pysubs2.Color(8, 8, 8, 210)
+    korean_style.backcolor = pysubs2.Color(8, 8, 8, 210)
     korean_style.alignment = resolved["alignment"]
     korean_style.marginl = 48
     korean_style.marginr = 48
@@ -538,6 +563,9 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
     for start, end, text in korean_subtitles:
         start_time = pysubs2.make_time(s=start)
         end_time = pysubs2.make_time(s=end)
+        if resolved["uppercase"]:
+            # 한글에는 no-op, 줄에 섞인 영문만 대문자화된다.
+            text = text.upper()
         line = pysubs2.SSAEvent(start=start_time, end=end_time, style=style_name, text=text)
         subs.events.append(line)
 

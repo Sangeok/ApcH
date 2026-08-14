@@ -6,8 +6,8 @@ import {
   ANALYTICS_METADATA_KEYS_BY_EVENT,
 } from "./event-catalog.ts";
 
-test("shim이 이벤트 이름 28개를 그대로 내보낸다", () => {
-  assert.equal(ANALYTICS_EVENT_NAMES.length, 28);
+test("shim이 이벤트 이름 29개를 그대로 내보낸다", () => {
+  assert.equal(ANALYTICS_EVENT_NAMES.length, 29);
   assert.ok(ANALYTICS_EVENT_NAMES.includes("clip_review_confirmed"));
   assert.ok(ANALYTICS_EVENT_NAMES.includes("landing_view"));
   // 숫자를 품은 이름이라 [a-z_]+ 류의 순진한 카운트가 조용히 놓친다.

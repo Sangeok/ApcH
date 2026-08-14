@@ -104,16 +104,18 @@ The local entrypoint uses hardcoded test credentials:
    - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:133`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
    - Defaults differ by language:
 
-     | | English (`main.py:257-259`) | Korean (`main.py:366-368`) |
+     | | English (`main.py:269-272`) | Korean (`main.py:385-388`) |
      |---|---|---|
-     | font | Anton (`main.py:323`) | Noto Sans KR (`main.py:522`) |
+     | font | Anton (`main.py:336`) | Noto Sans KR (`main.py:542`) |
      | fontsize | 122 | 130 |
      | words per line | 5 | 3 |
      | marginv | 165 | 155 |
+     | outline width | 1.1 | 1.3 |
 
-   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:108-112`)
-   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:115-118`)
-   - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` as `#RRGGBB` (defaults to white)
+   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:109-113`)
+   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:116-119`)
+   - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` and `outlineColor` as `#RRGGBB` (defaulting to white and black), `outlineWidth` 0–6, `uppercase` as a boolean (applied to the event text, so it only changes Latin characters in a Korean line)
+   - **pysubs2 `SSAStyle` attribute names carry no underscore** — `primarycolor`, `outlinecolor`, `borderstyle`, `backcolor`. It is a dataclass, so assigning `primary_color` raises nothing and silently renders the default. That exact typo shipped once and made every user-picked caption color render white
 5. **S3 Upload**: Final clip uploaded to same directory as source
 
 ### Columbia ASD Integration (asd/)
