@@ -5,8 +5,11 @@
 
 @theme {
   --font-sans:
-    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+    var(--font-geist-sans), "Pretendard", "Apple SD Gothic Neo",
+    "Noto Sans KR", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-briefing-display:
+    "Gowun Batang", "Nanum Myeongjo", "바탕", Batang, ui-serif, Georgia, serif;
 }
 
 @theme inline {
@@ -30,6 +33,12 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-picked: var(--picked);
+  --color-stamp: var(--stamp);
+  --color-stamp-soft: var(--stamp-soft);
+  --color-active: var(--active);
+  --color-silence: var(--silence);
+  --color-hold: var(--hold);
+  --color-briefing: var(--briefing);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -71,6 +80,14 @@
      클립 검토는 크레딧을 확정하는 화면이라 고른 것과 안 고른 것이 한눈에
      갈려야 한다. 용도는 그 하나뿐이다 — 일반 강조색으로 쓰지 말 것. */
   --picked: oklch(0.55 0.16 255);
+  /* FEAT-04 /pipeline 브리핑 전용 토큰. "결정 대기=강조 / 완료=침묵"을
+     색으로 코드화한다. --picked(클립 전용)는 재사용하지 않는다. */
+  --stamp: oklch(0.58 0.12 62);
+  --stamp-soft: oklch(0.94 0.035 78);
+  --active: oklch(0.5 0.09 250);
+  --silence: oklch(0.58 0.008 80);
+  --hold: oklch(0.5 0.13 42);
+  --briefing: oklch(0.985 0.006 85);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -107,6 +124,13 @@
   --destructive: oklch(0.704 0.191 22.216);
   /* 카드 배경(oklch 0.205)에서도 읽히도록 라이트보다 밝게 잡는다. */
   --picked: oklch(0.72 0.14 255);
+  /* 현재 앱은 라이트만 렌더하지만 --picked 관례대로 다크 짝을 둔다. */
+  --stamp: oklch(0.78 0.12 75);
+  --stamp-soft: oklch(0.32 0.05 78);
+  --active: oklch(0.72 0.1 250);
+  --silence: oklch(0.62 0.006 80);
+  --hold: oklch(0.68 0.13 42);
+  --briefing: oklch(0.185 0.004 85);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);

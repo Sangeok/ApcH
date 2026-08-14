@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 import { requireAdmin } from "~/auth/guard";
+import { buildBriefing } from "~/pipeline/briefing";
 import { getPipelineBoard } from "~/pipeline/queries";
 import { AdminHeader } from "~/ui/admin-header";
-import { PipelineBoard } from "~/ui/pipeline-page";
+import { PipelineBriefing } from "~/ui/pipeline-page";
 
 export const metadata: Metadata = {
   title: "Admin Pipeline",
@@ -16,12 +17,13 @@ export const dynamic = "force-dynamic";
 export default async function AdminPipelineRoute() {
   const admin = await requireAdmin();
   const sections = await getPipelineBoard();
+  const briefing = buildBriefing(sections, new Date());
 
   return (
     <>
       <AdminHeader email={admin.email} />
-      <main>
-        <PipelineBoard sections={sections} />
+      <main className="bg-briefing min-h-screen">
+        <PipelineBriefing briefing={briefing} />
       </main>
     </>
   );
