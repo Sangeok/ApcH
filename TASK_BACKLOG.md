@@ -25,6 +25,10 @@
   - area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   - source: README "Currently in Development"
 
+- [ ] **BUG-06**: pricing FAQ가 부분 생성 시 크레딧 미차감이라고 안내하지만 실제로는 생성분만큼 차감됨
+  - area: apps/web/src/fsd/pages/pricing/config
+  - source: 2026-08-10 발견 — BUG-05(부분 성공 수용)가 동작을 바꿨는데 판매 문구가 남았다. `pricing/config/index.ts:46`은 "only partially completes, no credit is consumed", `:51`은 "do not complete the requested clip count do not affect your credit balance"라고 안내한다. 실제로는 `inngest/functions.ts:658`이 clipsFound>=1을 완료 경로로 보내고 `entities/uploaded-file/api/index.ts:827`이 clipsFound만큼 차감한다 — 3개 요청/2개 생성이면 무료 3크레딧 중 2가 소진되는데 페이지는 0이라고 적혀 있다. 수정 방향은 문구 쪽이다: `app/terms/page.tsx:86`("deducted only for clips that are successfully generated")과 `:202`가 이미 새 동작을 옳게 기술해, 지금은 약관과 FAQ가 서로 모순인 상태다. `pricing/ui/index.tsx:32`와 `product-tour/config/index.ts:74`는 확인 결과 정확하므로 건드릴 필요 없다. 같은 거짓 문장이 `README.md:198-199`에도 있으나 web-dev 담당 범위(`apps/web/src/**`) 밖이라 별도 처리가 필요하다
+
 ## 비고
 
 - 위 항목의 우선순위는 아직 정해지지 않음 — PM 에이전트가 매일 이 목록에서 오늘 처리할 1~2개를 골라 PROJECT_BOARD.md에 "승인대기"로 기록한다.
