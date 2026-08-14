@@ -11,17 +11,17 @@
 > **`구현승인`이어야 코드를 고친다.** `완료`로 기록할 때 TASK_BACKLOG.md에서도 그 항목을 제거한다.
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 
+## 2026-08-06
+- [x] FEAT-02: 업로드 영상 길이에 맞춰 클립 개수 기본값 제안
+  agent: web-dev
+  area: apps/web/src/fsd/pages/dashboard + apps/web/src/fsd/shared/config
+  status: 완료
+  근거: 미결 1건(FEAT-01)이라 규칙상 오늘은 1건만 선정한다. 백엔드 항목(BUG-02~04)은 담당 에이전트가 없어 제외되고, 선정 가능한 신규 web 항목은 실사용 관찰에서 올라온 FEAT-02뿐이라 이를 고른다.
+  결과: 소스 재생 길이로 구조적 상한을 계산하는 순수 함수와 경계값 테스트를 추가하고, 업로드 UI가 드롭 시 길이를 읽어 상한 초과 개수 옵션 비활성화·선택값 하향 클램프·안내 문구·상한 0일 때 업로드 차단을 하도록 수정했다. 수정: apps/web/src/fsd/pages/dashboard/model/clip-count-budget.ts(신규), clip-count-budget.test.mjs(신규), ui/_component/UploadPodcast.tsx. 계획이 우려한 `~` 별칭은 테스트 러너에서 정상 해석돼 파라미터화 폴백은 불필요했다. 못 덮음: DOM `<video>` 측정과 컴포넌트 렌더/클램프/비활성화/안내(Node 러너에 DOM 없음), 백엔드 하이라이트 미달 생성(apps/backend 소관).
+
 ## 2026-08-03
 - [ ] FEAT-01: Credit System 마무리
   agent: web-dev
   area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   status: 승인대기
   근거: 현재 "개발 중" 상태로 남아 결제 흐름의 기반이 되는 항목. 결제 자체는 Polar로 이미 동작하므로, 크레딧 시스템을 완성해야 후속 작업이 안정적으로 얹힌다.
-- [x] BUG-05: 부분 생성 결과를 실패로 처리해 만들어진 클립을 버리는 문제
-  agent: web-dev
-  area: apps/web/src/inngest/functions.ts + apps/web/src/fsd/entities/uploaded-file/api + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/upload-detail
-  status: 완료
-  근거: 백로그의 "차감/환불 정합성 오류"는 오진이었다 — 차감이 성공 전이와 같은 트랜잭션에 한 번만 붙어 있어 원장은 정합적이고, 되돌릴 차감 자체가 없다. 실제 문제는 Modal이 요청보다 적은 클립을 정상 생성했을 때(예: 3개 요청 / 2개 생성) web이 이를 실패로 판정해(src/inngest/functions.ts:636) 이미 만들어진 클립을 사용자에게 보여주지 않고 버리는 것이다. 사용자는 0개를 받고, 재시도해도 같은 영상이라 같은 결과가 나오며, 요청 개수를 줄일 경로도 없다(targetClipCount는 업로드 시점에만 쓰인다). 방향은 "부분 성공 수용"으로 확정한다 — clipsFound >= 1을 성공으로 처리하고 생성된 수만큼 과금해 만들어진 클립을 전달한다. 함께 처리할 것 셋: (1) 완료 처리되면 재시도가 유료가 되므로, 같은 결과가 반복될 가능성을 알리거나 재시도 진입을 막는다. (2) backendFailureMessage 유무로 "후보 부족"과 "처리 중 크래시"를 구분할 수 있으니 각각을 어떻게 다룰지 계획서에서 판단한다 — 기본 방향은 어느 쪽이든 만들어진 클립은 전달하는 것이다. (3) 폴링 루프(functions.ts:483-548)는 generatedClipCount >= clipCount 이거나 backendFailureMessage일 때만 탈출한다. 부분 성공은 둘 중 어느 쪽도 아니라 남은 폴링을 전부 소진한다 — MODAL_RESULT_MAX_POLLS(60) × MODAL_RESULT_POLL_INTERVAL(1m), 최대 60분. Modal이 status "ok"와 클립 2개를 콜백으로 이미 보낸 뒤에도 워커가 계속 잔다는 뜻이고, 유저당 동시성이 1이라(functions.ts:277-283) 그 사이 그 유저는 다른 영상도 못 돌린다. 결과만 고치면 "1시간 뒤 실패"가 "1시간 뒤 성공"이 될 뿐이므로 함께 고친다 — 콜백이 성공 상태로 도착하면 backendClips.length가 진짜 목표치이니 그 기준으로 조기 탈출하되, S3 결과적 일관성 때문에 즉시 break는 위험하니 유예를 어떻게 둘지는 계획서에서 판단한다(MODAL_METADATA_GRACE_INTERVAL이 같은 성격의 선례). stale-policy.ts:11-17의 62분 주석은 상한이라 조기 탈출을 넣어도 그대로 유효하다.
-  검토결과: 계획서를 reconciling-proposals-with-codebase로 3회 검증해 blocker 8개를 해소한 뒤 승인한다. 1차 7개 — settle 재집계 step이 결과를 읽는 곳이 없어 죽어 있었음(경고로 전환), 「구현 스케치」 절 부재(web-dev.md B-4가 없는 절을 가리킴), UI 문구가 한국어 서술이라 미해결(영문 확정), 상수 리터럴 값 미정(DB 저장값이라 확정), 그리고 무편집 패스가 잡은 옛 문장 잔존 3곳(그중 하나는 스케치의 영문과 충돌). 2차 1개 — 확정 문구가 코드로 판정 불가능한 원인을 단언했다(backendFailureMessage === null의 원인이 최소 셋: validate_moments 필터, Gemini 후보 부족, S3 업로드 무처리 실패. 셋째에서는 "같은 결과가 나온다"는 안내가 정반대라 관측된 사실만 말하도록 수정). 3차 0개 — apps/admin의 failureCode 소비(리포트 페이로드일 뿐 DB 미독)와 15분 크론의 행 선정(status/시간창만 보고 failureCode는 select에도 없음)을 확인해 기존 배제를 증거로 승격. 계획서 전 인용을 코드와 대조 완료. 남는 위험은 문서로 줄일 수 없는 것뿐이다 — Inngest 워커 흐름·DB 쓰기·상세 페이지 렌더는 3개 요청/2개 생성 시나리오로 수동 검증해야 한다.
-  결과: 부분 성공(clipsFound>=1)을 실패 대신 완료 경로로 흘려 생성분만큼 과금·전달하고, 폴링 탈출을 resolveModalPollAction으로 대체해 성공 콜백+부분(예: 2/3) 시 최대 2m 유예 후 조기 탈출하며, completeUploadedFileProcessingAttempt가 processed 행의 failureCode에 부분 노트(partial_clips_insufficient/partial_clips_after_backend_error)를 기록하고 상세 페이지가 그 노트로 안내 블록을 렌더한다. 신규 2: src/fsd/entities/uploaded-file/model/clip-generation-outcome.ts + 동 .test.mjs(resolvePartialClipNoteCode 4갈래 + isPartialClipResultCode + resolveModalPollAction 8갈래 = 14 테스트). 수정 3: src/inngest/functions.ts, src/fsd/entities/uploaded-file/api/index.ts, src/fsd/pages/upload-detail/ui/index.tsx. npm run check·npm test 통과(31 pass/0 fail). 순수 함수 외 넷은 현재 러너로 못 덮음 — 워커 흐름(Inngest step/Modal/S3), DB 쓰기 효과(processed 전이 + failureCode 노트 + clipsFound 차감), 상세 페이지 렌더, settle의 console.warn — 3요청/2생성 시나리오로 수동 검증 필요.
-

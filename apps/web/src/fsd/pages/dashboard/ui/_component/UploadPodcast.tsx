@@ -18,8 +18,9 @@ import Dropzone, { type DropzoneState } from "react-dropzone";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Loader2, UploadCloud } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useUploadPodcast } from "~/fsd/pages/dashboard/model/useUploadPodcast";
+import { getMaxFeasibleClipCount } from "~/fsd/pages/dashboard/model/clip-count-budget";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   UPLOAD_CONFIG,
@@ -27,8 +28,33 @@ import {
   CLIP_COUNT_OPTIONS,
   DEFAULT_LANGUAGE,
   DEFAULT_CLIP_COUNT,
+  CLIP_DURATION_LIMITS,
 } from "~/fsd/shared/config/constants";
 import type { UploadedFileSummary } from "../../model/types";
+
+function readVideoDurationSeconds(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(video.duration) ? video.duration : null);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    video.src = url;
+  });
+}
+
+function formatSourceLength(totalSeconds: number): string {
+  const rounded = Math.round(totalSeconds);
+  const minutes = Math.floor(rounded / 60);
+  const seconds = rounded % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
 
 interface UploadPodcastProps {
   onOptimisticAdd: (file: UploadedFileSummary) => void;
@@ -38,6 +64,9 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
   const [clipCount, setClipCount] = useState<number>(DEFAULT_CLIP_COUNT);
+  const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
+  // 드롭마다 증가시키는 요청 번호. 늦게 도착한 이전 파일의 측정 결과를 버리는 데 쓴다.
+  const durationRequestId = useRef(0);
   const [reviewBeforeGenerate, setReviewBeforeGenerate] =
     useState<boolean>(false);
   const { upload, isUploading } = useUploadPodcast({
@@ -47,6 +76,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
 
   const handleFileDrop = (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
+    setDurationSeconds(null);
 
     const file = acceptedFiles[0];
 
@@ -56,6 +86,20 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
         fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
         language,
         clipCount,
+      });
+
+      const requestId = ++durationRequestId.current;
+
+      void readVideoDurationSeconds(file).then((seconds) => {
+        // 이 드롭 이후에 다른 파일이 떨어졌으면 이 결과는 버린다.
+        if (requestId !== durationRequestId.current) return;
+
+        setDurationSeconds(seconds);
+        const max = getMaxFeasibleClipCount(seconds);
+        if (max >= 1) {
+          // 클로저의 clipCount가 아니라 prev를 본다 — 시스템 보정이라 계측 이벤트는 내지 않는다.
+          setClipCount((prev) => (prev > max ? max : prev));
+        }
       });
     }
   };
@@ -115,6 +159,8 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
       });
     }
   };
+
+  const maxFeasibleClips = getMaxFeasibleClipCount(durationSeconds);
 
   return (
     <div>
@@ -205,15 +251,21 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      {CLIP_COUNT_OPTIONS.map((option) => (
-                        <DropdownMenuItem
-                          key={option.value}
-                          onClick={() => handleClipCountChange(option.value)}
-                          className="cursor-pointer"
-                        >
-                          {option.label}
-                        </DropdownMenuItem>
-                      ))}
+                      {CLIP_COUNT_OPTIONS.map((option) => {
+                        const disabled =
+                          maxFeasibleClips >= 1 &&
+                          option.value > maxFeasibleClips;
+                        return (
+                          <DropdownMenuItem
+                            key={option.value}
+                            disabled={disabled}
+                            onClick={() => handleClipCountChange(option.value)}
+                            className="cursor-pointer"
+                          >
+                            {option.label}
+                          </DropdownMenuItem>
+                        );
+                      })}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -242,11 +294,18 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                   </DropdownMenu>
                 </div>
               </div>
+              {files.length > 0 && durationSeconds !== null && (
+                <p className="text-muted-foreground text-xs">
+                  {maxFeasibleClips === 0
+                    ? `Source is shorter than ${CLIP_DURATION_LIMITS.MIN_SECONDS}s — too short to generate a clip. Try a longer video.`
+                    : `Source length ${formatSourceLength(durationSeconds)}. This fits up to ${maxFeasibleClips} ${maxFeasibleClips === 1 ? "clip" : "clips"}; the AI may return fewer.`}
+                </p>
+              )}
             </div>
           )}
         </div>
         <Button
-          disabled={files.length === 0 || isUploading}
+          disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}
           onClick={handleUpload}
         >
           {isUploading ? (
