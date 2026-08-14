@@ -10,7 +10,7 @@ admin은 2026-08-02에 web에서 분리됐다. 두 앱은 **`@repo/db`만 공유
 
 ## Project Overview
 
-`admin.a-pch.com` — 운영자용 내부 대시보드. 제품 기능은 없고 **읽기 전용 관측**만 한다.
+`admin.a-pch.com` — 운영자용 내부 대시보드. 제품 기능은 없고 관측이 본업이다. **DB는 읽기 전용**이며, 유일한 쓰기는 `/pipeline`의 GitHub 이슈 코멘트 게시다(외부 API, DB 무관).
 
 | 라우트 | 내용 |
 |---|---|
@@ -18,6 +18,7 @@ admin은 2026-08-02에 web에서 분리됐다. 두 앱은 **`@repo/db`만 공유
 | `/login` | Google 로그인 |
 | `/analytics` | 개요·퍼널·이탈·최근 실패 |
 | `/observability` | Sentry 리포팅 점검 |
+| `/pipeline` | 파이프라인 보드 투영 + 원격 명령 |
 | `/api/auth/[...nextauth]` | NextAuth 핸들러 |
 
 `app/robots.ts`가 전 크롤러에 `Disallow: /`를 낸다.
@@ -35,12 +36,15 @@ npm run build -w apps/admin
 
 ### 테스트
 
-Node 내장 러너를 `tsx`로 돌린다. 현재 **2개 파일, 11개 테스트.**
+Node 내장 러너를 `tsx`로 돌린다. 현재 **3개 파일, 15개 테스트.**
 
 | 파일 | 지키는 것 |
 |---|---|
 | `analytics/reporting.test.mjs` | 퍼널 단계는 **이전 단계 뒤에 나온 것만** 센다. 이탈 행은 세션별 마지막 유의미 이벤트로 잡고 `page_exited`는 제외한다 |
 | `lib/admin-emails.test.mjs` | `ADMIN_EMAILS` 파싱 — 소문자 정규화, 공백·트레일링 콤마·중복 제거. **이 앱의 유일한 인가 입력이라 파싱이 틀리면 접근 제어가 틀린다** |
+| `pipeline/board.test.mjs` | `PROJECT_BOARD.md` 파싱 — 섹션·항목·`status`·`checked` 추출, mermaid 섹션과 `>` 안내 블록 제외 |
+
+**`.mjs`는 `tsconfig`의 `include` 밖이라 타입체크를 받지 않는다.** 테스트가 통과해도 `npm run check`가 막을 수 있으므로 둘 다 돌린다 — FEAT-03 계획서의 파서 초안이 `noUncheckedIndexedAccess` 위반으로 `check`에서만 걸렸다.
 
 ## Architecture
 
@@ -54,6 +58,7 @@ Node 내장 러너를 `tsx`로 돌린다. 현재 **2개 파일, 11개 테스트.
 | `analytics/` | 집계 — `queries.ts`(DB) + `reporting.ts`(순수 함수) |
 | `auth/` | NextAuth 설정과 가드 |
 | `observability/` | Sentry 리포팅 래퍼 |
+| `pipeline/` | 보드 파싱·조회·명령 — `board.ts`(순수) + `queries.ts`(fetch) + `command-action.ts`(쓰기) |
 | `lib/` | `parse-admin-emails.ts`, `result.ts`, `utils.ts` |
 | `ui/` | 컴포넌트. `ui/atoms/`에 shadcn 계열 |
 
@@ -114,8 +119,9 @@ Sentry는 **web과 같은 프로젝트**를 쓴다. 둘 다 커밋 SHA로 릴리
 ## Common Gotchas
 
 - **`middleware.ts`의 matcher에서 `robots.txt`를 빼야 한다.** 빼먹으면 크롤러 요청이 미인증으로 잡혀 `/login`으로 307되고 `Disallow: /`가 아무에게도 전달되지 않는다. web의 matcher는 특정 경로만 겨냥해서 이 문제가 없었다 — admin의 "전부 보호" 방식이 만든 차이다
-- CSP의 `connect-src`는 `'self'`와 Neon뿐이다(`next.config.js:65`). S3·Polar·Inngest는 admin이 쓰지 않는다. 외부 호출을 추가하면 CSP도 함께 고쳐야 한다
-- **admin은 DB를 읽기만 한다.** 현재 접근은 `db.analyticsEvent.findMany` 하나뿐이고 쓰기 경로가 없다. 쓰기를 추가하는 것은 이 앱의 성격을 바꾸는 일이니 먼저 확인할 것
+- CSP의 `connect-src`는 `'self'`와 Neon뿐이다(`next.config.js:65`). S3·Polar·Inngest는 admin이 쓰지 않는다. **브라우저에서 나가는** 외부 호출을 추가하면 CSP도 함께 고쳐야 한다 — `pipeline/`의 GitHub 호출은 전부 서버 측(서버 컴포넌트·서버 액션)이라 여기 걸리지 않는다
+- **admin은 DB를 읽기만 한다.** 현재 접근은 `db.analyticsEvent.findMany` 하나뿐이고 DB 쓰기 경로가 없다. DB 쓰기를 추가하는 것은 이 앱의 성격을 바꾸는 일이니 먼저 확인할 것
+- **외부 쓰기는 하나뿐이다** — `pipeline/command-action.ts`가 GitHub 이슈에 코멘트를 POST한다(FEAT-03, 소유자 발주). `requireAdmin()` 뒤에 있고 되돌릴 수 있으며 기록이 남는다. 여기에 외부 쓰기를 더 늘리는 것도 성격 변경이니 먼저 확인할 것
 - 서버 액션의 성공/실패는 `~/lib/result`의 `ActionResult`로 표현한다(`observability/test-action.ts`). 인가 실패는 여기 담기지 않는다 — `requireAdmin()`이 `redirect`/`notFound`로 던진다
 - `@repo/db`는 bare `node`로 임포트되지 않는다(확장자 없는 임포트 + Prisma CJS 디렉터리 임포트). 테스트는 `tsx`로 돌린다
 

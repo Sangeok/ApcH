@@ -17,6 +17,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-14
+- [x] FEAT-03: 파이프라인 대시보드 — 보드 카드 뷰 + 원격 명령 버튼
+  agent: admin-dev
+  area: apps/admin
+  status: 완료
+  근거: 사용자 직접 발주 — pm 경유 없음(pm의 하루 1회 규칙과 무관한 소유자 발주로 기록한다). 검증된 리모컨(이슈 #87 → webhook 루틴) 위에 카드형 화면과 명령 버튼을 얹는 3단계 시각화 작업.
+  결과: `/pipeline` 라우트를 추가했다 — dev 브랜치 PROJECT_BOARD.md를 raw로 no-store fetch해 순수 파서(board.ts)로 카드 렌더하고, "Run pipeline" 버튼이 서버 액션으로 이슈 #87에 코멘트를 POST한다. 신규: src/pipeline/{github.ts, board.ts, board.test.mjs, queries.ts, command-action.ts}, src/ui/{pipeline-page.tsx, pipeline-command.tsx}, src/app/pipeline/page.tsx. 수정: src/env.js(GITHUB_PIPELINE_TOKEN optional 추가). board.test.mjs 4테스트 추가(총 15 pass). 못 덮음(Node 러너·DOM/외부 I/O 없음): queries.ts의 raw fetch, command-action.ts의 코멘트 POST, requireAdmin 게이트, React 렌더·useTransition·toast — 배포 후 수동 확인 대상. 런타임 전제(구현 밖): GITHUB_PIPELINE_TOKEN 값 주입은 사용자 몫이며 반드시 저장소 소유자(Sangeok) 계정 토큰이어야 루틴이 코멘트를 인식한다(아니면 POST는 성공해도 루틴이 무시하는 조용한 실패). apps/admin/CLAUDE.md 문서 3행 갱신은 계획 「비고」대로 메인 루프가 처리한다(수정 범위 밖).
 - [x] BUG-06: pricing FAQ가 부분 생성 시 크레딧 미차감이라고 안내하지만 실제로는 생성분만큼 차감됨
   agent: web-dev
   area: apps/web/src/fsd/pages/pricing/config
