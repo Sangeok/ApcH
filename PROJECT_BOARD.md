@@ -20,7 +20,7 @@
 - [ ] FEAT-04: `/pipeline` UI/UX 개편 — 결재함·팀·보고 3구역 + 캐릭터 발화 렌더링
   agent: admin-dev
   area: apps/admin
-  status: 계획지시
+  status: 검토대기
   근거: 사용자 직접 발주 — pm 경유 없음(소유자 발주로 기록). FEAT-03 화면이 데이터 덤프로 나온 원인이 발주문의 디자인 기준 부재였으므로, 이번 백로그 source에 구조·렌더링 기준을 명시해 재발주한다.
 - [x] FEAT-03: 파이프라인 대시보드 — 보드 카드 뷰 + 원격 명령 버튼
   agent: admin-dev
