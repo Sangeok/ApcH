@@ -6,13 +6,15 @@ agent: admin-dev
 
 admin은 읽기 전용 관측 대시보드다. 파이프라인 보드를 보여주는 라우트는 없다 — 현재 라우트는
 `app/page.tsx:4`(`redirect("/analytics")`), `app/analytics/page.tsx`, `app/observability/page.tsx`,
-`app/login/page.tsx`, `app/api/auth/[...nextauth]/route.ts`뿐이다.
+`app/login/page.tsx`, `app/api/auth/[...nextauth]/route.ts`, 그리고 전 크롤러를 차단하는
+`app/robots.ts`다(`app/layout.tsx`는 라우트가 아니라 공용 레이아웃 — `Toaster`가 여기 전역
+마운트라 새 페이지에서 toast가 그냥 동작한다).
 
 기존 페이지가 이미 확립한 패턴이 이 기능의 뼈대가 된다.
 
 - **인가 3중 방어선.** (1) 로그인 거부 `auth/config.ts:19`의 `signIn` 콜백이 화이트리스트 밖 계정의
-  세션 생성을 막는다. (2) 경로 보호 `auth/config.edge.ts:19`의 `authorized` 콜백 + `middleware.ts`의
-  matcher(`config.edge.ts:15` = `/((?!api|_next/static|_next/image|favicon.ico|robots.txt).*)`)가
+  세션 생성을 막는다. (2) 경로 보호 `auth/config.edge.ts:19`의 `authorized` 콜백 + `middleware.ts:15`의
+  matcher(`/((?!api|_next/static|_next/image|favicon.ico|robots.txt).*)`)가
   `/login`을 뺀 전 경로를 보호한다. (3) 페이지 재검사 `auth/guard.ts:7`의 `requireAdmin()`이
   `ADMIN_EMAILS`를 다시 확인해 제거된 계정의 잔여 JWT를 막는다.
 - **라우트 구성.** `app/analytics/page.tsx:50`·`app/observability/page.tsx:12-19`가
@@ -205,9 +207,12 @@ import { ISSUE_COMMENTS_URL } from "./github";
 // #87 코멘트가 외부 webhook(pipeline-command)을 깨워 에이전트를 돌린다.
 // 게이트 전이(계획지시·구현승인)는 사용자 몫이므로 이 명령은 status를 바꾸지 않고
 // "현재 status대로 처리하라"는 실행 트리거만 보낸다.
-// ⚠️ 앞머리 "@claude"는 외부 webhook의 트리거 문법에 대한 가정이다(「범위 밖 의존」 참고).
+// 명령 계약(2026-08-14 실측으로 확정 — 「범위 밖 의존」 1 참고): 접두 토큰은 없다.
+// webhook은 이슈의 모든 새 코멘트에 발화하고, 루틴 지침이 (a) 이슈 #87 (b) 작성자가
+// 저장소 소유자 (c) "[claude]"로 시작하지 않음 — 세 조건으로 명령을 고른다.
+// 따라서 이 문자열은 "[claude]"로 시작하면 안 되고, 게시 계정이 소유자여야 한다.
 const COMMAND_BODY =
-  "@claude 파이프라인을 실행해 주세요. PROJECT_BOARD.md의 각 항목을 현재 status대로 처리하고, 게이트 전이(계획지시·구현승인)는 사용자 몫이므로 바꾸지 않습니다.";
+  "파이프라인을 진행해 주세요. PROJECT_BOARD.md의 각 항목을 현재 status와 런북 규칙대로 처리하되, 게이트 전이(계획지시·구현승인)는 사용자 몫이므로 바꾸지 마세요.";
 
 export async function postPipelineCommand(): Promise<ActionResult<void>> {
   // 목적지 인가. test-action.ts와 동일하게 try 밖에서 부른다
@@ -438,17 +443,36 @@ export default async function AdminPipelineRoute() {
 
 다만 **런타임 전제** 둘은 저장소 밖이라 구현으로 완결되지 않는다(구현을 막지는 않는다):
 
-1. **webhook 루틴 `pipeline-command`는 GitHub 측 설정이다.** 대시보드가 하는 일은 이슈 #87에 코멘트를
-   POST하는 것뿐이고 그건 이 앱 안이다. 하지만 그 코멘트가 실제로 루틴을 깨우려면 **정확한 트리거
-   문구**가 외부 설정과 맞아야 한다. `source`가 검증한 것은 "코멘트가 루틴을 깨운다"까지이고 트리거
-   토큰(`@clude` 여부 등)은 코드로 확인할 수 없다 — 스케치의 `COMMAND_BODY` 앞머리 `@claude`는 가정이다.
-   **소유자가 승인 시 이 리터럴을 외부 webhook 문법에 맞게 확정/수정해야 한다.**
+1. **webhook 루틴 `pipeline-command`의 명령 계약은 확정됐다(2026-08-14 실측).** webhook은 이슈 코멘트
+   생성 **전건**에 발화하며, 명령 선별은 루틴 지침이 한다: 이슈 #87 + 작성자가 저장소 소유자 +
+   `[claude]` 접두가 아닌 것. 접두 토큰(`@claude` 류)은 존재하지 않는다 — 무접두 명령("백로그 요약해")이
+   게시 51초 만에 `[claude]` 답글로 완주한 것이 확인 근거다. 남는 외부 의존은 하나: 루틴 지침은
+   저장소 밖(claude.ai 설정)이라 doc-auditor의 감사가 닿지 않으므로, **루틴 지침을 바꿀 때
+   `COMMAND_BODY`와의 정합은 사람이 지켜야 한다.**
 2. **`GITHUB_PIPELINE_TOKEN` 값 주입은 사용자 몫(백로그 명시).** 그래서 `optional`로 둔다. 값이 없으면
    버튼은 `"GitHub token is not configured"` 실패 토스트를 낸다 — 조용히 실패하지 않는다.
+   **토큰은 반드시 저장소 소유자(Sangeok) 계정의 것이어야 한다**(fine-grained PAT, `ApcH` 저장소,
+   Issues Read and write). 루틴이 코멘트 **작성자**로 명령을 거르므로, 다른 계정·앱의 토큰이면 POST는
+   성공하고 성공 토스트까지 뜨는데 루틴은 그 코멘트를 무시한다 — 이 기능에서 끝까지 조용한 실패가
+   되는 유일한 구멍이 이 지점이다.
 
 또한 이 기능은 admin에 **첫 외부 쓰기 경로**(GitHub 코멘트 POST)를 들인다. 이는 **DB 쓰기가 아니며**
 (파이프라인 기능은 DB를 아예 안 건드린다), 백로그가 직접 요구한 소유자 발주 항목이다. 다만 "읽기 전용
 관측"이라는 이 앱의 성격이 "GitHub에 코멘트를 쓸 수 있음"으로 넓어지는 변화이므로 승인 판단에 참고한다.
+
+## 비고
+
+- **문서 반영(구현 단계, 메인 루프 수행)** — `apps/admin/CLAUDE.md`는 이 계획의 담당 에이전트가 수정할
+  수 없는 파일이라 필요한 3행 추가를 여기 남긴다: (a) Project Overview 라우트 표에
+  `| /pipeline | 파이프라인 보드 투영 + 원격 명령 |` (b) Architecture 디렉터리 표에
+  `| pipeline/ | 보드 파싱·조회·명령 — board.ts(순수) + queries.ts(fetch) + command-action.ts(쓰기) |`
+  (c) 테스트 표에 `| pipeline/board.test.mjs | PROJECT_BOARD.md 파싱 — 섹션·항목·status·checked 추출, mermaid·안내 블록 제외 |`
+  (+ 파일 수 카운트 2→3, 테스트 수 갱신).
+- **비차단 위험** — (1) `raw.githubusercontent.com`은 CDN 캐시(약 5분)가 있어 `no-store`로도 보드 반영이
+  수 분 늦을 수 있다. 내부 도구라 수용하고, 더 낮춰야 하면 `api.github.com` contents API(토큰 인증)로
+  교체한다. (2) 보드 fetch 실패 시 페이지는 Next 기본 에러 화면이 된다 — 새로고침이 복구 경로다.
+  (3) 버튼 이중 클릭은 `isPending`이 막지만 연속 클릭으로 코멘트 2건이 게시될 수 있다 — 루틴이 각각
+  발화해도 "미답변 최신 1건 처리" 규칙이라 최악이 중복 답글이고, 이슈 페이지에서 관측된다.
 
 ## 대안
 
