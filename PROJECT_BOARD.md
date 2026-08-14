@@ -20,7 +20,7 @@
 - [ ] FEAT-03: 파이프라인 대시보드 — 보드 카드 뷰 + 원격 명령 버튼
   agent: admin-dev
   area: apps/admin
-  status: 검토대기
+  status: 구현승인
   근거: 사용자 직접 발주 — pm 경유 없음(pm의 하루 1회 규칙과 무관한 소유자 발주로 기록한다). 검증된 리모컨(이슈 #87 → webhook 루틴) 위에 카드형 화면과 명령 버튼을 얹는 3단계 시각화 작업.
 - [x] BUG-06: pricing FAQ가 부분 생성 시 크레딧 미차감이라고 안내하지만 실제로는 생성분만큼 차감됨
   agent: web-dev
