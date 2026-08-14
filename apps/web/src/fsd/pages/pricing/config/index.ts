@@ -43,12 +43,12 @@ export const pricingFaq: FaqItem[] = [
   {
     question: "How does the free trial work?",
     answer:
-      "Every new account is provisioned with 3 free credits. Credits are deducted after a successful processing run, one credit per generated clip in that completed run. If a run fails or only partially completes, no credit is consumed.",
+      "Every new account is provisioned with 3 free credits. Credits are deducted after a processing run completes, one credit per generated clip. A run that produces no clips consumes no credits; a run that generates some but not all of the requested clips deducts one credit for each clip that was generated.",
   },
   {
     question: "When are credits deducted?",
     answer:
-      "Credits are deducted only after the requested clips are successfully processed and stored. Uploads that fail, produce no clip, or do not complete the requested clip count do not affect your credit balance.",
+      "Credits are deducted after processing completes, one credit for each clip that is successfully generated and stored. A run that produces no clips does not affect your credit balance; a run that generates fewer clips than requested — even one that ends in an error — still deducts one credit per generated clip.",
   },
   {
     question: "Can I refund credits or unused subscription time?",
