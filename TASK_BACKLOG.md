@@ -25,12 +25,6 @@
   - area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   - source: README "Currently in Development"
 
-## Admin / Observability
-
-- [ ] **FEAT-03**: 파이프라인 대시보드 — 보드 카드 뷰 + 원격 명령 버튼
-  - area: apps/admin
-  - source: 사용자 요구 (2026-08-14). 관측: (1) 작업 상태의 진실은 dev 브랜치 `PROJECT_BOARD.md`이고, 각 항목은 `status:` 필드가 있는 구조화 형식이다. (2) 이슈 #87 코멘트 → webhook 루틴(pipeline-command) 자동 실행이 2026-08-14 검증됨 — 코멘트 게시 후 51초 만에 `[claude]` 답글까지 완주. (3) 저장소는 public — 보드 raw 읽기는 토큰 불요, 이슈 코멘트 게시(쓰기)는 토큰 필요. 요구: apps/admin에 페이지 1개 — (a) 보드를 파싱해 항목·status를 카드로 렌더 (b) 명령 버튼 클릭 시 GitHub API로 이슈 #87에 코멘트 게시 (c) admin 인증 뒤에서만 접근. 제약: 대시보드는 보드의 투영이다 — 상태를 자체 저장하지 않는다. 게이트 전이(계획지시·구현승인) 버튼은 두지 않는다(원격 게이트 잠김). 게시용 토큰은 서버 환경변수로 읽는다 — 값 세팅은 구현 후 사용자 몫.
-
 ## 비고
 
 - 위 항목의 우선순위는 아직 정해지지 않음 — PM 에이전트가 매일 이 목록에서 오늘 처리할 1~2개를 골라 PROJECT_BOARD.md에 "승인대기"로 기록한다.
