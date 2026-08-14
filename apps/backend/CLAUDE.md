@@ -85,8 +85,8 @@ The local entrypoint uses hardcoded test credentials:
 
 - Gemini 2.5 Flash with structured JSON output
 - Prompt engineering for Q&A extraction (30-90s clips)
-- Critical constraints: no overlap, sentence boundaries, max 90s. The bounds live in `MAX_CLIP_DURATION` / `MIN_CLIP_DURATION` (`main.py:85-86`) and are shared by the analyze, render, and auto paths
-- Returns: `[{"start": seconds, "end": seconds, "type": "qa" | "insight", "hook": str, "payoff": str}, ...]`. `type`, `hook`, and `payoff` were added after the original start/end pair and are consumed at `main.py:1012-1014`
+- Critical constraints: no overlap, sentence boundaries, max 90s. The bounds live in `MAX_CLIP_DURATION` / `MIN_CLIP_DURATION` (`main.py:88-89`) and are shared by the analyze, render, and auto paths
+- Returns: `[{"start": seconds, "end": seconds, "type": "qa" | "insight", "hook": str, "payoff": str}, ...]`. `type`, `hook`, and `payoff` were added after the original start/end pair and are consumed at `main.py:1040-1042`
 
 **Stage 3: Clip Processing** (`process_clip()` for each moment)
 
@@ -101,19 +101,19 @@ The local entrypoint uses hardcoded test credentials:
    - Fallback: blurred background with centered content
    - 1080x1920 output with GPU-accelerated encoding
 4. **Subtitle Overlay**: `create_subtitles_with_ffmpeg()` (English) / `create_korean_subtitles_with_ffmpeg()` (Korean)
-   - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:133`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
+   - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:136`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
    - Defaults differ by language:
 
-     | | English (`main.py:269-272`) | Korean (`main.py:385-388`) |
+     | | English (`main.py:272-275`) | Korean (`main.py:388-391`) |
      |---|---|---|
-     | font | Anton (`main.py:336`) | Noto Sans KR (`main.py:542`) |
+     | font | Anton (`main.py:339`) | Noto Sans KR (`main.py:545`) |
      | fontsize | 122 | 130 |
      | words per line | 5 | 3 |
      | marginv | 165 | 155 |
      | outline width | 1.1 | 1.3 |
 
-   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:109-113`)
-   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:116-119`)
+   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:112-116`)
+   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:119-122`)
    - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` and `outlineColor` as `#RRGGBB` (defaulting to white and black), `outlineWidth` 0–6, `uppercase` as a boolean (applied to the event text, so it only changes Latin characters in a Korean line)
    - **pysubs2 `SSAStyle` attribute names carry no underscore** — `primarycolor`, `outlinecolor`, `borderstyle`, `backcolor`. It is a dataclass, so assigning `primary_color` raises nothing and silently renders the default. That exact typo shipped once and made every user-picked caption color render white
 5. **S3 Upload**: Final clip uploaded to same directory as source
