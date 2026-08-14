@@ -194,9 +194,10 @@ modal run main.py
 ### Credits & Billing
 
 - New accounts start with 3 free credits (`User.credits` defaults to 3)
-- Credits are deducted after a successful run, one per generated clip — a
-  completed 3-clip run spends the whole trial balance. A failed or partial run
-  consumes nothing.
+- Credits are deducted per generated clip, one each — a completed 3-clip run
+  spends the whole trial balance. A run that produces no clips consumes
+  nothing; a partial run (fewer clips than requested, even after an error)
+  deducts one credit per clip it did generate.
 - Paid plans run on **Polar**, not Stripe: `/api/checkout`, `/api/portal`, and
   `/api/webhooks/polar`, with `Subscription` and `Order` rows in the database
 - Billing lives at `/dashboard/billing` and the whole flow is gated by

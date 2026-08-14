@@ -22,6 +22,8 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 - `apps/admin/src/**` — App Router(`src/app/`), analytics 집계(`src/analytics/`), 인증·인가(`src/auth/`), 관측(`src/observability/`), UI(`src/ui/`), 유틸(`src/lib/`)
 - `apps/admin` 하위 테스트 파일(`*.test.mjs`)
 - `docs/plans/<네가 지금 처리 중인 항목ID>.md` — **이 파일 하나뿐이다.** 다른 항목의 계획서는 남의 것이다. `docs/plans/` 아래 다른 파일은 `template.md`를 포함해 하나도 건드리지 않는다
+- `PROJECT_BOARD.md` — **네가 지금 처리 중인 항목의 행만** (A-4·B-6이 요구하는 status·결과 갱신). 다른 항목의 행과 안내 블록은 건드리지 않는다
+- `TASK_BACKLOG.md` — **`완료` 시 자기 항목을 제거하는 것만** (B-7). 새 항목 추가는 "절대 하지 않는 일"이다
 
 **읽기만 가능 (수정 금지)**
 

@@ -22,6 +22,8 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 - `apps/web/src/**` — FSD 레이어(`src/fsd/`), Inngest 워커(`src/inngest/`), App Router(`src/app/`), 서버 설정(`src/server/`)
 - `apps/web` 하위 테스트 파일(`*.test.mjs`)
 - `docs/plans/<네가 지금 처리 중인 항목ID>.md` — **이 파일 하나뿐이다.** 다른 항목의 계획서는 남의 것이다. `docs/plans/` 아래 다른 파일은 `template.md`를 포함해 하나도 건드리지 않는다
+- `PROJECT_BOARD.md` — **네가 지금 처리 중인 항목의 행만** (A-4·B-6이 요구하는 status·결과 갱신). 다른 항목의 행과 안내 블록은 건드리지 않는다
+- `TASK_BACKLOG.md` — **`완료` 시 자기 항목을 제거하는 것만** (B-7). 새 항목 추가는 "절대 하지 않는 일"이다
 
 **읽기만 가능 (수정 금지)**
 
