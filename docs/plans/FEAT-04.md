@@ -46,6 +46,7 @@ agent: admin-dev
 
 **타이포 역할.** 시스템 서체 페어링으로 personality를 낸다(웹폰트 무설치 = 모바일·빌드 리스크 0; 웹폰트 격상은 「대안」).
 - **디스플레이/정체성**(페이지 제목·구역 라벨·캐릭터 핸들): 한글 **명조/바탕 계열 세리프** 스택 `--font-briefing-display`. 이름을 세리프로 둬 "결재 서류·메모" 목소리를 준다.
+  **기기 현실**: 한글 세리프가 시스템에 있는 것은 사실상 Windows(바탕)뿐이다 — **폰(iOS·Android)에서 한글 글리프는 고딕으로 폴백**되어, 세리프 정체성은 데스크톱에서 온전하고 폰에서는 라틴 핸들(PM·admin-dev)·숫자(날짜)에만 부분적으로 남는다. 주 기기(폰)에서 한글까지 세리프를 원하면 「대안」의 웹폰트 격상이 필요하다.
 - **본문/발화/메타**: 기존 `--font-sans`에 한글 고딕(고딕=말하는 목소리) 폴백을 덧댄다. 발화는 산세리프로 "말하는" 느낌.
 - 위계: 라벨(작게·자간 넓게·세리프) › 발화(본문 크기·고딕) › 항목ID·status(작게·muted). 항목ID·제목·발화·메타가 한눈에 갈리게 한다.
 
@@ -189,7 +190,19 @@ const GATE_STATUSES = new Set(["승인대기", "검토대기"]);
 type DatedItem = BoardItem & { sectionDate: string };
 
 function flatten(sections: BoardSection[]): DatedItem[] {
-  return sections.flatMap((s) => s.items.map((it) => ({ ...it, sectionDate: s.heading })));
+  // 보드는 최신 섹션이 위다. 같은 ID가 여러 섹션에 있으면 **가장 위(최신) 행만
+  // 유효**하고 아래 행은 이력이다(보드·pm 공유 규칙). 이력 행이 계산에 끼면
+  // 끝난 항목의 옛 승인대기 행이 결재함에 유령으로 되살아나므로 첫 등장만 남긴다.
+  const seen = new Set<string>();
+  const out: DatedItem[] = [];
+  for (const s of sections) {
+    for (const it of s.items) {
+      if (seen.has(it.id)) continue;
+      seen.add(it.id);
+      out.push({ ...it, sectionDate: s.heading });
+    }
+  }
+  return out;
 }
 
 export function daysOnBoard(sectionDate: string, today: Date): number | null {
@@ -463,6 +476,7 @@ after:
   - `firstSentence`: 종결부호+공백 첫 지점까지 자름 / `board.ts` 같은 토큰 내부 마침표 무시 / 종결부호 없는 문자열→통째 / 빈 문자열→"".
   - `buildBriefing` — 대표 보드 문자열(현 board.test.mjs의 `BOARD` 형태 재사용)을 `parseBoard`→`buildBriefing`으로:
     - `inbox`가 승인대기·검토대기만, 보드 순서로 담긴다. `feed`는 그 여집합, 순서 유지.
+    - **같은 ID가 두 섹션에 있으면(최신=완료, 옛=승인대기) 최신 행만 반영된다** — 결재함에 옛 행이 뜨지 않고, 피드에 완료 한 건만 남으며, pm 결재 요청 건수에도 안 센다(이력 행 유령 방지).
     - 결재함 발화 주체: 승인대기→pm, 검토대기→항목 agent. 발화에 `{N}일째`가 섹션 날짜+today로 들어간다(today 주입).
     - 피드 발화: 완료→`firstSentence(결과)`, 계획지시→`"… 계획을 작성하고 있습니다."`, 보류→`firstSentence`, tone 매핑(완료=done, 계획지시=active, 보류=hold).
     - 팀: 로스터 5명 전원·순서, pm=승인대기 건수 문구, dev=자기 항목에서 도출, 항목 없는 감사/스카우트=`대기 중`.
@@ -476,7 +490,7 @@ after:
 
 ## 대안
 
-- **웹폰트 격상(디스플레이+본문 2벌)**: `layout.tsx`에 `next/font/google`로 `Gowun_Batang`(디스플레이)+`IBM_Plex_Sans_KR`(본문)을 얹어 발화까지 개성 있는 서체로. 채택 안 함 — 한글 웹폰트 2벌은 모바일 로딩 비용이 크고, `next/font/google`의 한글 서브셋 처리가 불확실해(필요 시 `next/font/local`로 폰트 바이너리 vendoring) 빌드 리스크를 진다. 1인 내부 도구엔 과하다. 시스템 세리프/고딕 페어링으로도 "결재 서류 vs 말하는 목소리" 대비는 선다. 소유자가 더 다듬길 원하면 이 경로로 격상 가능.
+- **웹폰트 격상(디스플레이+본문 2벌)**: `layout.tsx`에 `next/font/google`로 `Gowun_Batang`(디스플레이)+`IBM_Plex_Sans_KR`(본문)을 얹어 발화까지 개성 있는 서체로. 채택 안 함 — 한글 웹폰트 2벌은 모바일 로딩 비용이 크고, `next/font/google`의 한글 서브셋 처리가 불확실해(필요 시 `next/font/local`로 폰트 바이너리 vendoring) 빌드 리스크를 진다. 1인 내부 도구엔 과하다. 단, 위 「타이포 역할」의 기기 현실대로 **폰에서 한글 세리프 정체성을 원하면 이 격상이 유일한 길이다** — v1을 시스템 서체로 배포해 폰에서 보고, 부족하면 이 경로로 격상한다.
 - **피드 접기를 React `useState` 클라이언트 컴포넌트로**: 채택 안 함 — 네이티브 `<details>`가 JS 없이 접근성·키보드·저비용을 다 준다.
 - **`board.ts`에 `sectionDate`를 넣어 항목이 날짜를 갖게**: 채택 안 함 — `board.ts`는 재사용 대상(제약)이자 15개 테스트가 걸린 순수 파서다. 날짜 접붙임은 상위 `briefing.ts`에서 `flatten`으로 해 파서를 건드리지 않는다.
 - **결재함에 항목별 "승인" 버튼**: 채택 안 함 — 게이트 전이(계획지시·구현승인)는 사용자가 보드를 직접 편집하는 수동 행위이고 `postPipelineCommand`는 status를 바꾸지 않는다(command-action.ts:9-16). 존재하지 않는 동작의 버튼은 "컨트롤은 하는 일을 그대로 말한다" 원칙에 어긋난다. 결재함은 "보고"로 두고 실행 버튼은 헤더의 전역 하나만 둔다.
