@@ -50,7 +50,7 @@ agent: admin-dev
 - **본문/발화/메타**: 기존 `--font-sans`에 한글 고딕(고딕=말하는 목소리) 폴백을 덧댄다. 발화는 산세리프로 "말하는" 느낌.
 - 위계: 라벨(작게·자간 넓게·세리프) › 발화(본문 크기·고딕) › 항목ID·status(작게·muted). 항목ID·제목·발화·메타가 한눈에 갈리게 한다.
 
-**레이아웃 개념.** 대시보드 6xl 그리드가 아니라 **폰에서 읽는 단일 컬럼(max-w 640px)**. 위→아래로 결재함(크게) → 팀 현황(칩, 조밀) → 보고 피드(아주 조밀). 등간격 카드 그리드 금지.
+**레이아웃 개념.** 대시보드 6xl 그리드가 아니라 **폰에서 읽는 단일 컬럼(`max-w-2xl` ≈ 672px — 스케치 클래스와 일치)**. 위→아래로 결재함(크게) → 팀 현황(칩, 조밀) → 보고 피드(아주 조밀). 등간격 카드 그리드 금지.
 
 ```
 ┌───────────────────────────┐
@@ -114,9 +114,9 @@ agent: admin-dev
 | --- | --- | --- | --- | --- |
 | 계획지시 | `agent` | `{ID} 계획을 작성하고 있습니다.` | `근거` | active |
 | 구현승인 | `agent` | `{ID} 구현에 착수했습니다.` | `근거` | active |
-| 완료 | `agent` | `firstSentence(결과)` (없으면 `{ID} 완료했습니다.`) | `결과`?? `근거` | done |
+| 완료 | `agent` | `firstSentence(결과 ?? 근거)` (없으면 `{ID} 완료했습니다.`) | `결과`?? `근거` | done |
 | 보류 | `agent` | `firstSentence(결과 ?? 근거)` (없으면 `{ID} 보류했습니다.`) | `결과`?? `근거` | hold |
-| (null/기타) | `agent` | `firstSentence(근거)` (없으면 `{ID}`) | `결과`?? `근거` | muted |
+| (null/기타) | `agent` | `firstSentence(결과 ?? 근거)` (없으면 `{ID}`) | `결과`?? `근거` | muted |
 
 **팀 현황**(고정 로스터 순서 pm→admin-dev→web-dev→doc-auditor→feature-scout, 상태 한 줄):
 
@@ -390,7 +390,7 @@ const TONE_TEXT: Record<Tone, string> = {
 - **헤더**: eyebrow `<p className="font-briefing-display text-sm tracking-widest text-muted-foreground">파이프라인 브리핑</p>`, 날짜 `<h1 className="font-briefing-display text-3xl">{briefing.today}</h1>`, 요약 `<p>{briefing.pendingCount > 0 ? \`결정 대기 ${briefing.pendingCount}건\` : "결정 대기 없음"}</p>`, 우측에 기존 `<PipelineCommandButton />`(재사용).
 - **결재함**(구역 라벨 `<h2 className="font-briefing-display …">결재함</h2>`):
   - 비었으면 빈 상태 카드 — 제목 `결재함이 비었습니다.` / 본문 `지금 당신의 결정을 기다리는 항목이 없습니다. 팀 현황과 최근 보고는 아래에 있습니다.`
-  - 있으면 항목마다 말풍선 카드: `border-stamp/40 bg-stamp-soft rounded-2xl p-4`. 상단 `AgentAvatar size="md"` + `{speaker.handle} · {speaker.role}`(handle은 `font-briefing-display`). 발화 `<p className="text-lg text-stamp">{item.line}</p>`. 하단 메타 `{item.id} · {item.status}` + 호박 인장 마크(시그니처: `<span className="rounded border border-stamp px-1.5 text-xs text-stamp">결재</span>`). detail이 있으면 `<details>`로 근거 펼침.
+  - 있으면 항목마다 말풍선 카드: `border-stamp/40 bg-stamp-soft rounded-2xl p-4`. 상단 `AgentAvatar agentId={item.speaker.id} size="md"` + `{speaker.handle} · {speaker.role}`(handle은 `font-briefing-display`). 발화 `<p className="text-lg text-stamp">{item.line}</p>`. 하단 메타 `{item.id} · {item.status}` + 호박 인장 마크(시그니처: `<span className="rounded border border-stamp px-1.5 text-xs text-stamp">결재</span>`). detail이 있으면 `<details>`로 근거 펼침.
 - **팀 현황**: 칩 `flex flex-wrap gap-2`. 칩마다 `AgentAvatar size="sm"` + `{handle}` + `{state}`(색 `TONE_TEXT[tone]`).
 - **보고 피드**: 항목마다 네이티브 접기(JS 없이 접근성 확보) —
 ```tsx
@@ -478,7 +478,7 @@ after:
     - `inbox`가 승인대기·검토대기만, 보드 순서로 담긴다. `feed`는 그 여집합, 순서 유지.
     - **같은 ID가 두 섹션에 있으면(최신=완료, 옛=승인대기) 최신 행만 반영된다** — 결재함에 옛 행이 뜨지 않고, 피드에 완료 한 건만 남으며, pm 결재 요청 건수에도 안 센다(이력 행 유령 방지).
     - 결재함 발화 주체: 승인대기→pm, 검토대기→항목 agent. 발화에 `{N}일째`가 섹션 날짜+today로 들어간다(today 주입).
-    - 피드 발화: 완료→`firstSentence(결과)`, 계획지시→`"… 계획을 작성하고 있습니다."`, 보류→`firstSentence`, tone 매핑(완료=done, 계획지시=active, 보류=hold).
+    - 피드 발화: 완료→`firstSentence(결과 ?? 근거)`, 계획지시→`"… 계획을 작성하고 있습니다."`, 보류→`firstSentence(결과 ?? 근거)`, tone 매핑(완료=done, 계획지시=active, 보류=hold).
     - 팀: 로스터 5명 전원·순서, pm=승인대기 건수 문구, dev=자기 항목에서 도출, 항목 없는 감사/스카우트=`대기 중`.
     - `pendingCount === inbox.length`, `today` 포맷("M월 D일").
   - `identityFor`: 알려진 id→해당 정체성, 미지 id→핸들=그 문자열·이모지="", null→시스템. `initialOf`: 첫 글자 대문자, 빈 핸들→"?".
