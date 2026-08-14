@@ -13,6 +13,7 @@ import {
 } from "~/fsd/features/clip-review";
 import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload/api";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
+import { matchPresetId } from "./caption-presets";
 
 // 검토 계측이 쓰는 정규화된 경로. normalizeAnalyticsPath가 실제 URL을 이 형태로
 // 접으므로(shared/analytics/lib/normalize-path.ts) 기존 upload_detail_viewed
@@ -104,12 +105,31 @@ export function useClipDraftReview(
     );
   };
 
+  // 캡션 스타일 계측. 카드는 저장 성공을 관찰하지 못하므로(runSave가 에러를
+  // 삼킨다) 다른 검토 이벤트와 같이 훅에서 발화한다.
+  const trackCaptionStyleEdited = (
+    style: CaptionStyleInput | null,
+    appliedToAll: boolean,
+  ) => {
+    void trackAnalyticsEvent(
+      "clip_review_caption_style_edited",
+      { uploadedFileId, preset: matchPresetId(style), appliedToAll },
+      { path: REVIEW_ANALYTICS_PATH },
+    );
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (input: SaveDraftInput) => {
       const result = await saveClipDraftEdit(input);
       if (!result.success) {
         throw new Error(result.error);
       }
+    },
+    // 구간 자동 저장은 captionStyle을 싣지 않는다(ClipDraftCard). 이 조건이
+    // 다이얼로그 Apply만 정확히 골라낸다 — null도 "기본값으로 리셋"이라 계측한다.
+    onSuccess: (_data, input) => {
+      if (input.captionStyle === undefined) return;
+      trackCaptionStyleEdited(input.captionStyle, false);
     },
     // 낙관적 갱신: 헤더 선택 개수와 Generate 가드가 서버 왕복 없이 즉시
     // 일치하도록 detail 캐시의 해당 draft를 먼저 바꾼다. 실패 시 롤백.
@@ -180,8 +200,9 @@ export function useClipDraftReview(
         }
       }
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, style) => {
       await invalidateDetail();
+      trackCaptionStyleEdited(style, true);
       toast.success("Applied caption style to all clips");
     },
     onError: (error) => {

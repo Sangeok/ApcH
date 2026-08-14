@@ -5,6 +5,7 @@ import type { ClipDraft } from "@repo/db";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
+  CAPTION_STYLE_OPTIONS,
   CLIP_DURATION_LIMITS,
   type CaptionStyle,
 } from "~/fsd/shared/config/constants";
@@ -13,7 +14,7 @@ import type {
   SaveDraftInput,
   TranscriptWord,
 } from "../../model/use-clip-draft-review";
-import CaptionStyleEditor from "./CaptionStyleEditor";
+import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
 const AUTO_SAVE_DEBOUNCE_MS = 600;
@@ -28,10 +29,24 @@ const CLIP_TYPE_LABELS: Record<string, string> = {
   insight: "Insight",
 };
 
-// draft.captionStyle(Prisma JsonValue) → shared CaptionStyle 강제 변환의 단일
-// 지점. 초기값과 스타일 에디터 오픈 동기화가 함께 사용한다.
+// draft.captionStyle(Prisma JsonValue) → shared CaptionStyle 강제 변환의 단일 지점.
+// 필드가 늘기 전에 저장된 행에는 신규 키가 없다. 그대로 다이얼로그에 넣으면
+// 아무것도 고치지 않고 Apply 했을 때 zod(required-but-nullable)가 거부하므로
+// 누락 키를 null(= 백엔드 언어별 기본값)로 채운다.
 function toCaptionStyle(raw: ClipDraft["captionStyle"]): CaptionStyle | null {
-  return (raw as CaptionStyle | null) ?? null;
+  if (raw === null || raw === undefined) return null;
+  // Partial로 받는다 — 저장된 행에 신규 키가 없을 수 있다는 사실을 타입에도
+  // 남겨야 아래 기본값이 죽은 코드로 취급되지 않는다.
+  const stored = raw as Partial<CaptionStyle>;
+  return {
+    position: stored.position ?? CAPTION_STYLE_OPTIONS.DEFAULT_POSITION,
+    fontSize: stored.fontSize ?? null,
+    color: stored.color ?? null,
+    maxWordsPerLine: stored.maxWordsPerLine ?? null,
+    outlineColor: stored.outlineColor ?? null,
+    outlineWidth: stored.outlineWidth ?? null,
+    uppercase: stored.uppercase ?? null,
+  };
 }
 
 interface ClipDraftCardProps {
@@ -94,13 +109,9 @@ export default function ClipDraftCard({
   // Select all/Deselect all이 캐시만 갱신하고 카드 체크박스는 그대로 남는다.
   const [startSeconds, setStartSeconds] = useState<number>(draft.startSeconds);
   const [endSeconds, setEndSeconds] = useState<number>(draft.endSeconds);
-  const [captionStyle, setCaptionStyle] = useState<CaptionStyle | null>(
-    toCaptionStyle(draft.captionStyle),
-  );
-  // 이 카드에서 스타일을 직접 편집했을 때만 저장 payload에 captionStyle을 싣는다.
-  // false면 undefined(변경 없음)를 보내, Apply to all로 서버에 저장된 스타일이
-  // 이 카드의 오래된 로컬 값으로 되돌아가는 것을 막는다.
-  const [styleDirty, setStyleDirty] = useState<boolean>(false);
+  // 캡션 스타일은 로컬 state로 두지 않는다. 편집은 다이얼로그의 작업본에서만
+  // 일어나고 Apply가 곧바로 저장하므로, 구간 자동 저장은 스타일을 건드리지 않는다
+  // (captionStyle: undefined = 변경 없음).
   const [styleOpen, setStyleOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const skipInitialAutoSaveRef = useRef(true);
@@ -161,7 +172,7 @@ export default function ClipDraftCard({
     }
   };
 
-  // 구간·캡션 스타일 변경의 디바운스 자동 저장. 길이 제한 밖 값은 서버 가드와
+  // 구간 변경의 디바운스 자동 저장. 길이 제한 밖 값은 서버 가드와
   // 동일하게 저장하지 않으며, 제한 안으로 돌아오면 그때 저장된다.
   useEffect(() => {
     if (skipInitialAutoSaveRef.current) {
@@ -178,7 +189,9 @@ export default function ClipDraftCard({
         startSeconds,
         endSeconds,
         selected: draft.selected,
-        captionStyle: styleDirty ? captionStyle : undefined,
+        // 스타일은 다이얼로그 Apply만 저장한다. 여기서 값을 실으면 다른
+        // 카드의 Apply to all 결과를 오래된 값으로 덮을 수 있다.
+        captionStyle: undefined,
       });
     }, AUTO_SAVE_DEBOUNCE_MS);
 
@@ -187,13 +200,11 @@ export default function ClipDraftCard({
     // - draft.selected: handleSelectedChange가 타이머를 취소하고 즉시 저장하는
     //   별도 경로다. 여기 포함하면 토글마다 디바운스 저장이 중복 발화하고,
     //   Select all/Deselect all이 모든 카드에서 중복 저장을 유발한다.
-    // - styleDirty: 항상 captionStyle 변경과 함께만 바뀐다(onChange/onReset/
-    //   onApplyToAll/handleToggleStyleOpen). 단독 트리거가 되어선 안 된다.
     // - withinLimits/runSave/clearPendingAutoSave: 렌더마다 재생성되는 파생값/
     //   함수로, 타이머는 이펙트 생성 시점 렌더의 최신 값을 캡처하면 충분하다.
     // 이 배열에 값을 추가하는 "lint 경고 수정"은 stale-타이머 경합을 되살린다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startSeconds, endSeconds, captionStyle]);
+  }, [startSeconds, endSeconds]);
 
   // 선택 여부는 디바운스 없이 즉시 저장한다. 현재 구간이 길이 제한 밖이라
   // 저장 불가능하면, 마지막으로 저장된 서버 구간을 유지한 채 선택만 반영한다.
@@ -206,20 +217,20 @@ export default function ClipDraftCard({
       startSeconds: withinLimits ? startSeconds : draft.startSeconds,
       endSeconds: withinLimits ? endSeconds : draft.endSeconds,
       selected: nextSelected,
-      captionStyle: styleDirty ? captionStyle : undefined,
+      captionStyle: undefined,
     });
   };
 
-  // 에디터를 여는 시점의 서버 저장값을 편집 기준으로 동기화한다
-  // (다른 카드에서 Apply to all 한 결과 반영).
-  const handleToggleStyleOpen = () => {
-    setStyleOpen((open) => {
-      const next = !open;
-      if (next) {
-        setCaptionStyle(toCaptionStyle(draft.captionStyle));
-        setStyleDirty(false);
-      }
-      return next;
+  // 다이얼로그 Apply. 구간 자동 저장과 경합하지 않도록 대기 중인 타이머를
+  // 취소하고 현재 구간과 함께 한 번에 저장한다.
+  const handleApplyStyle = (style: CaptionStyle | null) => {
+    clearPendingAutoSave();
+    void runSave({
+      clipDraftId: draft.id,
+      startSeconds: withinLimits ? startSeconds : draft.startSeconds,
+      endSeconds: withinLimits ? endSeconds : draft.endSeconds,
+      selected: draft.selected,
+      captionStyle: style,
     });
   };
 
@@ -463,40 +474,30 @@ export default function ClipDraftCard({
         >
           Reset to AI suggestion
         </Button>
+        {/* 구간이 길이 제한 밖이면 서버가 저장 자체를 거부하므로, 스타일만
+            따로 저장할 방법이 없다. 구간을 먼저 고치게 막는다. */}
         <Button
           type="button"
           size="sm"
           variant="ghost"
+          disabled={!withinLimits}
           className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
-          onClick={handleToggleStyleOpen}
+          onClick={() => setStyleOpen(true)}
         >
-          {styleOpen ? "Hide caption style" : "Caption style"}
+          Caption style
         </Button>
       </div>
 
-      {styleOpen && (
-        <CaptionStyleEditor
-          language={language}
-          value={captionStyle}
-          previewWords={wordsInRange.map((word) => word.word)}
-          onChange={(style) => {
-            setStyleDirty(true);
-            setCaptionStyle(style);
-          }}
-          onReset={() => {
-            setStyleDirty(true);
-            setCaptionStyle(null);
-          }}
-          onApplyToAll={(style) => {
-            // 벌크 저장이 이 카드에도 적용되므로 로컬을 적용값으로 맞추고
-            // dirty를 해제해 이후 자동 저장이 스타일을 다시 보내지 않게 한다.
-            setStyleDirty(false);
-            setCaptionStyle(style);
-            onApplyToAll(style);
-          }}
-          isApplyingToAll={isApplyingToAll}
-        />
-      )}
+      <CaptionStyleDialog
+        open={styleOpen}
+        onOpenChange={setStyleOpen}
+        language={language}
+        initialValue={toCaptionStyle(draft.captionStyle)}
+        previewWords={wordsInRange.map((word) => word.word)}
+        onApply={handleApplyStyle}
+        onApplyToAll={onApplyToAll}
+        isApplyingToAll={isApplyingToAll}
+      />
     </div>
   );
 }

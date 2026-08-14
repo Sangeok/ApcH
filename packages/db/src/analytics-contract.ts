@@ -27,6 +27,7 @@ export const ANALYTICS_EVENT_NAMES = [
   "clip_review_opened",
   "clip_review_selection_changed",
   "clip_review_custom_clip_added",
+  "clip_review_caption_style_edited",
   "clip_review_generate_blocked",
   "clip_review_confirmed",
   "clip_viewed",

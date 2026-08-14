@@ -41,6 +41,9 @@ export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
   ],
   clip_review_selection_changed: ["uploadedFileId", "selectedCount", "isFull"],
   clip_review_custom_clip_added: ["uploadedFileId"],
+  // preset은 matchPresetId의 결과다(프리셋 id | "custom" | "default").
+  // 프리셋이 실제로 쓰이는지, 아니면 손으로 만지는지를 이 값이 답한다.
+  clip_review_caption_style_edited: ["uploadedFileId", "preset", "appliedToAll"],
   // reason은 getGenerateBlockReason의 kind와 동일한 값이다.
   // 이 이벤트가 "어디서 막히는가"에 직접 답한다.
   clip_review_generate_blocked: ["uploadedFileId", "reason", "selectedCount"],
