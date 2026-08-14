@@ -30,8 +30,11 @@ admin은 읽기 전용 관측 대시보드다. 파이프라인 보드를 보여�
   `Badge`(variant: default·secondary·destructive·outline).
 - **집계의 순수 함수 분리.** `analytics/queries.ts:1`은 `"server-only"`로 DB를 읽고,
   `analytics/reporting.ts`는 임포트가 하나도 없는 순수 함수라 `reporting.test.mjs`로 덮인다.
-- **환경 변수.** `env.js:4-37`이 `@t3-oss/env-nextjs`로 검증한다. `client: {}`(노출 변수 없음).
+- **환경 변수.** `env.js:4`의 `createEnv`가 `@t3-oss/env-nextjs`로 검증한다. server 스키마는
+  `env.js:5-37`, `client: {}`(노출 변수 없음)는 `env.js:40`.
   `SENTRY_DSN`/`SENTRY_AUTH_TOKEN`은 `optional`(`env.js:35-36`), `runtimeEnv`는 `env.js:42-53`.
+- **타입 엄격도.** `tsconfig.json:11-12`가 `strict` + `noUncheckedIndexedAccess`다. 인덱스·캡처 그룹
+  접근은 전부 `| undefined`가 붙는다 — 신규 코드가 이를 어기면 `npm run check`가 막는다.
 - **CSP.** `next.config.js:65`의 `connect-src`는 `'self' https://*.neon.tech`뿐이다. 이는 **브라우저**의
   아웃바운드를 제한한다 — 서버 컴포넌트/서버 액션의 `fetch`에는 적용되지 않는다.
 - **보드 형식.** `PROJECT_BOARD.md`는 저장소 루트의 단일 파일이며, 각 항목이
@@ -48,9 +51,10 @@ webhook `pipeline-command`를 원격에서 깨우는 "리모컨")하며, (c) adm
 두지 않으며(원격 게이트 잠김), 게시용 토큰은 서버 환경변수로 읽는다(값 세팅은 구현 후 사용자 몫).
 
 지금은 이런 페이지가 아예 없다(위 「현재 동작」의 라우트 목록에 없음). 백로그가 지목한 세 요구는
-기존 인프라 위에 새 모듈로 얹으면 되며, 코드에서 확인한 것과 백로그가 어긋나는 지점은 없다. 다만
-`source`가 말한 "webhook 루틴(pipeline-command)"의 **정확한 트리거 문구**는 저장소 밖(GitHub 측
-설정)이라 코드로 확인할 수 없다 — 이 점은 「범위 밖 의존」에 적는다.
+기존 인프라 위에 새 모듈로 얹으면 되며, 코드에서 확인한 것과 백로그가 어긋나는 지점은 없다.
+`source`가 말한 webhook 루틴(`pipeline-command`)의 명령 계약은 저장소 밖 설정이지만 2026-08-14
+실측으로 확정됐다 — 접두 토큰은 없고 루틴 지침이 이슈·작성자·`[claude]` 접두로 명령을 고른다.
+그 계약과 남은 외부 의존(토큰 계정 일치)은 「범위 밖 의존」에 적는다.
 
 ## 고칠 파일
 
@@ -87,6 +91,13 @@ export const ISSUE_COMMENTS_URL = `https://api.github.com/repos/${GITHUB_OWNER}/
 
 ### `src/pipeline/board.ts` (신규) — 순수 파서 (본문 전체 = 계약)
 
+⚠️ **`tsconfig.json:12`이 `noUncheckedIndexedAccess: true`다.** 정규식 캡처 그룹 접근
+(`m[1]`)은 타입상 `string | undefined`이므로 가드 없이 `.trim()`을 부르면 컴파일되지 않는다.
+아래 스케치는 그 가드를 포함한 형태다 — 이 제약은 **이 계획의 모든 신규 `.ts`/`.tsx`에 적용된다**
+(기존 코드도 `reporting.ts:96`·`:106`·`:108`에서 `?.`·`?? 0`로 같은 처리를 한다).
+`.mjs` 테스트는 `tsconfig`의 `include` 밖이라 이 오류를 잡지 못한다 — 잡는 것은
+`npm run check -w apps/admin`(`tsc --noEmit`)뿐이다.
+
 ```ts
 // 순수 함수. 임포트가 하나도 없다 — analytics/reporting.ts와 같은 이유로
 // DB·fetch를 여기에 들이지 않는다(그래야 board.test.mjs로 덮인다).
@@ -122,19 +133,29 @@ export function parseBoard(markdown: string): BoardSection[] {
 
     const heading = HEADING_RE.exec(line);
     if (heading) {
-      currentSection = { heading: heading[1].trim(), items: [] };
-      sections.push(currentSection);
-      currentItem = null;
+      // 캡처 그룹은 정규식상 필수지만 타입은 string | undefined다.
+      const headingText = heading[1];
+      if (headingText !== undefined) {
+        currentSection = { heading: headingText.trim(), items: [] };
+        sections.push(currentSection);
+        currentItem = null;
+      }
       continue;
     }
 
     const item = ITEM_RE.exec(line);
     if (item) {
       if (!currentSection) continue; // 헤딩 이전의 항목은 무시
+      const mark = item[1];
+      const id = item[2];
+      const title = item[3];
+      if (mark === undefined || id === undefined || title === undefined) {
+        continue;
+      }
       currentItem = {
-        checked: item[1].toLowerCase() === "x",
-        id: item[2],
-        title: item[3].trim(),
+        checked: mark.toLowerCase() === "x",
+        id,
+        title: title.trim(),
         agent: null,
         area: null,
         status: null,
@@ -147,7 +168,9 @@ export function parseBoard(markdown: string): BoardSection[] {
 
     const field = FIELD_RE.exec(line);
     if (field && currentItem) {
-      const value = field[2].trim();
+      const rawValue = field[2];
+      if (rawValue === undefined) continue;
+      const value = rawValue.trim();
       switch (field[1]) {
         case "agent":
           currentItem.agent = value;
@@ -429,6 +452,9 @@ export default async function AdminPipelineRoute() {
   - 항목이 없는 `## 파이프라인 구조`(mermaid) 섹션은 결과에서 빠진다
   - 상단 `>` 안내 블록은 항목을 만들지 않는다
   - 제목에 `—`·`+`·`:`가 섞여도(`FEAT-03: ... — 보드 카드 뷰 + 원격 명령 버튼`) 온전히 잡힌다
+- **타입 검증** — `npm run check -w apps/admin`(`next lint && tsc --noEmit`)이 신규 `.ts`/`.tsx`
+  전부를 타입체크한다. `.mjs`는 `tsconfig`의 `include` 밖이라 **테스트가 통과해도 `check`가 막을 수
+  있다** — 두 명령을 모두 돌려야 한다(에이전트 정의 B-5도 둘 다 요구한다).
 - **못 덮는 범위** — `npm test`는 Node 내장 러너(DOM·React 도구 없음)라 다음은 못 덮는다:
   `queries.ts`의 보드 raw fetch(외부 I/O), `command-action.ts`의 이슈 코멘트 POST(외부 I/O),
   `requireAdmin()` 게이트(NextAuth 세션), 카드/뱃지의 React 렌더, 클라이언트 버튼의 `useTransition`·
