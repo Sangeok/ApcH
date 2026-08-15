@@ -4,7 +4,9 @@ export type PipelineCommandKey =
   | "pipeline-run"
   | "pm-select"
   | "audit-run"
-  | "scout-run";
+  | "scout-run"
+  | "admin-work"
+  | "web-work";
 
 // 모든 본문 불변식: (1) "[claude]"로 시작하지 않는다(webhook 계약, command-action 주석).
 // (2) 게이트 전이(계획지시·구현승인)를 지시하지 않는다 — 아래 문구를 포함한다.
@@ -18,6 +20,8 @@ const PIPELINE_COMMANDS: Record<PipelineCommandKey, string> = {
   "pm-select": `pm으로서 TASK_BACKLOG.md에서 오늘 처리할 1~2건을 선정해 PROJECT_BOARD.md에 승인대기로 기록해 주세요. ${GATE_GUARD}`,
   "audit-run": `doc-auditor로서 문서와 코드의 정합성을 감사하고 결과만 보고해 주세요(코드·보드 수정 없음). ${GATE_GUARD}`,
   "scout-run": `feature-scout로서 개선 기회를 조사해 TASK_BACKLOG.md에 제안만 추가해 주세요(보드·계획서 수정 없음). ${GATE_GUARD}`,
+  "admin-work": `admin-dev로서 PROJECT_BOARD.md에서 배정된 항목을 현재 status와 런북 규칙대로 처리해 주세요. ${GATE_GUARD}`,
+  "web-work": `web-dev로서 PROJECT_BOARD.md에서 배정된 항목을 현재 status와 런북 규칙대로 처리해 주세요. ${GATE_GUARD}`,
 };
 
 export function resolvePipelineCommand(key: string): string | null {

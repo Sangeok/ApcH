@@ -10,9 +10,11 @@ import { Button } from "~/ui/atoms/button";
 export function PipelineCommandButton({
   command,
   label,
+  className,
 }: {
   command: PipelineCommandKey;
   label: string;
+  className?: string;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -28,7 +30,12 @@ export function PipelineCommandButton({
   };
 
   return (
-    <Button type="button" disabled={isPending} onClick={handleClick}>
+    <Button
+      type="button"
+      disabled={isPending}
+      onClick={handleClick}
+      className={className}
+    >
       {isPending ? "요청 중..." : label}
     </Button>
   );

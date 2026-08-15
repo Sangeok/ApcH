@@ -17,11 +17,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-15
-- [ ] FEAT-07: `/pipeline` 픽셀 사무실 — Gather풍 그림체 전환 + 캐릭터 고정·상태 말풍선 + 전 책상 명령
+- [x] FEAT-07: `/pipeline` 픽셀 사무실 — Gather풍 그림체 전환 + 캐릭터 고정·상태 말풍선 + 전 책상 명령
   agent: admin-dev
   area: apps/admin
-  status: 구현승인
+  status: 완료
   근거: 사용자 직접 발주 — pm 경유 없음(소유자 발주로 기록). FEAT-06 그림체가 사용자 판정에서 기각돼(의도는 Gather풍 픽셀) 시안 7회 반복으로 그림체·말풍선·명패·전 책상 명령까지 확정 후 재발주. 승인 시안은 docs/design/FEAT-07/에 저장소 내 계약으로 보존. 계획서는 검증 8라운드(조립 컴파일·lint·테스트 실행·독립 교차검토·실물 렌더·대비 실측 포함)를 통과. 게이트② 결정(2026-08-15): hold색 #9a5a2f 승인 · heldId 칩 유지 · 헤더 비픽셀 유지 · done색 #6f6b64로 조정 — 계획서에 반영됨.
+  결과: `/pipeline` 사무실을 픽셀(Gather풍) 그림체로 전환했다 — 격자·팔레트·tone→말풍선색 상수와 gridToRects/resolveCell/appearanceFor/bubbleColorFor 순수 함수를 sprites.ts에 두고 sprites.test.mjs로 덮었다. 캐릭터 외형은 agentId에서만 나오고(PixelSprite, 포즈/tone-채움 시스템 제거), 상태는 머리 위 픽셀 말풍선이 나르며 muted면 말풍선 없음(침묵 규칙). 방 배경(벽·걸레받이·체커 바닥·화분·액자)·책상·명패·소유자 배너를 pixel-office.tsx로 구성해 폰 2열 격자/데스크톱 flex-wrap(가로 스크롤 없음)으로 배치했고, 명령 화이트리스트에 dev 「작업 진행」(admin-work·web-work) 두 키·본문을 더해 5책상 전부 명령을 갖는다(외부 쓰기 경로는 기존 ISSUE_COMMENTS_URL 하나 그대로, DB 무접근 유지). 게이트② 결정 4건 모두 반영(hold #9a5a2f · heldId 칩 유지 · 헤더 비픽셀 유지 · done #6f6b64). 신규: src/pipeline/{sprites.ts, sprites.test.mjs}, src/ui/pixel-office.tsx. 수정: src/ui/{agent-character.tsx(재작성), pipeline-command.tsx(선택적 className), pipeline-page.tsx}, src/pipeline/{commands.ts, commands.test.mjs, desk-commands.ts, desk-commands.test.mjs}. 테스트 총 57 pass·0 fail(sprites 15 신규 + commands 1 신규 + desk-commands 단언 뒤집기), npm run check 통과. commands.ts의 기존 4키 본문은 글자 그대로 보존(pipeline-run 바이트 동일 테스트 통과). 스케치 대비 차이 없음(분기·조건·리터럴·문구 모두 구현 스케치대로, pixel-office.tsx만 스케치 조각들을 임포트 통합해 한 파일로 합침). 못 덮음(Node 러너·DOM/외부 I/O 없음): SVG 렌더·crispEdges 선명도·격자/말풍선/명패 기하·명패 폭 초과·반응형 레이아웃(폰 2열/데스크톱 flex-wrap)·방 배경·명령 버튼 픽셀 스타일·PipelineCommandButton의 useTransition/토스트·postPipelineCommand의 requireAdmin 게이트·GitHub POST — 배포 후 데스크톱+폰 수동 확인 대상. 비고: apps/admin/CLAUDE.md 테스트 표에 sprites.test.mjs 행 추가와 파일·테스트 수 갱신(6→7파일, 41→57테스트)은 그 파일이 읽기 전용이라 수정 범위 밖 — 메인 루프가 처리한다.
 - [x] FEAT-06: `/pipeline` 사무실 뷰 — 플랫 SVG 캐릭터·책상 공간화 + 책상별 원격 명령
   agent: admin-dev
   area: apps/admin
