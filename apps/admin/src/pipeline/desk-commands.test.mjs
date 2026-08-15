@@ -10,6 +10,14 @@ describe("deskCommandFor", () => {
       key: "pm-select",
       label: "선정 실행",
     });
+    assert.deepEqual(deskCommandFor("admin-dev"), {
+      key: "admin-work",
+      label: "작업 진행",
+    });
+    assert.deepEqual(deskCommandFor("web-dev"), {
+      key: "web-work",
+      label: "작업 진행",
+    });
     assert.deepEqual(deskCommandFor("doc-auditor"), {
       key: "audit-run",
       label: "감사 실행",
@@ -20,15 +28,19 @@ describe("deskCommandFor", () => {
     });
   });
 
-  it("returns null for dev desks and unknown agents (no safe command)", () => {
-    assert.equal(deskCommandFor("admin-dev"), null);
-    assert.equal(deskCommandFor("web-dev"), null);
+  it("returns null for unknown agents", () => {
     assert.equal(deskCommandFor("unknown"), null);
   });
 
   it("every desk command key resolves to a real whitelist body", () => {
     // 라벨이 실제 화이트리스트 키에 붙어 있는지 — 두 모듈이 서로 드리프트하는 것을 막는다.
-    for (const agentId of ["pm", "doc-auditor", "feature-scout"]) {
+    for (const agentId of [
+      "pm",
+      "admin-dev",
+      "web-dev",
+      "doc-auditor",
+      "feature-scout",
+    ]) {
       const cmd = deskCommandFor(agentId);
       assert.notEqual(cmd, null);
       assert.notEqual(resolvePipelineCommand(cmd.key), null);
