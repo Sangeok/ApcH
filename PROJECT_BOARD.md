@@ -17,6 +17,11 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-15
+- [ ] FEAT-07: `/pipeline` 픽셀 사무실 — Gather풍 그림체 전환 + 캐릭터 고정·상태 말풍선 + 전 책상 명령
+  agent: admin-dev
+  area: apps/admin
+  status: 계획지시
+  근거: 사용자 직접 발주 — pm 경유 없음(소유자 발주로 기록). FEAT-06 그림체가 사용자 판정에서 기각돼(의도는 Gather풍 픽셀) 시안 7회 반복으로 그림체·말풍선·명패·전 책상 명령까지 확정 후 재발주. 승인 시안은 docs/design/FEAT-07/에 저장소 내 계약으로 보존.
 - [x] FEAT-06: `/pipeline` 사무실 뷰 — 플랫 SVG 캐릭터·책상 공간화 + 책상별 원격 명령
   agent: admin-dev
   area: apps/admin
