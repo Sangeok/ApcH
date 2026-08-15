@@ -36,14 +36,16 @@ npm run build -w apps/admin
 
 ### 테스트
 
-Node 내장 러너를 `tsx`로 돌린다. 현재 **4개 파일, 33개 테스트.**
+Node 내장 러너를 `tsx`로 돌린다. 현재 **6개 파일, 41개 테스트.**
 
 | 파일 | 지키는 것 |
 |---|---|
 | `analytics/reporting.test.mjs` | 퍼널 단계는 **이전 단계 뒤에 나온 것만** 센다. 이탈 행은 세션별 마지막 유의미 이벤트로 잡고 `page_exited`는 제외한다 |
 | `lib/admin-emails.test.mjs` | `ADMIN_EMAILS` 파싱 — 소문자 정규화, 공백·트레일링 콤마·중복 제거. **이 앱의 유일한 인가 입력이라 파싱이 틀리면 접근 제어가 틀린다** |
 | `pipeline/board.test.mjs` | `PROJECT_BOARD.md` 파싱 — 섹션·항목·`status`·`checked` 추출, mermaid 섹션과 `>` 안내 블록 제외 |
-| `pipeline/briefing.test.mjs` | 보드 상태→캐릭터 발화 결정적 매핑 — 결재함/보고 분류, 같은 ID는 최신 행만(유령 방지 dedupe), `daysOnBoard`(UTC·N일째)·`firstSentence`·팀 로스터 도출·미지 에이전트 폴백 |
+| `pipeline/briefing.test.mjs` | 보드 상태→캐릭터 발화 결정적 매핑 — 결재함/보고 분류, 같은 ID는 최신 행만(유령 방지 dedupe), `daysOnBoard`(UTC·N일째)·`firstSentence`·팀 로스터 도출(`heldId` 분리)·미지 에이전트 폴백 |
+| `pipeline/commands.test.mjs` | 원격 명령 화이트리스트 — `pipeline-run` 본문이 검증된 원문과 글자 그대로 동일, 화이트리스트 밖 key(`__proto__` 포함)는 `null`, 모든 본문이 `"[claude]"` 미시작 + 게이트 전이 금지 문구 포함. **이 파일이 깨지면 임의 문자열이 이슈 #87에 게시될 수 있다** |
+| `pipeline/desk-commands.test.mjs` | 책상→명령 매핑 — pm·doc-auditor·feature-scout만 버튼, dev·미지 책상은 `null`, 모든 desk key가 실제 화이트리스트에 존재(두 모듈 드리프트 방지) |
 
 **`.mjs`는 `tsconfig`의 `include` 밖이라 타입체크를 받지 않는다.** 테스트가 통과해도 `npm run check`가 막을 수 있으므로 둘 다 돌린다 — FEAT-03 계획서의 파서 초안이 `noUncheckedIndexedAccess` 위반으로 `check`에서만 걸렸다.
 

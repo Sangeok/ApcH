@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
+import { deskCommandFor } from "~/pipeline/desk-commands";
 import type {
   Briefing,
   SpeechItem,
@@ -8,6 +9,7 @@ import type {
   Tone,
 } from "~/pipeline/briefing";
 import { AgentAvatar } from "~/ui/agent-avatar";
+import { AgentCharacter } from "~/ui/agent-character";
 import { PipelineCommandButton } from "~/ui/pipeline-command";
 
 const TONE_TEXT: Record<Tone, string> = {
@@ -23,7 +25,7 @@ export function PipelineBriefing({ briefing }: { briefing: Briefing }) {
     <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-8">
       <BriefingHeader briefing={briefing} />
       <InboxZone items={briefing.inbox} />
-      <TeamZone team={briefing.team} />
+      <OfficeZone team={briefing.team} />
       <FeedZone items={briefing.feed} />
     </div>
   );
@@ -53,15 +55,38 @@ function BriefingHeader({ briefing }: { briefing: Briefing }) {
             : "결정 대기 없음"}
         </p>
       </div>
-      <PipelineCommandButton />
+      <PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />
     </header>
+  );
+}
+
+function DocumentsMark() {
+  // 서류 모티프(장식). 당신의 책상 위에 놓인 결재 서류를 뜻한다. aria-hidden.
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="size-5 shrink-0 text-muted-foreground"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinejoin="round"
+    >
+      <rect x={8} y={4} width={11} height={15} rx={1.5} className="fill-card" />
+      <rect x={4} y={7} width={11} height={15} rx={1.5} className="fill-card" />
+      <line x1={7} y1={12} x2={12} y2={12} />
+      <line x1={7} y1={15} x2={11} y2={15} />
+    </svg>
   );
 }
 
 function InboxZone({ items }: { items: SpeechItem[] }) {
   return (
     <section className="flex flex-col gap-3">
-      <SectionLabel>결재함</SectionLabel>
+      <div className="flex items-center gap-2">
+        <SectionLabel>당신의 책상</SectionLabel>
+        <DocumentsMark />
+      </div>
       {items.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-6 text-center">
           <p className="font-briefing-display text-base text-foreground">
@@ -118,27 +143,51 @@ function InboxCard({ item }: { item: SpeechItem }) {
   );
 }
 
-function TeamZone({ team }: { team: TeamMember[] }) {
+function OfficeZone({ team }: { team: TeamMember[] }) {
   return (
     <section className="flex flex-col gap-3">
-      <SectionLabel>팀 현황</SectionLabel>
-      <div className="flex flex-wrap gap-2">
+      <SectionLabel>사무실</SectionLabel>
+      <div className="flex flex-col gap-3">
         {team.map((member) => (
-          <div
-            key={member.identity.id}
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5"
-          >
-            <AgentAvatar agentId={member.identity.id} size="sm" />
-            <span className="text-sm font-medium text-foreground">
-              {member.identity.handle}
-            </span>
-            <span className={cn("text-xs", TONE_TEXT[member.tone])}>
-              {member.state}
-            </span>
-          </div>
+          <OfficeDesk key={member.identity.id} member={member} />
         ))}
       </div>
     </section>
+  );
+}
+
+function OfficeDesk({ member }: { member: TeamMember }) {
+  const cmd = deskCommandFor(member.identity.id);
+  return (
+    <article className="rounded-2xl border border-border bg-card p-4">
+      <div className="flex items-start gap-3">
+        <AgentCharacter
+          agentId={member.identity.id}
+          tone={member.tone}
+          className="size-14 shrink-0"
+        />
+        <div className="flex-1">
+          <p className="text-sm">
+            <span className="font-briefing-display text-foreground">
+              {member.identity.handle}
+            </span>{" "}
+            ·{" "}
+            <span className="text-muted-foreground">{member.identity.role}</span>
+          </p>
+          <p className={cn("mt-1 text-sm", TONE_TEXT[member.tone])}>
+            {member.state}
+          </p>
+          {member.heldId && (
+            <span className="mt-2 inline-block rounded border border-border px-1.5 text-xs text-muted-foreground">
+              {member.heldId}
+            </span>
+          )}
+        </div>
+        {cmd && <PipelineCommandButton command={cmd.key} label={cmd.label} />}
+      </div>
+      {/* 책상 표면선: 도형 아래를 가르는 유일한 구분자 */}
+      <div className="mt-3 h-px bg-border" />
+    </article>
   );
 }
 
