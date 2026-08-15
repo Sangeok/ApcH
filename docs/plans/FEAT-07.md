@@ -63,11 +63,11 @@ _(그림체·팔레트·레이아웃은 승인 시안 `pixel-office-mock.html`/`
   └──────────────────────────────────┘      └───────────────┘
   ```
   - 히어로(thesis)는 **"당신의 책상" 픽셀 배너** — 파이프라인의 목적은 소유자의 결재다. 배너 부제가 결재 건수를 말로 전한다(색만 의존 금지).
-  - 방(벽·걸레받이·체커 바닥·화분·액자)은 배경 레이어, 책상 유닛은 그 위에 반응형 배치. **가로 스크롤 없음**은 폰 `grid-cols-2` + 데스크톱 `flex-wrap`으로 보장(고정폭 오버플로가 없다). 5명은 폰에서 2·2·1로 감긴다.
+  - 방(벽·걸레받이·체커 바닥·화분·액자)은 배경 레이어, 책상 유닛은 그 위에 반응형 배치. **가로 스크롤 없음**은 폰 `grid-cols-2` + 데스크톱 `flex-wrap`으로 보장(고정폭 오버플로가 없다). 5명은 폰에서 2·2·1로 감긴다. 데스크톱도 컨테이너가 `max-w-2xl`(≈672px, `pipeline-page.tsx:25`)이라 5유닛(`w-40`)이 한 줄에 다 안 들어가 감긴다(4+1 등) — 위 다이어그램의 한 줄은 인상도이지 강제가 아니다.
 - **시그니처 요소 — 상태 = 말풍선(침묵 규칙).** 상태 신호는 오직 캐릭터 머리 위 픽셀 말풍선(tone색 테두리·텍스트·꼬리)이 나른다. **muted면 말풍선이 아예 없다** — 말풍선의 존재 자체가 "지금 무슨 일이 있다"는 신호다. 문구는 기존 `teamState.state`를 그대로 재사용. 이 한 곳에만 대담함을 쓰고 방·명패는 조용히.
 - **모션 — 상시 애니메이션 없음(백로그 제약).** keyframe 루프·걷기·라이브 포즈 변화 없음. 허용은 버튼 `hover`/`transition`뿐. FEAT-06의 팔 `transition-transform`은 포즈 시스템과 함께 제거된다.
 - **접근성 바닥.** 캐릭터 스프라이트 SVG는 `aria-hidden`(장식) — 상태는 말풍선 텍스트가, 배너 건수는 부제 텍스트가 전한다(색 단독 전달 아님). 명령 버튼은 실제 HTML `<button>`이라 키보드 포커스·`useTransition` 유지. `crispEdges`·정적 렌더라 `prefers-reduced-motion` 위반 없음.
-- **의도적 이탈(게이트 확인 대상):** (1) FEAT-06의 **`heldId` 칩을 사무실에서 뗀다** — 시안 말풍선은 `state`만 담고 항목 ID를 안 보인다. 정보 손실이나 시안 계약을 따른다(원하면 게이트에서 유지 결정). (2) 시안의 말풍선은 머리 왼쪽에 치우쳐 있으나(고정 3좌석 데모 간격 때문), 유닛 컴포넌트에서는 **머리 중앙 위로 정렬**한다(꼬리는 머리 중심을 가리킴) — 시안 그림체를 보존하는 레이아웃 적응이다. (3) 상단 `BriefingHeader`(파이프라인 브리핑/날짜/전역 실행 버튼)는 시안 재설계 범위 밖이라 **그대로 둔다**(픽셀화는 후속).
+- **의도적 이탈(게이트 확인 대상):** (1) FEAT-06의 **`heldId` 칩을 사무실에서 뗀다** — 시안 말풍선은 `state`만 담고 항목 ID를 안 보인다. 정보 손실이나 시안 계약을 따른다(원하면 게이트에서 유지 결정). (2) 시안의 말풍선은 머리 중심에서 벗어나 있으나(`bubble()`의 좌측 고정 앵커 `x = cx - 20`에서 텍스트 폭만큼 오른쪽으로 부풀기 때문 — mockgen `:74-75`), 유닛 컴포넌트에서는 **머리 중앙 위로 정렬**한다(꼬리는 머리 중심을 가리킴) — 시안 그림체를 보존하는 레이아웃 적응이다. (3) 상단 `BriefingHeader`(파이프라인 브리핑/날짜/전역 실행 버튼)는 시안 재설계 범위 밖이라 **그대로 둔다**(픽셀화는 후속).
 
 ## 문제
 
@@ -332,23 +332,42 @@ function PixelDeskUnit({ member }: { member: TeamMember }) {
 }
 ```
 
-**방 배경**(mockgen `scene()`의 벽·걸레받이·체커 바닥 + 소품). 배경은 `pointer-events-none absolute inset-0` 레이어, 체커는 SVG `<pattern>`(12px 셀, `f`/`F`). 화분·액자는 mockgen 격자를 작은 모서리 SVG로(장식, `aria-hidden`). 밴드 픽셀 위치는 시각 튜닝 대상:
+**방 배경**(mockgen `scene()`의 벽·걸레받이·체커 바닥 + 소품). 배경은 `pointer-events-none absolute inset-0` 레이어, 체커는 SVG `<pattern>`(12px 셀, `f`/`F`). 화분·액자는 mockgen 격자(`:118-119`)를 작은 모서리 SVG로(장식, `aria-hidden`) — 두 격자의 문자(`k w g` / `G p`)는 전부 `PIXEL_PALETTE`에 있어 extra 없이 해석된다. 밴드·소품 픽셀 위치는 시각 튜닝 대상:
 
 ```tsx
+const FRAME_GRID: readonly string[] = ["kkkkk", "kwgwk", "kwwwk", "kkkkk"];
+const PLANT_GRID: readonly string[] = [".GGG.", "GGGGG", ".GGG.", ".ppp.", ".ppp."];
+
+function DecorSprite({ rows, cell, className }: { rows: readonly string[]; cell: number; className: string }) {
+  const w = (rows[0]?.length ?? 0) * cell; // noUncheckedIndexedAccess: rows[0]은 string | undefined
+  const h = rows.length * cell;
+  return (
+    <svg aria-hidden="true" width={w} height={h} viewBox={`0 0 ${w} ${h}`} shapeRendering="crispEdges" className={className}>
+      {gridToRects(rows, {}, cell).map((r, i) => (
+        <rect key={i} x={r.x} y={r.y} width={r.size} height={r.size} fill={r.color} />
+      ))}
+    </svg>
+  );
+}
+
 function PixelRoomBackdrop() {
   return (
-    <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
-      <defs>
-        <pattern id="pixel-floor" width={24} height={24} patternUnits="userSpaceOnUse">
-          <rect width={24} height={24} fill="#efe8d8" />
-          <rect width={12} height={12} fill="#e6dcc6" />
-          <rect x={12} y={12} width={12} height={12} fill="#e6dcc6" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="#f7f3e8" />
-      <rect y={64} width="100%" height={8} fill="#e0d7c2" />
-      <rect y={72} width="100%" height="100%" fill="url(#pixel-floor)" />
-    </svg>
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      <svg className="h-full w-full" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
+        <defs>
+          <pattern id="pixel-floor" width={24} height={24} patternUnits="userSpaceOnUse">
+            <rect width={24} height={24} fill="#efe8d8" />
+            <rect width={12} height={12} fill="#e6dcc6" />
+            <rect x={12} y={12} width={12} height={12} fill="#e6dcc6" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="#f7f3e8" />
+        <rect y={64} width="100%" height={8} fill="#e0d7c2" />
+        <rect y={72} width="100%" height="100%" fill="url(#pixel-floor)" />
+      </svg>
+      <DecorSprite rows={FRAME_GRID} cell={5} className="absolute left-6 top-3" />
+      <DecorSprite rows={PLANT_GRID} cell={6} className="absolute right-4 top-8" />
+    </div>
   );
 }
 ```
@@ -509,7 +528,7 @@ export function PipelineCommandButton({
 import { OwnerBanner, PixelOffice } from "~/ui/pixel-office";
 ```
 
-type 임포트 블록(`:4-9`)에서 **`TeamMember`도 제거한다** — 유일한 사용처(`OfficeZone`)가
+type 임포트 블록(`:5-10`)에서 **`TeamMember`도 제거한다** — 유일한 사용처(`OfficeZone`)가
 `pixel-office.tsx`로 이동하므로, 남기면 `no-unused-vars` 경고가 나 "경고 0" 기준을 깬다
 (`Briefing`·`SpeechItem`·`Tone`은 계속 쓰이므로 유지).
 
