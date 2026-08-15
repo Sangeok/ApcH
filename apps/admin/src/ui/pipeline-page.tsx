@@ -1,71 +1,183 @@
-import type { BoardSection } from "~/pipeline/board";
-import { Badge } from "~/ui/atoms/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/ui/atoms/card";
+import type { ReactNode } from "react";
+
+import { cn } from "~/lib/utils";
+import type {
+  Briefing,
+  SpeechItem,
+  TeamMember,
+  Tone,
+} from "~/pipeline/briefing";
+import { AgentAvatar } from "~/ui/agent-avatar";
 import { PipelineCommandButton } from "~/ui/pipeline-command";
 
-// 없는 status는 "default". 완료=secondary(muted), 보류=destructive(red).
-const STATUS_BADGE_VARIANT: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  완료: "secondary",
-  보류: "destructive",
+const TONE_TEXT: Record<Tone, string> = {
+  pending: "text-stamp",
+  active: "text-active",
+  done: "text-silence",
+  hold: "text-hold",
+  muted: "text-muted-foreground",
 };
 
-export function PipelineBoard({ sections }: { sections: BoardSection[] }) {
+export function PipelineBriefing({ briefing }: { briefing: Briefing }) {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Pipeline</h1>
+    <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-8">
+      <BriefingHeader briefing={briefing} />
+      <InboxZone items={briefing.inbox} />
+      <TeamZone team={briefing.team} />
+      <FeedZone items={briefing.feed} />
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="font-briefing-display text-sm tracking-widest text-muted-foreground">
+      {children}
+    </h2>
+  );
+}
+
+function BriefingHeader({ briefing }: { briefing: Briefing }) {
+  return (
+    <header className="flex items-start justify-between gap-4">
+      <div>
+        <p className="font-briefing-display text-sm tracking-widest text-muted-foreground">
+          파이프라인 브리핑
+        </p>
+        <h1 className="font-briefing-display text-3xl text-foreground">
+          {briefing.today}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {briefing.pendingCount > 0
+            ? `결정 대기 ${briefing.pendingCount}건`
+            : "결정 대기 없음"}
+        </p>
+      </div>
+      <PipelineCommandButton />
+    </header>
+  );
+}
+
+function InboxZone({ items }: { items: SpeechItem[] }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <SectionLabel>결재함</SectionLabel>
+      {items.length === 0 ? (
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
+          <p className="font-briefing-display text-base text-foreground">
+            결재함이 비었습니다.
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            PROJECT_BOARD.md (dev) 투영 — 상태를 저장하지 않습니다.
+            지금 당신의 결정을 기다리는 항목이 없습니다. 팀 현황과 최근 보고는
+            아래에 있습니다.
           </p>
         </div>
-        <PipelineCommandButton />
-      </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {items.map((item) => (
+            <InboxCard key={item.key} item={item} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
-      {sections.map((section) => (
-        <section key={section.heading} className="flex flex-col gap-3">
-          <h2 className="text-sm font-medium text-muted-foreground">
-            {section.heading}
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {section.items.map((item) => (
-              <Card key={`${section.heading}:${item.id}`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-base">{item.id}</CardTitle>
-                    {item.status && (
-                      <Badge
-                        variant={STATUS_BADGE_VARIANT[item.status] ?? "default"}
-                      >
-                        {item.status}
-                      </Badge>
-                    )}
-                  </div>
-                  <CardDescription>{item.title}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-1 text-sm text-muted-foreground">
-                  {item.agent && <p>agent: {item.agent}</p>}
-                  {item.area && <p>area: {item.area}</p>}
-                  {item.result ? (
-                    <p className="text-foreground">결과: {item.result}</p>
-                  ) : (
-                    item.reason && <p>근거: {item.reason}</p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+function InboxCard({ item }: { item: SpeechItem }) {
+  return (
+    <article className="rounded-2xl border border-stamp/40 bg-stamp-soft p-4">
+      <div className="flex items-center gap-3">
+        <AgentAvatar agentId={item.speaker.id} size="md" />
+        <p className="text-sm text-muted-foreground">
+          <span className="font-briefing-display text-foreground">
+            {item.speaker.handle}
+          </span>{" "}
+          · {item.speaker.role}
+        </p>
+      </div>
+      <p className="mt-3 text-lg text-stamp">{item.line}</p>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          {item.id} · {item.status}
+        </p>
+        <span className="rounded border border-stamp px-1.5 text-xs text-stamp">
+          결재
+        </span>
+      </div>
+      {item.detail && (
+        <details className="mt-3 border-t border-stamp/20 pt-2">
+          <summary className="cursor-pointer text-xs text-muted-foreground">
+            근거 보기
+          </summary>
+          <p className="mt-2 text-sm whitespace-pre-wrap text-muted-foreground">
+            {item.detail}
+          </p>
+        </details>
+      )}
+    </article>
+  );
+}
+
+function TeamZone({ team }: { team: TeamMember[] }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <SectionLabel>팀 현황</SectionLabel>
+      <div className="flex flex-wrap gap-2">
+        {team.map((member) => (
+          <div
+            key={member.identity.id}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5"
+          >
+            <AgentAvatar agentId={member.identity.id} size="sm" />
+            <span className="text-sm font-medium text-foreground">
+              {member.identity.handle}
+            </span>
+            <span className={cn("text-xs", TONE_TEXT[member.tone])}>
+              {member.state}
+            </span>
           </div>
-        </section>
-      ))}
-    </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FeedZone({ items }: { items: SpeechItem[] }) {
+  return (
+    <section className="flex flex-col gap-1">
+      <SectionLabel>보고</SectionLabel>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">아직 보고가 없습니다.</p>
+      ) : (
+        <div>
+          {items.map((item) => (
+            <details
+              key={item.key}
+              className="group border-b border-border/60 py-3"
+            >
+              <summary className="flex cursor-pointer list-none items-start gap-3">
+                <AgentAvatar agentId={item.speaker.id} size="sm" />
+                <span
+                  className={cn(
+                    "flex-1 text-sm line-clamp-1 group-open:line-clamp-none",
+                    TONE_TEXT[item.tone],
+                  )}
+                >
+                  {item.line}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {item.status}
+                </span>
+              </summary>
+              {item.detail && (
+                <p className="mt-2 pl-11 text-sm whitespace-pre-wrap text-muted-foreground">
+                  {item.detail}
+                </p>
+              )}
+            </details>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

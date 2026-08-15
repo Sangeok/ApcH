@@ -17,6 +17,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-14
+- [x] FEAT-04: `/pipeline` UI/UX 개편 — 결재함·팀·보고 3구역 + 캐릭터 발화 렌더링
+  agent: admin-dev
+  area: apps/admin
+  status: 완료
+  근거: 사용자 직접 발주 — pm 경유 없음(소유자 발주로 기록). FEAT-03 화면이 데이터 덤프로 나온 원인이 발주문의 디자인 기준 부재였으므로, 이번 백로그 source에 구조·렌더링 기준을 명시해 재발주한다.
+  결과: `/pipeline`을 3구역 브리핑(결재함·팀 현황·보고)으로 재작성했다 — 보드 상태를 캐릭터 발화로 결정적 매핑하는 순수 계층을 두고, UI는 단일 컬럼(`max-w-2xl`) 말풍선·칩·네이티브 `<details>` 피드로 렌더한다. 같은 ID가 여러 섹션에 있으면 최신 행만 남기는 dedupe를 `flatten`에 넣어 끝난 항목의 옛 승인대기 행이 결재함에 되살아나지 않게 했다. 신규: src/pipeline/{agents.ts, briefing.ts, briefing.test.mjs}, src/ui/agent-avatar.tsx. 수정: src/app/pipeline/page.tsx(buildBriefing 주입·bg-briefing), src/ui/pipeline-page.tsx(재작성), src/ui/pipeline-command.tsx(버튼·토스트 한국어화), src/styles/globals.css(stamp/stamp-soft/active/silence/hold/briefing 토큰 + 디스플레이 세리프·한글 폴백 서체). briefing.test.mjs 18테스트 추가(총 33 pass, check 통과). 스케치 대비 차이: 결재함 detail의 `<summary>` 라벨 "근거 보기"는 스케치가 미지정이라 새로 정했고, UI 파일은 계획이 "구조·리터럴 요점"만 준 대로 헬퍼 컴포넌트로 나눠 채웠다(리터럴·분기·문구는 스케치와 동일). 못 덮음(Node 러너·DOM 없음): React 렌더·`<details>` 펼침·line-clamp·group-open·새 색토큰/서체의 시각 결과·모바일 레이아웃·`requireAdmin()` 게이트·`getPipelineBoard()` fetch·`postPipelineCommand` 액션·토스트 — 배포 후 폰 수동 확인 대상. 런타임 전제(구현 밖): 한글 세리프 정체성은 데스크톱(바탕)에서만 온전하고 폰(iOS·Android)에선 고딕 폴백된다(계획 「타이포 역할」 기기 현실). apps/admin/CLAUDE.md 테스트 표에 briefing.test.mjs 행 추가는 수정 범위 밖이라 메인 루프가 처리한다(비고 참조).
 - [x] FEAT-03: 파이프라인 대시보드 — 보드 카드 뷰 + 원격 명령 버튼
   agent: admin-dev
   area: apps/admin
