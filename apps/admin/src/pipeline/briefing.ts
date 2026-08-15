@@ -13,7 +13,12 @@ export type SpeechItem = {
   detail: string | null;
   tone: Tone;
 };
-export type TeamMember = { identity: AgentIdentity; state: string; tone: Tone };
+export type TeamMember = {
+  identity: AgentIdentity;
+  state: string;
+  heldId: string | null; // 책상이 들고 있는 항목 ID(칩 표시용). 없으면 null
+  tone: Tone;
+};
 export type Briefing = {
   today: string;
   pendingCount: number;
@@ -151,28 +156,28 @@ function feedSpeech(item: DatedItem): SpeechItem {
 function teamState(
   agentId: string,
   items: DatedItem[],
-): { state: string; tone: Tone } {
+): { state: string; heldId: string | null; tone: Tone } {
   if (agentId === "pm") {
     const pending = items.filter((it) => it.status === "승인대기").length;
     return pending > 0
-      ? { state: `${pending}건 결재 요청 중`, tone: "pending" }
-      : { state: "새 선정 없음", tone: "muted" };
+      ? { state: `${pending}건 결재 요청 중`, heldId: null, tone: "pending" }
+      : { state: "새 선정 없음", heldId: null, tone: "muted" };
   }
   const mine = items.filter((it) => it.agent === agentId);
   const review = mine.find((it) => it.status === "검토대기");
   if (review !== undefined)
-    return { state: `${review.id} 검토 요청 중`, tone: "pending" };
+    return { state: "검토 요청 중", heldId: review.id, tone: "pending" };
   const working = mine.find(
     (it) => it.status === "계획지시" || it.status === "구현승인",
   );
   if (working !== undefined)
-    return { state: `${working.id} 작업 중`, tone: "active" };
+    return { state: "작업 중", heldId: working.id, tone: "active" };
   const held = mine.find((it) => it.status === "보류");
-  if (held !== undefined) return { state: `${held.id} 보류`, tone: "hold" };
+  if (held !== undefined) return { state: "보류", heldId: held.id, tone: "hold" };
   const done = mine.find((it) => it.status === "완료");
   if (done !== undefined)
-    return { state: `최근 ${done.id} 완료`, tone: "done" };
-  return { state: "대기 중", tone: "muted" };
+    return { state: "최근 완료", heldId: done.id, tone: "done" };
+  return { state: "대기 중", heldId: null, tone: "muted" };
 }
 
 function formatToday(today: Date): string {
@@ -188,8 +193,8 @@ export function buildBriefing(sections: BoardSection[], today: Date): Briefing {
     .filter((it) => it.status === null || !GATE_STATUSES.has(it.status))
     .map((it) => feedSpeech(it));
   const team = ROSTER_ORDER.map((id) => {
-    const { state, tone } = teamState(id, items);
-    return { identity: identityFor(id), state, tone };
+    const { state, heldId, tone } = teamState(id, items);
+    return { identity: identityFor(id), state, heldId, tone };
   });
   return {
     today: formatToday(today),

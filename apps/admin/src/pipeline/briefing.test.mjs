@@ -141,6 +141,7 @@ describe("buildBriefing", () => {
     assert.ok(!briefing.inbox.some((s) => s.id === "FEAT-02"));
     const pm = briefing.team.find((m) => m.identity.id === "pm");
     assert.equal(pm.state, "2건 결재 요청 중"); // FEAT-05, FEAT-01만
+    assert.equal(pm.heldId, null); // pm은 항목을 들지 않는다
   });
 
   it("voices inbox items: pm for 승인대기, item agent for 검토대기, with 일째 tag", () => {
@@ -193,17 +194,22 @@ describe("buildBriefing", () => {
 
     const byId = new Map(briefing.team.map((m) => [m.identity.id, m]));
     assert.equal(byId.get("pm").state, "2건 결재 요청 중");
+    assert.equal(byId.get("pm").heldId, null);
     assert.equal(byId.get("pm").tone, "pending");
-    // admin-dev: 검토대기(FEAT-04)가 최우선
-    assert.equal(byId.get("admin-dev").state, "FEAT-04 검토 요청 중");
+    // admin-dev: 검토대기(FEAT-04)가 최우선 — ID는 heldId로 분리, state는 짧아진다
+    assert.equal(byId.get("admin-dev").state, "검토 요청 중");
+    assert.equal(byId.get("admin-dev").heldId, "FEAT-04");
     assert.equal(byId.get("admin-dev").tone, "pending");
     // web-dev: 검토대기 없음 → 작업 중(구현승인 FEAT-07)
-    assert.equal(byId.get("web-dev").state, "FEAT-07 작업 중");
+    assert.equal(byId.get("web-dev").state, "작업 중");
+    assert.equal(byId.get("web-dev").heldId, "FEAT-07");
     assert.equal(byId.get("web-dev").tone, "active");
-    // 항목 없는 감사·스카우트 → 대기 중
+    // 항목 없는 감사·스카우트 → 대기 중, 든 항목 없음
     assert.equal(byId.get("doc-auditor").state, "대기 중");
+    assert.equal(byId.get("doc-auditor").heldId, null);
     assert.equal(byId.get("doc-auditor").tone, "muted");
     assert.equal(byId.get("feature-scout").state, "대기 중");
+    assert.equal(byId.get("feature-scout").heldId, null);
   });
 
   it("formats today as M월 D일", () => {

@@ -4,6 +4,7 @@ import { env } from "~/env";
 import { requireAdmin } from "~/auth/guard";
 import { type ActionResult, failure, success } from "~/lib/result";
 import { ISSUE_COMMENTS_URL } from "./github";
+import { resolvePipelineCommand, type PipelineCommandKey } from "./commands";
 
 // #87 코멘트가 외부 webhook(pipeline-command)을 깨워 에이전트를 돌린다.
 // 게이트 전이(계획지시·구현승인)는 사용자 몫이므로 이 명령은 status를 바꾸지 않고
@@ -12,13 +13,19 @@ import { ISSUE_COMMENTS_URL } from "./github";
 // webhook은 이슈의 모든 새 코멘트에 발화하고, 루틴 지침이 (a) 이슈 #87 (b) 작성자가
 // 저장소 소유자 (c) "[claude]"로 시작하지 않음 — 세 조건으로 명령을 고른다.
 // 따라서 이 문자열은 "[claude]"로 시작하면 안 되고, 게시 계정이 소유자여야 한다.
-const COMMAND_BODY =
-  "파이프라인을 진행해 주세요. PROJECT_BOARD.md의 각 항목을 현재 status와 런북 규칙대로 처리하되, 게이트 전이(계획지시·구현승인)는 사용자 몫이므로 바꾸지 마세요.";
+// 게시 가능한 본문은 commands.ts의 화이트리스트가 유일한 출처다(보안 경계).
 
-export async function postPipelineCommand(): Promise<ActionResult<void>> {
-  // 목적지 인가. test-action.ts와 동일하게 try 밖에서 부른다
-  // (안에 넣으면 catch가 NEXT_REDIRECT를 삼킨다).
+export async function postPipelineCommand(
+  command: PipelineCommandKey,
+): Promise<ActionResult<void>> {
+  // 목적지 인가는 그대로 try 밖·최상단(NEXT_REDIRECT를 catch가 삼키지 않게).
   await requireAdmin();
+
+  // 화이트리스트 밖 key는 여기서 거부한다. 클라이언트는 key만 보내고 본문은 서버가 정한다.
+  const body = resolvePipelineCommand(command);
+  if (body === null) {
+    return failure("Unknown command");
+  }
 
   const token = env.GITHUB_PIPELINE_TOKEN;
   if (!token) {
@@ -34,7 +41,7 @@ export async function postPipelineCommand(): Promise<ActionResult<void>> {
         "X-GitHub-Api-Version": "2022-11-28",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ body: COMMAND_BODY }),
+      body: JSON.stringify({ body }),
     });
 
     if (!res.ok) {

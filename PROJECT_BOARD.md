@@ -16,6 +16,14 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-15
+- [x] FEAT-06: `/pipeline` 사무실 뷰 — 플랫 SVG 캐릭터·책상 공간화 + 책상별 원격 명령
+  agent: admin-dev
+  area: apps/admin
+  status: 완료
+  근거: 사용자 직접 발주 — pm 경유 없음(소유자 발주로 기록). FEAT-04 실사용 관찰(직관성 부족)과 확장성(오케스트레이터 시대의 흐름 시각화, 책상별 명령 앵커)이 근거. "빈 사무실" 반론은 기각됨 — 대기 중인 직원도 상태이며 은유가 희소 상태에서 성립한다. 그림체는 플랫 미니멀 SVG로 사용자 확정.
+  결과: `/pipeline`을 사무실 뷰로 공간화했다 — 팀 알약 칩(TeamZone)을 책상 세로 스택(OfficeZone/OfficeDesk)으로 교체해 각 책상에 자세=상태·소품=역할인 플랫 SVG 캐릭터(AgentCharacter: tone→팔 각도 + 상태 채움색)와 heldId 칩·책상별 명령 버튼을 얹고, 결재함을 "당신의 책상"(서류 모티프)으로 리프레임했다. 명령은 순수 화이트리스트(commands.ts `resolvePipelineCommand`의 `Object.hasOwn` 멤버십 검사)를 보안 경계로 두고, desk-commands.ts가 책상→{key,label}만 매핑하며(본문 없음, 클라 노출 안전), 서버(command-action.ts)가 클라가 보낸 key를 화이트리스트로 본문 해석·밖이면 거부한다 — 임의 문자열이 코멘트로 나가는 경로 없음, 이슈 #87 단일 외부 쓰기 경로 유지(DB 무접근). 신규: src/pipeline/{commands.ts, desk-commands.ts, commands.test.mjs, desk-commands.test.mjs}, src/ui/agent-character.tsx. 수정: src/pipeline/{command-action.ts, briefing.ts, briefing.test.mjs}, src/ui/{pipeline-command.tsx, pipeline-page.tsx}. 테스트 8개 추가(commands 5·desk-commands 3) + briefing에 heldId 단언, 총 41 pass·check 통과. 스케치 대비 차이(사용자에게 보이는 문구): (1) teamState의 heldId 분리로 팀 상태 문구가 짧아졌다 — admin-dev "FEAT-04 검토 요청 중"→"검토 요청 중"+heldId, web-dev·보류·완료 4상태에서 ID를 칩으로 뗐고 pm 2문자열("2건 결재 요청 중"·"새 선정 없음")은 그대로. (2) InboxZone 라벨 "결재함"→"당신의 책상"(스케치 지정)에 DocumentsMark 장식 SVG를 헤더에 추가 — 스케치가 "구조·리터럴 요점(겹친 사각형·stroke=currentColor·fill-card·aria-hidden)"만 준 대로 헬퍼로 채웠다(분기·조건·화이트리스트 리터럴은 스케치와 동일, pipeline-run 본문은 기존 COMMAND_BODY와 글자 그대로 동일·테스트 단언). 못 덮음(Node 러너·DOM/외부 I/O 없음): AgentCharacter SVG 렌더·포즈 기하(팔 각도·소품 위치)·fill-*/stroke 시각 결과·상태별 채움색, OfficeZone/OfficeDesk·당신의 책상 서류 모티프·모바일 단일 컬럼·transition-transform, PipelineCommandButton의 useTransition·토스트·클릭, postPipelineCommand의 requireAdmin 게이트·GitHub POST·res.ok 분기 — 배포 후 데스크톱+폰 수동 확인 대상. 비고: apps/admin/CLAUDE.md 테스트 표에 commands.test.mjs·desk-commands.test.mjs 2행 추가는 수정 범위 밖이라 메인 루프가 처리한다.
+
 ## 2026-08-14
 - [x] FEAT-04: `/pipeline` UI/UX 개편 — 결재함·팀·보고 3구역 + 캐릭터 발화 렌더링
   agent: admin-dev
