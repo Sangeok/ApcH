@@ -353,7 +353,7 @@ function DecorSprite({ rows, cell, className }: { rows: readonly string[]; cell:
 function PixelRoomBackdrop() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      <svg className="h-full w-full" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
+      <svg className="h-full w-full" shapeRendering="crispEdges">
         <defs>
           <pattern id="pixel-floor" width={24} height={24} patternUnits="userSpaceOnUse">
             <rect width={24} height={24} fill="#efe8d8" />
@@ -483,7 +483,7 @@ const DESK_COMMANDS: Record<string, DeskCommand> = {
 };
 ```
 
-`deskCommandFor`는 변경 없음(`?? null` 유지). 이제 5책상 전부 버튼을 가진다.
+`deskCommandFor`는 변경 없음(`?? null` 유지). 이제 5책상 전부 버튼을 가진다. 파일 상단 주석(`:5` "안전한 명령이 있는 책상만 등재. dev(admin-dev·web-dev)는 없음 — 「대안」 참고.")은 이 변경으로 거짓이 되므로 `// 5책상 전부 등재 — dev 「작업 진행」은 FEAT-07에서 추가(FEAT-06 「대안」1 채택).`로 교체한다.
 
 ### 6) `src/ui/pipeline-command.tsx` (수정) — `className` prop
 
