@@ -509,6 +509,10 @@ export function PipelineCommandButton({
 import { OwnerBanner, PixelOffice } from "~/ui/pixel-office";
 ```
 
+type 임포트 블록(`:4-9`)에서 **`TeamMember`도 제거한다** — 유일한 사용처(`OfficeZone`)가
+`pixel-office.tsx`로 이동하므로, 남기면 `no-unused-vars` 경고가 나 "경고 0" 기준을 깬다
+(`Briefing`·`SpeechItem`·`Tone`은 계속 쓰이므로 유지).
+
 `PipelineBriefing`(`:23-32`)에서 `OfficeZone`을 `PixelOffice`로, `InboxZone`에 `pendingCount` 전달:
 
 ```tsx
