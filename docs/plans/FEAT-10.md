@@ -86,21 +86,28 @@ unknown   ● 진행 상태 확인 불가              (회색 점)
 
 | 신호원 | 인증·rate limit | 읽기 비용 | "이 명령이 처리됐나"를 답하나 | 삼킴(요구 4) 탐지 |
 | --- | --- | --- | --- | --- |
-| ⓐ 이슈 #87 코멘트 | 미인증 60/h(실측 `X-RateLimit-Limit: 60`) / 인증 5000/h | 1 GET(`since` 6h 창 → 실측 하루 8.5KB, 6h면 더 작음) | **예** — 명령/답글을 순서로 매핑 | **예** — 답글 유무로 판별 |
+| ⓐ 이슈 #87 코멘트 | 미인증 60/h(실측 `X-RateLimit-Limit: 60`) / 인증 5000/h | 1 GET(`since` 6h 창 → 실측 하루 8.5KB, 6h면 더 작음) | **예** — 명령/답글을 순서로 매핑 | **예** — 명령:답글 **짝짓기**로 판별(아래 주의) |
 | ⓑ 보드 status(raw CDN) | 미인증(현 투영) | 이미 투영 중 | 아니오 — 게이트는 사용자 전이라 pipeline-run은 status를 안 바꾼다(no-op도 무변화) + CDN 지연 | 아니오 |
 | ⓒ dev 새 커밋 | 미인증 60/h / 인증 | 1 GET | 부분 — 커밋≠명령 1:1, no-op 실행은 커밋 없음 | 아니오 |
 
-**결정적 근거(실측)**: 명령 코멘트와 답글은 **둘 다 소유자 계정(`Sangeok`)으로 게시**된다(코멘트 12개 전부 동일 작성자). 유일한 구분자는 본문 **`[claude]` 접두** — 답글만 그것으로 시작하고, 명령은 시작하지 않는다(`command-action.ts:14-15` 계약과 대칭). 따라서 "최신 명령 뒤에 `[claude]` 답글이 있나"가 요구 3·4를 한 번에 답한다. ⓑⓒ는 삼킴을 못 잡고 CDN에 지연된다. **ⓐ만 채택.**
+**결정적 근거(실측)**: 명령 코멘트와 답글은 **둘 다 소유자 계정(`Sangeok`)으로 게시**된다(코멘트 12개 전부 동일 작성자). 유일한 구분자는 본문 **`[claude]` 접두** — 답글만 그것으로 시작하고, 명령은 시작하지 않는다(`command-action.ts:14-15` 계약과 대칭). ⓑⓒ는 삼킴을 못 잡고 CDN에 지연된다. **ⓐ만 채택.**
+
+**주의 — "최신 명령 뒤에 답글이 있나"로 보면 안 된다(검증에서 잡힌 결함).** 그 모델을 실제 이슈 #87 스레드로 재생하면 **삼킴 사건 당시 `responded`(응답 옴)가 뜬다**: 2026-08-15에 명령 2건(14:50:53 pipeline-run, 14:52:14 pm-select)이 연속으로 나가고 답글 1건(14:52:31)이 달렸는데, 그 답글은 **앞 명령**의 것이었다. "최신 명령 뒤 답글 유무" 모델은 이를 "뒤 명령도 응답됨"으로 읽어, 삼켜진 명령에 초록 신호를 준다 — 요구 4가 없애려는 바로 그 상태(실패가 성공으로 보임)를 새로 만든다. 사용자가 15:07:30에 같은 명령을 다시 보낸 것이 삼킴의 증거다.
+
+따라서 **짝짓기 모델**을 쓴다: 루틴 지침이 "명령 1건당 답글 1건"을 보장하므로, 답글 1건이 미응답 명령 1건을 **오래된 것부터(FIFO) 갚는다.** 갚히지 않고 남은 가장 오래된 명령이 곧 삼켜졌을 수 있는 것이고, 화면은 그 명령의 경과를 말한다. 같은 스레드를 이 모델로 재생하면 14:52:31에 `awaiting`, 15:07:30에 `silent(15분 · 이슈 #87 확인)`이 떠서 삼킴이 드러나고, 15:10:10에 답글 둘이 다 달린 뒤에야 `responded`가 된다. 백로그 요구 4가 "화면이 그 보장을 확인해 주지 않는다"고 지목한 것이 정확히 이 짝짓기다.
 
 **결정 2 — 인증하여 읽는다(신규 권한 없음).** 폴링 15초 = 240 req/h인데 미인증 한도는 60/h(실측)라 부족하다. **기존 `GITHUB_PIPELINE_TOKEN`으로 인증**하면 5000/h(240/h 사용=4.8%)라 여유롭다. 그 토큰은 이미 Issues RW(FEAT-08 재발급)를 가지고, **코멘트 읽기는 Issues 권한에 포함**되므로 **새 PAT 권한이 필요 없다**(FEAT-08의 Contents RW 추가 같은 재발급 전제가 이번엔 없다). 토큰 미설정이면 미인증으로 시도하되 rate limit에 걸리면 pill이 `unknown`을 보인다.
 
 **결정 3 — 갱신 방식: 클라이언트 폴링(15초), 페이지 열려 있는 동안.** 대안은 수동 새로고침(관측 3의 핵심이 "언제 새로고침할지 모른다"라 기각)과 서버 액션 응답 편승(코멘트 POST 응답은 "게시됨"만 알지 1~2분 진행을 못 알림, 기각). 폴링만이 깜깜한 창을 채운다. 주기 15초는 15,000ms 상수로 둔다 — 인증 시 240/h로 5000/h의 5% 미만, 반응은 충분. 진행 read는 **투영(보드)과 분리한 전용 서버 액션**(`getPipelineProgress`)이라 `router.refresh`로 보드 전체를 다시 읽지 않는다.
 
-**결정 4 — 실패 가시성: 최신 명령의 답글 유무 + 경과 임계.** 상태 넷:
-- **awaiting** — 최신 명령 뒤 답글 없음, 경과 < 임계.
-- **silent** — 최신 명령 뒤 답글 없음, 경과 ≥ 임계.
-- **responded** — 최신 명령 뒤 `[claude]` 답글 있음.
-- **idle** — 창 안에 추적할 명령 없음.
+**결정 4 — 실패 가시성: 미응답 명령(FIFO 짝짓기) + 경과 임계.** 상태 다섯:
+- **awaiting** — 미응답 명령이 남아 있고, 그중 **가장 오래된 것**의 경과 < 임계.
+- **silent** — 미응답 명령이 남아 있고, 가장 오래된 것의 경과 ≥ 임계.
+- **responded** — 미응답 명령 없음(창 안 명령이 전부 답글로 갚혔다). `sinceIso`는 최신 명령.
+- **idle** — 창 안에 명령이 없다(답글만 있거나 비었다).
+- **unknown** — 읽기 실패·시각 파싱 불가. 첫 폴 전 초기값이기도 하다.
+
+경과를 **가장 오래된 미응답 명령**으로 재는 이유: 그것이 가장 오래 방치된 요청이고, 연속 클릭으로 두 건이 밀려 있을 때 뒤엣것의 짧은 경과에 가려지면 안 되기 때문이다(2026-08-15 사건에서 15:07 시점 `silent(15분)`이 나오는 근거).
 
 **임계 = 3분(180,000ms).** 실측 정상 응답 간격은 0.3·0.7·0.9·2.6분이고 23분 이상치가 하나(2026-08-16). 정상 최대(2.6분) 바로 위인 3분을 경계로 잡으면 정상 실행 중엔 awaiting을 유지하고, 3분을 넘기면 "확인하라"를 띄운다(23분 사례는 3분부터 silent로 보이는 게 옳다 — 사용자가 스레드를 봐야 할 상황이었다). silent는 **실패 단정이 아니라 점검 신호**다.
 
@@ -116,10 +123,10 @@ unknown   ● 진행 상태 확인 불가              (회색 점)
 | --- | --- |
 | `src/pipeline/run-plan.ts` `(신규, 순수)` | `describePipelineRun(items)` → `RunPlan{enabled,label,description}`(동적 라벨, 전 경우 열거) + `gateNextActionHint(to)`(도장 직후 안내). 런타임 임포트 없음(`board.ts` 타입만). `run-plan.test.mjs`로 덮인다 |
 | `src/pipeline/run-plan.test.mjs` `(신규)` | 라벨 전 경우(빈·게이트대기만·계획지시 단·구현승인 단·복수·null/미지 status·프로토타입 오염) + `gateNextActionHint` 3분기 |
-| `src/pipeline/progress.ts` `(신규, 순수)` | `deriveProgress(comments, now)` → `ProgressState`(idle/awaiting/silent/responded/unknown) + `isReply` + `SILENCE_THRESHOLD_MS`. 임포트 없음. `progress.test.mjs`로 덮인다 |
-| `src/pipeline/progress.test.mjs` `(신규)` | 상태 도출(빈·답글만·명령 뒤 답글=responded·경과<임계=awaiting·≥임계=silent·이중 명령/삼킴·임계 경계·분 계산) + `isReply` 접두 |
-| `src/pipeline/progress-action.ts` `(신규, "use server")` | `getPipelineProgress()` — `requireAdmin()` → 이슈 #87 코멘트 GET(`since` 6h 창, 토큰 있으면 인증) → `deriveProgress`. 읽기 실패는 `unknown` |
-| `src/ui/pipeline-run-control.tsx` `(신규, "use client")` | `PipelineRunControl{plan}` — 동적 라벨 버튼(disabled 지원) + 설명 + `ProgressPill`(15초 폴링). `postPipelineCommand("pipeline-run")` 고정 key |
+| `src/pipeline/progress.ts` `(신규, 순수)` | `deriveProgress(comments, now)` → `ProgressState`(idle/awaiting/silent/responded/unknown, **FIFO 짝짓기**) + `SILENCE_THRESHOLD_MS`. `isReply`는 모듈 내부(export 안 함). 임포트 없음. `progress.test.mjs`로 덮인다 |
+| `src/pipeline/progress.test.mjs` `(신규)` | 상태 도출(빈·답글만·명령 뒤 답글=responded·경과<임계=awaiting·≥임계=silent·**이중 명령+답글 1건=미응답 잔존**·창 밖 답글·임계 경계·분 계산·시각 파싱 불가) + `isReply` 접두 간접 확인 |
+| `src/pipeline/progress-action.ts` `(신규, "use server")` | `getPipelineProgress()` — `requireAdmin()` → 이슈 #87 코멘트 GET(`since` 6h 창, 토큰 있으면 인증) → `deriveProgress`. 읽기 실패(전송·상태코드·**본문 파싱**)는 전부 `unknown` |
+| `src/ui/pipeline-run-control.tsx` `(신규, "use client")` | `PipelineRunControl{plan}` — 동적 라벨 버튼(disabled 지원) + 설명 + `ProgressPill`(15초 폴링, **실패는 `unknown`으로 강등**). `postPipelineCommand("pipeline-run")` 고정 key |
 | `src/pipeline/briefing.ts` `(수정)` | `Briefing`에 `plan: RunPlan` 추가, `buildBriefing`이 `describePipelineRun(items)`로 채움 |
 | `src/pipeline/briefing.test.mjs` `(수정)` | 기존 BOARD 픽스처의 `plan` 배선 단언 1개 추가(기존 단언 불변) |
 | `src/ui/pipeline-page.tsx` `(수정)` | `BriefingHeader`의 정적 버튼(`:55`)을 `PipelineRunControl`로 교체 + 헤더 `flex-wrap` + 미사용 `PipelineCommandButton` 임포트(`:8`) 제거 |
@@ -132,7 +139,9 @@ unknown   ● 진행 상태 확인 불가              (회색 점)
 
 ### 1) `src/pipeline/run-plan.ts` (신규) — 동적 라벨 + 도장 직후 안내
 
-`pipeline-run`이 실제로 진행시키는 status는 **계획지시·구현승인 둘뿐**(`commands.ts:18-19` "게이트 전이는 바꾸지 마세요" → 승인대기·검토대기는 사용자 게이트 대기, 완료·보류는 종료). 그 여집합은 전부 "진행할 작업 없음"이다. `Object.hasOwn`으로 화이트리스트 멤버십을 검사해 프로토타입 오염 status(`__proto__` 등)도 막는다(`commands.ts`와 같은 원칙).
+`pipeline-run`이 실제로 진행시키는 status는 **계획지시·구현승인 둘뿐**(`commands.ts:18-19` "게이트 전이는 바꾸지 마세요" → 승인대기·검토대기는 사용자 게이트 대기, 완료·보류는 종료). 그 여집합은 전부 "진행할 작업 없음"이다.
+
+멤버십 검사는 **반드시 `Object.hasOwn`**이다(`commands.ts:29`와 같은 원칙). 인덱스 접근 후 `undefined` 가드만으로는 **못 막는다** — 객체 리터럴은 `Object.prototype`을 물려받으므로 `RUN_ACTIONS["__proto__"]`는 `Object.prototype`을, `RUN_ACTIONS["toString"]`은 함수를 돌려준다. 둘 다 `undefined`가 아니라 가드를 통과하고, `action.verb`가 `undefined`가 되어 라벨에 새어 나온다. 검증에서 실측한 실제 출력이 `label: "FEAT-01 undefined 외 2건"`, 안내 문구가 `"…눌러 undefined 받으세요."`였다. status는 보드 텍스트에서 그대로 파싱되므로(`board.ts:22` `FIELD_RE`는 임의 문자열을 받는다) 이 경로는 실재한다.
 
 ```ts
 // 순수. board.ts/commands.ts와 같은 이유로 런타임 임포트 없음(run-plan.test.mjs로 덮인다).
@@ -160,8 +169,12 @@ export function describePipelineRun(items: BoardItem[]): RunPlan {
   let hasGateWaiting = false;
   for (const it of items) {
     if (it.status === null) continue;
-    // Object.hasOwn 대신 인덱스 접근 후 undefined 가드(noUncheckedIndexedAccess).
-    const action = RUN_ACTIONS[it.status]; // { verb, deliverable } | undefined
+    // Object.hasOwn: commands.ts:29와 같은 원칙. 인덱스 접근 + undefined 가드만으로는
+    // 못 막는다 — 객체 리터럴은 Object.prototype을 물려받아 "__proto__"·"toString"이
+    // undefined가 아닌 값을 돌려주고, 그러면 verb가 undefined로 라벨에 새어 나온다.
+    const action = Object.hasOwn(RUN_ACTIONS, it.status)
+      ? RUN_ACTIONS[it.status]
+      : undefined; // { verb, deliverable } | undefined
     if (action !== undefined) {
       actionable.push({ id: it.id, verb: action.verb });
     } else if (GATE_WAITING.has(it.status)) {
@@ -199,7 +212,8 @@ export function describePipelineRun(items: BoardItem[]): RunPlan {
 // 도장(게이트 결정) 직후 안내 — 결정과 실행이 별개임을 말한다(FEAT-08 자동 게시 기각과 다른 접근).
 // to는 방금 커밋된 목표 status(계획지시·구현승인). RUN_ACTIONS와 같은 어휘로 잇는다.
 export function gateNextActionHint(to: string): string {
-  const action = RUN_ACTIONS[to];
+  // 여기도 Object.hasOwn — "toString"이 오면 deliverable이 undefined로 문구에 샌다.
+  const action = Object.hasOwn(RUN_ACTIONS, to) ? RUN_ACTIONS[to] : undefined;
   return action === undefined
     ? "이제 파이프라인 실행을 눌러 다음 단계를 진행하세요."
     : `이제 파이프라인 실행을 눌러 ${action.deliverable} 받으세요.`;
@@ -218,7 +232,7 @@ export function gateNextActionHint(to: string): string {
 
 ### 2) `src/pipeline/progress.ts` (신규) — 코멘트 → 진행 상태
 
-명령/답글의 유일한 구분자는 본문 `[claude]` 접두(실측: 작성자는 둘 다 소유자). 코멘트는 `created_at` 오름차순(실측)이라 뒤에서부터 훑어 최신 명령을 찾고 그 뒤 답글 유무로 가른다.
+명령/답글의 유일한 구분자는 본문 `[claude]` 접두(실측: 작성자는 둘 다 소유자). 코멘트는 `created_at` 오름차순(실측)이라 앞에서부터 훑으며 **답글 1건이 미응답 명령 1건을 오래된 것부터 갚는다**(결정 1의 짝짓기 모델 — "최신 명령 뒤 답글 유무"는 삼킴 사건에서 거짓 초록을 낸다).
 
 ```ts
 // 순수. board.ts/commands.ts와 같은 이유로 임포트 없음(progress.test.mjs로 덮인다).
@@ -247,28 +261,40 @@ export function deriveProgress(
   comments: CommentLite[],
   now: Date,
 ): ProgressState {
-  // 코멘트는 created_at 오름차순(오래된→최신, 실측). 최신→과거로 훑어 첫 명령(비-[claude])을
-  // 찾는다. 그 뒤에 답글이 있었으면 responded, 없으면 경과로 awaiting/silent를 가른다.
-  let sawReplyAfter = false;
-  for (let i = comments.length - 1; i >= 0; i--) {
-    const c = comments[i]; // CommentLite | undefined (noUncheckedIndexedAccess)
-    if (c === undefined) continue;
+  // 짝짓기 모델. 루틴 지침이 "명령 1건당 답글 1건"을 보장하므로, 답글 1건이 미응답
+  // 명령 1건을 오래된 것부터(FIFO) 갚는다. 갚히지 않고 남은 가장 오래된 명령이 곧
+  // "삼켜졌을 수 있는" 그것이고, 화면은 그 명령의 경과를 말한다.
+  //
+  // "최신 명령 뒤에 답글이 있나"로 보면 안 된다 — 2026-08-15 실측 사건에서 답글 1건이
+  // 명령 2건 뒤에 달렸고, 그 답글은 앞 명령 것이었다. 그 모델이면 삼켜진 뒤 명령에
+  // "응답 옴"이 떠서 성공과 구분되지 않는다(요구 4가 없애려는 바로 그 상태).
+  //
+  // 코멘트는 created_at 오름차순(실측)이라 앞에서부터 훑는다.
+  const unanswered: string[] = []; // 미응답 명령의 createdAt(오래된 순)
+  let lastCommandIso: string | null = null;
+  for (const c of comments) {
     if (isReply(c.body)) {
-      sawReplyAfter = true;
-      continue;
+      unanswered.shift(); // 가장 오래된 미응답 명령을 갚는다(없으면 창 밖 명령의 답글 — 무시)
+    } else {
+      unanswered.push(c.createdAt);
+      lastCommandIso = c.createdAt;
     }
-    // 첫 비-답글 = 최신 명령.
-    if (sawReplyAfter) {
-      return { kind: "responded", sinceIso: c.createdAt };
-    }
-    const elapsed = now.getTime() - Date.parse(c.createdAt);
-    const minutes = Math.max(0, Math.floor(elapsed / 60_000));
-    return elapsed >= SILENCE_THRESHOLD_MS
-      ? { kind: "silent", sinceIso: c.createdAt, minutes }
-      : { kind: "awaiting", sinceIso: c.createdAt, minutes };
   }
-  // 명령을 못 찾음(빈 창, 또는 답글만 있고 명령은 창 밖) → 추적할 최근 요청 없음.
-  return { kind: "idle" };
+
+  const oldest = unanswered[0]; // string | undefined (noUncheckedIndexedAccess)
+  if (oldest === undefined) {
+    // 미응답 없음 — 창에 명령이 있었으면 전부 응답됐고, 없었으면 추적할 요청이 없다.
+    return lastCommandIso === null
+      ? { kind: "idle" }
+      : { kind: "responded", sinceIso: lastCommandIso };
+  }
+
+  const elapsed = now.getTime() - Date.parse(oldest);
+  if (Number.isNaN(elapsed)) return { kind: "unknown" }; // created_at 파싱 불가
+  const minutes = Math.max(0, Math.floor(elapsed / 60_000));
+  return elapsed >= SILENCE_THRESHOLD_MS
+    ? { kind: "silent", sinceIso: oldest, minutes }
+    : { kind: "awaiting", sinceIso: oldest, minutes };
 }
 ```
 
@@ -306,16 +332,19 @@ export async function getPipelineProgress(): Promise<ProgressState> {
   const token = env.GITHUB_PIPELINE_TOKEN;
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  let res: Response;
+  // fetch와 본문 파싱을 한 try에 둔다 — 파싱 실패(비정상 본문)도 읽기 실패이고,
+  // 여기서 새어 나가면 클라이언트 폴링이 reject를 받아 pill이 얼어붙는다.
+  let raw: RawComment[];
   try {
-    res = await fetch(url, { headers, cache: "no-store" });
+    const res = await fetch(url, { headers, cache: "no-store" });
+    if (!res.ok) return { kind: "unknown" };
+    raw = (await res.json()) as RawComment[];
   } catch (error) {
     console.error("Failed to read pipeline progress", error);
     return { kind: "unknown" };
   }
-  if (!res.ok) return { kind: "unknown" };
+  if (!Array.isArray(raw)) return { kind: "unknown" };
 
-  const raw = (await res.json()) as RawComment[];
   const comments = raw.flatMap((c) =>
     typeof c.body === "string" && typeof c.created_at === "string"
       ? [{ body: c.body, createdAt: c.created_at }]
@@ -400,8 +429,15 @@ export function PipelineRunControl({ plan }: { plan: RunPlan }) {
   useEffect(() => {
     aliveRef.current = true;
     const tick = async () => {
-      const p = await getPipelineProgress();
-      if (aliveRef.current) setProgress(p);
+      // 서버 액션이 reject하면(세션 만료·전송 실패·응답 파싱 실패) 잡지 않을 경우
+      // 부동 프로미스가 조용히 죽고 pill이 마지막 값에 얼어붙는다 — 직전 값이
+      // "응답 옴"이면 실패가 성공으로 보인다(요구 4가 없애려는 상태). unknown으로 내린다.
+      try {
+        const p = await getPipelineProgress();
+        if (aliveRef.current) setProgress(p);
+      } catch {
+        if (aliveRef.current) setProgress({ kind: "unknown" });
+      }
     };
     void tick();
     const timer = setInterval(() => void tick(), POLL_MS);
@@ -422,8 +458,12 @@ export function PipelineRunControl({ plan }: { plan: RunPlan }) {
       toast.success(
         "파이프라인 실행을 요청했습니다 (이슈 #87). 아래에서 진행을 확인하세요.",
       );
-      const p = await getPipelineProgress(); // 클릭 직후 즉시 갱신
-      if (aliveRef.current) setProgress(p);
+      try {
+        const p = await getPipelineProgress(); // 클릭 직후 즉시 갱신
+        if (aliveRef.current) setProgress(p);
+      } catch {
+        if (aliveRef.current) setProgress({ kind: "unknown" });
+      }
     });
   };
 
@@ -446,6 +486,7 @@ export function PipelineRunControl({ plan }: { plan: RunPlan }) {
 ```
 
 - 초기 상태 `unknown`(첫 폴 전). 폴은 마운트 시 1회 + 15초 간격. `aliveRef`로 언마운트 후 setState 방지. `void`로 부동 프로미스 lint 회피.
+- **폴 실패는 반드시 잡아 `unknown`으로 내린다.** `void tick()`은 거부된 프로미스를 버리므로, `tick` 안에 `try/catch`가 없으면 서버 액션 거부(세션 만료·전송 실패·응답 파싱 실패)가 처리되지 않은 거부로 죽고 **pill은 마지막 값에 얼어붙는다**. 그 값이 `responded`였다면 실패가 "응답 옴"으로 보인다 — 요구 4가 없애려는 상태를 이 화면이 새로 만드는 셈이다. 클릭 직후 갱신도 같은 이유로 감싼다.
 - `plan.enabled === false`면 버튼 disabled(라벨 `"진행할 작업 없음"`), 설명이 다음 행동을 가리킨다. 라벨이 스테일해도(작업 완료 후 보드 flip 전까지) pill이 진행을 답하고, 다음 로드에서 라벨이 갱신된다.
 
 ### 5) `src/pipeline/briefing.ts` (수정) — plan 배선
@@ -576,7 +617,7 @@ import { gateNextActionHint } from "~/pipeline/run-plan";
 
 - **덮는 것 (순수 함수):**
   - `run-plan.test.mjs` (신규) — `describePipelineRun`: 빈 배열 → `{enabled:false, "진행할 작업 없음", "지금 파이프라인이 진행할 항목이 없습니다."}`; 완료·보류만 → 동일; 승인대기·검토대기만(actionable 0) → `{false, "진행할 작업 없음", "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."}`; 계획지시 1건 → `{true, "FEAT-09 계획서 작성", "실행하면 FEAT-09 계획서 작성 작업을 진행합니다."}`; 구현승인 1건 → `{true, "FEAT-09 구현", …}`; 복수(계획지시+구현승인, 보드 순서) → `{true, "FEAT-06 계획서 작성 외 1건", "실행하면 FEAT-06 계획서 작성, FEAT-07 구현 작업을 진행합니다."}`; `status:null`·미지 status·`__proto__`/`toString` status는 무시(프로토타입 오염 방어). `gateNextActionHint`: `"계획지시"`→`"이제 파이프라인 실행을 눌러 계획서를 받으세요."`, `"구현승인"`→`"…구현을 받으세요."`, `"완료"`/`"arbitrary"`→`"…다음 단계를 진행하세요."` (BoardItem은 `{checked,id,title,agent,area,status,reason,result}` 최소 객체로 인라인 구성 — describePipelineRun은 `status`·`id`만 읽는다).
-  - `progress.test.mjs` (신규) — `deriveProgress(comments, now)`: `[]`→`idle`; 답글만(`[claude]` 전부)→`idle`; 명령 뒤 답글→`responded`(sinceIso=명령 시각); 이중 명령+뒤 답글(삼킴 후 묶임)→`responded`(sinceIso=최신 명령); 명령만·경과 1분(<3분)→`awaiting{minutes:1}`; 명령만·경과 5분(≥3분)→`silent{minutes:5}`; 경과 정확히 3분(180,000ms)→`silent`(경계 포함); `minutes` 계산(floor). `isReply`는 export 안 하므로 접두 판정은 body `" [claude] x"`(선행 공백)를 담은 코멘트로 responded 도출을 통해 간접 확인. `SILENCE_THRESHOLD_MS === 180000`.
+  - `progress.test.mjs` (신규) — `deriveProgress(comments, now)`: `[]`→`idle`; 답글만(`[claude]` 전부)→`idle`; 명령 뒤 답글→`responded`(sinceIso=명령 시각); **이중 명령+답글 1건→`awaiting`(sinceIso=뒤 명령)** — 답글 1건은 앞 명령만 갚으므로 뒤 명령은 미응답이다(2026-08-15 삼킴 사건의 형태. 여기서 `responded`가 나오면 삼킴이 성공으로 보인다); 명령 2건+답글 2건→`responded`(sinceIso=최신 명령); 창 밖 명령의 답글이 앞에 와도 뒤 명령을 갚지 않음→`silent`; 명령만·경과 1분(<3분)→`awaiting{minutes:1}`; 명령만·경과 5분(≥3분)→`silent{minutes:5}`; 명령1→답글1→명령2(무응답)→`silent`(명령2 기준); 경과 정확히 3분(180,000ms)→`silent`(경계 포함); `minutes` 계산(floor); `createdAt` 파싱 불가→`unknown`. `isReply`는 export 안 하므로 접두 판정은 body `" [claude] x"`(선행 공백)를 담은 코멘트로 responded 도출을 통해 간접 확인. `SILENCE_THRESHOLD_MS === 180000`.
   - `briefing.test.mjs` (수정) — 기존 BOARD 픽스처(FEAT-06 계획지시 + FEAT-07 구현승인 포함)에서 `briefing.plan.enabled === true`, `briefing.plan.label === "FEAT-06 계획서 작성 외 1건"` 단언 1개 추가. 기존 단언(inbox/feed/team/today/pendingCount)은 `plan` 필드 추가로 깨지지 않는다(전부 하위 필드 대상, `briefing` 전체 deepEqual 없음).
 - **못 덮는 범위 (Node 러너·DOM/외부 I/O 없음 — 배포 후 데스크톱+폰 수동 확인):**
   - `progress-action.ts`의 이슈 코멘트 GET·`since` 창·인증 분기·`requireAdmin()` 게이트·읽기 실패→`unknown`(실제 GitHub 왕복).
@@ -595,10 +636,25 @@ import { gateNextActionHint } from "~/pipeline/run-plan";
 
 ## 대안
 
-- **진행 신호원 ⓑ(보드 status) 또는 ⓒ(dev 커밋).** ⓑ는 이미 투영 중이라 추가 비용이 없지만, pipeline-run은 게이트 status를 바꾸지 않아(사용자 전이) "돌고 있음"을 못 나타내고 CDN에 지연된다. ⓒ는 커밋≠명령 1:1이고 no-op 실행엔 커밋이 없다. 둘 다 **삼킨 명령(요구 4)을 못 잡는다.** **채택 안 함** — ⓐ만 명령/답글을 순서로 매핑하고 답글 유무로 삼킴을 판별한다.
+- **진행 신호원 ⓑ(보드 status) 또는 ⓒ(dev 커밋).** ⓑ는 이미 투영 중이라 추가 비용이 없지만, pipeline-run은 게이트 status를 바꾸지 않아(사용자 전이) "돌고 있음"을 못 나타내고 CDN에 지연된다. ⓒ는 커밋≠명령 1:1이고 no-op 실행엔 커밋이 없다. 둘 다 **삼킨 명령(요구 4)을 못 잡는다.** **채택 안 함** — ⓐ만 명령/답글을 순서로 매핑하고 FIFO 짝짓기로 삼킴을 판별한다.
 - **갱신을 수동 새로고침으로.** 폴링 없이 버튼 하나로 새로고침. **채택 안 함** — 관측 3의 핵심이 "언제 새로고침할지 모른다"라 수동은 문제를 그대로 둔다.
 - **갱신을 서버 액션 응답 편승으로.** 코멘트 POST의 `ActionResult`에 진행을 실어 보낸다. **채택 안 함** — POST 응답은 "게시됨"만 알지 이후 1~2분 진행을 못 알린다(관측 3은 게시 이후의 창이다).
 - **투영도 contents API로 바꿔 CDN 잔상 제거(결정 6).** 커밋·실행 직후 즉시 최신 반영. 하지만 투영이 지금은 토큰 없는 공개 raw로 도는데, 바꾸면 모든 페이지 로드가 인증·base64·rate limit(5000/h)에 묶인다(FEAT-08 「대안」 `docs/plans/FEAT-08.md:436`). **채택 안 함(이번 범위 밖)** — 무게중심(관측 3)은 코멘트 pill이 투영과 별개로 풀고, CDN 이관은 후속 항목으로 남긴다.
 - **진행 임계를 데이터에 더 맞춰(예 5분·10분).** 실측 이상치가 23분이라 임계를 올리면 오경보가 준다. **채택 안 함(3분 유지)** — 정상 최대 2.6분 바로 위가 "확인하라"의 자연 경계이고, silent는 실패 단정이 아니라 점검 신호라 다소 이른 표시가 해롭지 않다. 임계는 `SILENCE_THRESHOLD_MS` 상수라 나중에 조정 쉽다.
 - **실행 버튼을 `PipelineCommandButton` 확장으로.** 기존 컴포넌트에 `disabled`·설명·pill을 얹는다. **채택 안 함** — 그 컴포넌트는 사무실 책상 5개가 공유하는 단순 버튼이라, 헤더 전용 폴링·콘솔 로직을 넣으면 결합이 는다. 헤더용 `PipelineRunControl`로 분리하고 책상 버튼은 그대로 둔다.
 - **도장 직후 자동으로 pipeline-run 게시(FEAT-08 「선택 확장」).** 결재 한 번으로 실행까지 잇는다. **채택 안 함** — FEAT-08 게이트②에서 기각된 접근이고, 결정 5는 "다음 손잡이를 가리킬 뿐 클릭은 사용자 몫"으로 결정과 실행의 분리를 유지한다.
+- **진행 pill에 미응답 건수를 표시(예 "요청 2건 대기").** 연속 클릭 시 몇 건이 밀렸는지 숫자로 보여준다. **채택 안 함** — 짝짓기 모델이 이미 가장 오래된 미응답 명령의 경과를 말해 삼킴을 드러내므로(2026-08-15 재생에서 `silent(15분)`) 건수는 판단을 바꾸지 않는다. 상태 타입에 필드를 더하면 테스트·문구 표면만 넓어진다. 필요해지면 `ProgressState`에 `outstanding`을 더하는 작은 후속으로 충분하다.
+
+## 검증 기록 (계획 단계, 메인 루프)
+
+이 계획서는 `reconciling-proposals-with-codebase`로 검증했고 **1차에서 결함 셋을 실측으로 잡아 위 본문·스케치·테스트 명세에 반영했다.** 조립본(`apps/admin/src` 복제 + 스케치 적용)에서 `tsc --noEmit` 0 에러, ESLint 0 경고(admin 규칙셋 미러), 순수 계층 테스트 26/26, 기존 `briefing.test.mjs` 18/18(회귀 가드), 모의 fetch 서버 액션 6분기, 실제 `PROJECT_BOARD.md` 실행, UI 사슬 정적 렌더, Tailwind 방출 검침, WCAG 대비 계산, 이슈 #87 실제 스레드 재생으로 확인했다.
+
+| # | 결함 | 실측 증거 | 반영 |
+| --- | --- | --- | --- |
+| 1 | 프로토타입 오염 방어가 실제로 없었다 — 산문은 `Object.hasOwn`을 쓴다고 했으나 스케치는 인덱스 접근 + `undefined` 가드였다 | `status: "__proto__"`·`"toString"` 항목 3건 입력 시 실행 결과 `label: "FEAT-01 undefined 외 2건"`, `gateNextActionHint("toString")` → `"…눌러 undefined 받으세요."` (계획서 자체 테스트 명세가 실패) | 스케치 §1의 두 함수를 `Object.hasOwn`으로 교체하고, 왜 인덱스 가드로는 안 되는지 산문에 기록 |
+| 2 | **삼킴 탐지 주장이 거짓이었다** — "최신 명령 뒤 답글 유무" 모델은 삼킴 사건에서 `responded`를 낸다 | 이슈 #87 실제 스레드 재생: 2026-08-15 14:52:31 시점 `responded`. 그때 삼켜진 것은 14:52:14 명령이고 답글은 14:50:53 명령 것이었다(사용자가 15:07:30에 재전송한 것이 증거) | 결정 1·4와 스케치 §2를 **FIFO 짝짓기**로 교체. 같은 재생에서 14:52:31 `awaiting`, 15:07:30 `silent(15분)`, 15:10:10에야 `responded` |
+| 3 | 폴링 실패가 조용했다 — `void tick()`이 거부를 버려 pill이 마지막 값에 얼어붙는다(직전이 `responded`면 실패가 성공으로 보인다). `res.json()` 예외도 액션 밖으로 샜다 | 제어흐름 재현에서 `unhandledRejection` 발생 + 상태 정지 확인. 모의 fetch 6분기 중 malformed JSON만 예외를 던짐 | 스케치 §4의 `tick`·클릭 갱신에 `try/catch`(→`unknown`), §3의 본문 파싱을 `try` 안으로 + `Array.isArray` 가드 |
+
+부수로 확인해 계획서에 반영한 것: `progress.ts`의 `isReply`는 export하지 않는다(「고칠 파일」 표가 export한다고 적어 스케치와 어긋나 있었다).
+
+인용은 전수 실측으로 대조했고 어긋난 곳이 없었다(`briefing.ts:22-28/33-47/187-206`, `board.ts:4-13/24-95`, `commands.ts:18-19/27-32`, `command-action.ts:11-16/22/25/30-33/36-45`, `pipeline-page.tsx:41/55/94/113-118`, `pipeline-command.tsx:19/23/28/39`, `pipeline-gate.tsx:38-39`, `pixel-office.tsx:150`, `pipeline-reject.tsx:110-113`, `github.ts:1/8`, `env.js:37-43`, `queries.ts:6-13`, `globals.css:11-12/38-41/83-90`, `guard.ts:7-27`, `FEAT-08.md:436`). 결정 1·2의 외부 실측도 독립 재현했다 — 코멘트 12건 전부 작성자 `Sangeok`, 답글만 `[claude]` 접두, 미인증 `X-RateLimit-Limit: 60`. 대비 실측: `text-muted-foreground` 4.53:1(12px AA 통과), 점 `--active` 5.72:1 / `--silence` 4.10:1 / `--hold` 6.08:1(전부 비텍스트 3:1 통과).
