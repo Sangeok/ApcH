@@ -86,7 +86,7 @@ unknown   ● 진행 상태 확인 불가              (회색 점)
 
 | 신호원 | 인증·rate limit | 읽기 비용 | "이 명령이 처리됐나"를 답하나 | 삼킴(요구 4) 탐지 |
 | --- | --- | --- | --- | --- |
-| ⓐ 이슈 #87 코멘트 | 미인증 60/h(실측 `X-RateLimit-Limit: 60`) / 인증 5000/h | 1 GET(`since` 6h 창 → 실측 하루 8.5KB, 6h면 더 작음) | **예** — 명령/답글을 순서로 매핑 | **예** — 명령:답글 **짝짓기**로 판별(아래 주의) |
+| ⓐ 이슈 #87 코멘트 | 미인증 60/h(실측 `X-RateLimit-Limit: 60`) / 인증 5000/h | 1 GET(`since` 6h 창 → 실측 코멘트 1건당 약 4KB, 바쁜 창 8건이 30.4KB) | **예** — 명령/답글을 순서로 매핑 | **예** — 명령:답글 **짝짓기**로 판별(아래 주의) |
 | ⓑ 보드 status(raw CDN) | 미인증(현 투영) | 이미 투영 중 | 아니오 — 게이트는 사용자 전이라 pipeline-run은 status를 안 바꾼다(no-op도 무변화) + CDN 지연 | 아니오 |
 | ⓒ dev 새 커밋 | 미인증 60/h / 인증 | 1 GET | 부분 — 커밋≠명령 1:1, no-op 실행은 커밋 없음 | 아니오 |
 
@@ -232,7 +232,7 @@ export function gateNextActionHint(to: string): string {
 
 ### 2) `src/pipeline/progress.ts` (신규) — 코멘트 → 진행 상태
 
-명령/답글의 유일한 구분자는 본문 `[claude]` 접두(실측: 작성자는 둘 다 소유자). 코멘트는 `created_at` 오름차순(실측)이라 앞에서부터 훑으며 **답글 1건이 미응답 명령 1건을 오래된 것부터 갚는다**(결정 1의 짝짓기 모델 — "최신 명령 뒤 답글 유무"는 삼킴 사건에서 거짓 초록을 낸다).
+명령/답글의 유일한 구분자는 본문 `[claude]` 접두(실측: 작성자는 둘 다 소유자). 코멘트 순서는 REST 문서상 **ID 오름차순** 보장이고 이슈 코멘트 ID는 생성 시점에 매겨지므로 생성순과 같다(실측 12건도 `created_at` 오름차순). 그래서 앞에서부터 훑으며 **답글 1건이 미응답 명령 1건을 오래된 것부터 갚는다**(결정 1의 짝짓기 모델 — "최신 명령 뒤 답글 유무"는 삼킴 사건에서 거짓 초록을 낸다).
 
 ```ts
 // 순수. board.ts/commands.ts와 같은 이유로 임포트 없음(progress.test.mjs로 덮인다).
@@ -269,7 +269,8 @@ export function deriveProgress(
   // 명령 2건 뒤에 달렸고, 그 답글은 앞 명령 것이었다. 그 모델이면 삼켜진 뒤 명령에
   // "응답 옴"이 떠서 성공과 구분되지 않는다(요구 4가 없애려는 바로 그 상태).
   //
-  // 코멘트는 created_at 오름차순(실측)이라 앞에서부터 훑는다.
+  // 코멘트 순서: REST 문서가 보장하는 것은 "ID 오름차순"이고, 이슈 코멘트 ID는 생성
+  // 시점에 매겨지므로 곧 생성순이다(실측한 12건도 created_at 오름차순). 앞에서부터 훑는다.
   const unanswered: string[] = []; // 미응답 명령의 createdAt(오래된 순)
   let lastCommandIso: string | null = null;
   for (const c of comments) {
@@ -300,7 +301,9 @@ export function deriveProgress(
 
 ### 3) `src/pipeline/progress-action.ts` (신규, `"use server"`) — 코멘트 read
 
-`command-action.ts` 패턴: `requireAdmin()` 최상단. **읽기 전용**이라 새 쓰기 경로가 아니다. `since` 6시간 창으로 스레드가 커져도 페이로드가 작다(실측: 하루 8.5KB, 6h면 더 작음). 읽기 실패는 부가 신호이므로 `unknown`으로 조용히 물러난다(쓰기 실패와 달리 삼킬 write가 없다).
+`command-action.ts` 패턴: `requireAdmin()` 최상단. **읽기 전용**이라 새 쓰기 경로가 아니다. `since` 6시간 창으로 스레드가 커져도 페이로드가 작게 유지된다 — 실측(2026-08-17)으로 코멘트 1건당 약 4KB이고, 가장 붐볐던 구간을 포함해 8건을 받아도 30.4KB다(전체 12건은 42.3KB). 읽기 실패는 부가 신호이므로 `unknown`으로 조용히 물러난다(쓰기 실패와 달리 삼킬 write가 없다).
+
+**`since`의 의미에 주의한다(검증에서 확인).** GitHub REST의 `since`는 **마지막 수정 시각** 기준이지 생성 시각이 아니다. 그래서 누군가 오래된 코멘트를 편집하면 그 코멘트가 **옛 `created_at`을 달고 창에 다시 들어온다.** 이미 답글로 갚혔지만 그 답글은 창 밖이므로 짝이 없어, 짝짓기 모델에서 미응답 명령으로 되살아나 `무응답 4320분` 같은 거짓 경보가 뜬다(실측 재현). 그러므로 받은 목록을 **`created_at`이 창 안인 것으로 한 번 더 거른다** — 창의 의미를 "최근 6시간에 생성된 것"으로 고정하는 세 줄이다.
 
 ```ts
 "use server";
@@ -320,7 +323,8 @@ export async function getPipelineProgress(): Promise<ProgressState> {
   // 내부 대시보드 전용 + 우리 서버가 임의 폴링으로 GitHub 프록시가 되지 않게.
   await requireAdmin();
 
-  const since = new Date(Date.now() - WINDOW_MS).toISOString();
+  const windowStart = Date.now() - WINDOW_MS;
+  const since = new Date(windowStart).toISOString();
   const url = `${ISSUE_COMMENTS_URL}?since=${since}&per_page=100`;
 
   // 인증 이유(실측): 폴링 15s=240req/h인데 미인증 한도는 60/h(측정 X-RateLimit-Limit: 60).
@@ -345,11 +349,17 @@ export async function getPipelineProgress(): Promise<ProgressState> {
   }
   if (!Array.isArray(raw)) return { kind: "unknown" };
 
-  const comments = raw.flatMap((c) =>
-    typeof c.body === "string" && typeof c.created_at === "string"
-      ? [{ body: c.body, createdAt: c.created_at }]
-      : [],
-  );
+  // GitHub의 `since`는 **마지막 수정 시각** 기준이다(생성 시각이 아니다 — REST 문서).
+  // 그래서 오래된 코멘트를 편집하면 옛 created_at을 달고 창에 다시 들어오고, 이미 답글로
+  // 갚힌 명령이 짝 없는 미응답으로 되살아나 "무응답 4320분" 같은 거짓 경보가 뜬다.
+  // 창의 의미를 "최근 6시간에 생성된 것"으로 고정한다.
+  const comments = raw
+    .flatMap((c) =>
+      typeof c.body === "string" && typeof c.created_at === "string"
+        ? [{ body: c.body, createdAt: c.created_at }]
+        : [],
+    )
+    .filter((c) => Date.parse(c.createdAt) >= windowStart);
   return deriveProgress(comments, new Date());
 }
 ```
@@ -429,7 +439,7 @@ export function PipelineRunControl({ plan }: { plan: RunPlan }) {
   useEffect(() => {
     aliveRef.current = true;
     const tick = async () => {
-      // 서버 액션이 reject하면(세션 만료·전송 실패·응답 파싱 실패) 잡지 않을 경우
+      // 서버 액션이 reject하면(전송 실패·응답 파싱 실패·그 밖의 액션 오류) 잡지 않을 경우
       // 부동 프로미스가 조용히 죽고 pill이 마지막 값에 얼어붙는다 — 직전 값이
       // "응답 옴"이면 실패가 성공으로 보인다(요구 4가 없애려는 상태). unknown으로 내린다.
       try {
@@ -486,7 +496,8 @@ export function PipelineRunControl({ plan }: { plan: RunPlan }) {
 ```
 
 - 초기 상태 `unknown`(첫 폴 전). 폴은 마운트 시 1회 + 15초 간격. `aliveRef`로 언마운트 후 setState 방지. `void`로 부동 프로미스 lint 회피.
-- **폴 실패는 반드시 잡아 `unknown`으로 내린다.** `void tick()`은 거부된 프로미스를 버리므로, `tick` 안에 `try/catch`가 없으면 서버 액션 거부(세션 만료·전송 실패·응답 파싱 실패)가 처리되지 않은 거부로 죽고 **pill은 마지막 값에 얼어붙는다**. 그 값이 `responded`였다면 실패가 "응답 옴"으로 보인다 — 요구 4가 없애려는 상태를 이 화면이 새로 만드는 셈이다. 클릭 직후 갱신도 같은 이유로 감싼다.
+- **폴 실패는 반드시 잡아 `unknown`으로 내린다.** `void tick()`은 거부된 프로미스를 버리므로, `tick` 안에 `try/catch`가 없으면 서버 액션 거부(전송 실패·응답 파싱 실패·그 밖의 액션 오류)가 처리되지 않은 거부로 죽고 **pill은 마지막 값에 얼어붙는다**. 그 값이 `responded`였다면 실패가 "응답 옴"으로 보인다 — 요구 4가 없애려는 상태를 이 화면이 새로 만드는 셈이다. 클릭 직후 갱신도 같은 이유로 감싼다.
+  세션 만료는 이 경로가 아니다 — `requireAdmin()`이 `redirect("/login")`을 던지고 Next가 서버 액션의 redirect를 **클라이언트 내비게이션**으로 처리하므로 pill이 아니라 로그인 화면으로 간다(`CLAUDE.md:131` "인가 실패는 `ActionResult`에 담기지 않는다 — `requireAdmin()`이 `redirect`/`notFound`로 던진다"). 그래도 `try/catch`는 필요하다: 위 나머지 경로가 남고, 잡지 않으면 조용히 얼어붙는다.
 - `plan.enabled === false`면 버튼 disabled(라벨 `"진행할 작업 없음"`), 설명이 다음 행동을 가리킨다. 라벨이 스테일해도(작업 완료 후 보드 flip 전까지) pill이 진행을 답하고, 다음 로드에서 라벨이 갱신된다.
 
 ### 5) `src/pipeline/briefing.ts` (수정) — plan 배선
@@ -620,7 +631,8 @@ import { gateNextActionHint } from "~/pipeline/run-plan";
   - `progress.test.mjs` (신규) — `deriveProgress(comments, now)`: `[]`→`idle`; 답글만(`[claude]` 전부)→`idle`; 명령 뒤 답글→`responded`(sinceIso=명령 시각); **이중 명령+답글 1건→`awaiting`(sinceIso=뒤 명령)** — 답글 1건은 앞 명령만 갚으므로 뒤 명령은 미응답이다(2026-08-15 삼킴 사건의 형태. 여기서 `responded`가 나오면 삼킴이 성공으로 보인다); 명령 2건+답글 2건→`responded`(sinceIso=최신 명령); 창 밖 명령의 답글이 앞에 와도 뒤 명령을 갚지 않음→`silent`; 명령만·경과 1분(<3분)→`awaiting{minutes:1}`; 명령만·경과 5분(≥3분)→`silent{minutes:5}`; 명령1→답글1→명령2(무응답)→`silent`(명령2 기준); 경과 정확히 3분(180,000ms)→`silent`(경계 포함); `minutes` 계산(floor); `createdAt` 파싱 불가→`unknown`. `isReply`는 export 안 하므로 접두 판정은 body `" [claude] x"`(선행 공백)를 담은 코멘트로 responded 도출을 통해 간접 확인. `SILENCE_THRESHOLD_MS === 180000`.
   - `briefing.test.mjs` (수정) — 기존 BOARD 픽스처(FEAT-06 계획지시 + FEAT-07 구현승인 포함)에서 `briefing.plan.enabled === true`, `briefing.plan.label === "FEAT-06 계획서 작성 외 1건"` 단언 1개 추가. 기존 단언(inbox/feed/team/today/pendingCount)은 `plan` 필드 추가로 깨지지 않는다(전부 하위 필드 대상, `briefing` 전체 deepEqual 없음).
 - **못 덮는 범위 (Node 러너·DOM/외부 I/O 없음 — 배포 후 데스크톱+폰 수동 확인):**
-  - `progress-action.ts`의 이슈 코멘트 GET·`since` 창·인증 분기·`requireAdmin()` 게이트·읽기 실패→`unknown`(실제 GitHub 왕복).
+  - `progress-action.ts`의 이슈 코멘트 GET·`since` 창·`created_at` 창 필터·인증 분기·`requireAdmin()` 게이트·읽기 실패→`unknown`(실제 GitHub 왕복).
+  - **`per_page=100` 상한**: 6시간 안에 코멘트가 100건을 넘으면 GitHub이 오래된 100건만 주므로(ID 오름차순) 최신 상태를 놓친다. 실측 밀도가 3일에 12건이라 현실 시나리오가 아니지만, 이 화면은 그 경우 조용히 낡은 값을 보인다 — 알려진 한계로 남긴다.
   - `PipelineRunControl`의 `useEffect` 폴링(15초 간격·마운트 1회·언마운트 정리)·`useTransition`·`postPipelineCommand`·`getPipelineProgress` 호출·토스트·disabled 상태.
   - `ProgressPill`의 시각(점 색 tone 매핑·awaiting 맥박·`motion-reduce`·색-낱말 이중 전달)·`text-xs` 실화면 대비.
   - 헤더 `flex-wrap` 반응형(폰 접힘)·설명 `max-w-64` 줄바꿈.
@@ -656,5 +668,21 @@ import { gateNextActionHint } from "~/pipeline/run-plan";
 | 3 | 폴링 실패가 조용했다 — `void tick()`이 거부를 버려 pill이 마지막 값에 얼어붙는다(직전이 `responded`면 실패가 성공으로 보인다). `res.json()` 예외도 액션 밖으로 샜다 | 제어흐름 재현에서 `unhandledRejection` 발생 + 상태 정지 확인. 모의 fetch 6분기 중 malformed JSON만 예외를 던짐 | 스케치 §4의 `tick`·클릭 갱신에 `try/catch`(→`unknown`), §3의 본문 파싱을 `try` 안으로 + `Array.isArray` 가드 |
 
 부수로 확인해 계획서에 반영한 것: `progress.ts`의 `isReply`는 export하지 않는다(「고칠 파일」 표가 export한다고 적어 스케치와 어긋나 있었다).
+
+**2라운드(2026-08-17) — 새 경로 다섯.** 1라운드가 쓰지 않은 각도로 다시 돌렸다: ① 잘라낸 파일까지 포함한 **실제 `apps/admin` 전체 복제**에 스케치를 적용해 진짜 `tsconfig.json`(next-env.d.ts·`src/app`·`@repo/db` 포함)로 `tsc` — 패치 전 기준선 0에러, 패치 후 0에러 ② **미러가 아닌 실제** `eslint.config.js`로 `src` 전체 — 0 ③ 기존 테스트 95/95 ④ `Briefing` 타입 소비자 전수 열거 — 생성자는 `buildBriefing` 하나, 소비자는 `pipeline-page.tsx` 하나뿐이라 필수 필드 추가가 다른 곳을 깨지 않는다(`app/pipeline/page.tsx:20,26`은 그대로 통과) ⑤ 계획서가 인용한 외부 수치·API 계약을 문서와 실측으로 재확인. 그 결과 셋을 고쳤다.
+
+| # | 사안 | 실측 증거 | 반영 |
+| --- | --- | --- | --- |
+| 4 | **`since`는 생성이 아니라 최종수정 시각 기준** — 오래된 코멘트를 편집하면 옛 `created_at`을 달고 창에 재진입해, 이미 갚힌 명령이 미응답으로 되살아난다 | REST 문서 원문 "Only show results that were last updated after the given time". 재현: 3일 전 명령이 재진입하면 `silent(4320분)`이 떠 방금 보낸 명령의 `awaiting(1분)`을 가린다 | 스케치 §3에 `windowStart` + `created_at` 창 필터 3줄 추가. 적용 후 같은 입력이 `awaiting(1분)`, 정상 케이스 회귀 없음 |
+| 5 | 페이로드 수치가 잘못 라벨링됨 — "실측 하루 8.5KB"로 적혔으나 그 8.5KB는 **코멘트 2건** 크기다 | `since` 창별 실측: 2건 8,585B / 8건 31,162B / 전체 12건 42.3KB | 결정 1 표와 §3 산문을 "1건당 약 4KB, 바쁜 창 8건 30.4KB"로 정정(결정 자체는 안 바뀐다 — 여전히 싸다) |
+| 6 | 순서 전제가 문서 보장과 어긋남 — "`created_at` 오름차순(실측)"이라 했으나 REST가 보장하는 것은 **ID 오름차순** | REST 문서 "ordered by ascending ID". 이슈 코멘트 ID는 생성 시점에 매겨져 결과는 같다 | §2 산문·주석을 문서 보장 기준으로 고쳐 적고, 실측 일치를 부기 |
+
+**독립 교차검토(별도 컨텍스트 에이전트, 적대적 검토 지시).** 판정 `PASS` — "구현 전 반드시 고쳐야 할 결함 없음". 핵심 축 넷을 독립 확인했다: FIFO 짝짓기(스케치 조립 실행으로 삼킴 재생 `awaiting{0}`→`silent{15}`→`responded` 일치), 동적 라벨의 정직성(`commands.ts:18-19` "각 항목을…처리하되"라 복수 열거가 과약속 아님), **폴링 비재렌더**(설치된 `next@15.5.7`의 `action-handler.js:665,749` `skipFlight: !workStore.pathWasRevalidated` — 이 액션은 revalidate·쿠키를 안 건드리므로 페이지 RSC 재렌더가 없다. 즉 15초 폴이 `getPipelineBoard()`를 다시 돌리지 않는다), `Briefing` 필드 추가 안전성. 제기한 관찰 다섯 중 페이지네이션·`since` 관련은 위에서 이미 반영했고, "세션 만료" 문구 부정확은 아래 7번으로 고쳤다. 나머지 둘은 조치하지 않기로 판단했다 — (a) 사람이 손으로 쓴 코멘트를 명령으로 세는 것은 **오류가 아니다**(루틴의 필터가 정확히 그 정의다). (b) 입력 정렬을 방어적으로 다시 하지 않는 것은 FEAT-09의 줄바꿈 전제와 같은 취급이다 — 문서 보장(ID 오름차순)을 **전제로 명시**하고 실측으로 확인하는 쪽을 택했다.
+
+| # | 사안 | 근거 | 반영 |
+| --- | --- | --- | --- |
+| 7 | 스케치 §4 주석이 `try/catch`가 잡는 경우로 "세션 만료"를 들었으나, 세션 만료는 `requireAdmin()`의 `redirect`라 Next가 **로그인 내비게이션**으로 처리한다(pill 경로가 아니다) | `CLAUDE.md:131`(인가 실패는 `ActionResult`에 담기지 않고 `redirect`/`notFound`로 던진다) + 교차검토의 Next 액션 핸들러 확인 | 주석·산문의 열거를 "전송 실패·응답 파싱 실패·그 밖의 액션 오류"로 정정하고, 세션 만료의 실제 경로를 따로 적었다. `try/catch` 필요성은 그대로 |
+
+2라운드에서 **재확인만 되고 문제없던 것**: `pipeline-run` 본문이 "각 항목을…처리하되"라 복수 라벨이 실제 동작을 넘겨 약속하지 않는다(`commands.ts:19`); 사람이 손으로 단 코멘트를 명령으로 세는 것은 오류가 아니라 정확하다 — 루틴의 필터가 바로 "소유자가 쓴 비-`[claude]` 코멘트"이기 때문이다(`command-action.ts:13-15`); 폴링은 라우터 캐시를 건드리지 않는다(건드린다면 FEAT-08의 명시적 `router.refresh()`가 불필요했을 것이다 — `pipeline-gate.tsx:39`); CSP는 서버 측 호출과 무관하다(`CLAUDE.md:127`, `next.config.js:65`); 토큰은 새 권한이 필요 없다(REST 문서상 코멘트 읽기는 Issues:read, 기존 RW에 포함); 응답 간격 실측(0.3·0.7·0.9·2.6분 + 이상치 23분)은 재계산으로 정확히 재현됐다. Prettier `--check`는 이 7개 파일을 걸지만 **손대지 않은 `transitions.ts`·`pipeline-reject.tsx`도 똑같이 걸린다** — 저장소 전체의 기존 상태이고 `npm run check`에 포함되지 않으므로 이 항목의 문제가 아니다.
 
 인용은 전수 실측으로 대조했고 어긋난 곳이 없었다(`briefing.ts:22-28/33-47/187-206`, `board.ts:4-13/24-95`, `commands.ts:18-19/27-32`, `command-action.ts:11-16/22/25/30-33/36-45`, `pipeline-page.tsx:41/55/94/113-118`, `pipeline-command.tsx:19/23/28/39`, `pipeline-gate.tsx:38-39`, `pixel-office.tsx:150`, `pipeline-reject.tsx:110-113`, `github.ts:1/8`, `env.js:37-43`, `queries.ts:6-13`, `globals.css:11-12/38-41/83-90`, `guard.ts:7-27`, `FEAT-08.md:436`). 결정 1·2의 외부 실측도 독립 재현했다 — 코멘트 12건 전부 작성자 `Sangeok`, 답글만 `[claude]` 접두, 미인증 `X-RateLimit-Limit: 60`. 대비 실측: `text-muted-foreground` 4.53:1(12px AA 통과), 점 `--active` 5.72:1 / `--silence` 4.10:1 / `--hold` 6.08:1(전부 비텍스트 3:1 통과).
