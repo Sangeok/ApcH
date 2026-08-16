@@ -289,6 +289,10 @@ export function applyHoldTransition(
       `${existingIndent}결과: ${resultText}` +
       newBlock.slice(existing.index + existingLine.length);
   } else {
+    // 삽입은 `\n`을 쓴다 — 보드 **블롭**이 LF이기 때문(실측 `git ls-files --eol PROJECT_BOARD.md`
+    // → `i/lf w/crlf`; contents API는 워킹트리가 아니라 블롭을 서빙하므로 서버가 받는 입력은 LF다).
+    // 참고(검증 라운드 실측): CRLF 입력에서도 교체 분기·bounce·discard는 개행이 보존되지만
+    // (정규식 `$`가 `\r` 앞에서 매치, 슬라이스가 `\r`을 그대로 둔다) **이 삽입 줄만 LF가 된다.**
     const reason = REASON_LINE_RE.exec(newBlock);
     if (reason === null) return { ok: false, reason: "format" };
     const reasonLine = reason[0];
