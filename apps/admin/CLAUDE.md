@@ -36,7 +36,7 @@ npm run build -w apps/admin
 
 ### 테스트
 
-Node 내장 러너를 `tsx`로 돌린다. 현재 **8개 파일, 69개 테스트.**
+Node 내장 러너를 `tsx`로 돌린다. 현재 **8개 파일, 95개 테스트.**
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -45,7 +45,7 @@ Node 내장 러너를 `tsx`로 돌린다. 현재 **8개 파일, 69개 테스트.
 | `pipeline/board.test.mjs` | `PROJECT_BOARD.md` 파싱 — 섹션·항목·`status`·`checked` 추출, mermaid 섹션과 `>` 안내 블록 제외 |
 | `pipeline/briefing.test.mjs` | 보드 상태→캐릭터 발화 결정적 매핑 — 결재함/보고 분류, 같은 ID는 최신 행만(유령 방지 dedupe), `daysOnBoard`(UTC·N일째)·`firstSentence`·팀 로스터 도출(`heldId` 분리)·미지 에이전트 폴백 |
 | `pipeline/sprites.test.mjs` | 픽셀 격자 파서·팔레트 매핑·정체성 외형·tone→말풍선색(muted=말풍선 없음) 계약 |
-| `pipeline/transitions.test.mjs` | 게이트 전이 화이트리스트(승인대기→계획지시·검토대기→구현승인만, 프로토타입 오염 키 방어) + status 줄 교체의 파서 왕복·최소 diff·다중 등장 시 최신 행만·스테일/미발견/형식 거부·커밋 메시지. **이 파일이 깨지면 대시보드가 임의 status를 보드에 커밋할 수 있다** |
+| `pipeline/transitions.test.mjs` | 전이 화이트리스트 둘 — 승인(승인대기→계획지시·검토대기→구현승인)과 반려(되돌리기·보류·폐기), 프로토타입 오염 키 방어 + 편집 3종의 파서 왕복·최소 diff·다중 등장 시 최신 행만·스테일/미발견/형식 거부·커밋 메시지. **보류의 `결과:` 줄은 있으면 교체·없으면 삽입** — 삽입만 하면 재보류 때 줄이 둘이 되고 파서가 옛 사유를 읽는다. **이 파일이 깨지면 대시보드가 임의 status를 보드에 커밋하거나 항목을 지울 수 있다** |
 | `pipeline/commands.test.mjs` | 원격 명령 화이트리스트 — `pipeline-run` 본문이 검증된 원문과 글자 그대로 동일, 화이트리스트 밖 key(`__proto__` 포함)는 `null`, 모든 본문이 `"[claude]"` 미시작 + 게이트 전이 금지 문구 포함. **이 파일이 깨지면 임의 문자열이 이슈 #87에 게시될 수 있다** |
 | `pipeline/desk-commands.test.mjs` | 책상→명령 매핑 — 5책상 전부 버튼(dev 「작업 진행」은 FEAT-07 추가), 미지 책상만 `null`, 모든 desk key가 실제 화이트리스트에 존재(두 모듈 드리프트 방지) |
 
@@ -126,7 +126,7 @@ Sentry는 **web과 같은 프로젝트**를 쓴다. 둘 다 커밋 SHA로 릴리
 - **`middleware.ts`의 matcher에서 `robots.txt`를 빼야 한다.** 빼먹으면 크롤러 요청이 미인증으로 잡혀 `/login`으로 307되고 `Disallow: /`가 아무에게도 전달되지 않는다. web의 matcher는 특정 경로만 겨냥해서 이 문제가 없었다 — admin의 "전부 보호" 방식이 만든 차이다
 - CSP의 `connect-src`는 `'self'`와 Neon뿐이다(`next.config.js:65`). S3·Polar·Inngest는 admin이 쓰지 않는다. **브라우저에서 나가는** 외부 호출을 추가하면 CSP도 함께 고쳐야 한다 — `pipeline/`의 GitHub 호출은 전부 서버 측(서버 컴포넌트·서버 액션)이라 여기 걸리지 않는다
 - **admin은 DB를 읽기만 한다.** 현재 접근은 `db.analyticsEvent.findMany` 하나뿐이고 DB 쓰기 경로가 없다. DB 쓰기를 추가하는 것은 이 앱의 성격을 바꾸는 일이니 먼저 확인할 것
-- **외부 쓰기는 두 경로다** — `pipeline/command-action.ts`가 GitHub 이슈에 코멘트를 POST하고(FEAT-03), `pipeline/commit-transition.ts`가 contents API로 dev 브랜치 `PROJECT_BOARD.md`의 status 줄을 커밋한다(FEAT-08, 게이트 전이). 둘 다 소유자 발주이고 `requireAdmin()` 뒤에 있으며 되돌릴 수 있고 기록이 남는다. **커밋 경로의 안전은 `transitions.ts` 화이트리스트가 진다** — 두 전이(승인대기→계획지시·검토대기→구현승인) 외에는 커밋되지 않는다. 여기에 외부 쓰기를 더 늘리는 것은 성격 변경이니 먼저 확인할 것
+- **외부 쓰기는 두 경로다** — `pipeline/command-action.ts`가 GitHub 이슈에 코멘트를 POST하고(FEAT-03), `pipeline/commit-transition.ts`가 contents API로 dev 브랜치 `PROJECT_BOARD.md`를 커밋한다(FEAT-08 게이트 전이, FEAT-09 반려). 둘 다 소유자 발주이고 `requireAdmin()` 뒤에 있으며 기록이 남는다. **커밋 경로의 안전은 `transitions.ts`의 화이트리스트 둘이 진다** — 승인(승인대기→계획지시·검토대기→구현승인)과 반려(되돌리기·보류·폐기)에 등재된 `(action, from)` 쌍 외에는 커밋되지 않는다. 되돌릴 수 있음도 대개 그렇지만 **폐기(행 제거)만은 git revert 없이는 못 되돌린다.** 여기에 외부 쓰기를 더 늘리는 것은 성격 변경이니 먼저 확인할 것
 - **`GITHUB_PIPELINE_TOKEN`은 Issues RW + Contents RW가 둘 다 필요하다** — 이슈 코멘트는 Issues, 보드 커밋은 Contents다. 소유자 계정 토큰이어야 하는 이유는 FEAT-03 그대로(루틴이 작성자로 명령을 거른다)
 - 서버 액션의 성공/실패는 `~/lib/result`의 `ActionResult`로 표현한다(`observability/test-action.ts`). 인가 실패는 여기 담기지 않는다 — `requireAdmin()`이 `redirect`/`notFound`로 던진다
 - `@repo/db`는 bare `node`로 임포트되지 않는다(확장자 없는 임포트 + Prisma CJS 디렉터리 임포트). 테스트는 `tsx`로 돌린다

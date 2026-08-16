@@ -3,8 +3,14 @@ import { describe, it } from "node:test";
 
 import { parseBoard } from "./board.ts";
 import {
+  applyBounceTransition,
+  applyDiscard,
   applyGateTransition,
+  applyHoldTransition,
   gateCommitMessage,
+  holdResultLine,
+  rejectActionsFor,
+  rejectCommitMessage,
   resolveGateTransition,
 } from "./transitions.ts";
 
@@ -207,6 +213,301 @@ describe("gateCommitMessage — 대시보드 경유 표기", () => {
     assert.equal(
       gateCommitMessage("FEAT-08", "구현승인"),
       "docs(board): approve FEAT-08 for implementation via dashboard gate",
+    );
+  });
+});
+
+// ── FEAT-09: 반려(거절) 경로 ──────────────────────────────────────────────
+
+describe("rejectActionsFor — 반려 액션 화이트리스트(보안 경계)", () => {
+  it("승인대기는 되돌리기 없이 보류·폐기만", () => {
+    assert.deepEqual(rejectActionsFor("승인대기"), ["hold", "discard"]);
+  });
+
+  it("검토대기는 되돌리기·보류·폐기 셋 다", () => {
+    assert.deepEqual(rejectActionsFor("검토대기"), [
+      "bounce",
+      "hold",
+      "discard",
+    ]);
+  });
+
+  it("화이트리스트 밖 status·프로토타입 오염 키는 전부 빈 배열", () => {
+    for (const s of [
+      "완료",
+      "보류",
+      "계획지시",
+      "구현승인",
+      "arbitrary",
+      "",
+      "__proto__",
+    ]) {
+      assert.deepEqual(rejectActionsFor(s), []);
+    }
+  });
+});
+
+describe("applyBounceTransition — 되돌리기(검토대기 → 계획지시)", () => {
+  it("해피패스 + 파서 왕복: 그 항목 status만 계획지시로, 나머지 동일", () => {
+    const before = parseBoard(BOARD);
+    const res = applyBounceTransition(BOARD, "FEAT-05", "검토대기");
+    assert.ok(res.ok);
+    assert.equal(res.to, "계획지시");
+    const after = parseBoard(res.markdown);
+
+    for (let s = 0; s < before.length; s++) {
+      for (let i = 0; i < before[s].items.length; i++) {
+        const b = before[s].items[i];
+        const a = after[s].items[i];
+        if (b.id === "FEAT-05") {
+          assert.equal(a.status, "계획지시");
+          assert.deepEqual({ ...a, status: null }, { ...b, status: null });
+        } else {
+          assert.deepEqual(a, b);
+        }
+      }
+    }
+  });
+
+  it("최소 diff: status 한 줄만 바뀐다", () => {
+    const res = applyBounceTransition(BOARD, "FEAT-05", "검토대기");
+    assert.ok(res.ok);
+    const beforeLines = BOARD.split("\n");
+    const afterLines = res.markdown.split("\n");
+    assert.equal(afterLines.length, beforeLines.length);
+    const changed = [];
+    for (let i = 0; i < beforeLines.length; i++) {
+      if (beforeLines[i] !== afterLines[i]) changed.push(i);
+    }
+    assert.equal(changed.length, 1);
+    assert.equal(beforeLines[changed[0]], "  status: 검토대기");
+    assert.equal(afterLines[changed[0]], "  status: 계획지시");
+  });
+
+  it("거부: 승인대기에서 bounce는 not-whitelisted(bounce는 검토대기만)", () => {
+    const res = applyBounceTransition(BOARD, "FEAT-01", "승인대기");
+    assert.deepEqual(res, { ok: false, reason: "not-whitelisted" });
+  });
+
+  it("거부: 스테일(값 불일치) → stale", () => {
+    // FEAT-01의 실제 status는 승인대기지만 검토대기(bounce 화이트리스트엔 있음)를 넘긴다.
+    const res = applyBounceTransition(BOARD, "FEAT-01", "검토대기");
+    assert.deepEqual(res, { ok: false, reason: "stale" });
+  });
+
+  it("거부: 미발견 → not-found", () => {
+    const res = applyBounceTransition(BOARD, "NOPE-99", "검토대기");
+    assert.deepEqual(res, { ok: false, reason: "not-found" });
+  });
+
+  it("거부: status 줄 없음 → format", () => {
+    const res = applyBounceTransition(BOARD, "FEAT-09", "검토대기");
+    assert.deepEqual(res, { ok: false, reason: "format" });
+  });
+});
+
+describe("applyHoldTransition — 보류(승인대기·검토대기 → 보류) + 결과 줄 기록", () => {
+  it("승인대기 해피패스 + 파서 왕복: status 보류 + result 일치, 다른 항목 동일", () => {
+    const before = parseBoard(BOARD);
+    const res = applyHoldTransition(BOARD, "FEAT-01", "승인대기", "보류 사유 A");
+    assert.ok(res.ok);
+    assert.equal(res.to, "보류");
+    const after = parseBoard(res.markdown);
+
+    for (let s = 0; s < before.length; s++) {
+      for (let i = 0; i < before[s].items.length; i++) {
+        const b = before[s].items[i];
+        const a = after[s].items[i];
+        if (b.id === "FEAT-01") {
+          assert.equal(a.status, "보류");
+          assert.equal(a.result, "보류 사유 A");
+        } else {
+          assert.deepEqual(a, b);
+        }
+      }
+    }
+  });
+
+  it("검토대기 해피패스 + 최소 diff: 결과 줄이 근거 바로 뒤 같은 들여쓰기로 삽입(줄 수 +1)", () => {
+    const before = parseBoard(BOARD);
+    const res = applyHoldTransition(BOARD, "FEAT-05", "검토대기", "보류 사유 B");
+    assert.ok(res.ok);
+    const beforeLines = BOARD.split("\n");
+    const afterLines = res.markdown.split("\n");
+    assert.equal(afterLines.length, beforeLines.length + 1);
+
+    // 결과 줄이 FEAT-05의 근거 줄 바로 다음, 같은 들여쓰기로 삽입됐다.
+    const reasonIdx = afterLines.indexOf("  근거: 실사용 관찰.");
+    assert.ok(reasonIdx >= 0);
+    assert.equal(afterLines[reasonIdx + 1], "  결과: 보류 사유 B");
+
+    // 그 항목만 바뀌고 나머지는 파서상 동일(최소 diff).
+    const after = parseBoard(res.markdown);
+    for (let s = 0; s < before.length; s++) {
+      for (let i = 0; i < before[s].items.length; i++) {
+        const b = before[s].items[i];
+        const a = after[s].items[i];
+        if (b.id === "FEAT-05") {
+          assert.equal(a.status, "보류");
+          assert.equal(a.result, "보류 사유 B");
+        } else {
+          assert.deepEqual(a, b);
+        }
+      }
+    }
+  });
+
+  it("리터럴 삽입: resultText의 `$`가 정규식 치환 특수문자로 해석되지 않는다", () => {
+    const res = applyHoldTransition(BOARD, "FEAT-05", "검토대기", "a$1b");
+    assert.ok(res.ok);
+    const after = parseBoard(res.markdown);
+    const feat05 = after
+      .flatMap((s) => s.items)
+      .find((it) => it.id === "FEAT-05");
+    assert.equal(feat05.result, "a$1b");
+  });
+
+  it("재보류(옛 결과 줄 존재): 삽입이 아니라 교체 — 줄 수 +0, 파서가 새 사유", () => {
+    // 검토대기 항목이 이미 `결과:` 줄을 가진 상태(보류 재개 후 재보류).
+    // 실제 보드의 검토대기 FEAT-09 행이 이 형태다. BOARD의 FEAT-05 블록에 결과 줄을 더해 만든다.
+    const reheldInput = BOARD.replace(
+      "  status: 검토대기\n  근거: 실사용 관찰.",
+      "  status: 검토대기\n  근거: 실사용 관찰.\n  결과: 옛 사유(재개 전).",
+    );
+    const beforeLineCount = reheldInput.split("\n").length;
+    const res = applyHoldTransition(
+      reheldInput,
+      "FEAT-05",
+      "검토대기",
+      "새 보류 사유",
+    );
+    assert.ok(res.ok);
+    // 줄 수 +0 — 삽입이 아니라 교체.
+    assert.equal(res.markdown.split("\n").length, beforeLineCount);
+    // 파서가 옛 사유가 아니라 새 사유를 읽는다.
+    const after = parseBoard(res.markdown);
+    const feat05 = after
+      .flatMap((s) => s.items)
+      .find((it) => it.id === "FEAT-05");
+    assert.equal(feat05.status, "보류");
+    assert.equal(feat05.result, "새 보류 사유");
+  });
+
+  it("거부: 완료에서 hold → not-whitelisted", () => {
+    const res = applyHoldTransition(BOARD, "BUG-06", "완료", "x");
+    assert.deepEqual(res, { ok: false, reason: "not-whitelisted" });
+  });
+
+  it("거부: 스테일 → stale", () => {
+    const res = applyHoldTransition(BOARD, "FEAT-01", "검토대기", "x");
+    assert.deepEqual(res, { ok: false, reason: "stale" });
+  });
+
+  it("거부: 미발견 → not-found", () => {
+    const res = applyHoldTransition(BOARD, "NOPE-99", "승인대기", "x");
+    assert.deepEqual(res, { ok: false, reason: "not-found" });
+  });
+
+  it("거부: status 줄 없음 → format", () => {
+    const res = applyHoldTransition(BOARD, "FEAT-09", "승인대기", "x");
+    assert.deepEqual(res, { ok: false, reason: "format" });
+  });
+});
+
+describe("applyDiscard — 폐기(항목 블록 통째 제거)", () => {
+  it("승인대기 항목 제거 + 파서 왕복: 그 항목만 사라지고 나머지 동일", () => {
+    const before = parseBoard(BOARD);
+    const res = applyDiscard(BOARD, "FEAT-01", "승인대기");
+    assert.ok(res.ok);
+    const after = parseBoard(res.markdown);
+
+    assert.equal(after.length, before.length);
+    const beforeItems = before
+      .flatMap((s) => s.items)
+      .filter((it) => it.id !== "FEAT-01");
+    const afterItems = after.flatMap((s) => s.items);
+    assert.deepEqual(afterItems, beforeItems);
+  });
+
+  it("검토대기 항목도 제거된다", () => {
+    const res = applyDiscard(BOARD, "FEAT-05", "검토대기");
+    assert.ok(res.ok);
+    const after = parseBoard(res.markdown);
+    assert.ok(
+      !after.flatMap((s) => s.items).some((it) => it.id === "FEAT-05"),
+    );
+  });
+
+  it("최소 diff(행 제거): 원본에서 그 항목 블록 줄들만 정확히 빠진다", () => {
+    const res = applyDiscard(BOARD, "FEAT-01", "승인대기");
+    assert.ok(res.ok);
+    const beforeLines = BOARD.split("\n");
+    const start = beforeLines.indexOf("- [ ] FEAT-01: Credit System 마무리");
+    assert.ok(start >= 0);
+    const expected = [...beforeLines];
+    expected.splice(start, 5); // 헤더 + agent·area·status·근거 4줄
+    assert.deepEqual(res.markdown.split("\n"), expected);
+  });
+
+  it("다중 등장: 최신(위) 행만 제거하고 이력 행은 그대로", () => {
+    const res = applyDiscard(BOARD, "FEAT-08", "검토대기");
+    assert.ok(res.ok);
+    const after = parseBoard(res.markdown);
+
+    // FEAT-08은 이제 이력(완료) 한 번만 남는다.
+    const remaining = after
+      .flatMap((s) => s.items)
+      .filter((it) => it.id === "FEAT-08");
+    assert.equal(remaining.length, 1);
+    assert.equal(remaining[0].status, "완료");
+
+    // 최소 diff: 최신 FEAT-08 블록 5줄만 빠진다.
+    const beforeLines = BOARD.split("\n");
+    const start = beforeLines.indexOf("- [ ] FEAT-08: 게이트 버튼 — 원격 게이트 개방");
+    assert.ok(start >= 0);
+    const expected = [...beforeLines];
+    expected.splice(start, 5);
+    assert.deepEqual(res.markdown.split("\n"), expected);
+  });
+
+  it("거부: 완료에서 discard → not-whitelisted", () => {
+    const res = applyDiscard(BOARD, "BUG-06", "완료");
+    assert.deepEqual(res, { ok: false, reason: "not-whitelisted" });
+  });
+
+  it("거부: 스테일 → stale", () => {
+    const res = applyDiscard(BOARD, "FEAT-01", "검토대기");
+    assert.deepEqual(res, { ok: false, reason: "stale" });
+  });
+
+  it("거부: 미발견 → not-found", () => {
+    const res = applyDiscard(BOARD, "NOPE-99", "승인대기");
+    assert.deepEqual(res, { ok: false, reason: "not-found" });
+  });
+});
+
+describe("holdResultLine — 고정 날짜 보류 문구", () => {
+  it("UTC 날짜로 FEAT-01 형태 문구를 만든다", () => {
+    assert.equal(
+      holdResultLine(new Date(Date.UTC(2026, 7, 16))),
+      "사용자 결정(2026-08-16) — 대시보드에서 보류. 폐기가 아니라 대기이며 TASK_BACKLOG.md에 남는다. 재개하려면 이 행을 계획지시 또는 구현승인으로 되돌린다.",
+    );
+  });
+});
+
+describe("rejectCommitMessage — 대시보드 경유 표기", () => {
+  it("bounce·hold·discard 각각의 어구", () => {
+    assert.equal(
+      rejectCommitMessage("bounce", "FEAT-09"),
+      "docs(board): bounce FEAT-09 back to planning via dashboard gate",
+    );
+    assert.equal(
+      rejectCommitMessage("hold", "FEAT-09"),
+      "docs(board): hold FEAT-09 via dashboard gate",
+    );
+    assert.equal(
+      rejectCommitMessage("discard", "FEAT-09"),
+      "docs(board): discard FEAT-09 via dashboard gate",
     );
   });
 });
