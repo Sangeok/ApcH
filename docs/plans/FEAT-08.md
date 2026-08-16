@@ -13,7 +13,7 @@ agent: admin-dev
 
 - `app/pipeline/page.tsx:17-21`이 `requireAdmin()` → `getPipelineBoard()` → `buildBriefing(sections, new Date())`로 브리핑을 만들어 `<PipelineBriefing>`에 넘긴다. `dynamic = "force-dynamic"`(`:15`)이라 매 요청 재투영한다.
 - `pipeline/queries.ts:6-13` `getPipelineBoard()`는 `BOARD_RAW_URL`(`github.ts:7`, `raw.githubusercontent.com`의 dev 브랜치)을 `cache: "no-store"`로 fetch해 `parseBoard`로 파싱한다. **읽기 전용 · 토큰 불필요 · CDN 경유.**
-- `pipeline/board.ts:24-95` `parseBoard`는 순수 파서다. 항목 헤더 `ITEM_RE = /^- \[([ xX])\] ([A-Z]+-\d+): (.+)$/`(`:21`), 필드 `FIELD_RE = /^\s+(agent|area|status|근거|결과):\s*(.+)$/`(`:22`). `status`는 `:84-86`(`case "status"`)에서 `currentItem.status`로 잡힌다. 상단 `>` 안내 블록·항목 없는 섹션(`## 파이프라인 구조`)은 버린다(`:31, :94`).
+- `pipeline/board.ts:24-95` `parseBoard`는 순수 파서다. 항목 헤더 `ITEM_RE = /^- \[([ xX])\] ([A-Z]+-\d+): (.+)$/`(`:21`), 필드 `FIELD_RE = /^\s+(agent|area|status|근거|결과):\s*(.+)$/`(`:22`). `status`는 `:80-82`(`case "status"`)에서 `currentItem.status`로 잡힌다. 상단 `>` 안내 블록·항목 없는 섹션(`## 파이프라인 구조`)은 버린다(`:31, :94`).
 - `pipeline/briefing.ts`: `SpeechItem`이 `id`·`status`·`key`를 싣는다(`:6-15`). `GATE_STATUSES = new Set(["승인대기", "검토대기"])`(`:30`). `buildBriefing`의 결재함은 이 두 status만 담는다 — `items.filter((it) => it.status !== null && GATE_STATUSES.has(it.status)).map((it) => inboxSpeech(it, today))`(`:189-191`). `inboxSpeech`(`:84-110`)가 `status`를 그대로 `SpeechItem.status`로 넘긴다(승인대기면 `:87-97`, 아니면 검토대기 `:99-109`). 즉 **결재함 카드는 화면이 읽은 시점의 `id`와 `status`를 이미 손에 쥐고 있다.**
 - `ui/pipeline-page.tsx:88-121` `InboxCard`가 stamp 카드다: `rounded-2xl border-stamp/40 bg-stamp-soft`(`:90`), 발화(`text-lg text-stamp`, `:100`), 하단 메타 행(`:101-108`)에 `{item.id} · {item.status}`(`:102-104`)와 **정적 "결재" 칩**(`<span className="rounded border border-stamp px-1.5 text-xs text-stamp">결재</span>`, `:105-107`), 근거 `<details>`(`:109-118`). 이 칩은 라벨일 뿐 액션이 아니다.
 - 원격 쓰기는 하나뿐이다. `pipeline/command-action.ts:18-56` `postPipelineCommand(command)`가 `requireAdmin()`(`:22`, try 밖 최상단 — `NEXT_REDIRECT`를 catch가 삼키지 않게) 뒤 `resolvePipelineCommand`로 본문 해석(`:25-28`, 밖이면 `failure("Unknown command")`), 토큰 확인(`:30-33`), `ISSUE_COMMENTS_URL`(`github.ts:8`)로 코멘트 POST(`:36-45`). 성공/실패는 `~/lib/result`의 `ActionResult`(`result.ts:5-7`, `success()`/`failure(msg)`).
@@ -45,7 +45,7 @@ _(게이트 판단 근거. 이 항목은 새 화면이 아니라 기존 stamp �
 └───────────────────────────────────┘
 ```
 
-**시그니처 요소 — 도장 임프린트 버튼.** 이 카드가 기억될 한 요소. 버튼은 **채워진 색면이 아니라 도장이 남긴 임프린트**다: 양피지 바탕(`bg-stamp-soft`) 위에 오커 잉크(`text-stamp`) 글자와 2px 도장 테두리(`border-stamp`), 오른쪽·아래로 `1px` hard 그림자(`shadow-[1px_1px_0_0_var(--stamp)]`)가 도장 오프셋을 만든다. 라벨은 **찍힐 status 낱말 그대로**(`계획지시` / `구현승인`) — 도장이 보드에 남길 글자를 그대로 버튼에 담아, 클릭이 곧 그 글자를 찍는 행위가 되게 한다. **어휘 일관성**: 버튼 `계획지시` → 커밋 후 보드 status `계획지시` → 토스트 `계획지시로 넘겼습니다`(frontend-design: 동작이 흐름 내내 같은 이름을 유지한다).
+**시그니처 요소 — 도장 임프린트 버튼.** 이 카드가 기억될 한 요소. 버튼은 **채워진 색면이 아니라 도장이 남긴 임프린트**다: 양피지 바탕(`bg-stamp-soft`) 위에 어두운 오커 잉크(`oklch(0.50 0.12 62)` — 아래 대비 실측 참조) 글자와 2px 도장 테두리(`border-stamp`), 오른쪽·아래로 `1px` hard 그림자(`shadow-[1px_1px_0_0_var(--stamp)]`)가 도장 오프셋을 만든다. 라벨은 **찍힐 status 낱말 그대로**(`계획지시` / `구현승인`) — 도장이 보드에 남길 글자를 그대로 버튼에 담아, 클릭이 곧 그 글자를 찍는 행위가 되게 한다. **어휘 일관성**: 버튼 `계획지시` → 커밋 후 보드 status `계획지시` → 토스트 `계획지시로 넘겼습니다`(frontend-design: 동작이 흐름 내내 같은 이름을 유지한다).
 
 - **대비 — 실측 기준(검증 라운드 계산).** oklch→WCAG 실측: `--stamp` on `--stamp-soft` **3.71:1**, 흰 글자 on `--stamp` **4.43:1** — 12px(text-xs) AA 4.5:1에 **둘 다 미달**이다(기존 칩·발화가 이 짝을 이미 쓰지만, 라벨은 액션 텍스트라 기준을 지킨다). 그래서 버튼 **라벨 잉크만** 같은 오커 계열의 어두운 값 `oklch(0.50 0.12 62)`(**5.20:1**, arbitrary value — 신규 토큰 없음)로 내리고, 테두리·그림자는 비텍스트 대비 기준(3:1)을 3.71:1로 통과하는 `--stamp`를 유지해 도장 인상을 지킨다. 채운 버튼(흰 글자)은 4.43:1로 여전히 미달이라 기각 유지(은유도 임프린트가 맞다). rest에서 클릭 가능함을 알리는 신호는 색 반전이 아니라 2px 테두리 + hard 그림자 + hover 들림 + `focus-visible` 링(shadcn `Button` 기본, button.tsx:8)이 맡는다.
 - **모션 — 도장 한 동작뿐.** `hover:-translate-y-px`(집어올림) · `active:translate-y-0 active:shadow-none`(눌러 찍힘). 상시 애니메이션 없음. `prefers-reduced-motion`은 transform-only라 위반 없음.
@@ -56,7 +56,7 @@ _(게이트 판단 근거. 이 항목은 새 화면이 아니라 기존 stamp �
 
 ## 문제
 
-백로그 `source`(요구 원천, TASK_BACKLOG.md:66-77)가 지목한 것: **결재함은 승인대기·검토대기 항목을 "결재" 라벨로 보여주지만 결재 수단이 없다.** 게이트 전이는 대시보드 밖(Claude 세션 지시 또는 보드 파일 직접 수정)에서만 가능하다. 코드에서 확인: `InboxCard`(`pipeline-page.tsx:105-107`)의 "결재" 칩은 정적 `<span>`이고, 원격 쓰기 경로는 `command-action.ts`의 이슈 코멘트 하나뿐이며 그 본문은 전부 `GATE_GUARD`로 **게이트 전이를 금지**한다(`commands.ts:13-14`). 즉 화면에서 status를 바꿀 방법이 코드상 존재하지 않는다. FEAT-03의 의도된 잠금이었으나, 소유자가 실사용에서 마찰을 확인하고 개방을 결정했다.
+백로그 `source`(요구 원천, TASK_BACKLOG.md:66-77)가 지목한 것: **결재함은 승인대기·검토대기 항목을 "결재" 라벨로 보여주지만 결재 수단이 없다.** 게이트 전이는 대시보드 밖(Claude 세션 지시 또는 보드 파일 직접 수정)에서만 가능하다. 코드에서 확인: `InboxCard`(`pipeline-page.tsx:105-107`)의 "결재" 칩은 정적 `<span>`이고, 원격 쓰기 경로는 `command-action.ts`의 이슈 코멘트 하나뿐이며 그 본문은 전부 **게이트 전이를 금지**한다(5키는 `${GATE_GUARD}`, `pipeline-run`은 인라인 문구 — `commands.ts:13-24`). 즉 화면에서 status를 바꿀 방법이 코드상 존재하지 않는다. FEAT-03의 의도된 잠금이었으나, 소유자가 실사용에서 마찰을 확인하고 개방을 결정했다.
 
 **불변식 논거(백로그 그대로).** "게이트는 사용자만 연다"는 **누가**의 제약이지 **어디서**의 제약이 아니다. admin의 3중 인가가 "로그인 세션 = 소유자"를 보장하므로, `requireAdmin()` 뒤의 대시보드 버튼은 불변식을 깨지 않는다. 이슈 #87 코멘트 채널의 게이트 거절(`GATE_GUARD`)은 **그대로 둔다** — 새 경로는 이슈 경유가 아니라 GitHub **contents API**로 dev 브랜치 `PROJECT_BOARD.md`의 해당 항목 status 줄만 고쳐 커밋하는 별도 서버 액션이다.
 
@@ -88,7 +88,7 @@ _(게이트 판단 근거. 이 항목은 새 화면이 아니라 기존 stamp �
 
 ### 1) `src/pipeline/transitions.ts` (신규) — 화이트리스트 + 스테일 가드 순수 함수
 
-`commands.ts`와 같은 원칙: 여기 없는 (from) status는 커밋되지 않는다. status 줄 교체는 **원본 문자열을 인덱스로 잘라 붙여** 줄바꿈·다른 줄을 바이트 보존한다(split/join 재조합이 CRLF를 LF로 뭉개는 것 방지).
+`commands.ts`와 같은 원칙: 여기 없는 (from) status는 커밋되지 않는다. status 줄 교체는 **원본 문자열을 인덱스로 잘라 붙여** 치환한 값 외 모든 바이트를 구조적으로 보존한다(현재 보드 블롭은 LF지만, 최소 diff를 관례가 아니라 구조로 보장한다 — 테스트 「최소 diff」가 못박는다).
 
 ```ts
 // 순수. board.ts/commands.ts와 같은 이유로 임포트 없음(transitions.test.mjs로 덮인다).
@@ -435,5 +435,5 @@ import { GateTransitionButton } from "~/ui/pipeline-gate";
 - **전이 화이트리스트를 `commands.ts`에 합친다** — 명령과 전이가 한 파일이면 화이트리스트가 한 곳에 모인다. 하지만 명령은 "status를 바꾸지 마라"(이슈 코멘트)이고 전이는 "status만 바꿔라"(보드 커밋)로 **정반대 계약**이라 섞으면 `GATE_GUARD` 불변식 테스트가 혼란스러워진다. **채택 안 함** — 별 모듈(`transitions.ts`)로 갈라 각 계약을 독립 테스트한다.
 - **투영도 contents API로 바꿔 CDN 잔상 제거** — 커밋 직후 `router.refresh()`가 즉시 최신을 반영한다. 하지만 투영(읽기)이 지금은 토큰 없는 공개 raw로 도는데, 바꾸면 모든 페이지 로드가 인증 토큰·base64 디코드를 타고 rate limit(인증 5000/h)에 묶인다. **채택 안 함(이번 범위 밖)** — 잔상은 성공 토스트로 덮고, 필요하면 후속 항목으로 투영 경로를 옮긴다.
 - **스테일 가드를 sha만으로** — contents API의 sha 낙관적 잠금만 쓰고 항목값 대조를 생략. 하지만 sha는 "내 GET 이후 파일이 바뀌었나"만 잡지, "화면이 읽은 시점 이후 바뀌었나"(사용자가 낡은 화면에서 눌렀나)는 못 잡는다 — 내 GET은 늘 최신 sha를 얻으므로 커밋이 그냥 성공해 **잃어버린 갱신**이 난다. **채택 안 함** — 화면이 보낸 `expectedStatus` 대조(스테일)와 sha 잠금(TOCTOU)을 **둘 다** 쓴다.
-- **status 줄 교체를 split/join 재조합으로** — 줄 배열로 다뤄 인덱스로 갈아끼우면 코드가 단순하다. 하지만 `\r?\n`으로 split 후 `\n`으로 join하면 CRLF 원본을 통째로 LF로 뭉개 커밋 diff가 파일 전체가 된다(대시보드 커밋은 최소여야 한다). **채택 안 함** — 원본 문자열 인덱스 슬라이스로 status 값 한 곳만 교체해 다른 바이트를 보존한다.
+- **status 줄 교체를 split/join 재조합으로** — 줄 배열로 다뤄 인덱스로 갈아끼우면 코드가 단순하다. 하지만 재조합은 줄바꿈 관례에 의존한다 — 현재 보드 블롭은 LF라(실측: `git ls-files --eol` i/lf) 당장 깨지진 않지만, 최소 diff가 "우연히 성립"하는 구조가 된다. **채택 안 함** — 원본 문자열 인덱스 슬라이스로 status 값 한 곳만 교체해, 치환 외 바이트 보존을 구조로 보장한다(테스트 「최소 diff」가 검증).
 - **선택 확장: 전이 성공 직후 `pipeline-run` 코멘트 자동 게시**(백로그 「선택 확장」) — 결재 탭 한 번으로 원격 세션 실행까지 이어진다. 두 방식이 있다: (a) `commitGateTransition` 성공 후 클라에서 `postPipelineCommand("pipeline-run")` 연쇄 호출, (b) 서버 액션 안에서 커밋 성공 뒤 코멘트 POST. 트레이드오프: 두 외부 쓰기가 한 클릭에 묶여, 커밋은 성공했는데 코멘트가 실패하면 부분 성공 상태 처리가 필요하고, 자동 실행이 "전이는 결정, 실행은 별개"라는 현재 분리를 흐린다. **기본 스케치에는 넣지 않았다** — 게이트②에서 사용자가 켤지 결정한다. 켜면 (a)를 권한다(두 액션의 실패를 각각 토스트로 분리 보고할 수 있어 조용한 실패가 안 난다).
