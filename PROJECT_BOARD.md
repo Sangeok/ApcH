@@ -4,8 +4,12 @@
 > 단, 미결(`완료`·`보류`가 아닌 것) 항목이 2건 이상이면 새로 기록하지 않는다 — 먼저 진행시키거나 그 행을 지운다.
 > 새 섹션은 이 안내 블록 바로 아래(최신순)에 들어간다.
 >
-> status 전이:
+> status 전이(전진):
 > `승인대기`(PM) → `계획지시`(**사용자만**) → `검토대기`(에이전트) → `구현승인`(**사용자만**) → `완료`·`보류`(에이전트)
+>
+> 반려(**사용자만**, FEAT-09 이후 대시보드 결재함에서도 가능):
+> `검토대기` → `계획지시`(되돌리기 — 계획 재작성) · `승인대기`·`검토대기` → `보류`(사유를 `결과:`에 남긴다) ·
+> `승인대기`·`검토대기` → **행 제거**(폐기 — 되돌릴 수 없다. 백로그 항목과 이력 행은 남으므로 수동 정리)
 >
 > 담당 에이전트는 `계획지시`면 `docs/plans/<항목ID>.md`에 계획서만 쓰고 멈춘다.
 > `검토대기` 계획서의 검증은 **무편집 클린 패스(새 결함 0건)가 한 번 나오면 끝난 것이다.**
@@ -17,6 +21,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-16
+- [x] FEAT-09: `/pipeline` 결재함에 반려 경로 — 게이트 거절을 대시보드에서
+  agent: admin-dev
+  area: apps/admin
+  status: 완료
+  근거: 사용자 직접 발주 — pm 경유 없음(소유자 발주로 기록). FEAT-08이 승인(도장)만 만들고 거절 수단을 남기지 않아, 계획 반려·항목 보류·폐기가 전부 대시보드 밖에서만 가능하다(FEAT-01을 내리는 데 실제로 수동 처리가 필요했다). 발주 계약은 TASK_BACKLOG.md의 FEAT-09 항목이 원천 — 거절 세 갈래(되돌리기·보류·폐기)의 구분, FEAT-08 화이트리스트 재사용, 사유 기록, 폐기의 비가역성 취급을 계획 단계에서 판단해야 한다. FEAT-01은 같은 날 보류로 내려 미결은 이 항목 1건이다. **게이트①은 대시보드 도장 버튼으로 열 예정 — FEAT-08 원격 쓰기 경로의 첫 실측을 겸한다.** 계획서는 검증 7라운드 12부류(인용 실측·조립 컴파일·순수 계층 27/27·서버 액션 8/8·UI 사슬 렌더·대비 실측 5.58:1·여집합 열거·Tailwind 방출·독립 교차검토·브리핑 사슬 실행·실제 보드 실행·서버 액션×실제 보드 E2E)를 거쳐 6·7라운드 연속 무편집 클린 패스. 게이트② 결정(2026-08-16): 보류 사유 고정 문구 · 폐기는 보드 행만(백로그는 토스트 안내) · 폐기 잉크 oklch(0.50 0.20 27) 승인 · 되돌리기 재작성은 admin-dev 기존 규칙 위임 · 계획지시·구현승인 반려는 넣지 않음 · **보드 안내 블록에 반려 세 전이를 기재한다(메인 루프가 구현 완료 후 처리)**.
+  결과: FEAT-08 도장 옆에 거절 세 갈래(되돌리기·보류·폐기)를 얹었다. `transitions.ts`에 `locateItem` 헬퍼를 추출해 `applyGateTransition`을 동작 보존 리팩터하고, 그 위에 반려 화이트리스트 `REJECT_TRANSITIONS`(bounce 검토대기→계획지시·hold 승인대기·검토대기→보류·discard 승인대기·검토대기→행 제거)와 순수 함수 `rejectActionsFor`·`applyBounceTransition`·`applyHoldTransition`(결과 줄 있으면 교체·없으면 근거 뒤 삽입, 리터럴 슬라이스로 `$` 안전)·`applyDiscard`·`holdResultLine`·`rejectCommitMessage`를 더했다. `commit-transition.ts`는 GET→편집→PUT 왕복을 `commitBoardEdit(makeEdit)`로 추출해 승인·반려가 공유하고 `commitRejectTransition`이 action을 서버에서 화이트리스트로 재검증한다(requireAdmin은 각 export try 밖 최상단 유지). UI는 도장과 형태로 대비되는 여백 펜 메모(평평·산세리프·회색 접힘) `RejectActions`를 신규 작성했고 폐기만 인라인 확인 3동작이다. 신규: src/ui/pipeline-reject.tsx. 수정: src/pipeline/transitions.ts·transitions.test.mjs·commit-transition.ts, src/ui/pipeline-page.tsx. 검증: `npm run check -w apps/admin` 통과(ESLint 0·tsc 0), `npm test -w apps/admin` 95 pass·0 fail(transitions.test.mjs +26: rejectActionsFor·bounce/hold/discard 해피패스·파서 왕복·최소 diff·다중 등장 최신 행만·거부 4사유·`$` 리터럴 삽입·재보류 교체·holdResultLine 고정날짜·rejectCommitMessage 3종; 기존 FEAT-08 12테스트가 리팩터 회귀 가드로 통과). 스케치 대비 분기·조건·리터럴·문구 차이 없음 — 서버 액션은 별도 파일이 아니라 `commit-transition.ts` 안 `commitRejectTransition`이다(계획서 「고칠 파일」 표·스케치 §2와 일치). 재보류 테스트만 기존 BOARD 픽스처의 FEAT-05에 결과 줄을 인라인으로 더해 구성(새 픽스처 없음). 못 덮음(Node 러너·DOM/외부 I/O 없음): commitBoardEdit GET/PUT·base64·sha 409·requireAdmin·commitRejectTransition action 분기, RejectActions useState/useTransition/toast/router.refresh·여백 펜 메모 시각·폐기 확인 잉크 oklch(0.50 0.20 27) 12px AA 실측·마커 3:1·투영 지연 — 배포 후 데스크톱+폰 수동 확인. 비고(읽기 전용/쓰기 범위 밖 → 메인 루프): apps/admin/CLAUDE.md 테스트 수 69→95·transitions.test.mjs 설명에 반려 전이 추가·Common Gotchas "두 전이 외 커밋 불가" 문구 확장, PROJECT_BOARD 안내 블록에 반려 세 전이 기재 여부.
 - [x] FEAT-08: `/pipeline` 결재함 게이트 버튼 — 원격 게이트 개방 (승인대기→계획지시, 검토대기→구현승인)
   agent: admin-dev
   area: apps/admin
@@ -70,8 +80,9 @@
 - [ ] FEAT-01: Credit System 마무리
   agent: web-dev
   area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
-  status: 승인대기
+  status: 보류
   근거: 현재 "개발 중" 상태로 남아 결제 흐름의 기반이 되는 항목. 결제 자체는 Polar로 이미 동작하므로, 크레딧 시스템을 완성해야 후속 작업이 안정적으로 얹힌다.
+  결과: 사용자 결정(2026-08-16) — 지금은 착수하지 않는다. 13일간 게이트① 앞에 머물렀고, 소유자의 현재 초점이 파이프라인 도구(FEAT-07·08 계열)에 있어 우선순위가 맞지 않는다. 폐기가 아니라 대기다 — TASK_BACKLOG.md에 그대로 남으므로 나중에 pm이 다시 선정하거나 소유자가 직접 발주할 수 있다. 재개하려면 이 행을 `계획지시`로 되돌린다(보드 안내 블록의 보류 재개 규칙).
 
 ## 파이프라인 구조
 
