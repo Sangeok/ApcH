@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
 import type { Briefing, SpeechItem, Tone } from "~/pipeline/briefing";
+import { resolveGateTransition } from "~/pipeline/transitions";
 import { AgentAvatar } from "~/ui/agent-avatar";
+import { GateTransitionButton } from "~/ui/pipeline-gate";
 import { PipelineCommandButton } from "~/ui/pipeline-command";
 import { OwnerBanner, PixelOffice } from "~/ui/pixel-office";
 
@@ -86,6 +88,9 @@ function InboxZone({
 }
 
 function InboxCard({ item }: { item: SpeechItem }) {
+  // 라벨=찍힐 status. item.status는 string | null → null이면 버튼 없음.
+  const gateTo =
+    item.status === null ? null : resolveGateTransition(item.status);
   return (
     <article className="rounded-2xl border border-stamp/40 bg-stamp-soft p-4">
       <div className="flex items-center gap-3">
@@ -102,9 +107,13 @@ function InboxCard({ item }: { item: SpeechItem }) {
         <p className="text-xs text-muted-foreground">
           {item.id} · {item.status}
         </p>
-        <span className="rounded border border-stamp px-1.5 text-xs text-stamp">
-          결재
-        </span>
+        {gateTo !== null && (
+          <GateTransitionButton
+            id={item.id}
+            status={item.status ?? ""}
+            label={gateTo}
+          />
+        )}
       </div>
       {item.detail && (
         <details className="mt-3 border-t border-stamp/20 pt-2">

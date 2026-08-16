@@ -16,6 +16,14 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-16
+- [x] FEAT-08: `/pipeline` 결재함 게이트 버튼 — 원격 게이트 개방 (승인대기→계획지시, 검토대기→구현승인)
+  agent: admin-dev
+  area: apps/admin
+  status: 완료
+  근거: 사용자 직접 발주 — pm 경유 없음(소유자 발주로 기록). 결재함이 승인대기·검토대기 항목을 "결재" 라벨로 보여주면서 결재 수단이 없는 마찰을 소유자가 실사용에서 확인(FEAT-01 13일 대기 관측 중), 원격 게이트 개방을 결정. 발주 계약은 TASK_BACKLOG.md의 FEAT-08 항목이 원천(불변식 논거·전이 화이트리스트·스테일 가드·성격 변경 명시 포함). FEAT-01보다 먼저 수행하기로 사용자가 지정(2026-08-16). 미결 2건이 되므로 pm 신규 선정은 이 항목 정리 전까지 멈춘다. 계획서는 검증 5라운드(인용 실측·조립 컴파일·명세 테스트 8/8·서버 액션 모의 실행 6/6·대비 실측·Tailwind 방출·여집합 열거·독립 교차검토·UI 사슬 렌더)를 거쳐 4·5라운드 연속 무편집 클린 패스. 게이트② 결정(2026-08-16): pipeline-run 자동 게시 안 넣음 · "결재" 칩 제거 · 임프린트+어두운 잉크(oklch(0.50 0.12 62), 5.20:1) · CDN 잔상 raw 유지 — 전부 계획서 기본값 그대로.
+  결과: 결재함 카드의 정적 "결재" 칩을 도장 임프린트 게이트 버튼으로 승격했다 — 전이 화이트리스트(승인대기→계획지시·검토대기→구현승인)와 status 줄만 교체하는 스테일 가드 순수 함수(`applyGateTransition`, 원본 문자열 인덱스 슬라이스로 최소 diff 보장)·커밋 메시지 빌더를 `transitions.ts`에 두고, contents API 왕복(GET로 HEAD sha·PUT로 sha 낙관적 잠금)만 새 서버 액션 `commit-transition.ts`(requireAdmin 뒤·사유별 실패 문구)에 담았다. DB 무접근 유지, 새 외부 쓰기는 GitHub 콘텐츠 하나뿐. 신규: src/pipeline/{transitions.ts, transitions.test.mjs, commit-transition.ts}, src/ui/pipeline-gate.tsx. 수정: src/pipeline/github.ts(BOARD_PATH·BOARD_CONTENTS_URL 상수), src/ui/pipeline-page.tsx(InboxCard 칩→GateTransitionButton), src/env.js(토큰 주석만·스키마 불변). 검증: `npm run check -w apps/admin` 통과(ESLint 0·tsc 0), `npm test -w apps/admin` 69 pass·0 fail(transitions.test.mjs 12 신규: 화이트리스트+프로토타입 오염·파서 왕복·최소 diff·다중 등장 최신 행만·거부 4사유·커밋 메시지 2종). 스케치 대비 차이 없음(분기·조건·리터럴·문구 모두 구현 스케치대로). 못 덮음(Node 러너·DOM/외부 I/O 없음): commit-transition의 contents API GET/PUT·base64·sha 409 분기·requireAdmin 게이트·토큰 미설정, GateTransitionButton의 useTransition·toast·router.refresh·도장 임프린트 시각(테두리·hard 그림자·hover 들림·active 눌림)·라벨 잉크 5.20:1 실화면·세리프 폴백(폰), 투영 지연(raw CDN 잔상 — 커밋 성공 후 잠시 결재함에 남을 수 있음, 성공 토스트가 결과 확정) — 배포 후 데스크톱+폰 수동 확인. 런타임 전제(코드 밖): PAT에 Contents RW 추가 재발급 필요(현재 Issues RW만이면 커밋 PUT 실패). 비고: apps/admin/CLAUDE.md는 읽기 전용이라 테스트 표에 transitions.test.mjs 행 추가·파일 수 7→8·테스트 수 57→69 갱신과 "외부 쓰기는 하나뿐"→두 경로(이슈 코멘트+보드 콘텐츠 커밋) 정정은 메인 루프가 처리한다.
+
 ## 2026-08-15
 - [x] FEAT-07: `/pipeline` 픽셀 사무실 — Gather풍 그림체 전환 + 캐릭터 고정·상태 말풍선 + 전 책상 명령
   agent: admin-dev

@@ -34,10 +34,12 @@ export const env = createEnv({
     // 관측 (web과 동일 값)
     SENTRY_DSN: z.string().optional(),
     SENTRY_AUTH_TOKEN: z.string().optional(),
-    // 파이프라인 대시보드가 이슈 #87에 코멘트를 게시할 때 쓰는 GitHub 토큰.
+    // 파이프라인 대시보드의 GitHub 토큰. 두 곳에서 쓴다:
+    //  (1) 이슈 #87 코멘트 게시(command-action.ts) — Issues RW,
+    //  (2) dev 브랜치 PROJECT_BOARD.md status 줄 커밋(commit-transition.ts) — Contents RW.
+    // 따라서 PAT은 ApcH 저장소에 Contents RW + Issues RW가 있어야 한다(사용자 재발급).
     // optional 이유: 기능을 먼저 배포하고 값은 이후 사용자가 주입한다(백로그 명시).
-    // 없으면 명령 버튼이 실패 결과("GitHub token is not configured")를 낸다.
-    // ADMIN_EMAILS와 달리 optional인 이유가 이것 — 누락이 빌드를 죽이면 안 된다.
+    // 없으면 명령·전이 버튼이 실패 결과를 낸다. 누락이 빌드를 죽이면 안 되므로 optional.
     GITHUB_PIPELINE_TOKEN: z.string().optional(),
   },
 
