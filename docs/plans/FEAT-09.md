@@ -245,10 +245,11 @@ export function applyBounceTransition(
 }
 ```
 
-**(1-d) 보류(hold) — status 줄 교체 + `결과:` 줄 삽입.** 사유 텍스트는 호출자가 만들어 넘긴다(고정 문구는 `holdResultLine`). `결과:` 삽입은 **리터럴 슬라이스**로 한다 — 사유에 `$` 등이 있어도 `.replace` 치환 특수문자로 해석되지 않게(FEAT-08의 "`$` 미포함이라 안전" 논거를 여기선 구조로 보장).
+**(1-d) 보류(hold) — status 줄 교체 + `결과:` 줄 기록(있으면 교체·없으면 삽입).** 사유 텍스트는 호출자가 만들어 넘긴다(고정 문구는 `holdResultLine`). `결과:` 기록은 **리터럴 슬라이스**로 한다 — 사유에 `$` 등이 있어도 `.replace` 치환 특수문자로 해석되지 않게(FEAT-08의 "`$` 미포함이라 안전" 논거를 여기선 구조로 보장). **재보류(옛 결과 줄이 남아 있는 항목)에서 줄이 중복되지 않도록 교체 분기를 둔다** — 아래 주석의 실측 근거 참조.
 
 ```ts
 const REASON_LINE_RE = /^([ \t]+)근거:[ \t]*.*$/m;
+const RESULT_LINE_RE = /^([ \t]+)결과:[ \t]*.*$/m;
 
 export function applyHoldTransition(
   markdown: string,
@@ -268,20 +269,36 @@ export function applyHoldTransition(
   // 1) status 줄 값 → 보류.
   let newBlock = loc.block.replace(STATUS_LINE_RE, `${loc.statusPrefix}${to}`);
 
-  // 2) 근거 줄 뒤에 결과 줄 삽입(근거와 같은 들여쓰기, 리터럴 슬라이스).
-  //    승인대기·검토대기 항목엔 결과 줄이 없다(보드 관례) — 스테일 가드가 이를 보장하므로 중복 삽입 없음.
-  const reason = REASON_LINE_RE.exec(newBlock);
-  if (reason === null) return { ok: false, reason: "format" };
-  const reasonLine = reason[0];
-  const indent = reason[1];
-  if (reasonLine === undefined || indent === undefined) {
-    return { ok: false, reason: "format" };
+  // 2) 결과 줄 기록. **이미 있으면 교체, 없으면 근거 줄 뒤에 삽입**(둘 다 리터럴 슬라이스).
+  //    교체 분기가 필요한 이유: 보류 항목을 재개하면(보드 안내 `PROJECT_BOARD.md:16`) 옛 `결과:` 줄이
+  //    남은 채 승인대기·검토대기가 된다. 그때 또 삽입하면 결과 줄이 둘이 되고, board.ts 파서는
+  //    순차 대입(`:86-88`)이라 **뒤에 오는 옛 줄이 이긴다** — 새 보류 사유가 화면에서 사라진다.
+  //    (검증 라운드 실측: 삽입만 하면 결과 줄 2개, 파서가 옛 사유를 읽음.)
+  const existing = RESULT_LINE_RE.exec(newBlock);
+  if (existing !== null) {
+    const existingLine = existing[0];
+    const existingIndent = existing[1];
+    if (existingLine === undefined || existingIndent === undefined) {
+      return { ok: false, reason: "format" };
+    }
+    newBlock =
+      newBlock.slice(0, existing.index) +
+      `${existingIndent}결과: ${resultText}` +
+      newBlock.slice(existing.index + existingLine.length);
+  } else {
+    const reason = REASON_LINE_RE.exec(newBlock);
+    if (reason === null) return { ok: false, reason: "format" };
+    const reasonLine = reason[0];
+    const indent = reason[1];
+    if (reasonLine === undefined || indent === undefined) {
+      return { ok: false, reason: "format" };
+    }
+    const insertAt = reason.index + reasonLine.length;
+    newBlock =
+      newBlock.slice(0, insertAt) +
+      `\n${indent}결과: ${resultText}` +
+      newBlock.slice(insertAt);
   }
-  const insertAt = reason.index + reasonLine.length;
-  newBlock =
-    newBlock.slice(0, insertAt) +
-    `\n${indent}결과: ${resultText}` +
-    newBlock.slice(insertAt);
 
   return {
     ok: true,
@@ -659,7 +676,7 @@ import { RejectActions } from "~/ui/pipeline-reject";
 - **덮는 것 (순수 함수, `transitions.test.mjs`에 추가):**
   - `rejectActionsFor`: `"승인대기"`→`["hold","discard"]`(되돌리기 없음), `"검토대기"`→`["bounce","hold","discard"]`. `"완료"`·`"보류"`·`"계획지시"`·`"구현승인"`·`"arbitrary"`·`""`·`"__proto__"`→`[]`(화이트리스트 밖·프로토타입 오염 키).
   - `applyBounceTransition` 해피패스 + **파서 왕복**: 검토대기 항목 → 계획지시, 재파싱 시 그 항목 status만 바뀌고 나머지 필드·항목 동일. **최소 diff**: 정확히 한 줄(status)만 다름. 거부: 승인대기에서 bounce→`not-whitelisted`(bounce는 검토대기에서만), 스테일(값 불일치)→`stale`, 미발견→`not-found`, status 줄 없음→`format`.
-  - `applyHoldTransition` 해피패스 + **파서 왕복**: 승인대기·검토대기 각각 → 보류, 재파싱 시 그 항목 `status="보류"` **및 `result`가 넘긴 resultText와 일치**, 다른 항목 동일. **최소 diff**: 줄 수 +1(결과 줄 삽입), status 줄 1개 변경 + 결과 줄 1개 신규 = 정확히 그 둘만. 결과 줄이 `근거` 바로 다음에 같은 들여쓰기로 삽입됨. **리터럴 삽입**: resultText에 `"a$1b"` 같은 `$`가 있어도 그대로 삽입(정규식 치환 특수문자 미해석). 거부: 완료에서 hold→`not-whitelisted`, 스테일→`stale`, 미발견→`not-found`, status 줄 없음→`format`.
+  - `applyHoldTransition` 해피패스 + **파서 왕복**: 승인대기·검토대기 각각 → 보류, 재파싱 시 그 항목 `status="보류"` **및 `result`가 넘긴 resultText와 일치**, 다른 항목 동일. **최소 diff**: 줄 수 +1(결과 줄 삽입), status 줄 1개 변경 + 결과 줄 1개 신규 = 정확히 그 둘만. 결과 줄이 `근거` 바로 다음에 같은 들여쓰기로 삽입됨. **리터럴 삽입**: resultText에 `"a$1b"` 같은 `$`가 있어도 그대로 삽입(정규식 치환 특수문자 미해석). **재보류(옛 `결과:` 줄이 이미 있는 항목)**: 결과 줄이 **하나로 유지**되고(줄 수 +0) 파서가 **새 사유**를 읽는다 — 삽입이 아니라 교체로 가는 분기를 못박는다(검증 라운드에서 삽입만 하면 줄 2개·파서가 옛 사유를 읽는 것이 실측됐다). 거부: 완료에서 hold→`not-whitelisted`, 스테일→`stale`, 미발견→`not-found`, status 줄 없음→`format`.
   - `applyDiscard` 해피패스 + **파서 왕복**: 승인대기·검토대기 항목 제거 후 재파싱 시 그 항목만 사라지고 나머지 항목·필드·순서 동일. **최소 diff(행 제거)**: 결과가 원본에서 그 항목 블록 줄들만 빠진 것과 일치(줄 배열 대조). **다중 등장**: 같은 ID가 두 섹션(최신 검토대기/이력 완료)일 때 discard가 **최신(위) 행만** 제거하고 이력 행은 그대로. 거부: 완료에서 discard→`not-whitelisted`, 스테일→`stale`, 미발견→`not-found`.
   - `holdResultLine`: 고정 `new Date(Date.UTC(2026, 7, 16))` → `"사용자 결정(2026-08-16) — 대시보드에서 보류. 폐기가 아니라 대기이며 TASK_BACKLOG.md에 남는다. 재개하려면 이 행을 계획지시 또는 구현승인으로 되돌린다."` (정확 문자열).
   - `rejectCommitMessage`: `("bounce","FEAT-09")`→`"docs(board): bounce FEAT-09 back to planning via dashboard gate"`, `("hold","FEAT-09")`→`"docs(board): hold FEAT-09 via dashboard gate"`, `("discard","FEAT-09")`→`"docs(board): discard FEAT-09 via dashboard gate"`.
