@@ -10,7 +10,7 @@ admin은 2026-08-02에 web에서 분리됐다. 두 앱은 **`@repo/db`만 공유
 
 ## Project Overview
 
-`admin.a-pch.com` — 운영자용 내부 대시보드. 제품 기능은 없고 관측이 본업이다. **DB는 읽기 전용**이며, 쓰기는 `/pipeline`의 외부 두 경로뿐이다(둘 다 GitHub API, DB 무관): 이슈 코멘트 게시(`command-action.ts`)와 보드 콘텐츠 커밋(`commit-transition.ts` — 게이트 전이).
+`admin.a-pch.com` — 운영자용 내부 대시보드. 제품 기능은 없고 관측이 본업이다. **DB는 읽기 전용**이며, 쓰기는 `/pipeline`의 외부 두 경로뿐이다(둘 다 GitHub API, DB 무관): 이슈 코멘트 게시(`command-action.ts`)와 보드 콘텐츠 커밋(`commit-transition.ts` — 게이트 전이와 반려).
 
 | 라우트 | 내용 |
 |---|---|
