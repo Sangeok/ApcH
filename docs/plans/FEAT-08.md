@@ -47,12 +47,12 @@ _(게이트 판단 근거. 이 항목은 새 화면이 아니라 기존 stamp �
 
 **시그니처 요소 — 도장 임프린트 버튼.** 이 카드가 기억될 한 요소. 버튼은 **채워진 색면이 아니라 도장이 남긴 임프린트**다: 양피지 바탕(`bg-stamp-soft`) 위에 오커 잉크(`text-stamp`) 글자와 2px 도장 테두리(`border-stamp`), 오른쪽·아래로 `1px` hard 그림자(`shadow-[1px_1px_0_0_var(--stamp)]`)가 도장 오프셋을 만든다. 라벨은 **찍힐 status 낱말 그대로**(`계획지시` / `구현승인`) — 도장이 보드에 남길 글자를 그대로 버튼에 담아, 클릭이 곧 그 글자를 찍는 행위가 되게 한다. **어휘 일관성**: 버튼 `계획지시` → 커밋 후 보드 status `계획지시` → 토스트 `계획지시로 넘겼습니다`(frontend-design: 동작이 흐름 내내 같은 이름을 유지한다).
 
-- **대비 — 검증된 짝만 쓴다.** rest 상태는 이 카드가 이미 배포해 온 짝을 그대로 재사용한다: `text-stamp` 잉크 on `bg-stamp-soft` 양피지(발화 `:100`·기존 칩 `:105-107`와 동일). `--stamp`(L 0.58)는 흰 글자와 AA를 맞추기 어려워(추정 ~3:1) **채운 버튼(흰 글자)을 쓰지 않는다** — 임프린트 방식이 대비·은유 둘 다 이긴다. rest에서 클릭 가능함을 알리는 신호는 색 반전이 아니라 2px 테두리 + hard 그림자 + hover 들림 + `focus-visible` 링(shadcn `Button` 기본, button.tsx:8)이 맡는다.
+- **대비 — 실측 기준(검증 라운드 계산).** oklch→WCAG 실측: `--stamp` on `--stamp-soft` **3.71:1**, 흰 글자 on `--stamp` **4.43:1** — 12px(text-xs) AA 4.5:1에 **둘 다 미달**이다(기존 칩·발화가 이 짝을 이미 쓰지만, 라벨은 액션 텍스트라 기준을 지킨다). 그래서 버튼 **라벨 잉크만** 같은 오커 계열의 어두운 값 `oklch(0.50 0.12 62)`(**5.20:1**, arbitrary value — 신규 토큰 없음)로 내리고, 테두리·그림자는 비텍스트 대비 기준(3:1)을 3.71:1로 통과하는 `--stamp`를 유지해 도장 인상을 지킨다. 채운 버튼(흰 글자)은 4.43:1로 여전히 미달이라 기각 유지(은유도 임프린트가 맞다). rest에서 클릭 가능함을 알리는 신호는 색 반전이 아니라 2px 테두리 + hard 그림자 + hover 들림 + `focus-visible` 링(shadcn `Button` 기본, button.tsx:8)이 맡는다.
 - **모션 — 도장 한 동작뿐.** `hover:-translate-y-px`(집어올림) · `active:translate-y-0 active:shadow-none`(눌러 찍힘). 상시 애니메이션 없음. `prefers-reduced-motion`은 transform-only라 위반 없음.
 - **접근성 바닥.** 실제 HTML `<button>`(키보드 포커스·`useTransition`). pending 라벨 `찍는 중...`로 상태를 텍스트로 전한다(색 단독 아님). 실패는 토스트로 사유를 말한다(조용한 실패 금지).
 - **말(카피).** 실패 문구는 인터페이스 목소리로 "무엇이 어긋났고 어떻게 하라"를 적는다: 스테일이면 `보드가 이미 바뀌었습니다. 새로고침 후 다시 시도하세요`. 성공은 `${label}로 넘겼습니다`.
 
-**의도적 이탈(게이트 확인 대상):** (1) 정적 "결재" 칩은 **제거**하고 도장 버튼으로 대체한다 — 칩(라벨)과 버튼(액션)을 둘 다 두면 중복이다(결재함 존/배너가 이미 "결재 대기"를 프레이밍한다). 칩을 유지할지 게이트에서 뒤집을 수 있다. (2) 흰 글자 채운 버튼 대신 임프린트 방식을 택한 이유는 `--stamp`의 대비 한계다 — 새 잉크 토큰(더 어두운 stamp)을 도입할지는 게이트 결정 대상(기본은 신규 토큰 없음).
+**의도적 이탈(게이트 확인 대상):** (1) 정적 "결재" 칩은 **제거**하고 도장 버튼으로 대체한다 — 칩(라벨)과 버튼(액션)을 둘 다 두면 중복이다(결재함 존/배너가 이미 "결재 대기"를 프레이밍한다). 칩을 유지할지 게이트에서 뒤집을 수 있다. (2) 임프린트 라벨 잉크는 `--stamp`가 아니라 어두운 오커 `oklch(0.50 0.12 62)`다 — 실측에서 `--stamp` on 양피지가 3.71:1로 12px AA 미달이라 라벨만 5.20:1로 내렸다(신규 토큰 없이 arbitrary value). 흰 글자 채운 버튼도 4.43:1 미달이라 기각 유지. 잉크값 조정은 게이트에서 가능.
 
 ## 문제
 
@@ -225,7 +225,7 @@ export async function commitGateTransition(
     return failure("보드를 불러오지 못했습니다");
   }
   if (!getRes.ok) {
-    return failure(`GitHub API가 ${getRes.status}로 응답했습니다`);
+    return failure(`GitHub API가 ${getRes.status} 오류로 응답했습니다`);
   }
   const meta = (await getRes.json()) as { content?: string; sha?: string };
   if (typeof meta.content !== "string" || typeof meta.sha !== "string") {
@@ -260,7 +260,7 @@ export async function commitGateTransition(
     return failure("보드가 방금 바뀌었습니다. 새로고침 후 다시 시도하세요");
   }
   if (!putRes.ok) {
-    return failure(`GitHub API가 ${putRes.status}로 응답했습니다`);
+    return failure(`GitHub API가 ${putRes.status} 오류로 응답했습니다`);
   }
   return success();
 }
@@ -295,10 +295,11 @@ import { commitGateTransition } from "~/pipeline/commit-transition";
 import { Button } from "~/ui/atoms/button";
 
 // 도장 임프린트: 양피지 위 오커 잉크 글자 + 2px 도장 테두리 + hard 오프셋 그림자.
-// active에서 그림자를 지우고 눌러 찍는다. 검증된 짝(text-stamp on bg-stamp-soft) 유지.
+// active에서 그림자를 지우고 눌러 찍는다. 라벨 잉크는 --stamp(3.71:1, 12px AA 미달)보다
+// 어두운 oklch(0.50 0.12 62) = 5.20:1. 테두리·그림자는 비텍스트(3:1 기준)라 --stamp 유지.
 const STAMP_BUTTON_CLASS =
   "h-auto rounded-sm border-2 border-stamp bg-stamp-soft px-2.5 py-1 " +
-  "font-briefing-display text-xs font-medium tracking-wide text-stamp " +
+  "font-briefing-display text-xs font-medium tracking-wide text-[oklch(0.50_0.12_62)] " +
   "shadow-[1px_1px_0_0_var(--stamp)] transition-transform " +
   "hover:-translate-y-px active:translate-y-0 active:shadow-none disabled:opacity-60";
 
@@ -416,7 +417,7 @@ import { GateTransitionButton } from "~/ui/pipeline-gate";
   - `gateCommitMessage`: `("FEAT-08","계획지시")`→`"docs(board): open FEAT-08 for planning via dashboard gate"`, `("FEAT-08","구현승인")`→`"docs(board): approve FEAT-08 for implementation via dashboard gate"`.
 - **못 덮는 범위 (Node 러너·DOM/외부 I/O 없음 — 배포 후 데스크톱+폰 수동 확인):**
   - `commit-transition.ts`의 contents API GET/PUT·base64 인코딩·sha 409 분기·`requireAdmin()` 게이트·토큰 미설정 분기(실제 GitHub 왕복).
-  - `GateTransitionButton`의 `useTransition`·`toast`·`router.refresh()`·클릭·pending 라벨, 도장 임프린트 시각(테두리·hard 그림자·hover 들림·active 눌림)·`text-stamp` on `bg-stamp-soft` 실측 대비·세리프 폴백(폰).
+  - `GateTransitionButton`의 `useTransition`·`toast`·`router.refresh()`·클릭·pending 라벨, 도장 임프린트 시각(테두리·hard 그림자·hover 들림·active 눌림)·라벨 잉크(`oklch(0.50 0.12 62)`, 5.20:1 계산 검증)의 실화면 인상·세리프 폴백(폰).
   - **투영 지연(설계상 한계, 반드시 확인)**: 투영 읽기는 `raw.githubusercontent.com`(CDN 캐시 ~수분)인데 커밋은 contents API(HEAD)로 나간다. 커밋 성공 후 `router.refresh()`가 raw를 다시 읽어도 CDN 지연으로 **찍은 항목이 잠시 결재함에 남을 수 있다**. 정합성 문제는 아니다(커밋은 성공했고, 다음 시도의 스테일 가드는 raw가 아니라 contents API의 최신값으로 판정한다) — UX 잔상이다. 성공 토스트가 결과를 확정해 준다. 투영을 contents API로 바꾸는 것은 이번 최소 범위 밖(투영은 현재 토큰 없이 공개 raw로 도는데, 바꾸면 읽기에 토큰·base64가 필요해진다). 「대안」 참조.
 - **CLAUDE.md 테스트 표(읽기 전용 — 직접 수정 금지):** `transitions.test.mjs` 행 추가 + 파일·테스트 수 갱신(7→8파일)이 필요하다. B단계 `비고:`로 보고한다(추가 행: `pipeline/transitions.test.mjs | 게이트 전이 화이트리스트(승인대기→계획지시·검토대기→구현승인만) + status 줄 교체의 파서 왕복·스테일/미발견/형식 거부·다중 등장 시 최신 행만·커밋 메시지`).
 
