@@ -20,18 +20,18 @@ agent: admin-dev
 
 `/pipeline`은 dev 브랜치 `PROJECT_BOARD.md`를 raw CDN으로 투영해 브리핑을 렌더하고, 헤더의 「파이프라인 실행」 버튼이 이슈 #87에 고정 명령을 게시한다. **버튼 라벨은 정적이고, 실행 후 화면은 토스트 한 번 외엔 아무 말도 하지 않는다.**
 
-- `apps/admin/src/app/(protected)/pipeline/page.tsx`가 `requireAdmin()` → `getPipelineBoard()` → `buildBriefing(sections, new Date())`로 브리핑을 만들어 `<PipelineBriefing>`에 넘긴다. `dynamic = "force-dynamic"`이라 매 요청 재투영한다. protected layout도 인증하지만 page의 목적지 재검사를 대체하지 않는다.
-- `apps/admin/src/fsd/entities/pipeline/api/queries.ts`의 `getPipelineBoard()`는 `config/github.ts`의 `BOARD_RAW_URL`을 `cache: "no-store"`로 fetch한다. **읽기 전용 · 토큰 불필요 · CDN 경유(캐시 수 분).** server query라 page는 entity root가 아닌 명시적 `~/fsd/entities/pipeline/api` public segment로 import한다.
-- `apps/admin/src/fsd/pages/pipeline/model/briefing.ts`의 `buildBriefing`은 `flatten(sections)`으로 같은 ID의 최신 행만 남긴 뒤 `inbox`/`team`/`feed`를 도출해 `Briefing`을 낸다. inbox 판정은 transition feature public API의 `isGateTransitionSource`를 사용한다. **각 항목의 `status`를 이미 손에 쥐고 있으나, "지금 실행하면 무슨 일이 일어나는지"를 도출하는 함수는 없다.**
-- `apps/admin/src/fsd/entities/pipeline/model/board.ts`의 `BoardItem`은 `id`·`status`(`string | null`)·`agent`·`title` 등을 담고 `parseBoard`가 이를 채운다. runtime-neutral model/type은 entity root public API가 내보낸다.
-- `apps/admin/src/fsd/pages/pipeline/ui/index.tsx`의 `BriefingHeader`가 좌측 제목 블록과 우측 실행 버튼을 `flex items-start justify-between`으로 배치한다. 버튼은 **정적**이다: `<PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />`.
-- `apps/admin/src/fsd/features/run-pipeline-command/ui/pipeline-command-button.tsx`의 `PipelineCommandButton`은 `"use client"`로 `useTransition` + `postPipelineCommand` + 토스트를 조합한다. 성공 토스트는 `"실행 요청을 보냈습니다 (이슈 #87)"`이고 이후 화면 갱신은 없다. 이 컴포넌트는 page-private `fsd/pages/pipeline/ui/_component/pixel-office.tsx`의 사무실 책상 명령에도 쓰인다.
-- `apps/admin/src/fsd/features/run-pipeline-command/model/commands.ts`가 보안 경계다. `pipeline-run` 본문은 고정 문자열이고 `resolvePipelineCommand(key)`는 `Object.hasOwn`으로 화이트리스트를 검사해 밖이면 `null`이다. **클라이언트가 보내는 것은 key뿐, 본문은 서버가 정한다.**
-- `apps/admin/src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts`의 `postPipelineCommand(command)`는 `requireAdmin()`을 try 밖 최상단에서 실행한 뒤 whitelist → token → `ISSUE_COMMENTS_URL` POST 순서를 지킨다. webhook은 이슈 #87의 새 코멘트에 발화하고 루틴이 **작성자=소유자 + `"[claude]"` 미시작**으로 명령을 거른다.
-- `apps/admin/src/fsd/features/transition-pipeline-gate/ui/gate-transition-button.tsx`의 `GateTransitionButton`은 성공 후 `toast.success(\`${label}로 넘겼습니다\`)`와 `router.refresh()`만 실행한다. **결정(보드 커밋) 후 다음 행동 안내는 없다.** `label`은 transition model whitelist가 해석한 목표 status다.
-- `apps/admin/src/fsd/entities/pipeline/config/github.ts`가 issue/board 좌표를 소유한다. 저장소 좌표는 public이고 token만 비밀이다.
-- `apps/admin/src/env.js`의 `GITHUB_PIPELINE_TOKEN`은 optional이다. 현재 주석은 코멘트 POST와 board contents PUT 두 쓰기 용도만 설명한다.
-- 인가 3중 방어선은 `src/server/auth/config.ts` sign-in, `config.edge.ts` authorized + `src/middleware.ts`, 각 protected page/action의 `requireAdmin()` 재검사다. `requireAdmin()`은 세션 email을 `ADMIN_EMAILS`와 다시 대조하고 실패 시 `redirect`/`notFound`를 throw한다.
+- `app/(protected)/pipeline/page.tsx:16-18`이 `requireAdmin()` → `getPipelineBoard()` → `buildBriefing(sections, new Date())`로 브리핑을 만들어 `:22`의 `<PipelineBriefing>`에 넘긴다. `dynamic = "force-dynamic"`(`:13`)이라 매 요청 재투영한다. protected layout도 `requireAdmin()`을 부르지만(`app/(protected)/layout.tsx:11`) page의 목적지 재검사를 대체하지 않는다.
+- `fsd/entities/pipeline/api/queries.ts:6-8`의 `getPipelineBoard()`는 `config/github.ts:7`의 `BOARD_RAW_URL`을 `cache: "no-store"`로 fetch한다. **읽기 전용 · 토큰 불필요 · CDN 경유(캐시 수 분).** server query라 page는 entity root가 아닌 명시적 `~/fsd/entities/pipeline/api` public segment로 import한다.
+- `fsd/pages/pipeline/model/briefing.ts`의 `buildBriefing`은 `flatten(sections)`으로 같은 ID의 최신 행만 남긴 뒤 `inbox`/`team`/`feed`를 도출해 `Briefing`(`:27-33`)을 낸다. inbox 판정은 transition feature public API의 `isGateTransitionSource`(`:2` 임포트, `:194`·`:197` 사용)를 쓴다. **각 항목의 `status`를 이미 손에 쥐고 있으나, "지금 실행하면 무슨 일이 일어나는지"를 도출하는 함수는 없다.**
+- `fsd/entities/pipeline/model/board.ts:4`의 `BoardItem`은 `id`·`status`(`string | null`)·`agent`·`title` 등을 담고 `parseBoard`(`:24`)가 이를 채운다. runtime-neutral model/type은 entity root public API가 내보낸다.
+- `fsd/pages/pipeline/ui/index.tsx`의 `BriefingHeader`가 좌측 제목 블록과 우측 실행 버튼을 `flex items-start justify-between`(`:45`)으로 배치한다. 버튼은 **정적**이다: `<PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />`(`:59`, 임포트는 `:3`).
+- `fsd/features/run-pipeline-command/ui/pipeline-command-button.tsx`의 `PipelineCommandButton`은 `"use client"`(`:1`)로 `useTransition`(`:19`) + `postPipelineCommand`(`:23`) + 토스트를 조합한다. 성공 토스트는 `"실행 요청을 보냈습니다 (이슈 #87)"`(`:28`)이고 이후 화면 갱신은 없다. 이 컴포넌트는 page-private `fsd/pages/pipeline/ui/_component/pixel-office.tsx:150`의 사무실 책상 명령에도 쓰인다.
+- `fsd/features/run-pipeline-command/model/commands.ts`가 보안 경계다. `pipeline-run` 본문(`:18-19`)은 고정 문자열이고 `resolvePipelineCommand(key)`는 `Object.hasOwn`(`:29`)으로 화이트리스트를 검사해 밖이면 `null`이다. **클라이언트가 보내는 것은 key뿐, 본문은 서버가 정한다.**
+- `fsd/features/run-pipeline-command/api/post-pipeline-command.ts`의 `postPipelineCommand(command)`는 `requireAdmin()`(`:25`)을 try 밖 최상단에서 실행한 뒤 whitelist(`:28`) → token → `ISSUE_COMMENTS_URL`(`:4` 임포트) POST 순서를 지킨다. webhook은 이슈 #87의 새 코멘트에 발화하고 루틴이 **작성자=소유자 + `"[claude]"` 미시작**으로 명령을 거른다.
+- `fsd/features/transition-pipeline-gate/ui/gate-transition-button.tsx`의 `GateTransitionButton`은 성공 후 `toast.success(\`${label}로 넘겼습니다\`)`(`:38`)와 `router.refresh()`(`:39`)만 실행한다. **결정(보드 커밋) 후 다음 행동 안내는 없다.** `label`은 transition model whitelist가 해석한 목표 status다.
+- `fsd/entities/pipeline/config/github.ts`가 issue/board 좌표를 소유한다(`BOARD_RAW_URL` `:7`, `ISSUE_COMMENTS_URL` `:8`). 저장소 좌표는 public이고 token만 비밀이다.
+- `env.js:43`의 `GITHUB_PIPELINE_TOKEN`은 optional이다. 현재 주석은 코멘트 POST와 board contents PUT 두 쓰기 용도만 설명한다.
+- 인가 3중 방어선은 `src/server/auth/config.ts` sign-in, `config.edge.ts` authorized + `src/middleware.ts`, 각 protected page/action의 `requireAdmin()` 재검사다. `requireAdmin()`(`src/server/auth/guard.ts:7`)은 세션 email을 `ADMIN_EMAILS`와 다시 대조하고 실패 시 `redirect`/`notFound`를 throw한다.
 - 브리핑 tone과 `--stamp`·`--active`·`--silence`·`--hold`·`--briefing`, `--font-briefing-display`는 `apps/admin/src/styles/globals.css`가 소유한다.
 - `apps/admin/src/fsd/pages/pipeline/ui/index.tsx`는 서버 컴포넌트이며 client leaf인 command/gate UI를 조립한다.
 - production TypeScript는 `noUncheckedIndexedAccess: true`다. `.mjs` test는 현재 Core의 `test-typing-contract`에 따라 production tsconfig 대상이 아니다.
@@ -359,13 +359,16 @@ export async function getPipelineProgress(): Promise<ProgressState> {
     return { kind: "unknown" };
   }
   if (!Array.isArray(raw)) return { kind: "unknown" };
+  // Array.isArray는 unknown을 any[]로 좁힌다. 그대로 순회하면 any가 흘러나가
+  // @typescript-eslint/no-unsafe-assignment·no-unsafe-member-access 4건으로 lint가 깨진다.
+  const rawComments: unknown[] = raw;
 
   // GitHub의 `since`는 **마지막 수정 시각** 기준이다(생성 시각이 아니다 — REST 문서).
   // 그래서 오래된 코멘트를 편집하면 옛 created_at을 달고 창에 다시 들어오고, 이미 답글로
   // 갚힌 명령이 짝 없는 미응답으로 되살아나 "무응답 4320분" 같은 거짓 경보가 뜬다.
   // 창의 의미를 "최근 6시간에 생성된 것"으로 고정한다.
   const comments: { body: string; createdAt: string }[] = [];
-  for (const value of raw) {
+  for (const value of rawComments) {
     if (typeof value !== "object" || value === null) {
       return { kind: "unknown" };
     }
@@ -524,15 +527,27 @@ export function PipelineRunControl({ plan }: { plan: RunPlan }) {
 ### 5) `src/fsd/pages/pipeline/model/briefing.ts` (수정) — plan 배선
 
 ```ts
-// before (:1-2 아래에 임포트 추가)
+// before (:1-7) 임포트 블록
+import type { BoardItem, BoardSection } from "~/fsd/entities/pipeline";
+import { isGateTransitionSource } from "~/fsd/features/transition-pipeline-gate";
+import {
+  identityFor,
+  ROSTER_ORDER,
+  type AgentIdentity,
+} from "./known-agents";
+// after — command feature public API에서 run-plan을 들여온다(entities 다음, gate 앞)
 import type { BoardItem, BoardSection } from "~/fsd/entities/pipeline";
 import { describePipelineRun, type RunPlan } from "~/fsd/features/run-pipeline-command";
-import { identityFor, ROSTER_ORDER, type AgentIdentity } from "./known-agents";
-// after — run-plan 추가
+import { isGateTransitionSource } from "~/fsd/features/transition-pipeline-gate";
+import {
+  identityFor,
+  ROSTER_ORDER,
+  type AgentIdentity,
+} from "./known-agents";
 ```
 
 ```ts
-// before (:22-28) Briefing 타입
+// before (:27-33) Briefing 타입
 export type Briefing = {
   today: string;
   pendingCount: number;
@@ -552,7 +567,7 @@ export type Briefing = {
 ```
 
 ```ts
-// before (:195-205) — team 계산 후 return
+// before (:199-209) — team 계산 후 return
   const team = ROSTER_ORDER.map((id) => {
     const { state, heldId, tone } = teamState(id, items);
     return { identity: identityFor(id), state, heldId, tone };
@@ -582,21 +597,21 @@ export type Briefing = {
 ### 6) `src/fsd/pages/pipeline/ui/index.tsx` (수정) — 실행 콘솔 장착
 
 ```tsx
-// before (:8) — 미사용이 되므로 제거
+// before (:3) — 미사용이 되므로 제거
 import { PipelineCommandButton } from "~/fsd/features/run-pipeline-command";
 // after — 실행 콘솔 임포트로 교체(PipelineCommandButton은 이 파일에서 더 안 쓴다)
 import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 ```
 
 ```tsx
-// before (:41) 헤더 — 폰에서 콘솔이 접히도록 flex-wrap 추가
+// before (:45) 헤더 — 폰에서 콘솔이 접히도록 flex-wrap 추가
     <header className="flex items-start justify-between gap-4">
 // after
     <header className="flex flex-wrap items-start justify-between gap-4">
 ```
 
 ```tsx
-// before (:55) 정적 버튼
+// before (:59) 정적 버튼
       <PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />
 // after — 동적 실행 콘솔(briefing.plan 주입)
       <PipelineRunControl plan={briefing.plan} />
@@ -609,7 +624,11 @@ import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 `gateNextActionHint`는 gate 전이 결과를 설명하므로 gate feature가 소유한다. run-command feature로 옮기지 않는다. 그렇지 않으면 gate feature가 peer feature를 import해 FSD 경계를 위반한다.
 
 ```ts
-// model/transitions.ts — 기존 descriptor/whitelist 옆에 둔다.
+// before (model/transitions.ts:12) — 기존 descriptor 타입 선언 끝
+export type GateToStatus = GateTransitionDescriptor["to"];
+// after — 그 아래에 gate 소유 안내 문구를 잇는다
+export type GateToStatus = GateTransitionDescriptor["to"];
+
 const GATE_NEXT_DELIVERABLES: Record<string, string> = {
   계획지시: "계획서를",
   구현승인: "구현을",
@@ -626,7 +645,10 @@ export function gateNextActionHint(to: string): string {
 ```
 
 ```tsx
-// 같은 gate slice 안에서는 defining file을 상대 import한다.
+// before (ui/gate-transition-button.tsx:8) 임포트 끝
+import { commitGateTransition } from "../api/commit-gate-transition";
+// after — 같은 gate slice 안에서는 defining file을 상대 import한다
+import { commitGateTransition } from "../api/commit-gate-transition";
 import { gateNextActionHint } from "../model/transitions";
 ```
 
