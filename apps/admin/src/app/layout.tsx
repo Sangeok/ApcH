@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import "~/styles/globals.css";
-import { Toaster } from "~/ui/atoms/sonner";
+import { Toaster } from "~/fsd/shared/ui/atoms/sonner";
 
 export const metadata: Metadata = {
   title: "ApcH Admin",

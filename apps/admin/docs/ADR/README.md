@@ -27,15 +27,9 @@ ADR은 결정이 *왜* 내려졌는지, 어떤 대안을 비교했는지, 어떤
 
 ## ADR 목록 (Index)
 
-아직 작성된 ADR이 없습니다.
-
-첫 ADR을 추가하면 아래 형식으로 목록을 관리합니다.
-
-```md
 | ADR | Title | Status |
 | --- | --- | --- |
-| [0001](0001-example-title.md) | Example title | proposed |
-```
+| [0001](0001-adopt-fsd-for-admin.md) | Admin 소스에 right-sized FSD를 적용한다 | accepted |
 
 첫 번째 실제 아키텍처 결정은 `0001`부터 시작합니다. `0000`은 ADR 운영 방식
 자체를 기록하는 메타 ADR이 필요할 때만 사용합니다.

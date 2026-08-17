@@ -64,7 +64,7 @@
 ## Admin / 파이프라인
 
 - [ ] **FEAT-10**: `/pipeline` 명령 버튼이 무엇을 실행하는지·지금 무엇이 도는지 보이게 — 라벨 명시화 + 실행 상태 표시
-  - area: apps/admin/src/pipeline + apps/admin/src/ui
+  - area: apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/features/run-pipeline-command + apps/admin/src/fsd/features/transition-pipeline-gate + apps/admin/src/fsd/entities/pipeline
   - source: 사용자 요구 (2026-08-16, FEAT-08 첫 실사용 직후). **관측 셋**:
     - (1) 「계획지시」 도장을 찍은 뒤 화면에 아무 변화가 없어 **무엇이 진행 중인지 알 수 없었다** — 실제로는 보드 커밋만 됐고(결정) 세션 실행은 별개인데, 화면이 그 구분을 말해주지 않는다. 여기에 raw CDN 캐시 지연(수 분)이 겹쳐 status 변화조차 즉시 안 보였다. 사용자 표현: "지금 변화가 없고 뭐가 진행 중인지를 모르니까 어떻게 해야 할지를 모르겠다"
     - (2) 「파이프라인 실행」이라는 라벨로는 **정확히 무슨 process가 도는지 알 수 없다**. 실제 동작은 "보드의 각 항목을 현재 status가 요구하는 다음 행동으로 진행"인데, 그 시점 보드 상태에 따라 결과가 달라진다(계획지시면 계획서 작성, 구현승인이면 코드 구현, 아무것도 없으면 no-op). 사용자 표현: "파이프라인 실행이라고 하면 정확하게 무슨 process를 실행하는지 도통 알 수가 없다"
