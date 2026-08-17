@@ -32,7 +32,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **17개 파일, 35개 suite, 128개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **20개 파일, 39개 suite, 173개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -46,6 +46,9 @@ npm run build -w apps/admin
 | `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱 |
 | `src/fsd/features/run-pipeline-command/api/post-pipeline-command.test.mjs` | auth-first, whitelist, exact GitHub POST |
 | `src/fsd/features/run-pipeline-command/model/commands.test.mjs` | command body와 key whitelist |
+| `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.test.mjs` | auth-first, 6h `since` 창, `created_at` 재필터, shape 실패 fail-closed, FIFO 입력 전달 |
+| `src/fsd/features/run-pipeline-command/model/run-plan.test.mjs` | 실행 라벨 전 경우와 프로토타입 오염 방어 |
+| `src/fsd/features/run-pipeline-command/model/progress.test.mjs` | 명령:답글 FIFO 짝짓기, 상태 다섯, 임계·시계·접두 경계 |
 | `src/fsd/features/send-observability-test/api/send-observability-test-event.test.mjs` | auth-first Sentry scope/capture/flush 순서 |
 | `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.test.mjs` | auth-first, GET/PUT, optimistic lock, 실패 shape |
 | `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | 승인·반려 전이, 최소 diff, stale/format 거부 |
@@ -99,6 +102,7 @@ Node module mock으로 DB/GitHub/Sentry 호출 계약을 실제 외부 I/O 없�
 - raw board GET owner는 `src/fsd/entities/pipeline/api/queries.ts`다.
 - command POST owner는 `src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts`다.
 - gate GET/PUT owner는 `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts`다.
+- progress GET owner는 `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts`다(FEAT-10, 읽기 전용).
 - Sentry SDK direct import는 `src/instrumentation.ts`, `src/sentry.server.config.ts`, `src/fsd/shared/observability/report-error.ts`만 허용한다.
 
 GitHub 쓰기 두 경로는 모두 `requireAdmin()` 뒤에서 실행되고 server-side whitelist를 사용한다. command client는 key만 보내며 자유 형식 body를 보내지 않는다. gate client는 action/id/화면이 읽은 status만 보내고, 서버가 최신 board와 대조해 whitelist된 `status/result/block` 최소 edit만 커밋한다. `discard`는 행 제거라 git revert 없이는 되돌릴 수 없다.
