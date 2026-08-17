@@ -8,6 +8,7 @@ import {
   applyGateTransition,
   applyHoldTransition,
   gateCommitMessage,
+  gateNextActionHint,
   holdResultLine,
   rejectActionsFor,
   rejectCommitMessage,
@@ -509,5 +510,28 @@ describe("rejectCommitMessage — 대시보드 경유 표기", () => {
       rejectCommitMessage("discard", "FEAT-09"),
       "docs(board): discard FEAT-09 via dashboard gate",
     );
+  });
+});
+
+// ── FEAT-10: 도장 직후 다음 손잡이 안내(gate 소유 문구) ─────────────────────
+describe("gateNextActionHint — 도장 성공 토스트에 잇는 안내", () => {
+  it("계획지시·구현승인은 산출물을 이름으로 가리킨다(반영 지연 카피 포함)", () => {
+    assert.equal(
+      gateNextActionHint("계획지시"),
+      "보드에 반영되면 파이프라인 실행을 눌러 계획서를 받으세요.",
+    );
+    assert.equal(
+      gateNextActionHint("구현승인"),
+      "보드에 반영되면 파이프라인 실행을 눌러 구현을 받으세요.",
+    );
+  });
+
+  it("여집합(완료·임의값·프로토타입 오염 키)은 일반 안내로 물러난다", () => {
+    for (const to of ["완료", "arbitrary", "__proto__", "toString"]) {
+      assert.equal(
+        gateNextActionHint(to),
+        "보드에 반영되면 파이프라인 실행을 눌러 다음 단계를 진행하세요.",
+      );
+    }
   });
 });

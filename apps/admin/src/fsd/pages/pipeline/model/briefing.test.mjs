@@ -233,6 +233,11 @@ describe("buildBriefing", () => {
   it("formats today as M월 D일", () => {
     assert.equal(briefing.today, "8월 15일");
   });
+
+  it("wires the run plan from the deduped items (FEAT-06 계획지시 + FEAT-07 구현승인)", () => {
+    assert.equal(briefing.plan.enabled, true);
+    assert.equal(briefing.plan.label, "FEAT-06 계획서 작성 외 1건");
+  });
 });
 
 describe("identityFor / initialOf", () => {

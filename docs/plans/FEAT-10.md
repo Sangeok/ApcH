@@ -20,18 +20,18 @@ agent: admin-dev
 
 `/pipeline`은 dev 브랜치 `PROJECT_BOARD.md`를 raw CDN으로 투영해 브리핑을 렌더하고, 헤더의 「파이프라인 실행」 버튼이 이슈 #87에 고정 명령을 게시한다. **버튼 라벨은 정적이고, 실행 후 화면은 토스트 한 번 외엔 아무 말도 하지 않는다.**
 
-- `apps/admin/src/app/(protected)/pipeline/page.tsx`가 `requireAdmin()` → `getPipelineBoard()` → `buildBriefing(sections, new Date())`로 브리핑을 만들어 `<PipelineBriefing>`에 넘긴다. `dynamic = "force-dynamic"`이라 매 요청 재투영한다. protected layout도 인증하지만 page의 목적지 재검사를 대체하지 않는다.
-- `apps/admin/src/fsd/entities/pipeline/api/queries.ts`의 `getPipelineBoard()`는 `config/github.ts`의 `BOARD_RAW_URL`을 `cache: "no-store"`로 fetch한다. **읽기 전용 · 토큰 불필요 · CDN 경유(캐시 수 분).** server query라 page는 entity root가 아닌 명시적 `~/fsd/entities/pipeline/api` public segment로 import한다.
-- `apps/admin/src/fsd/pages/pipeline/model/briefing.ts`의 `buildBriefing`은 `flatten(sections)`으로 같은 ID의 최신 행만 남긴 뒤 `inbox`/`team`/`feed`를 도출해 `Briefing`을 낸다. inbox 판정은 transition feature public API의 `isGateTransitionSource`를 사용한다. **각 항목의 `status`를 이미 손에 쥐고 있으나, "지금 실행하면 무슨 일이 일어나는지"를 도출하는 함수는 없다.**
-- `apps/admin/src/fsd/entities/pipeline/model/board.ts`의 `BoardItem`은 `id`·`status`(`string | null`)·`agent`·`title` 등을 담고 `parseBoard`가 이를 채운다. runtime-neutral model/type은 entity root public API가 내보낸다.
-- `apps/admin/src/fsd/pages/pipeline/ui/index.tsx`의 `BriefingHeader`가 좌측 제목 블록과 우측 실행 버튼을 `flex items-start justify-between`으로 배치한다. 버튼은 **정적**이다: `<PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />`.
-- `apps/admin/src/fsd/features/run-pipeline-command/ui/pipeline-command-button.tsx`의 `PipelineCommandButton`은 `"use client"`로 `useTransition` + `postPipelineCommand` + 토스트를 조합한다. 성공 토스트는 `"실행 요청을 보냈습니다 (이슈 #87)"`이고 이후 화면 갱신은 없다. 이 컴포넌트는 page-private `fsd/pages/pipeline/ui/_component/pixel-office.tsx`의 사무실 책상 명령에도 쓰인다.
-- `apps/admin/src/fsd/features/run-pipeline-command/model/commands.ts`가 보안 경계다. `pipeline-run` 본문은 고정 문자열이고 `resolvePipelineCommand(key)`는 `Object.hasOwn`으로 화이트리스트를 검사해 밖이면 `null`이다. **클라이언트가 보내는 것은 key뿐, 본문은 서버가 정한다.**
-- `apps/admin/src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts`의 `postPipelineCommand(command)`는 `requireAdmin()`을 try 밖 최상단에서 실행한 뒤 whitelist → token → `ISSUE_COMMENTS_URL` POST 순서를 지킨다. webhook은 이슈 #87의 새 코멘트에 발화하고 루틴이 **작성자=소유자 + `"[claude]"` 미시작**으로 명령을 거른다.
-- `apps/admin/src/fsd/features/transition-pipeline-gate/ui/gate-transition-button.tsx`의 `GateTransitionButton`은 성공 후 `toast.success(\`${label}로 넘겼습니다\`)`와 `router.refresh()`만 실행한다. **결정(보드 커밋) 후 다음 행동 안내는 없다.** `label`은 transition model whitelist가 해석한 목표 status다.
-- `apps/admin/src/fsd/entities/pipeline/config/github.ts`가 issue/board 좌표를 소유한다. 저장소 좌표는 public이고 token만 비밀이다.
-- `apps/admin/src/env.js`의 `GITHUB_PIPELINE_TOKEN`은 optional이다. 현재 주석은 코멘트 POST와 board contents PUT 두 쓰기 용도만 설명한다.
-- 인가 3중 방어선은 `src/server/auth/config.ts` sign-in, `config.edge.ts` authorized + `src/middleware.ts`, 각 protected page/action의 `requireAdmin()` 재검사다. `requireAdmin()`은 세션 email을 `ADMIN_EMAILS`와 다시 대조하고 실패 시 `redirect`/`notFound`를 throw한다.
+- `app/(protected)/pipeline/page.tsx:16-18`이 `requireAdmin()` → `getPipelineBoard()` → `buildBriefing(sections, new Date())`로 브리핑을 만들어 `:22`의 `<PipelineBriefing>`에 넘긴다. `dynamic = "force-dynamic"`(`:13`)이라 매 요청 재투영한다. protected layout도 `requireAdmin()`을 부르지만(`app/(protected)/layout.tsx:11`) page의 목적지 재검사를 대체하지 않는다.
+- `fsd/entities/pipeline/api/queries.ts:6-8`의 `getPipelineBoard()`는 `config/github.ts:7`의 `BOARD_RAW_URL`을 `cache: "no-store"`로 fetch한다. **읽기 전용 · 토큰 불필요 · CDN 경유(캐시 수 분).** server query라 page는 entity root가 아닌 명시적 `~/fsd/entities/pipeline/api` public segment로 import한다.
+- `fsd/pages/pipeline/model/briefing.ts`의 `buildBriefing`은 `flatten(sections)`으로 같은 ID의 최신 행만 남긴 뒤 `inbox`/`team`/`feed`를 도출해 `Briefing`(`:27-33`)을 낸다. inbox 판정은 transition feature public API의 `isGateTransitionSource`(`:2` 임포트, `:194`·`:197` 사용)를 쓴다. **각 항목의 `status`를 이미 손에 쥐고 있으나, "지금 실행하면 무슨 일이 일어나는지"를 도출하는 함수는 없다.**
+- `fsd/entities/pipeline/model/board.ts:4`의 `BoardItem`은 `id`·`status`(`string | null`)·`agent`·`title` 등을 담고 `parseBoard`(`:24`)가 이를 채운다. runtime-neutral model/type은 entity root public API가 내보낸다.
+- `fsd/pages/pipeline/ui/index.tsx`의 `BriefingHeader`가 좌측 제목 블록과 우측 실행 버튼을 `flex items-start justify-between`(`:45`)으로 배치한다. 버튼은 **정적**이다: `<PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />`(`:59`, 임포트는 `:3`).
+- `fsd/features/run-pipeline-command/ui/pipeline-command-button.tsx`의 `PipelineCommandButton`은 `"use client"`(`:1`)로 `useTransition`(`:19`) + `postPipelineCommand`(`:23`) + 토스트를 조합한다. 성공 토스트는 `"실행 요청을 보냈습니다 (이슈 #87)"`(`:28`)이고 이후 화면 갱신은 없다. 이 컴포넌트는 page-private `fsd/pages/pipeline/ui/_component/pixel-office.tsx:150`의 사무실 책상 명령에도 쓰인다.
+- `fsd/features/run-pipeline-command/model/commands.ts`가 보안 경계다. `pipeline-run` 본문(`:18-19`)은 고정 문자열이고 `resolvePipelineCommand(key)`는 `Object.hasOwn`(`:29`)으로 화이트리스트를 검사해 밖이면 `null`이다. **클라이언트가 보내는 것은 key뿐, 본문은 서버가 정한다.**
+- `fsd/features/run-pipeline-command/api/post-pipeline-command.ts`의 `postPipelineCommand(command)`는 `requireAdmin()`(`:25`)을 try 밖 최상단에서 실행한 뒤 whitelist(`:28`) → token → `ISSUE_COMMENTS_URL`(`:4` 임포트) POST 순서를 지킨다. webhook은 이슈 #87의 새 코멘트에 발화하고 루틴이 **작성자=소유자 + `"[claude]"` 미시작**으로 명령을 거른다.
+- `fsd/features/transition-pipeline-gate/ui/gate-transition-button.tsx`의 `GateTransitionButton`은 성공 후 `toast.success(\`${label}로 넘겼습니다\`)`(`:38`)와 `router.refresh()`(`:39`)만 실행한다. **결정(보드 커밋) 후 다음 행동 안내는 없다.** `label`은 transition model whitelist가 해석한 목표 status다.
+- `fsd/entities/pipeline/config/github.ts`가 issue/board 좌표를 소유한다(`BOARD_RAW_URL` `:7`, `ISSUE_COMMENTS_URL` `:8`). 저장소 좌표는 public이고 token만 비밀이다.
+- `env.js:43`의 `GITHUB_PIPELINE_TOKEN`은 optional이다. 현재 주석은 코멘트 POST와 board contents PUT 두 쓰기 용도만 설명한다.
+- 인가 3중 방어선은 `src/server/auth/config.ts` sign-in, `config.edge.ts` authorized + `src/middleware.ts`, 각 protected page/action의 `requireAdmin()` 재검사다. `requireAdmin()`(`src/server/auth/guard.ts:7`)은 세션 email을 `ADMIN_EMAILS`와 다시 대조하고 실패 시 `redirect`/`notFound`를 throw한다.
 - 브리핑 tone과 `--stamp`·`--active`·`--silence`·`--hold`·`--briefing`, `--font-briefing-display`는 `apps/admin/src/styles/globals.css`가 소유한다.
 - `apps/admin/src/fsd/pages/pipeline/ui/index.tsx`는 서버 컴포넌트이며 client leaf인 command/gate UI를 조립한다.
 - production TypeScript는 `noUncheckedIndexedAccess: true`다. `.mjs` test는 현재 Core의 `test-typing-contract`에 따라 production tsconfig 대상이 아니다.
@@ -80,6 +80,8 @@ unknown   ● 진행 상태 확인 불가              (회색 점)
 - **모션 — 목적 있는 한 곳뿐.** awaiting 점만 `animate-pulse`(Tailwind 내장) + `motion-reduce:animate-none`. FEAT-07이 "상시 애니메이션 없음"을 정했지만, 여기 맥박은 **관측 3의 문제 그 자체를 푼다** — "돌고 있는가"를 침묵이 아니라 박동으로 답한다. responded/silent/idle은 정지(더 이상 대기 아님). 신규 keyframe 불필요 → `globals.css` 무변경.
 - **접근성 바닥.** 실제 `<button>`(키보드·`useTransition`), pending은 `"요청 중..."` 텍스트로 알린다. 실패는 토스트로 사유를 말한다(조용한 실패 금지). pill 상태는 낱말과 색 둘 다로 전한다.
 - **pill이 말하는 범위는 버튼이 아니라 채널이다.** 이슈 #87에 나가는 명령은 헤더 실행만이 아니다 — 사무실 책상 다섯 개도 같은 경로로 명령을 게시한다(`src/fsd/pages/pipeline/ui/_component/pixel-office.tsx`가 command feature public API의 `PipelineCommandButton`을 쓰고, 본문은 전부 같은 feature `model/commands.ts`의 비-`[claude]` 화이트리스트다). `deriveProgress`는 그것들도 명령으로 세므로, 책상 버튼을 눌러도 이 pill이 반응한다. **의도된 동작이다** — pill은 "이 채널에 답 없는 요청이 있나"를 말하지 "헤더 버튼이 낸 요청"만 말하지 않는다. 그래서 문구도 채널 말투다(`최근 요청 없음`·`이슈 #87 확인`). 두 가지 귀결: (1) 라벨은 `pipeline-run`이 할 일을, pill은 채널 전체를 말하므로 **둘이 같은 대상을 가리키지 않을 수 있다**. (2) 책상 버튼에는 클릭 직후 즉시 갱신이 없어 최대 15초(다음 폴) 뒤에 pill이 반응한다 — 헤더 버튼만 즉시 갱신한다.
+
+**실행 직후 안내 (카피).** 헤더 실행 버튼의 성공 토스트는 `파이프라인 실행을 요청했습니다 (이슈 #87). 아래에서 진행을 확인하세요.`다. **책상 다섯 개는 기존 문구 `실행 요청을 보냈습니다 (이슈 #87)`를 그대로 둔다**(`pipeline-command-button.tsx:28`, 이 항목의 「고칠 파일」에 없다). 같은 이슈에 명령을 보내는 두 버튼이 다른 말을 하는 것은 의도다 — 헤더 토스트만 바로 아래 pill을 가리킬 수 있고, 책상 버튼 밑에는 가리킬 것이 없다. pill의 채널 비대칭(위 항목)과 같은 이유이며, 책상 문구까지 바꾸면 이 항목의 범위를 넘는다.
 
 **도장 직후 안내 (카피).** 결재함 도장 성공 토스트에 다음 행동을 잇는다 — `계획지시로 넘겼습니다. 보드에 반영되면 파이프라인 실행을 눌러 계획서를 받으세요.` **결정(보드 커밋)과 실행(세션)이 별개**임을 말이 명시한다. FEAT-08이 기각한 자동 게시와 다르다 — 자동으로 잇지 않고 **다음 손잡이를 가리킬 뿐**, 클릭은 여전히 사용자 몫이다. 어휘 일관성: 버튼 라벨 `계획서 작성` → 도장 안내 `계획서를 받으세요` → 실행 후 pill `응답 옴`.
 
@@ -314,6 +316,8 @@ export function deriveProgress(
 
 ### 3) `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts` (신규, `"use server"`) — 코멘트 read
 
+**왜 `entities/pipeline/api`가 아니라 여기인가.** 같은 GitHub 좌표를 읽는 형제 함수 `getPipelineBoard()`는 `entities/pipeline/api/queries.ts`에 있고, FSD 규약(`apps/web/docs/conventions/fsd-architecture-guidelines.md` 「서버 데이터 접근 배치 규칙」 1)도 "단일 도메인 엔티티 조회는 `entities/<domain>/api/`"라고 한다. 그런데 이 함수는 **중립적인 엔티티 조회가 아니라** 코멘트를 `deriveProgress`(같은 feature의 `model/progress`)로 넘겨 "내 명령이 응답됐나"를 도출한다 — run-command 행위에만 의미가 있는 상태다. entities에 두면 그 model을 상향 임포트해야 하고, 그것은 경계 검사가 막는다(실측: 옮겨서 돌리면 `[R1] entities cannot import upward from features`로 종료코드 1). 즉 이 배치는 취향이 아니라 **구조적으로 강제된 것**이다. 보드 읽기 옆으로 "정리"하지 말 것.
+
 `post-pipeline-command.ts` 패턴처럼 `requireAdmin()`을 최상단에 둔다. **읽기 전용**이라 새 쓰기 경로가 아니다. `since` 6시간 창으로 스레드가 커져도 페이로드가 작게 유지된다 — 실측(2026-08-17)으로 코멘트 1건당 약 4KB이고, 가장 붐볐던 구간을 포함해 8건을 받아도 30.4KB다(전체 12건은 42.3KB). 읽기 실패는 부가 신호이므로 `unknown`으로 조용히 물러난다(쓰기 실패와 달리 삼킬 write가 없다).
 
 **`since`의 의미에 주의한다(검증에서 확인).** GitHub REST의 `since`는 **마지막 수정 시각** 기준이지 생성 시각이 아니다. 그래서 누군가 오래된 코멘트를 편집하면 그 코멘트가 **옛 `created_at`을 달고 창에 다시 들어온다.** 이미 답글로 갚혔지만 그 답글은 창 밖이므로 짝이 없어, 짝짓기 모델에서 미응답 명령으로 되살아나 `무응답 4320분` 같은 거짓 경보가 뜬다(실측 재현). 그러므로 받은 목록을 **`created_at`이 창 안인 것으로 한 번 더 거른다** — 창의 의미를 "최근 6시간에 생성된 것"으로 고정하는 세 줄이다.
@@ -359,13 +363,16 @@ export async function getPipelineProgress(): Promise<ProgressState> {
     return { kind: "unknown" };
   }
   if (!Array.isArray(raw)) return { kind: "unknown" };
+  // Array.isArray는 unknown을 any[]로 좁힌다. 그대로 순회하면 any가 흘러나가
+  // @typescript-eslint/no-unsafe-assignment·no-unsafe-member-access 4건으로 lint가 깨진다.
+  const rawComments: unknown[] = raw;
 
   // GitHub의 `since`는 **마지막 수정 시각** 기준이다(생성 시각이 아니다 — REST 문서).
   // 그래서 오래된 코멘트를 편집하면 옛 created_at을 달고 창에 다시 들어오고, 이미 답글로
   // 갚힌 명령이 짝 없는 미응답으로 되살아나 "무응답 4320분" 같은 거짓 경보가 뜬다.
   // 창의 의미를 "최근 6시간에 생성된 것"으로 고정한다.
   const comments: { body: string; createdAt: string }[] = [];
-  for (const value of raw) {
+  for (const value of rawComments) {
     if (typeof value !== "object" || value === null) {
       return { kind: "unknown" };
     }
@@ -524,15 +531,27 @@ export function PipelineRunControl({ plan }: { plan: RunPlan }) {
 ### 5) `src/fsd/pages/pipeline/model/briefing.ts` (수정) — plan 배선
 
 ```ts
-// before (:1-2 아래에 임포트 추가)
+// before (:1-7) 임포트 블록
+import type { BoardItem, BoardSection } from "~/fsd/entities/pipeline";
+import { isGateTransitionSource } from "~/fsd/features/transition-pipeline-gate";
+import {
+  identityFor,
+  ROSTER_ORDER,
+  type AgentIdentity,
+} from "./known-agents";
+// after — command feature public API에서 run-plan을 들여온다(entities 다음, gate 앞)
 import type { BoardItem, BoardSection } from "~/fsd/entities/pipeline";
 import { describePipelineRun, type RunPlan } from "~/fsd/features/run-pipeline-command";
-import { identityFor, ROSTER_ORDER, type AgentIdentity } from "./known-agents";
-// after — run-plan 추가
+import { isGateTransitionSource } from "~/fsd/features/transition-pipeline-gate";
+import {
+  identityFor,
+  ROSTER_ORDER,
+  type AgentIdentity,
+} from "./known-agents";
 ```
 
 ```ts
-// before (:22-28) Briefing 타입
+// before (:27-33) Briefing 타입
 export type Briefing = {
   today: string;
   pendingCount: number;
@@ -552,7 +571,7 @@ export type Briefing = {
 ```
 
 ```ts
-// before (:195-205) — team 계산 후 return
+// before (:199-209) — team 계산 후 return
   const team = ROSTER_ORDER.map((id) => {
     const { state, heldId, tone } = teamState(id, items);
     return { identity: identityFor(id), state, heldId, tone };
@@ -582,21 +601,21 @@ export type Briefing = {
 ### 6) `src/fsd/pages/pipeline/ui/index.tsx` (수정) — 실행 콘솔 장착
 
 ```tsx
-// before (:8) — 미사용이 되므로 제거
+// before (:3) — 미사용이 되므로 제거
 import { PipelineCommandButton } from "~/fsd/features/run-pipeline-command";
 // after — 실행 콘솔 임포트로 교체(PipelineCommandButton은 이 파일에서 더 안 쓴다)
 import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 ```
 
 ```tsx
-// before (:41) 헤더 — 폰에서 콘솔이 접히도록 flex-wrap 추가
+// before (:45) 헤더 — 폰에서 콘솔이 접히도록 flex-wrap 추가
     <header className="flex items-start justify-between gap-4">
 // after
     <header className="flex flex-wrap items-start justify-between gap-4">
 ```
 
 ```tsx
-// before (:55) 정적 버튼
+// before (:59) 정적 버튼
       <PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />
 // after — 동적 실행 콘솔(briefing.plan 주입)
       <PipelineRunControl plan={briefing.plan} />
@@ -609,7 +628,11 @@ import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 `gateNextActionHint`는 gate 전이 결과를 설명하므로 gate feature가 소유한다. run-command feature로 옮기지 않는다. 그렇지 않으면 gate feature가 peer feature를 import해 FSD 경계를 위반한다.
 
 ```ts
-// model/transitions.ts — 기존 descriptor/whitelist 옆에 둔다.
+// before (model/transitions.ts:12) — 기존 descriptor 타입 선언 끝
+export type GateToStatus = GateTransitionDescriptor["to"];
+// after — 그 아래에 gate 소유 안내 문구를 잇는다
+export type GateToStatus = GateTransitionDescriptor["to"];
+
 const GATE_NEXT_DELIVERABLES: Record<string, string> = {
   계획지시: "계획서를",
   구현승인: "구현을",
@@ -626,7 +649,10 @@ export function gateNextActionHint(to: string): string {
 ```
 
 ```tsx
-// 같은 gate slice 안에서는 defining file을 상대 import한다.
+// before (ui/gate-transition-button.tsx:8) 임포트 끝
+import { commitGateTransition } from "../api/commit-gate-transition";
+// after — 같은 gate slice 안에서는 defining file을 상대 import한다
+import { commitGateTransition } from "../api/commit-gate-transition";
 import { gateNextActionHint } from "../model/transitions";
 ```
 
@@ -697,7 +723,7 @@ npm.cmd run build -w apps/admin
   - 기존 `transitions.test.mjs` (수정) — `gateNextActionHint`: `"계획지시"`→`"보드에 반영되면 파이프라인 실행을 눌러 계획서를 받으세요."`, `"구현승인"`→`"…구현을 받으세요."`, `"완료"`/`"arbitrary"`→`"…다음 단계를 진행하세요."`. 기존 forward/reject 테스트는 그대로 유지한다.
   - `progress.test.mjs` (신규) — `deriveProgress(comments, now)`: `[]`→`idle`; 답글만(`[claude]` 전부)→`idle`; 명령 뒤 답글→`responded`(sinceIso=명령 시각); **이중 명령+답글 1건→`awaiting`(sinceIso=뒤 명령)** — 답글 1건은 앞 명령만 갚으므로 뒤 명령은 미응답이다(2026-08-15 삼킴 사건의 형태. 여기서 `responded`가 나오면 삼킴이 성공으로 보인다); **미응답 2건 동시(명령1 10분 전·명령2 1분 전, 답글 없음)→`silent{sinceIso:명령1, minutes:10}`** — 결정 4의 "가장 오래된 미응답 기준"을 고정하는 단언이다. **이 단언이 없으면 "가장 최근 미응답 기준"으로 구현해도 나머지 명세가 전부 통과하고**, 그 구현은 2026-08-15 재전송 시점에 `silent(15분 · 이슈 #87 확인)` 대신 `awaiting(0분)`을 띄워 이 항목의 핵심 신호를 잃는다(돌연변이 검사 실측); 명령 2건+답글 2건→`responded`(sinceIso=최신 명령); 창 밖 명령의 답글이 앞에 와도 뒤 명령을 갚지 않음→`silent`; 명령만·경과 1분(<3분)→`awaiting{minutes:1}`; 명령만·경과 5분(≥3분)→`silent{minutes:5}`; 명령1→답글1→명령2(무응답)→`silent`(명령2 기준); 경과 정확히 3분(180,000ms)→`silent`(경계 포함); `minutes` 계산(floor); `createdAt` 파싱 불가→`unknown`; **코멘트 시각이 미래(서버·GitHub 시계 어긋남)→`minutes:0`** — 스케치의 `Math.max(0, …)` 클램프를 고정한다(없으면 "−1분째 응답 대기"가 뜬다); **본문 *중간*에 `[claude]`가 든 코멘트는 답글이 아니라 명령이다**(사람이 손으로 쓴 메모 등) — 판정이 `startsWith`(접두)이지 `includes`가 아님을 고정한다. 두 단언 모두 없으면 각각의 오구현이 나머지 명세를 전부 통과한다(돌연변이 검사 실측). `isReply`는 export 안 하므로 접두 판정은 body `" [claude] x"`(선행 공백)를 담은 코멘트로 responded 도출을 통해 간접 확인. `SILENCE_THRESHOLD_MS === 180000`.
   - `briefing.test.mjs` (수정) — 기존 BOARD 픽스처(FEAT-06 계획지시 + FEAT-07 구현승인 포함)에서 `briefing.plan.enabled === true`, `briefing.plan.label === "FEAT-06 계획서 작성 외 1건"` 단언 1개 추가. 기존 단언(inbox/feed/team/today/pendingCount)은 `plan` 필드 추가로 깨지지 않는다(전부 하위 필드 대상, `briefing` 전체 deepEqual 없음).
-  - `get-pipeline-progress.test.mjs` (신규) — `server-only`, auth, env, entity coordinate와 `globalThis.fetch`를 module mock해 auth-first, exact issue #87 URL, 6시간 `since`, `per_page=100`, no-store, 선택적 Bearer header, `created_at` 창 필터와 전송·status·JSON 실패를 검증한다. shape 실패는 top-level non-array와 array member `null`/primitive/필드 누락·타입 오류/invalid timestamp를 각각 `unknown`으로 고정하고, malformed member가 유효 member 옆에 있어도 부분 집계하지 않는다고 단언한다. FIFO 입력 전달도 live GitHub 호출 없이 검증한다. 이 test 추가와 boundary rule의 production fetch owner 3→4 변경은 원자적이다.
+  - `get-pipeline-progress.test.mjs` (신규) — auth(`~/server/auth/guard`), env와 `globalThis.fetch`를 module mock하고 entity coordinate는 실물을 import해 대조한다(`server-only`는 mock하지 않는다 — 이 액션이 직접 import하지 않고 유일한 import처인 `guard.ts:1`은 통째로 mock되므로 로드되지 않는다. 기존 액션 테스트 셋도 mock하지 않는다). 이렇게 해서 auth-first, exact issue #87 URL, 6시간 `since`, `per_page=100`, no-store, 선택적 Bearer header, `created_at` 창 필터와 전송·status·JSON 실패를 검증한다. shape 실패는 top-level non-array와 array member `null`/primitive/**`body` 누락**/**`created_at` 누락**/타입 오류/invalid timestamp를 각각 `unknown`으로 고정하고 — **누락 두 경우를 한 케이스로 합치지 말 것.** 합치면 `"body" in value`의 거짓 분기를 아무도 밟지 않아 이 파일의 branch coverage가 96.43%에서 멈춘다(실측). 둘로 나누면 line·branch·function 모두 100%가 된다, malformed member가 유효 member 옆에 있어도 부분 집계하지 않는다고 단언한다. FIFO 입력 전달도 live GitHub 호출 없이 검증한다. 이 test 추가와 boundary rule의 production fetch owner 3→4 변경은 원자적이다.
 - **못 덮는 범위 (DOM/실제 외부 I/O 없음 — 배포 후 데스크톱+폰 수동 확인):**
   - **`per_page=100` 상한**: 6시간 안에 코멘트가 100건을 넘으면 GitHub이 오래된 100건만 주므로(ID 오름차순) 최신 상태를 놓친다. 실측 밀도가 3일에 12건이라 현실 시나리오가 아니지만, 이 화면은 그 경우 조용히 낡은 값을 보인다 — 알려진 한계로 남긴다.
   - `PipelineRunControl`의 `useEffect` 폴링(15초 간격·마운트 1회·언마운트 정리)·`useTransition`·`postPipelineCommand`·`getPipelineProgress` 호출·토스트·disabled 상태.
@@ -706,7 +732,9 @@ npm.cmd run build -w apps/admin
   - 헤더 `flex-wrap` 반응형(폰 접힘)·설명 `max-w-64` 줄바꿈.
   - `src/fsd/features/transition-pipeline-gate/ui/gate-transition-button.tsx` 토스트 이음 문구의 실화면.
   - **CDN 잔상(설계상 한계, 결정 6)**: 투영은 raw CDN(캐시 수 분)이라 실행 후 보드 flip·동적 라벨 갱신이 지연될 수 있다. 진행 pill은 코멘트 API(수 초)라 이 지연을 타지 않으므로 관측 3은 해소되지만, "보드에 반영된 새 status"는 다음 로드에서 보인다. 후속 항목 후보(투영을 contents API로 이관 — FEAT-08 「대안」).
-- **CLAUDE.md 테스트 표 handoff:** 최종 FSD 경로의 `run-plan.test.mjs`·`progress.test.mjs`·`get-pipeline-progress.test.mjs` 3행과 실제 runner의 file/test/suite 수를 구현 결과에 적어 repository maintainer가 `apps/admin/CLAUDE.md`를 동기화할 수 있게 한다. `admin-dev`는 이 읽기 전용 파일을 직접 고치지 않는다.
+- **CLAUDE.md handoff (두 곳):** `admin-dev`는 이 읽기 전용 파일을 직접 고치지 않고, 아래 둘을 구현 결과에 적어 maintainer가 동기화할 수 있게 한다.
+  1. **「테스트 인벤토리」**(`apps/admin/CLAUDE.md:35`) — 최종 FSD 경로의 `run-plan.test.mjs`·`progress.test.mjs`·`get-pipeline-progress.test.mjs` 3행과 실제 runner의 file/test/suite 수(현재 17파일·35suite·128test).
+  2. **「데이터와 외부 효과 소유권」**(`:99-101`) — 지금 GitHub 접촉 owner를 셋(raw board GET · command POST · gate GET/PUT)으로 열거하는데 이 항목이 **네 번째**를 더한다: `progress GET owner는 src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts다`. 경계 스크립트의 owner를 3→4로 올리면서 이 목록을 그대로 두면 워크스페이스 지시 문서가 코드보다 낡는다. 바로 아래 문장("GitHub 쓰기 두 경로는…")은 **고치지 않는다** — 새 owner는 읽기라 쓰기 경로는 여전히 둘이다.
 
 ## 범위 밖 의존
 

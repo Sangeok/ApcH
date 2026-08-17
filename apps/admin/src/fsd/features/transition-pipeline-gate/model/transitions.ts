@@ -11,6 +11,20 @@ export type GateTransitionDescriptor =
   (typeof GATE_TRANSITIONS)[GateTransitionSource];
 export type GateToStatus = GateTransitionDescriptor["to"];
 
+const GATE_NEXT_DELIVERABLES: Record<string, string> = {
+  계획지시: "계획서를",
+  구현승인: "구현을",
+};
+
+export function gateNextActionHint(to: string): string {
+  const deliverable = Object.hasOwn(GATE_NEXT_DELIVERABLES, to)
+    ? GATE_NEXT_DELIVERABLES[to]
+    : undefined;
+  return deliverable === undefined
+    ? "보드에 반영되면 파이프라인 실행을 눌러 다음 단계를 진행하세요."
+    : `보드에 반영되면 파이프라인 실행을 눌러 ${deliverable} 받으세요.`;
+}
+
 export function isGateTransitionSource(
   value: string,
 ): value is GateTransitionSource {
