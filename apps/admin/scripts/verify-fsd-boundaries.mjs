@@ -32,6 +32,7 @@ const FSD_EFFECT_OWNERS = {
   fetch: new Set([
     "src/fsd/entities/pipeline/api/queries.ts",
     "src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts",
+    "src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts",
     "src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts",
   ]),
   sentry: new Set([

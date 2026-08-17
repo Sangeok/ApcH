@@ -148,6 +148,32 @@ describe("FSD boundary analyzer", () => {
     assert.ok(found.filter((rule) => rule === "R13").length >= 5);
   });
 
+  it("accepts fetch in all four production fetch owners but rejects it elsewhere", () => {
+    // 승인된 네 owner(진행 GET을 네 번째로 포함)에서의 fetch는 통과한다.
+    assert.deepEqual(
+      analyze({
+        "src/fsd/entities/pipeline/api/queries.ts":
+          'export const q = () => fetch("a");',
+        "src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts":
+          '"use server"; export const post = () => fetch("b");',
+        "src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts":
+          '"use server"; export const get = () => fetch("c");',
+        "src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts":
+          '"use server"; export const commit = () => fetch("d");',
+      }),
+      [],
+    );
+    // 같은 fetch가 page·shared·client 등 owner 밖 파일에 있으면 계속 R13으로 거부된다.
+    const found = rules({
+      "src/fsd/pages/pipeline/model/poll.ts":
+        'export const poll = () => fetch("x");',
+      "src/fsd/shared/lib/net.ts": 'export const net = () => fetch("y");',
+      "src/fsd/features/run-pipeline-command/ui/leak.tsx":
+        '"use client"; export const leak = () => fetch("z");',
+    });
+    assert.equal(found.filter((rule) => rule === "R13").length, 3);
+  });
+
   it("final mode rejects missing entries, legacy files, and effect-owner drift", () => {
     const found = rules(
       {

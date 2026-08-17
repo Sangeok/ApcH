@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { PipelineCommandButton } from "~/fsd/features/run-pipeline-command";
+import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 import {
   GateTransitionButton,
   RejectActions,
@@ -42,7 +42,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 function BriefingHeader({ briefing }: { briefing: Briefing }) {
   return (
-    <header className="flex items-start justify-between gap-4">
+    <header className="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p className="font-briefing-display text-sm tracking-widest text-muted-foreground">
           파이프라인 브리핑
@@ -56,7 +56,7 @@ function BriefingHeader({ briefing }: { briefing: Briefing }) {
             : "결정 대기 없음"}
         </p>
       </div>
-      <PipelineCommandButton command="pipeline-run" label="파이프라인 실행" />
+      <PipelineRunControl plan={briefing.plan} />
     </header>
   );
 }

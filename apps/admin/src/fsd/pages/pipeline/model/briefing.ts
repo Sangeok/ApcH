@@ -1,4 +1,5 @@
 import type { BoardItem, BoardSection } from "~/fsd/entities/pipeline";
+import { describePipelineRun, type RunPlan } from "~/fsd/features/run-pipeline-command";
 import { isGateTransitionSource } from "~/fsd/features/transition-pipeline-gate";
 import {
   identityFor,
@@ -30,6 +31,7 @@ export type Briefing = {
   inbox: SpeechItem[];
   team: TeamMember[];
   feed: SpeechItem[];
+  plan: RunPlan;
 };
 
 type DatedItem = BoardItem & { sectionDate: string };
@@ -206,5 +208,6 @@ export function buildBriefing(sections: BoardSection[], today: Date): Briefing {
     inbox,
     team,
     feed,
+    plan: describePipelineRun(items),
   };
 }
