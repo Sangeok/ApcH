@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { LoginButton } from "~/ui/login-button";
+import { LoginButton } from "~/fsd/features/admin-sign-in";
 
 export const metadata: Metadata = {
   title: "Admin Login",

@@ -19,8 +19,9 @@ tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 
 **수정 가능**
 
-- `apps/admin/src/**` — App Router(`src/app/`), analytics 집계(`src/analytics/`), 인증·인가(`src/auth/`), 관측(`src/observability/`), UI(`src/ui/`), 유틸(`src/lib/`)
+- `apps/admin/src/**` — App Router shell(`src/app/`), 전역 인증(`src/server/auth/`), FSD 제품 코드(`src/fsd/`)
 - `apps/admin` 하위 테스트 파일(`*.test.mjs`)
+- `apps/admin/scripts/verify-fsd-boundaries.mjs`와 그 test — 승인된 계획이 DB/network/Sentry owner 또는 public boundary를 바꿀 때만. 허용 범위를 넓히는 변경은 새 owner의 전용 contract test와 rule mutation fixture를 같은 작업에 포함해야 한다
 - `docs/plans/<네가 지금 처리 중인 항목ID>.md` — **이 파일 하나뿐이다.** 다른 항목의 계획서는 남의 것이다. `docs/plans/` 아래 다른 파일은 `template.md`를 포함해 하나도 건드리지 않는다
 - `PROJECT_BOARD.md` — **네가 지금 처리 중인 항목의 행만** (A-4·B-6이 요구하는 status·결과 갱신). 다른 항목의 행과 안내 블록은 건드리지 않는다
 - `TASK_BACKLOG.md` — **`완료` 시 자기 항목을 제거하는 것만** (B-7). 새 항목 추가는 "절대 하지 않는 일"이다
@@ -32,9 +33,15 @@ tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 - `packages/db/**` — 스키마와 analytics 계약이 여기 있다. 계약은 web과 공유하므로 한쪽만 바꿀 수 없다
 - `apps/web/**`, `apps/backend/**` — 담당 범위 밖
 
-**`apps/admin`은 FSD가 아니다.** `apps/web`의 레이어 규칙(상위→하위 임포트, peer 임포트 금지, 슬라이스의 `ui/model/api/lib` 분할)을 여기 가져오지 않는다. `src/` 아래 평평한 모듈이다.
+`apps/admin`은 right-sized FSD를 사용한다. 의존 방향은 `app → pages → widgets → features → entities → shared`이며 peer slice import와 역방향 import를 금지한다. slice 밖 소비자는 root public API, slice 내부는 상대 import를 사용한다. `ui/_component`는 page-private이고, feature Server Action·entity server query·Edge auth config는 public root에서 재수출하지 않는다. `npm run verify:fsd -w apps/admin`과 최종 tree의 `verify:fsd:final`이 이 계약을 검사한다.
 
-인가 로직은 `auth/config.ts`·`auth/config.edge.ts`·`auth/guard.ts`·`middleware.ts`·`lib/parse-admin-emails.ts` **다섯 파일에 걸쳐 있다.** 보드의 `area`는 출발점일 뿐이며, 거기서 멈추지 말고 실제 호출 경로를 따라간다.
+인가 로직은 `src/server/auth/config.ts`·`config.edge.ts`·`guard.ts`·`parse-admin-emails.ts`, `src/middleware.ts`, `src/app/(protected)/layout.tsx`와 각 protected page/action의 목적지 재검사에 걸쳐 있다. 보드의 `area`는 출발점일 뿐이며 실제 호출 경로와 public API를 끝까지 따라간다.
+
+`analytics-reporting-contract: import-free; DB/server-only/fetch forbidden`
+
+`test-typing-contract: production tsconfig only; no test:types`
+
+`test-runtime-contract: module-mocked DB/GitHub/Sentry; live I/O forbidden; DOM client interaction manual`
 
 작업이 담당 범위 밖(`packages/db`·`apps/web`·`apps/backend`)으로 번지면 그 항목을 `보류`로 기록한 뒤 멈춰 보고한다 — 멈췄다는 사실이 보드에 남아야 다음 날 "진행 중"으로 오인돼 사라지지 않는다.
 
@@ -125,20 +132,21 @@ tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 
 이 앱에서 **깨지면 조용한** 규칙이 둘 있다.
 
-- **`analytics/reporting.ts`는 순수 함수로 유지한다.** 임포트가 하나도 없는 상태가 의도된 것이며, DB 접근이나 `server-only`를 끌어들이는 순간 테스트가 불가능해진다. DB는 `analytics/queries.ts`가 맡는다
+- **`fsd/entities/analytics-event/model/reporting.ts`는 순수 함수로 유지한다.** import-free가 Core 계약이며 DB 접근·`server-only`·fetch를 끌어들이지 않는다. DB read는 `fsd/entities/analytics-event/api/queries.ts` 하나가 맡는다
 - **`@repo/db`의 analytics 계약(`ANALYTICS_EVENT_NAMES`, `ANALYTICS_FUNNELS`)을 admin으로 복사하지 않는다.** web이 기록하고 admin이 집계하는데, 계약이 두 벌이 되면 한쪽에서 이벤트 이름을 바꿔도 다른 쪽이 컴파일을 통과하고 대시보드가 에러 없이 0을 보여준다
 
-인가 경로(`auth/**`, `middleware.ts`)를 만졌다면 세 겹(로그인 거부 / 경로 보호 / 페이지 재검사)이 모두 살아 있는지 확인한다. 자세한 이유는 `apps/admin/CLAUDE.md`에 있다.
+인가 경로(`src/server/auth/**`, `src/middleware.ts`, protected layout/page/action)를 만졌다면 세 겹(로그인 거부 / 경로 보호 / 목적지 재검사)이 모두 살아 있는지 확인한다. 자세한 이유는 `apps/admin/CLAUDE.md`에 있다.
 
-계획서 「테스트」 절의 "덮는 것"을 실제로 쓴다. 테스트는 모듈 **바로 옆에** `*.test.mjs`로 둔다(`analytics/reporting.ts` + `reporting.test.mjs`, `lib/parse-admin-emails.ts` + `admin-emails.test.mjs`가 이 앱의 예다). web과 달리 `model/` 디렉터리 관습은 없다.
+계획서 「테스트」 절의 "덮는 것"을 실제로 쓴다. 테스트는 구현 모듈과 같은 `api/` 또는 `model/` segment에 `*.test.mjs`로 둔다. cross-slice contract test만 상대 slice public API를 사용하고 같은 slice 구현 test는 상대 import를 사용한다. `server-only`나 env/auth를 전이 import하는 Node test는 subject의 dynamic import보다 먼저 `mock.module(...)`을 등록한다.
 
-테스트를 추가했다면 `apps/admin/CLAUDE.md`의 테스트 목록 표에 행이 하나 필요하다. 그 파일은 읽기 전용이므로 직접 고치지 말고 `비고:`에 추가할 행을 적어 보고한다.
+테스트를 추가했다면 `apps/admin/CLAUDE.md`의 `### 테스트 인벤토리`와 실제 file/suite/test 수가 달라진다. 그 파일은 읽기 전용이므로 직접 고치지 말고 `비고:`에 갱신할 경로와 runner count를 적어 보고한다.
 
-**B-5.** 검증한다. **둘 다 통과해야 한다.**
+**B-5.** 검증한다. **세 명령이 모두 통과해야 한다.**
 
 ```bash
 npm run check -w apps/admin
 npm test -w apps/admin
+npm run verify:fsd:final -w apps/admin
 ```
 
 실패하면 `git diff --name-only`로 네가 만진 파일을 확인한다.
@@ -165,11 +173,11 @@ npm test -w apps/admin
 | 단계 | 넘어가려면 | 아니면 |
 | --- | --- | --- |
 | A | `docs/plans/<항목ID>.md`를 실제로 썼고 절이 비어 있지 않다 | `보류` |
-| B | `npm run check`와 `npm test`의 **실제 출력을 봤고** 둘 다 통과했다 | `보류` |
+| B | `npm run check`, `npm test`, `verify:fsd:final`의 **실제 출력을 봤고** 모두 통과했다 | `보류` |
 
 실행하지 않았거나, 실패했거나, 출력이 잘려 확인이 안 됐다면 그건 `보류`다. 통과했을 것 같다는 추정으로 완료 처리하지 않는다.
 
-다만 **현재 러너로 덮을 수 없어 테스트를 못 쓴 것은 `보류` 사유가 아니다.** `npm test`는 `tsx --test "src/**/*.test.mjs"` — Node 내장 러너이고 DOM도 React 테스트 도구도 없다. 렌더링·DB 호출·외부 I/O 자체는 덮을 수 없으니 도구를 새로 깔려 하지 말고(`npm install`은 금지다), 두 검증이 통과했다면 `완료`로 기록하되 덮지 못한 범위를 `결과:`에 남긴다.
+다만 **DOM client interaction을 현재 러너로 직접 덮지 못한 것은 `보류` 사유가 아니다.** Node module mock으로 DB/GitHub/Sentry의 호출 수·순서·payload를 live I/O 없이 검증한다. 렌더링 상호작용과 반응형 시각 상태는 도구를 새로 설치하지 말고 수동 smoke 범위로 `결과:`에 남긴다.
 
 ## Windows 주의
 
@@ -196,6 +204,6 @@ Edit / Write 도구의 `file_path`에는 역슬래시(`\`)를 쓴다. Bash 도�
 ```
 구현: [항목ID] 제목 — 완료 | 보류
 수정: <파일 경로 목록>
-검증: npm run check <결과> / npm test <결과>
+검증: npm run check <결과> / npm test <결과> / verify:fsd:final <결과>
 비고: <작업 중 발견한 문제나 남은 일. 없으면 생략>
 ```
