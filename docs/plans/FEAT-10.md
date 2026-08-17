@@ -730,7 +730,9 @@ npm.cmd run build -w apps/admin
   - 헤더 `flex-wrap` 반응형(폰 접힘)·설명 `max-w-64` 줄바꿈.
   - `src/fsd/features/transition-pipeline-gate/ui/gate-transition-button.tsx` 토스트 이음 문구의 실화면.
   - **CDN 잔상(설계상 한계, 결정 6)**: 투영은 raw CDN(캐시 수 분)이라 실행 후 보드 flip·동적 라벨 갱신이 지연될 수 있다. 진행 pill은 코멘트 API(수 초)라 이 지연을 타지 않으므로 관측 3은 해소되지만, "보드에 반영된 새 status"는 다음 로드에서 보인다. 후속 항목 후보(투영을 contents API로 이관 — FEAT-08 「대안」).
-- **CLAUDE.md 테스트 표 handoff:** 최종 FSD 경로의 `run-plan.test.mjs`·`progress.test.mjs`·`get-pipeline-progress.test.mjs` 3행과 실제 runner의 file/test/suite 수를 구현 결과에 적어 repository maintainer가 `apps/admin/CLAUDE.md`를 동기화할 수 있게 한다. `admin-dev`는 이 읽기 전용 파일을 직접 고치지 않는다.
+- **CLAUDE.md handoff (두 곳):** `admin-dev`는 이 읽기 전용 파일을 직접 고치지 않고, 아래 둘을 구현 결과에 적어 maintainer가 동기화할 수 있게 한다.
+  1. **「테스트 인벤토리」**(`apps/admin/CLAUDE.md:35`) — 최종 FSD 경로의 `run-plan.test.mjs`·`progress.test.mjs`·`get-pipeline-progress.test.mjs` 3행과 실제 runner의 file/test/suite 수(현재 17파일·35suite·128test).
+  2. **「데이터와 외부 효과 소유권」**(`:99-101`) — 지금 GitHub 접촉 owner를 셋(raw board GET · command POST · gate GET/PUT)으로 열거하는데 이 항목이 **네 번째**를 더한다: `progress GET owner는 src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts다`. 경계 스크립트의 owner를 3→4로 올리면서 이 목록을 그대로 두면 워크스페이스 지시 문서가 코드보다 낡는다. 바로 아래 문장("GitHub 쓰기 두 경로는…")은 **고치지 않는다** — 새 owner는 읽기라 쓰기 경로는 여전히 둘이다.
 
 ## 범위 밖 의존
 
