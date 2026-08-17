@@ -314,6 +314,8 @@ export function deriveProgress(
 
 ### 3) `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts` (신규, `"use server"`) — 코멘트 read
 
+**왜 `entities/pipeline/api`가 아니라 여기인가.** 같은 GitHub 좌표를 읽는 형제 함수 `getPipelineBoard()`는 `entities/pipeline/api/queries.ts`에 있고, FSD 규약(`apps/web/docs/conventions/fsd-architecture-guidelines.md` 「서버 데이터 접근 배치 규칙」 1)도 "단일 도메인 엔티티 조회는 `entities/<domain>/api/`"라고 한다. 그런데 이 함수는 **중립적인 엔티티 조회가 아니라** 코멘트를 `deriveProgress`(같은 feature의 `model/progress`)로 넘겨 "내 명령이 응답됐나"를 도출한다 — run-command 행위에만 의미가 있는 상태다. entities에 두면 그 model을 상향 임포트해야 하고, 그것은 경계 검사가 막는다(실측: 옮겨서 돌리면 `[R1] entities cannot import upward from features`로 종료코드 1). 즉 이 배치는 취향이 아니라 **구조적으로 강제된 것**이다. 보드 읽기 옆으로 "정리"하지 말 것.
+
 `post-pipeline-command.ts` 패턴처럼 `requireAdmin()`을 최상단에 둔다. **읽기 전용**이라 새 쓰기 경로가 아니다. `since` 6시간 창으로 스레드가 커져도 페이로드가 작게 유지된다 — 실측(2026-08-17)으로 코멘트 1건당 약 4KB이고, 가장 붐볐던 구간을 포함해 8건을 받아도 30.4KB다(전체 12건은 42.3KB). 읽기 실패는 부가 신호이므로 `unknown`으로 조용히 물러난다(쓰기 실패와 달리 삼킬 write가 없다).
 
 **`since`의 의미에 주의한다(검증에서 확인).** GitHub REST의 `since`는 **마지막 수정 시각** 기준이지 생성 시각이 아니다. 그래서 누군가 오래된 코멘트를 편집하면 그 코멘트가 **옛 `created_at`을 달고 창에 다시 들어온다.** 이미 답글로 갚혔지만 그 답글은 창 밖이므로 짝이 없어, 짝짓기 모델에서 미응답 명령으로 되살아나 `무응답 4320분` 같은 거짓 경보가 뜬다(실측 재현). 그러므로 받은 목록을 **`created_at`이 창 안인 것으로 한 번 더 거른다** — 창의 의미를 "최근 6시간에 생성된 것"으로 고정하는 세 줄이다.
