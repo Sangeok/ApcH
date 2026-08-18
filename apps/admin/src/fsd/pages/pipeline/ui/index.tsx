@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { AgentReport } from "~/fsd/entities/agent-report";
+
 import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 import {
   GateTransitionButton,
@@ -21,14 +23,33 @@ const TONE_TEXT: Record<Tone, string> = {
   muted: "text-muted-foreground",
 };
 
-export function PipelineBriefing({ briefing }: { briefing: Briefing }) {
+export function PipelineBriefing({
+  briefing,
+  reports,
+}: {
+  briefing: Briefing;
+  reports: Map<string, AgentReport[]>;
+}) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-8">
       <BriefingHeader briefing={briefing} />
       <InboxZone items={briefing.inbox} pendingCount={briefing.pendingCount} />
-      <PixelOffice team={briefing.team} />
+      <PixelOffice team={briefing.team} reports={reports} />
       <FeedZone items={briefing.feed} />
     </div>
+  );
+}
+
+// 보드 필드가 150자 예산을 넘었을 때의 표식. CI가 없어 화면이 유일한 강제 장치다
+// (보드 안내 블록의 기록 규칙 → 상세는 docs/agents/<행위자>/ 로).
+function BudgetFlag() {
+  return (
+    <span
+      title="보드 요약이 150자를 넘습니다 — 상세는 docs/agents/ 로 옮기세요"
+      className="shrink-0 rounded border border-hold/50 px-1 text-[10px] leading-4 text-hold"
+    >
+      150자 초과
+    </span>
   );
 }
 
@@ -111,8 +132,9 @@ function InboxCard({ item }: { item: SpeechItem }) {
       </div>
       <p className="mt-3 text-lg text-stamp">{item.line}</p>
       <div className="mt-3 flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           {item.id} · {item.status}
+          {item.overBudget && <BudgetFlag />}
         </p>
         {gateTo !== null && (
           <GateTransitionButton
@@ -166,7 +188,8 @@ function FeedZone({ items }: { items: SpeechItem[] }) {
                 >
                   {item.line}
                 </span>
-                <span className="shrink-0 text-xs text-muted-foreground">
+                <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                  {item.overBudget && <BudgetFlag />}
                   {item.status}
                 </span>
               </summary>

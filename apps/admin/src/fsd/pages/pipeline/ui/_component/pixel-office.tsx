@@ -1,4 +1,5 @@
 import { PipelineCommandButton } from "~/fsd/features/run-pipeline-command";
+import type { AgentReport } from "~/fsd/entities/agent-report";
 import type { TeamMember } from "../../model/briefing";
 import { deskCommandFor } from "../../model/desk-commands";
 import {
@@ -226,8 +227,34 @@ function PixelRoomBackdrop() {
   );
 }
 
+// 이 행위자가 남긴 활동 기록. 폴더는 첫 보고서가 만들므로 없으면 안 보인다
+// (docs/agents/README.md — 부재 자체가 "아직 실행된 적 없음"이다).
+function DeskReports({ reports }: { reports: AgentReport[] }) {
+  if (reports.length === 0) return null;
+  return (
+    <details className="w-full">
+      <summary className="cursor-pointer list-none text-center text-[10px] text-muted-foreground underline decoration-dotted">
+        기록 {reports.length}건
+      </summary>
+      <ul className="mt-1 flex flex-col gap-0.5">
+        {reports.map((r) => (
+          <li key={r.name} className="truncate text-center text-[10px] text-muted-foreground">
+            {r.label}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 // 반응형: 폰 2열 격자 → 데스크톱 가로 flex-wrap, 가로 스크롤 없음.
-export function PixelOffice({ team }: { team: TeamMember[] }) {
+export function PixelOffice({
+  team,
+  reports,
+}: {
+  team: TeamMember[];
+  reports: Map<string, AgentReport[]>;
+}) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="font-briefing-display text-sm tracking-widest text-muted-foreground">
@@ -237,7 +264,13 @@ export function PixelOffice({ team }: { team: TeamMember[] }) {
         <PixelRoomBackdrop />
         <div className="relative grid grid-cols-2 justify-items-center gap-x-2 gap-y-6 p-4 sm:flex sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
           {team.map((member) => (
-            <PixelDeskUnit key={member.identity.id} member={member} />
+            <div
+              key={member.identity.id}
+              className="flex w-full flex-col items-center gap-1 sm:w-auto"
+            >
+              <PixelDeskUnit member={member} />
+              <DeskReports reports={reports.get(member.identity.id) ?? []} />
+            </div>
           ))}
         </div>
       </div>

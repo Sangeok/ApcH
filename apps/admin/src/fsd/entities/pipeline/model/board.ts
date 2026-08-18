@@ -84,7 +84,12 @@ export function parseBoard(markdown: string): BoardSection[] {
           currentItem.reason = value;
           break;
         case "결과":
-          currentItem.result = value;
+          // 한 항목에 `결과:`가 두 번 나올 수 있다(계획 완료 → 구현 완료, 보류 후 재개).
+          // 덮어쓰면 앞 기록이 투영에서 사라진다 — 실측으로 FEAT-10에서 약 790자가 없어졌다.
+          currentItem.result =
+            currentItem.result === null
+              ? value
+              : currentItem.result + " " + value;
           break;
       }
     }

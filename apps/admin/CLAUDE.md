@@ -32,7 +32,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **20개 파일, 39개 suite, 173개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **21개 파일, 40개 suite, 182개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -43,7 +43,8 @@ npm run build -w apps/admin
 | `src/fsd/entities/analytics-event/api/queries.test.mjs` | 단일 read-only `findMany` shape와 최근 실패 filter/limit |
 | `src/fsd/entities/analytics-event/model/reporting.test.mjs` | 퍼널 순서·drop-off·실패 집계와 결정적 정렬 |
 | `src/fsd/entities/pipeline/api/queries.test.mjs` | raw board no-store GET과 non-OK 실패 |
-| `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱 |
+| `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱, 중복 `결과:` 누적 |
+| `src/fsd/entities/agent-report/model/report-index.test.mjs` | contents 디렉터리 응답 → 보고서 목록, README 제외, 결정적 정렬, 부분 집계 금지 |
 | `src/fsd/features/run-pipeline-command/api/post-pipeline-command.test.mjs` | auth-first, whitelist, exact GitHub POST |
 | `src/fsd/features/run-pipeline-command/model/commands.test.mjs` | command body와 key whitelist |
 | `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.test.mjs` | auth-first, 6h `since` 창, `created_at` 재필터, shape 실패 fail-closed, FIFO 입력 전달 |
@@ -103,6 +104,7 @@ Node module mock으로 DB/GitHub/Sentry 호출 계약을 실제 외부 I/O 없�
 - command POST owner는 `src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts`다.
 - gate GET/PUT owner는 `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts`다.
 - progress GET owner는 `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts`다(FEAT-10, 읽기 전용).
+- 행위자 보고서 목록 GET owner는 `src/fsd/entities/agent-report/api/queries.ts`다(읽기 전용). 디렉터리 목록은 raw CDN이 404를 주므로 contents API만 가능하다.
 - Sentry SDK direct import는 `src/instrumentation.ts`, `src/sentry.server.config.ts`, `src/fsd/shared/observability/report-error.ts`만 허용한다.
 
 GitHub 쓰기 두 경로는 모두 `requireAdmin()` 뒤에서 실행되고 server-side whitelist를 사용한다. command client는 key만 보내며 자유 형식 body를 보내지 않는다. gate client는 action/id/화면이 읽은 status만 보내고, 서버가 최신 board와 대조해 whitelist된 `status/result/block` 최소 edit만 커밋한다. `discard`는 행 제거라 git revert 없이는 되돌릴 수 없다.
