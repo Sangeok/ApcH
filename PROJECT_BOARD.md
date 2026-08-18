@@ -29,7 +29,7 @@
 - [ ] FEAT-13: 결재함에서 게이트② 승인 전에 계획서 검증 통과 여부가 보이게
   agent: admin-dev
   area: apps/admin + 루트 문서
-  status: 승인대기
+  status: 계획지시
   근거: 소유자 직접 지정(pm 미경유). 원격 게이트②에서 검증 통과 여부가 안 보인다 — 상세 관측·대안 셋은 백로그 FEAT-13.
 - [x] FEAT-12: 보드 감압 — 상태와 활동 기록의 분리(150자 예산 + `docs/agents/` 규약 + 대시보드 표시)
   agent: admin-dev
