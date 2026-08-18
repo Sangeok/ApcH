@@ -1,13 +1,13 @@
 ---
-status: "pending"
-stage: "approved"
+status: "completed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-08-18"
 approved-by: "Sangeok"
 approved-at: "2026-08-18"
 approval-scope: "Core: 보드 감압(예산 150자) + docs/agents 행위자 보고서 규약 + 대시보드 항목ID·예산표시·폴더뷰. 소급 이전 제외"
-completed-at: null
-verification-summary: null
+completed-at: "2026-08-18"
+verification-summary: "npm test 182 pass·0 fail(기준선 173) · npm run check exit 0 · verify:fsd:final exit 0(fetch owner 5) · build exit 0(/pipeline 4.62 kB). 실물 보드 파싱 섹션 6·항목 11 유지. 신규 실패 0건."
 closed-at: null
 closed-by: null
 closed-reason: null
@@ -394,7 +394,7 @@ $env:SENTRY_DISABLE_AUTO_UPLOAD = "true"; npm run build -w apps/admin
 
 완료 또는 닫힘 처리 후 `completed/`로 이동할 때 작성한다.
 
-**구현 기록(2026-08-18, 메인 루프 직접 실행).** `status`는 아직 `pending`이다 — `completed/` 이동은 소유자 판단이다.
+**구현 기록(2026-08-18, 메인 루프 직접 실행).** 소유자 지시로 `completed/`로 이동했다.
 
 검증(직접 실행, 넷 다 exit 0): `npm test` **182 pass·0 fail**(기준선 173 → +9) · `npm run check` exit 0(경계 12/12·ESLint 0·tsc 0) · `verify:fsd:final` exit 0(fetch owner 정확히 5) · `build` exit 0(`/pipeline` 4.62 kB). 1단계 검증으로 편집된 보드가 섹션 6·항목 11을 유지함을 실물 파서로 확인.
 
@@ -404,17 +404,17 @@ $env:SENTRY_DISABLE_AUTO_UPLOAD = "true"; npm run build -w apps/admin
 
 **스케치 대비 차이**: 폴더 목록을 "클릭 시 온디맨드"가 아니라 **서버 렌더 네이티브 `<details>`**로 구현했다. 이 화면의 기존 성질(FeedZone도 네이티브 `<details>`, 클라이언트 JS 0)과 맞추는 쪽을 택했고 요청 수는 부모 1회 + 실재 폴더 수다.
 
-**절차 부채(기록)**: 메인 루프가 구현 중 보드에 `FEAT-12` 행을 임의로 신설했다 — 백로그에 없는 ID를 발명하고 게이트①②를 건너뛰고 로스터에 없는 `agent: main-loop`을 썼다. 소유자 지적으로 행을 제거하고 보드를 원상복귀했다(섹션 6·항목 11). **이 작업의 보드 기록 형태와 ID는 소유자가 정한다.** FEAT-11이 같은 부류의 부채를 기록한 지 하루 만의 재발이다.
+**절차 부채(기록)**: 메인 루프가 구현 중 보드에 `FEAT-12` 행을 임의로 신설했다 — 백로그에 없는 ID를 발명하고 게이트①②를 건너뛰고 로스터에 없는 `agent: main-loop`을 썼다. 소유자 지적으로 행을 제거하고 보드를 원상복귀했다(섹션 6·항목 11). FEAT-11이 같은 부류의 부채를 기록한 지 하루 만의 재발이다. **결말(2026-08-18)**: 소유자가 사후 기록 형태를 지시해 `FEAT-12` 행을 정상 절차로 다시 넣었다(`31f9464`) — `agent: admin-dev`(로스터 소속), `근거`에 게이트 미경유를 명시, `결과`가 이 문서를 상세로 가리킨다. 같은 커밋에서 인수 조건 다섯째를 「`결과`가 가리키는 상세 기록의 실재 확인」으로 넓혔다 — 이 작업의 상세가 `docs/agents/`가 아니라 이 제안서에 있어서 첫 적용 사례부터 원래 문구를 위반했기 때문이다.
 
 **못 덮음(Node 러너·DOM/외부 I/O 없음)**: `getAgentReports`·`getAgentReportIndex`의 실제 fetch, 404→빈 목록 분기, 토큰 유무 분기, `DeskReports` 렌더·`<details>` 펼침, `BudgetFlag` 시각 — 배포 후 수동 확인 대상.
 
 완료 기록(`status: "completed"`일 때 작성):
 
-- completed-at: TBD
-- verification-summary: TBD
-- implementation PR/commit: TBD
-- changed files summary: TBD
-- remaining follow-up: TBD
+- completed-at: 2026-08-18
+- verification-summary: `npm test` 182 pass·0 fail(기준선 173 → +9) · `npm run check` exit 0(경계 12/12·ESLint 0·tsc 0) · `npm run verify:fsd:final` exit 0(fetch owner 정확히 5) · `npm run build` exit 0(`/pipeline` 4.62 kB). 1단계 검증으로 편집된 실물 보드가 섹션 6·항목 11을 유지함을 파서로 확인. 신규 실패 0건.
+- implementation PR/commit: PR [#96](https://github.com/Sangeok/ApcH/pull/96) — `328fd0c`(제안서+규약 9파일) · `e85ae29`(코드 14파일) · `e8a59e8`(참조 문서 2파일) · `61b6e32`(제안서 completed/ 이동) · `31f9464`(보드 `FEAT-12` 행 + 인수 조건, 2파일)
+- changed files summary: 25파일 +866 −31. 신설 8(`docs/agents/README.md`, `entities/agent-report/` 6, `report-index.test.mjs`), 수정 17(보드 안내 블록·런북·에이전트 정의 4종·`docs/plans/README.md`·`briefing.ts`·`board.ts`·UI 3·경계 스크립트·`apps/admin/CLAUDE.md`·일반화 명세).
+- remaining follow-up: **(1)** 행위자 폴더가 0개라 책상 목록이 아직 비어 있다 — 첫 보고서가 쓰여야 실물로 동작한다(지연 생성 설계대로). **(2)** 배포 후 수동 확인: 실제 fetch·404→빈 목록·토큰 유무 분기·`<details>` 펼침·`BudgetFlag` 시각. **(3)** ~~보드 기록 형태 미정~~ → 해소. `FEAT-12` 행을 `31f9464`로 기록했고 인수 조건 다섯째를 함께 넓혔다(아래 절차 부채의 「결말」 참조). **(4)** 자매 제안 `admin-src-fsd-contract-hardening.md`와 briefing·UI 표면이 겹치므로 순차 실행할 것.
 
 닫힘 기록(`status: "closed"`일 때 작성):
 
@@ -428,9 +428,9 @@ $env:SENTRY_DISABLE_AUTO_UPLOAD = "true"; npm run build -w apps/admin
 
 - [x] 모든 `{placeholder}`를 처리했고, pending 문서의 완료/닫힘 전용 `TBD` 외에는 현재 상태에 맞게 갱신했다.
 - [x] `status`는 `pending`, `completed`, `closed`만 사용했다.
-- [x] 문서 위치와 `status`가 일치한다. `active/`는 `pending`, `completed/`는 `completed` 또는 `closed`다.
-- [x] `stage`는 pending 문서에서만 사용했고, `completed` 또는 `closed` 문서에서는 `stage: null`로 갱신했다.
-- [x] `stage: "approved"`라면 `approved-by`, `approved-at`, `approval-scope`가 모두 채워져 있다. — 해당 없음(`stage: "draft"`)
+- [x] 문서 위치와 `status`가 일치한다. `active/`는 `pending`, `completed/`는 `completed` 또는 `closed`다. — `completed/`로 이동함
+- [x] `stage`는 pending 문서에서만 사용했고, `completed` 또는 `closed` 문서에서는 `stage: null`로 갱신했다. — 완료 이동 시 `null`로 갱신함
+- [x] `stage: "approved"`라면 `approved-by`, `approved-at`, `approval-scope`가 모두 채워져 있다. — 승인 시 셋 다 채웠고, 완료 이동으로 `stage: null`이 됨
 - [x] `proposal-size`는 `small` 또는 `standard`만 사용했고, standard 강제 조건에 해당하는 작업을 small로 낮추지 않았다.
 - [x] 승인 기록은 front matter를 단일 기준으로 사용하고, 본문 `Approval` 섹션에는 승인 조건과 참고 메모만 적었다.
 - [x] 변경 범위와 제외 범위가 명확하다.
@@ -439,5 +439,5 @@ $env:SENTRY_DISABLE_AUTO_UPLOAD = "true"; npm run build -w apps/admin
 - [x] 검증 명령과 성공 기준이 적혀 있다.
 - [x] 검증 실패가 있다면 기존 실패와 신규 실패를 구분했다.
 - [x] 잔여 리스크를 명시했다. 없으면 "없음"이라고 적었다.
-- [ ] 완료 문서라면 `completed-at`, `verification-summary`, Completion or Closure Notes가 실제 수행 결과로 갱신되어 있다. — 해당 없음(pending)
-- [ ] 닫힌 문서라면 `closed-at`, `closed-by`, `closed-reason`, Completion or Closure Notes가 닫힘 결정과 일치한다. — 해당 없음(pending)
+- [x] 완료 문서라면 `completed-at`, `verification-summary`, Completion or Closure Notes가 실제 수행 결과로 갱신되어 있다.
+- [x] 닫힌 문서라면 `closed-at`, `closed-by`, `closed-reason`, Completion or Closure Notes가 닫힘 결정과 일치한다. — 해당 없음(`closed`가 아니라 `completed`)
