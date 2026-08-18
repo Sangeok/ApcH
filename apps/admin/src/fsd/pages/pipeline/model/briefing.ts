@@ -17,6 +17,8 @@ export type SpeechItem = {
   speaker: AgentIdentity;
   line: string;
   detail: string | null;
+  /** 보드 필드가 150자 예산을 넘었나. 넘치면 화면이 표시한다(보드 안내 블록의 기록 규칙). */
+  overBudget: boolean;
   tone: Tone;
 };
 export type TeamMember = {
@@ -99,6 +101,7 @@ function inboxSpeech(item: DatedItem, today: Date): SpeechItem {
       speaker: identityFor("pm"),
       line: `${item.id}, ${dayTag}계획 지시를 기다립니다.`,
       detail: item.reason,
+      overBudget: isOverBudget(item.reason),
       tone: "pending",
     };
   }
@@ -111,8 +114,17 @@ function inboxSpeech(item: DatedItem, today: Date): SpeechItem {
     speaker: identityFor(item.agent),
     line: `${item.id} 계획서를 올렸습니다 — ${dayTag}검토 대기 중입니다.`,
     detail: item.result ?? item.reason,
+    overBudget: isOverBudget(item.result) || isOverBudget(item.reason),
     tone: "pending",
   };
+}
+
+/** 보드 `근거`·`결과` 요약 예산. 상세는 docs/agents/<행위자>/ 로 간다. */
+export const FIELD_BUDGET = 150;
+
+/** 필드 전체 길이로 잰다 — 첫 문장이 아니다. */
+export function isOverBudget(text: string | null): boolean {
+  return text !== null && text.length > FIELD_BUDGET;
 }
 
 const FEED_TONE: Record<string, Tone> = {
@@ -135,13 +147,13 @@ function feedSpeech(item: DatedItem): SpeechItem {
       line = `${item.id} 구현에 착수했습니다.`;
       break;
     case "완료":
-      line = summarize(item) ?? `${item.id} 완료했습니다.`;
+      line = `${item.id} · ${summarize(item) ?? "완료했습니다."}`;
       break;
     case "보류":
-      line = summarize(item) ?? `${item.id} 보류했습니다.`;
+      line = `${item.id} · ${summarize(item) ?? "보류했습니다."}`;
       break;
     default:
-      line = summarize(item) ?? item.id;
+      line = `${item.id} · ${summarize(item) ?? item.title}`;
   }
   const detail =
     item.status === "계획지시" || item.status === "구현승인"
@@ -155,6 +167,7 @@ function feedSpeech(item: DatedItem): SpeechItem {
     speaker,
     line,
     detail,
+    overBudget: isOverBudget(item.reason) || isOverBudget(item.result),
     tone,
   };
 }

@@ -17,7 +17,13 @@ mock.module("~/server/auth/guard", {
   },
 });
 
-const { buildBriefing, daysOnBoard, firstSentence } = await import(
+const {
+  buildBriefing,
+  daysOnBoard,
+  firstSentence,
+  FIELD_BUDGET,
+  isOverBudget,
+} = await import(
   "./briefing.ts"
 );
 
@@ -181,6 +187,29 @@ describe("buildBriefing", () => {
     assert.equal(feat01.line, "FEAT-01, 13일째 계획 지시를 기다립니다.");
   });
 
+  it("prefixes every feed line with its own item id", () => {
+    // 실측 결함: 감압 전에는 11/11 줄이 자기 ID를 말하지 않았고, FEAT-09 행은
+    // 화면에 `FEAT-08…`로 떠서 다른 항목처럼 보였다.
+    for (const item of briefing.feed) {
+      assert.ok(
+        item.line.startsWith(item.id),
+        `feed line must start with ${item.id}: ${item.line}`,
+      );
+    }
+  });
+
+  it("flags board fields over the 150-char budget", () => {
+    assert.equal(FIELD_BUDGET, 150);
+    assert.equal(isOverBudget(null), false);
+    assert.equal(isOverBudget("가".repeat(150)), false); // 경계: 같으면 통과
+    assert.equal(isOverBudget("가".repeat(151)), true);
+
+    // 픽스처는 전부 짧으므로 아무 항목도 초과로 표시되지 않아야 한다.
+    for (const item of [...briefing.feed, ...briefing.inbox]) {
+      assert.equal(item.overBudget, false, `${item.id} should be within budget`);
+    }
+  });
+
   it("voices feed items by status with deterministic lines and tones", () => {
     const byId = new Map(briefing.feed.map((s) => [s.id, s]));
 
@@ -191,8 +220,12 @@ describe("buildBriefing", () => {
     assert.equal(byId.get("FEAT-07").line, "FEAT-07 구현에 착수했습니다.");
     assert.equal(byId.get("FEAT-07").tone, "active");
 
-    // 완료: firstSentence(결과)
-    assert.equal(byId.get("BUG-06").line, "pricingFaq 두 답변을 교체했다.");
+    // 완료: `<항목ID> · firstSentence(결과)` — ID 접두가 계약이다.
+    // 접두가 없으면 어느 항목의 보고인지 화면에서 알 수 없다(결과 산문이 ID로 시작할 이유가 없다).
+    assert.equal(
+      byId.get("BUG-06").line,
+      "BUG-06 · pricingFaq 두 답변을 교체했다.",
+    );
     assert.equal(byId.get("BUG-06").tone, "done");
     assert.equal(
       byId.get("BUG-06").detail,
@@ -200,7 +233,7 @@ describe("buildBriefing", () => {
     );
 
     // 보류: firstSentence(결과)
-    assert.equal(byId.get("BUG-05").line, "계획서가 코드와 어긋남.");
+    assert.equal(byId.get("BUG-05").line, "BUG-05 · 계획서가 코드와 어긋남.");
     assert.equal(byId.get("BUG-05").tone, "hold");
   });
 

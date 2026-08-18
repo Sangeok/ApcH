@@ -34,6 +34,7 @@ const FSD_EFFECT_OWNERS = {
     "src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts",
     "src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts",
     "src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts",
+    "src/fsd/entities/agent-report/api/queries.ts",
   ]),
   sentry: new Set([
     "src/instrumentation.ts",

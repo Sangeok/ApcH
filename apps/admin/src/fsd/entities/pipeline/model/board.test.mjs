@@ -90,6 +90,36 @@ describe("pipeline board parser", () => {
     assert.equal(bug06.reason, "정합성 결함이라 이를 고른다.");
   });
 
+  it("accumulates a repeated 결과 field instead of overwriting it", () => {
+    // 실측 결함: FEAT-10 행에 `결과:`가 두 줄이라 앞의 약 790자가 투영에서 사라졌다.
+    // 한 항목에 두 번 쓰이는 것은 정상 경로다(계획 완료 → 구현 완료, 보류 후 재개).
+    const md = [
+      "## 2026-08-18",
+      "- [x] FEAT-99: 두 번 기록되는 항목",
+      "  agent: admin-dev",
+      "  status: 완료",
+      "  근거: 발주 근거.",
+      "  결과: 계획서 작성 완료.",
+      "  결과: 구현 완료.",
+    ].join(String.fromCharCode(10));
+
+    const [item] = parseBoard(md)[0].items;
+    assert.equal(item.result, "계획서 작성 완료. 구현 완료.");
+    assert.equal(item.reason, "발주 근거."); // 근거는 한 번뿐이라 그대로
+  });
+
+  it("keeps a single 결과 field byte-identical", () => {
+    // 누적 로직이 중복 없는 행을 건드리지 않는지 — 회귀 가드.
+    const bug06 = parseBoard(BOARD)
+      .flatMap((section) => section.items)
+      .find((item) => item.id === "BUG-06");
+
+    assert.equal(
+      bug06.result,
+      "pricingFaq 두 답변을 교체했다. 수정: apps/web/src/fsd/pages/pricing/config/index.ts.",
+    );
+  });
+
   it("does not create items from the quoted guide block", () => {
     const ids = parseBoard(BOARD).flatMap((section) =>
       section.items.map((item) => item.id),
