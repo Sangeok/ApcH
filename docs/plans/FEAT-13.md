@@ -6,7 +6,7 @@ agent: admin-dev
 
 - 결재함 카드는 `src/fsd/pages/pipeline/ui/index.tsx:116`의 `InboxCard`가 그린다. 메타 행(`:134-138`)은 `{item.id} · {item.status}`와, 예산 초과면 `BudgetFlag`(`:45-54`)를 렌더하고, 그 옆(`:139-145`)에 `gateTo !== null`이면 `GateTransitionButton`을 붙인다.
 - `승인대기`든 `검토대기`든 승인 버튼 경로가 같다: `:118-119`가 `resolveGateTransition(item.status)`로 목적지를 구하고, 그 함수(`src/fsd/features/transition-pipeline-gate/model/transitions.ts:34-39`)는 status가 화이트리스트 `GATE_TRANSITIONS`(`transitions.ts:3-6`)에 있으면 목적지를 준다 — **검증 통과 여부와 무관**하다. 그래서 검증 전 검토대기와 검증 후 검토대기가 카드에서 구분되지 않는다.
-- 보드 파서 `parseBoard`(`src/fsd/entities/pipeline/model/board.ts:24`)는 `FIELD_RE`(`board.ts:22`, `/^\s+(agent|area|status|근거|결과):\s*(.+)$/`)로 다섯 필드만 잡아 switch(`board.ts:73-94`)로 `BoardItem`(`board.ts:4-13`)에 대입한다. 정규식 alternation에 없는 필드 줄(예: `검증:`)은 매치되지 않아 조용히 무시된다.
+- 보드 파서 `parseBoard`(`src/fsd/entities/pipeline/model/board.ts:24`)는 `FIELD_RE`(`board.ts:22`, `/^\s+(agent|area|status|근거|결과):\s*(.+)$/`)로 다섯 필드만 잡아 switch(`board.ts:73-93`)로 `BoardItem`(`board.ts:4-13`)에 대입한다. 정규식 alternation에 없는 필드 줄(예: `검증:`)은 매치되지 않아 조용히 무시된다.
 - 검증 기록은 `docs/agents/main-loop/<항목ID>.md`에 쓰인다(보드 안내 블록 `PROJECT_BOARD.md:23`: "계획서 검증 라운드 기록은 이 보드에 쌓지 않고 docs/agents/main-loop/로 간다"). 실물 `docs/agents/main-loop/FEAT-13.md`는 게이트① 개방만 담고 클린 패스 판정은 아직 없다. 이 파일은 대시보드에 렌더 경로가 없다: `getAgentReportIndex`(`src/fsd/entities/agent-report/api/queries.ts:37`)가 `docs/agents/` 전 폴더를 `Map`으로 받아 오지만, `src/fsd/pages/pipeline/ui/_component/pixel-office.tsx:272`가 `reports.get(member.identity.id)`로 **ROSTER_ORDER 책상**(`briefing.ts:214`)만 조회한다. `main-loop`은 로스터 밖이라 그 기록은 화면에 닿지 않는다.
 - 브리핑 조립: `buildBriefing`(`src/fsd/pages/pipeline/model/briefing.ts:206`)이 보드를 `inboxSpeech`(`briefing.ts:92`)로 결재함 `SpeechItem`(`briefing.ts:12-23`)을 만든다. 검토대기 분기는 `:108-119`. `SpeechItem`에는 검증 상태를 나르는 필드가 없다.
 - 보드는 `src/fsd/entities/pipeline/api/queries.ts`(raw GET owner)가 한 번 읽고, 페이지(`src/app/(protected)/pipeline/page.tsx`)가 `getPipelineBoard`와 `getAgentReportIndex`를 병렬 호출한다.
@@ -15,7 +15,7 @@ agent: admin-dev
 
 `frontend-design` 2-pass 결과다. 이 변경은 새 화면이 아니라 결재함 카드 메타 행에 붙는 작은 상태 표식이므로, 시그니처는 **도장 책상**이라는 기존 은유 안에서 절제해 만든다.
 
-- **팔레트 (새 색 없음)**: `styles/globals.css`의 팔레트는 의도적으로 절제돼 있고(`--picked` 주석: 유채색을 함부로 늘리지 말 것) 초록이 없다. 두 상태를 기존 토큰으로 코드화한다.
+- **팔레트 (새 색 없음)**: `styles/globals.css`의 팔레트는 의도적으로 절제돼 있고(주석 실문 — `--picked`: "일반 강조색으로 쓰지 말 것", 브리핑 토큰 블록: "`--picked`(클립 전용)는 재사용하지 않는다") 초록이 없다. 두 상태를 기존 토큰으로 코드화한다.
   - **검증 통과** = `active`(oklch 0.5 0.09 250, 파랑) — "확인됨/부서(countersign)". 결정 대기의 amber `stamp`와도, 완료의 grey `silence`와도 구분되며 경보처럼 읽히지 않는다.
   - **검증 전** = `hold`(oklch 0.5 0.13 42, 주홍) — "도장 보류". 오류가 아니라 주의다: 신선한 계획서가 아직 검증 안 된 것은 정상이지만, 여기서 도장을 찍지 말라는 신호가 보여야 한다. 이 항목이 존재하는 이유가 그 경고다.
 - **타이포 (새 역할 없음)**: 칩은 메타 행의 유틸 등급(`text-[10px] leading-4`)을 재사용해 `BudgetFlag`(`ui/index.tsx:45-54`)와 나란히 선다. 메타 행에 디스플레이 서체를 들이면 소음이다.
@@ -149,7 +149,10 @@ function ValidationMark({ validation }: { validation: string | null }) {
 ```ts
 // `검증:` 줄 + 그 앞 개행을 통째로 잡는다(제거 시 빈 줄이 남지 않게).
 // 빈 문자열 치환이라 `$` 안전. 검증 줄이 없으면 매치 없음 → no-op.
-const VALIDATION_LINE_RE = /\r?\n[ \t]+검증:[ \t]*[^\r\n]*/;
+// g 플래그가 필수다: 보류 재개 때 규약의 줄 제거를 잊고 재검증이 둘째 줄을 남기면
+// (파서는 last-wins라 표시는 정상) 비전역 제거는 첫 줄만 지워 옛 판정이 살아남고,
+// 재작성된 계획서에 거짓 「검증 통과」가 붙는다 — 이 기능이 막으려는 바로 그 오판.
+const VALIDATION_LINE_RE = /\r?\n[ \t]+검증:[ \t]*[^\r\n]*/g;
 ```
 
 `applyBounceTransition`(`:157-179`) 안에서 status 교체 줄(`:170`) before/after:
@@ -171,7 +174,7 @@ const VALIDATION_LINE_RE = /\r?\n[ \t]+검증:[ \t]*[^\r\n]*/;
 - **덮는 것** (`*.test.mjs`, Node 러너):
   - `board.test.mjs`: `검증:` 줄이 있는 항목은 `validation`에 값이 담기고, 없는 항목은 `null`(기존 `BOARD` 픽스처 항목으로 회귀 확인). 기존 5필드 파싱은 그대로.
   - `briefing.test.mjs`: 검토대기 항목의 `SpeechItem.validation`이 보드 `검증` 필드를 전달한다(있으면 값, 없으면 null). 승인대기 항목과 feed 항목의 `validation`은 항상 null. (기존 단언은 per-field `assert.equal`이라 `SpeechItem`에 필드가 늘어도 깨지지 않는다.)
-  - `transitions.test.mjs`: `검증:` 줄이 있는 검토대기 항목을 bounce하면 status가 계획지시가 되고 `검증:` 줄이 사라진다(after 파싱 시 `validation === null`, 변경 줄 = status 1줄 + 검증 1줄 제거). 검증 줄이 없는 항목의 bounce는 status 1줄만 바뀐다(기존 `:273` 최소 diff 테스트가 이미 이 경우를 덮음 — 회귀로 명시). 화이트리스트·스테일·미발견·포맷 거부는 검증 줄 유무와 무관하게 기존대로.
+  - `transitions.test.mjs`: `검증:` 줄이 있는 검토대기 항목을 bounce하면 status가 계획지시가 되고 `검증:` 줄이 사라진다(after 파싱 시 `validation === null`, 변경 줄 = status 1줄 + 검증 1줄 제거). **`검증:` 줄이 2개인 항목의 bounce는 둘 다 지운다** — `g` 플래그를 고정하는 단언이다(1줄 픽스처만으로는 비전역 구현도 통과해 플래그 제거 돌연변이가 살아남는다). 검증 줄이 없는 항목의 bounce는 status 1줄만 바뀐다(기존 `:273` 최소 diff 테스트가 이미 이 경우를 덮음 — 회귀로 명시). 화이트리스트·스테일·미발견·포맷 거부는 검증 줄 유무와 무관하게 기존대로.
 - **못 덮는 범위** (도구를 새로 깔지 않는다):
   - `InboxCard`의 `ValidationMark` 실물 렌더: 실선 active 칩 vs 점선 hold 칩, `title` 툴팁, `flex-wrap` 반응형, active/hold 토큰 시각 대비, 검토대기에서만 렌더되는 조건부 — Node 러너에 DOM 없음. 배포 후 데스크톱+폰 수동 확인.
   - 메인 루프가 `검증:` 필드를 실제로 쓰는 것과 그 값 형식 — admin-dev 코드 밖(「범위 밖 의존」).
@@ -181,7 +184,7 @@ const VALIDATION_LINE_RE = /\r?\n[ \t]+검증:[ \t]*[^\r\n]*/;
 
 1안의 코드 몫(파서·카드·bounce 청소·테스트)은 admin-dev 쓰기 범위 안에서 자족적이다. 그러나 **기능이 온전히 작동하려면 admin-dev 쓰기 범위 밖의 두 가지가 필요**하다. 아래는 "여기서 막힌다"가 아니라 "이 지점은 내가 못 쓴다 — 메인 루프 handoff"의 성격이며, **코드는 필드 부재에 graceful degrade하므로**(필드 없으면 `검증 전` 칩) 구현이 이 지점에 닿거나 보류되지 않는다. 규약이 채택되기 전까지는 화면이 늘 `검증 전`을 보일 뿐이다.
 
-1. **`PROJECT_BOARD.md` 안내 블록** (admin-dev는 "내 항목 행의 status·결과"만 쓸 수 있고 안내 블록은 못 건드린다 — 정의). 문서화할 규약: (a) `검증:` 필드는 메인 루프가 계획서 검증 **클린 패스일 때만** 쓴다(카드의 "존재=통과" 계약의 근거), (b) 형식 예 `검증: 클린 패스 (YYYY-MM-DD, 무편집 N라운드)`, (c) 되돌리기(검토대기→계획지시)는 이 줄을 지운다 — 대시보드 bounce는 코드로(구현함), 수동 재개(보류→계획지시)는 이 규약으로, (d) `PROJECT_BOARD.md:23`의 "검증 라운드 기록은 이 보드에 쌓지 않고 docs/agents/main-loop/로 간다"를 **라운드 상세(파일) vs 요약 판정(필드)**로 구분하도록 한 줄 조정. 선례: FEAT-09가 "보드 안내 블록에 반려 세 전이를 기재한다(메인 루프가 구현 완료 후 처리)"로 같은 handoff를 썼다.
+1. **`PROJECT_BOARD.md` 안내 블록** (admin-dev는 "내 항목 행의 status·결과"만 쓸 수 있고 안내 블록은 못 건드린다 — 정의). 문서화할 규약: (a) `검증:` 필드는 메인 루프가 계획서 검증 **클린 패스일 때만** 쓴다(카드의 "존재=통과" 계약의 근거), (b) 형식 예 `검증: 클린 패스 (YYYY-MM-DD, 무편집 N라운드)`, (c) 되돌리기(검토대기→계획지시)는 이 줄을 지운다 — 대시보드 bounce는 코드로(구현함), 수동 재개(보류→계획지시)는 이 규약으로, (d) `PROJECT_BOARD.md:23`의 "검증 라운드 기록은 이 보드에 쌓지 않고 docs/agents/main-loop/로 간다"를 **라운드 상세(파일) vs 요약 판정(필드)**로 구분하도록 한 줄 조정. 선례: FEAT-09도 안내 블록 갱신을 admin-dev 범위 밖으로 분리해 메인 루프 몫으로 보고했고(`docs/plans/FEAT-09.md:88`·`:695`), 현행 안내 블록 `:10-12`의 반려 세 전이 서술이 실제로 그 경로로 들어갔다.
 2. **메인 루프가 `검증:` 필드를 쓰는 절차 자체** — 파이프라인 프로세스 변경이지 admin-dev 코드가 아니다. admin-dev는 렌더 능력과 bounce 청소를 제공하고, 필드 기록은 메인 루프가 채택한다(점진적 가치 전달).
 
 또한 `apps/admin/CLAUDE.md`는 읽기 전용이라, 테스트 인벤토리(현재 21파일·40suite·182test, `CLAUDE.md:35`)가 늘면 그 동기화도 메인 루프 handoff다(비고로 보고).
