@@ -39,6 +39,7 @@ model: sonnet
 - `**/docs/**/completed/**` — 제안서든 의존성 작업이든 `completed/` 아래는 수행 기록이다
 - `**/docs/ADR/**` — `docs/ADR/README.md`가 "`accepted`된 ADR은 immutable하며 historical record"라고 못 박았다
 - `**/docs/**/template.md` — 템플릿은 예시 값을 담는다
+- `docs/agents/**` — 행위자 보고서는 작성 시점의 상태를 담는다. `파일:줄` 인용이 낡는 것이 정상이다(`completed/`와 같은 이유). `README.md`(규약)만 예외로 검사 대상이다
 - `node_modules/**`, `packages/db/generated/**`, `apps/backend/asd/**` — 각각 의존성, 생성물, 서드파티 모델이다. 이 저장소가 쓴 주장이 아니다
 
 ## 절대 하지 않는 일
