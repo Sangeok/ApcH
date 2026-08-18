@@ -173,7 +173,7 @@ const VALIDATION_LINE_RE = /\r?\n[ \t]+검증:[ \t]*[^\r\n]*/g;
 
 - **덮는 것** (`*.test.mjs`, Node 러너):
   - `board.test.mjs`: `검증:` 줄이 있는 항목은 `validation`에 값이 담기고, 없는 항목은 `null`(기존 `BOARD` 픽스처 항목으로 회귀 확인). 기존 5필드 파싱은 그대로.
-  - `briefing.test.mjs`: 검토대기 항목의 `SpeechItem.validation`이 보드 `검증` 필드를 전달한다(있으면 값, 없으면 null). 승인대기 항목과 feed 항목의 `validation`은 항상 null. (기존 단언은 per-field `assert.equal`이라 `SpeechItem`에 필드가 늘어도 깨지지 않는다.)
+  - `briefing.test.mjs`: 검토대기 항목의 `SpeechItem.validation`이 보드 `검증` 필드를 전달한다(있으면 값, 없으면 null). 승인대기 항목과 feed 항목의 `validation`은 항상 null — **이 null 단언용 픽스처에는 `검증:` 줄을 부여해야 한다.** 승인대기(위반 상태)와 완료 feed 항목(승인 전이는 줄을 지우지 않으므로 실재 상태)에 줄이 없으면, 분기가 `item.validation`을 흘리는 돌연변이가 "항상 null"을 헛통과한다(실측: 줄 없는 픽스처에서 생존, 있는 픽스처에서 사멸). (기존 단언은 per-field `assert.equal`이라 `SpeechItem`에 필드가 늘어도 깨지지 않는다.)
   - `transitions.test.mjs`: `검증:` 줄이 있는 검토대기 항목을 bounce하면 status가 계획지시가 되고 `검증:` 줄이 사라진다(after 파싱 시 `validation === null`, 변경 줄 = status 1줄 + 검증 1줄 제거). **`검증:` 줄이 2개인 항목의 bounce는 둘 다 지운다** — `g` 플래그를 고정하는 단언이다(1줄 픽스처만으로는 비전역 구현도 통과해 플래그 제거 돌연변이가 살아남는다). 검증 줄이 없는 항목의 bounce는 status 1줄만 바뀐다(기존 `:273` 최소 diff 테스트가 이미 이 경우를 덮음 — 회귀로 명시). 화이트리스트·스테일·미발견·포맷 거부는 검증 줄 유무와 무관하게 기존대로.
 - **못 덮는 범위** (도구를 새로 깔지 않는다):
   - `InboxCard`의 `ValidationMark` 실물 렌더: 실선 active 칩 vs 점선 hold 칩, `title` 툴팁, `flex-wrap` 반응형, active/hold 토큰 시각 대비, 검토대기에서만 렌더되는 조건부 — Node 러너에 DOM 없음. 배포 후 데스크톱+폰 수동 확인.
