@@ -120,6 +120,30 @@ describe("pipeline board parser", () => {
     );
   });
 
+  it("parses a 검증 field when present and leaves it null when absent", () => {
+    // `검증:`은 메인 루프가 계획서 검증 클린 패스일 때만 쓰는 필드다 — 있으면 값이 담긴다.
+    const md = [
+      "## 2026-08-18",
+      "- [ ] FEAT-13: 검증 필드가 있는 항목",
+      "  agent: admin-dev",
+      "  status: 검토대기",
+      "  근거: 발주 근거.",
+      "  검증: 클린 패스 (2026-08-18, 무편집 2라운드)",
+    ].join(String.fromCharCode(10));
+
+    const [item] = parseBoard(md)[0].items;
+    assert.equal(item.validation, "클린 패스 (2026-08-18, 무편집 2라운드)");
+
+    // 기존 BOARD 픽스처 항목엔 `검증:` 줄이 없으므로 전부 null(회귀 확인).
+    for (const parsed of parseBoard(BOARD).flatMap((section) => section.items)) {
+      assert.equal(
+        parsed.validation,
+        null,
+        `${parsed.id} should have null validation`,
+      );
+    }
+  });
+
   it("does not create items from the quoted guide block", () => {
     const ids = parseBoard(BOARD).flatMap((section) =>
       section.items.map((item) => item.id),

@@ -53,6 +53,30 @@ function BudgetFlag() {
   );
 }
 
+// 부서(countersign) 표식. 검증 클린 패스면 실선 active 칩, 아직이면 점선 hold 칩.
+// 판정은 메인 루프가 클린 패스일 때만 `검증:` 필드를 써서 전달한다(보드 안내 규약).
+// 검토대기 항목에서만 렌더한다(승인대기는 계획이 없어 판정이 없다).
+function ValidationMark({ validation }: { validation: string | null }) {
+  if (validation !== null) {
+    return (
+      <span
+        title={validation}
+        className="shrink-0 rounded border border-active/60 bg-active/10 px-1 text-[10px] leading-4 text-active"
+      >
+        검증 통과
+      </span>
+    );
+  }
+  return (
+    <span
+      title="아직 검증 클린 패스 기록이 없습니다 — 승인 전 확인하세요"
+      className="shrink-0 rounded border border-dashed border-hold/60 px-1 text-[10px] leading-4 text-hold"
+    >
+      검증 전
+    </span>
+  );
+}
+
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
     <h2 className="font-briefing-display text-sm tracking-widest text-muted-foreground">
@@ -132,8 +156,11 @@ function InboxCard({ item }: { item: SpeechItem }) {
       </div>
       <p className="mt-3 text-lg text-stamp">{item.line}</p>
       <div className="mt-3 flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           {item.id} · {item.status}
+          {item.status === "검토대기" && (
+            <ValidationMark validation={item.validation} />
+          )}
           {item.overBudget && <BudgetFlag />}
         </p>
         {gateTo !== null && (

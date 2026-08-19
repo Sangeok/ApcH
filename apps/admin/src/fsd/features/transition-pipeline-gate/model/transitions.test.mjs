@@ -305,6 +305,52 @@ describe("applyBounceTransition — 되돌리기(검토대기 → 계획지시)"
     const res = applyBounceTransition(BOARD, "FEAT-09", "검토대기");
     assert.deepEqual(res, { ok: false, reason: "format" });
   });
+
+  it("검증 줄이 있는 항목을 bounce하면 status 교체 + 검증 줄 제거", () => {
+    // 되돌리기 = 계획 재작성. 옛 검증 판정이 남으면 재작성된 계획서에 거짓 「검증 통과」가
+    // 붙는다(FEAT-13). BOARD의 검토대기 FEAT-05 블록에 검증 줄을 더해 만든다.
+    const withValidation = BOARD.replace(
+      "  status: 검토대기\n  근거: 실사용 관찰.",
+      "  status: 검토대기\n  근거: 실사용 관찰.\n  검증: 클린 패스 (2026-08-16, 무편집 2라운드)",
+    );
+    const res = applyBounceTransition(withValidation, "FEAT-05", "검토대기");
+    assert.ok(res.ok);
+    assert.equal(res.to, "계획지시");
+
+    // 파서상 status는 계획지시가 되고 검증 판정은 사라진다(null).
+    const feat05 = parseBoard(res.markdown)
+      .flatMap((s) => s.items)
+      .find((it) => it.id === "FEAT-05");
+    assert.equal(feat05.status, "계획지시");
+    assert.equal(feat05.validation, null);
+
+    // 변경 줄 = status 1줄 값 교체 + 검증 1줄 제거 → 전체 줄 수 -1, 검증 줄 잔존 0.
+    const beforeLines = withValidation.split("\n");
+    const afterLines = res.markdown.split("\n");
+    assert.equal(afterLines.length, beforeLines.length - 1);
+    assert.ok(!afterLines.some((l) => l.includes("검증:")));
+    assert.ok(afterLines.includes("  status: 계획지시"));
+  });
+
+  it("검증 줄이 2개면 bounce가 둘 다 지운다 (g 플래그 고정)", () => {
+    // 규약 위반으로 검증 줄이 둘 남은 항목(보류 재개 시 청소를 잊고 재검증). 비전역 제거는
+    // 첫 줄만 지워 옛 판정이 살아남으므로, 둘 다 사라지는지가 g 플래그를 고정한다.
+    const withTwo = BOARD.replace(
+      "  status: 검토대기\n  근거: 실사용 관찰.",
+      "  status: 검토대기\n  근거: 실사용 관찰.\n  검증: 클린 패스 (첫째).\n  검증: 클린 패스 (둘째).",
+    );
+    const res = applyBounceTransition(withTwo, "FEAT-05", "검토대기");
+    assert.ok(res.ok);
+
+    const afterLines = res.markdown.split("\n");
+    assert.equal(afterLines.length, withTwo.split("\n").length - 2);
+    assert.ok(!afterLines.some((l) => l.includes("검증:")));
+    const feat05 = parseBoard(res.markdown)
+      .flatMap((s) => s.items)
+      .find((it) => it.id === "FEAT-05");
+    assert.equal(feat05.status, "계획지시");
+    assert.equal(feat05.validation, null);
+  });
 });
 
 describe("applyHoldTransition — 보류(승인대기·검토대기 → 보류) + 결과 줄 기록", () => {

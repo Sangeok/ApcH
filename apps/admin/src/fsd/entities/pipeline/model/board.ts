@@ -10,6 +10,7 @@ export type BoardItem = {
   status: string | null;
   reason: string | null; // 근거
   result: string | null; // 결과
+  validation: string | null; // 검증 — 메인 루프가 클린 패스일 때만 쓴다
 };
 
 export type BoardSection = {
@@ -19,7 +20,7 @@ export type BoardSection = {
 
 const HEADING_RE = /^##\s+(.+)$/;
 const ITEM_RE = /^- \[([ xX])\] ([A-Z]+-\d+): (.+)$/;
-const FIELD_RE = /^\s+(agent|area|status|근거|결과):\s*(.+)$/;
+const FIELD_RE = /^\s+(agent|area|status|근거|결과|검증):\s*(.+)$/;
 
 export function parseBoard(markdown: string): BoardSection[] {
   const sections: BoardSection[] = [];
@@ -60,6 +61,7 @@ export function parseBoard(markdown: string): BoardSection[] {
         status: null,
         reason: null,
         result: null,
+        validation: null,
       };
       currentSection.items.push(currentItem);
       continue;
@@ -90,6 +92,9 @@ export function parseBoard(markdown: string): BoardSection[] {
             currentItem.result === null
               ? value
               : currentItem.result + " " + value;
+          break;
+        case "검증":
+          currentItem.validation = value;
           break;
       }
     }
