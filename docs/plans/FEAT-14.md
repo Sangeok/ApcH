@@ -4,15 +4,15 @@ agent: admin-dev
 
 ## 현재 동작
 
-- `/pipeline` 라우트(`src/app/(protected)/pipeline/page.tsx:16-28`)는 `requireAdmin()` 뒤에서 `getPipelineBoard()`와 `getAgentReportIndex()`를 병렬로 읽어 `buildBriefing(sections, new Date())`로 브리핑을 만들고 `PipelineBriefing`에 넘긴다. `force-dynamic`이다(`:14`).
+- `/pipeline` 라우트(`src/app/(protected)/pipeline/page.tsx:16-29`)는 `requireAdmin()` 뒤에서 `getPipelineBoard()`와 `getAgentReportIndex()`를 병렬로 읽어 `buildBriefing(sections, new Date())`로 브리핑을 만들고 `PipelineBriefing`에 넘긴다. `force-dynamic`이다(`:14`).
 - `getAgentReportIndex()`(`src/fsd/entities/agent-report/api/queries.ts:37-62`)는 **`docs/agents/`만** 훑는다 — 부모 디렉터리를 contents API로 읽어 `type === "dir"`인 하위 폴더를 알아낸 뒤 각 폴더를 병렬로 읽어 `Map<행위자, AgentReport[]>`를 만든다. `docs/plans/`는 어디서도 읽지 않는다.
-- 책상 아래 `DeskReports`(`src/fsd/pages/pipeline/ui/_component/pixel-office.tsx:232-248`)는 그 행위자의 보고서를 `<details>` 안에 **파일명(label) 평문 목록**으로 전부 나열한다. 링크가 없어 클릭해 열 수 없고, 목록은 append-only 규약이라 계속 자란다. `PixelOffice`(`:251-278`)가 `reports.get(member.identity.id)`로 각 책상에 넘긴다.
+- 책상 아래 `DeskReports`(`src/fsd/pages/pipeline/ui/_component/pixel-office.tsx:232-248`)는 그 행위자의 보고서를 `<details>` 안에 **파일명(label) 평문 목록**으로 전부 나열한다. 링크가 없어 클릭해 열 수 없고, 목록은 append-only 규약이라 계속 자란다. `PixelOffice`(`:251-279`)가 `reports.get(member.identity.id)`로 각 책상에 넘긴다.
 - roster(`src/fsd/pages/pipeline/model/known-agents.ts:32-38`)는 `pm·admin-dev·web-dev·doc-auditor·feature-scout` 다섯뿐이다. `main-loop`이 없어, `getAgentReportIndex()`가 읽어오는 `docs/agents/main-loop/`(검증 라운드·게이트 결정 기록)는 어느 책상에도 매핑되지 않고 화면 어디에도 나오지 않는다 — 매 요청 fetch만 되고 버려진다.
 - 결재함 카드 `InboxCard`(`src/fsd/pages/pipeline/ui/index.tsx:140-193`)와 보고 피드 `FeedZone`(`:195-234`)은 항목 ID·status·발화·근거만 보여준다. **그 항목의 계획서/기록으로 가는 링크가 없다** — 계획서·기록을 읽으려면 GitHub로 이탈해야 한다.
 - `SpeechItem`(`src/fsd/pages/pipeline/model/briefing.ts:12-24`)에 문서 링크 필드가 없다. `buildBriefing`(`:210-230`)은 보드만 입력으로 받는다.
 - 문서를 렌더하는 라우트가 없다. `src/app/(protected)/`에는 `analytics·observability·pipeline` 세 페이지뿐이고 문서 뷰어가 없다.
 - 마크다운 렌더러 의존성이 없다(`apps/admin/package.json:21-42`에 `marked`·`react-markdown`·`remark`류 없음).
-- production fetch owner는 다섯이다(`scripts/verify-fsd-boundaries.mjs:33-38`): pipeline board GET·command POST·progress GET·gate GET/PUT·agent-report GET. `--final` 모드는 이 집합과 실제 tree의 fetch 호출부가 **정확히 일치**해야 통과한다(`:665-676`). 승인되지 않은 fetch 호출부는 `[R13] network call is outside the approved fetch owners`(`:580-591`).
+- production fetch owner는 다섯이다(`scripts/verify-fsd-boundaries.mjs:32-38`): pipeline board GET·command POST·progress GET·gate GET/PUT·agent-report GET. `--final` 모드는 이 집합과 실제 tree의 fetch 호출부가 **정확히 일치**해야 통과한다(`:665-676`). 승인되지 않은 fetch 호출부는 `[R13] network call is outside the approved fetch owners`(`:580-591`).
 
 ## 문제
 
@@ -28,7 +28,7 @@ agent: admin-dev
 
 **팔레트**(전부 기존 토큰, `globals.css`) — `--briefing`(양피지 바탕, `:90`) · `--stamp`(오커 잉크·제목/계획 배지, `:85`) · `--stamp-soft`(연양피지·배지 바탕, `:86`) · `--active`(청색·계획서 링크와 검증, `:87`) · `--hold`(러스트·보고서 append 배지, `:89`) · `--silence`/`--muted-foreground`(본문 보조·완료). `--picked`(클립 전용)와 `--destructive`는 재사용 안 함(globals 주석 규약).
 
-**타이포 역할** — 세 역할의 의도된 대비: (1) **명조 디스플레이**(`font-briefing-display`, Gowun Batang, `:11-13`) = 문서 제목·컨텍스트 헤더·렌더된 `##` 제목 → "공문서" 질감. (2) **산세리프 본문**(`font-sans`, Pretendard, `:7-10`) = 렌더된 문단·표 셀 → 밀도 높은 한국어 기술 문서의 가독성. (3) **모노**(`ui-monospace`) = 코드 펜스·인라인 코드·`파일:줄` 토큰. 명조가 구조를, 산세리프가 내용을, 모노가 데이터를 나른다.
+**타이포 역할** — 세 역할의 의도된 대비: (1) **명조 디스플레이**(`font-briefing-display`, Gowun Batang, `:11-12`) = 문서 제목·컨텍스트 헤더·렌더된 `##` 제목 → "공문서" 질감. (2) **산세리프 본문**(`font-sans`, Pretendard, `:7-10`) = 렌더된 문단·표 셀 → 밀도 높은 한국어 기술 문서의 가독성. (3) **모노**(`ui-monospace`) = 코드 펜스·인라인 코드·`파일:줄` 토큰. 명조가 구조를, 산세리프가 내용을, 모노가 데이터를 나른다.
 
 **레이아웃 개념** — 책상에서 꺼낸 한 장의 공문서. `max-w-3xl` 단일 컬럼 "문서 시트"(양피지 바탕) 위에 "서류철 헤더" 띠를 얹는다. 헤더는 종류 배지 + 항목 ID/제목 + (항목이면) 보드 상태 칩과 게이트②·반려 버튼 + 형제 문서 탭 + GitHub 원문 링크를 담는다.
 
@@ -46,7 +46,7 @@ agent: admin-dev
 
 **시그니처 요소** — "서류철 탭 + 고무도장 종류 배지". 형제 문서(계획서/검증 기록/구현 보고)를 물리적 파일 탭으로 보이고 활성 탭이 아래 시트에 이어붙는 마닐라 폴더 은유가, 항목의 문서 생애(계획→검증→구현)를 **구조로 인코딩**한다("structure is information"). 종류 배지는 도장 은유의 연장이다: 계획서=오커 잉크 실선 도장 "현재 계약 하나만 유효", 보고서=러스트 겹층 "append 누적 기록". 대비를 이 한 곳에 쓰고 나머지는 조용히 둔다.
 
-**카피**(사용자 노출, 앱 언어 그대로) — 배지 `계획서 · 현재 계약` / `보고서 · 누적 기록`. 탭 `계획서`·`검증 기록`·`구현 보고`. 뒤로가기 `← 브리핑`. 원문 `GitHub 원문 ↗`. 없음 상태 `이 문서를 찾을 수 없습니다.`(뷰어는 화이트리스트 밖·미존재를 `notFound()`로 처리하므로 이 카피는 Next 기본 404 경유 — 별도 문구 파일은 만들지 않는다). 카드 링크 `계획서 →`·`검증 기록 →`·`구현 보고 →`. 책상 `기록 N건`.
+**카피**(사용자 노출, 앱 언어 그대로) — 배지 `계획서 · 현재 계약` / `보고서 · 누적 기록`. 탭 `계획서`·`검증 기록`·`구현 보고`. 뒤로가기 `← 브리핑`. 원문 `GitHub 원문 ↗`. 없음 상태: 전용 카피 없음 — 화이트리스트 밖·미존재는 `notFound()`가 Next 기본 404를 띄운다(전용 not-found.tsx를 만들지 않으므로 그 화면의 문구는 이 항목의 카피가 아니다). 카드 링크 `계획서 →`·`검증 기록 →`·`구현 보고 →`. 책상 `기록 N건`.
 
 **모션** — 없음(사내 문서 리더). 탭 hover 밑줄과 기존 도장 버튼 transition만. reduced-motion은 자명하게 준수(추가 모션 없음).
 
@@ -77,7 +77,7 @@ agent: admin-dev
 | `src/fsd/pages/pipeline/ui/_component/pixel-office.tsx` | `DeskReports`를 파일명 목록 → "기록 N건" 텍스트로 교체 |
 | `src/app/(protected)/pipeline/page.tsx` | `getPlanDocIds()`를 병렬 fetch에 추가, `buildBriefing`에 `{ planDocIds, reports }` 전달 |
 | `src/styles/globals.css` | `.doc-prose` 요소 스타일(명조 제목·산세리프 본문·모노 코드·하드라인 표·오커 인용) |
-| `scripts/verify-fsd-boundaries.mjs` | `FSD_EFFECT_OWNERS.fetch`에 repo-doc owner 추가, `REQUIRED_FINAL_FILES`에 신규 index 추가 |
+| `scripts/verify-fsd-boundaries.mjs` | `FSD_EFFECT_OWNERS.fetch`에 repo-doc owner 추가, `REQUIRED_FINAL_FILES`에 신규 index·뷰어 라우트 추가 |
 | `scripts/verify-fsd-boundaries.test.mjs` | 신규 owner contract test + owner 누락 시 R13 mutation fixture |
 
 여기 없는 파일은 구현 단계에서 고치지 않는다. 더 필요해지면 `보류`로 기록하고 멈춘다.
@@ -109,8 +109,6 @@ export function docSourceUrl(path: string): string {
 ### 2) `entities/repo-doc/model/doc-location.ts` (신규) — 순수, 임포트 없음
 
 ```ts
-import { docSourceUrl } from "../config/github"; // 상수 함수만(fetch 아님) — 순수 유지
-
 export type DocKind = "plan" | "report";
 export type DocLocation = {
   path: string;          // 저장소 상대 경로 (docs/plans/FEAT-14.md)
@@ -171,8 +169,6 @@ export function planDocHref(id: string): string {
 export function reportDocHref(agent: string, name: string): string {
   return `/pipeline/docs/agents/${agent}/${name}`;
 }
-export { docSourceUrl };
-
 const REPORT_LABEL: Record<string, string> = {
   "main-loop": "검증 기록",
   "admin-dev": "구현 보고",
@@ -204,6 +200,12 @@ export function docLinksForItem(
 신뢰된 사내 문서(자기 저장소·admin 전용)를 GFM 부분집합으로 렌더한다. **모든 텍스트는 escape하고 화이트리스트 구조 태그만 방출한다 — 원문의 원시 HTML은 통과시키지 않는다.** 미지원 문법(중첩 리스트는 평면화·이미지·참조 링크)은 GitHub 원문 링크가 탈출구다(요구 5). `noUncheckedIndexedAccess` 때문에 배열 접근은 전부 `?? ""`로 보정한다.
 
 ```ts
+// 인라인 코드 자리를 표시하는 구분자. escapeHtml 이후 문자열에는 NUL이 존재할 수 없어
+// 평문과 충돌하지 않는다 — 공백-숫자-공백(" 0 ") 자리표시자는 "결함 0 건" 같은 평문을
+// 코드 복원 단계에서 조용히 삭제한다("결함 0 건"→"결함건", 검증 라운드 실행 실측).
+const CODE_SLOT = String.fromCharCode(0);
+const CODE_SLOT_RE = new RegExp(`${CODE_SLOT}(\\d+)${CODE_SLOT}`, "g");
+
 export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -217,7 +219,7 @@ export function renderInline(text: string): string {
   const codes: string[] = [];
   let s = text.replace(/`([^`]+)`/g, (_m, c: string) => {
     codes.push(`<code>${escapeHtml(c)}</code>`);
-    return ` ${codes.length - 1} `;
+    return `${CODE_SLOT}${codes.length - 1}${CODE_SLOT}`;
   });
   s = escapeHtml(s);
   // 링크: http(s)·루트상대(/)만 허용. javascript: 등은 매치해도 그대로 텍스트로 둔다.
@@ -227,7 +229,7 @@ export function renderInline(text: string): string {
   });
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<em>$1</em>");
-  return s.replace(/ (\d+) /g, (_m, i: string) => codes[Number(i)] ?? "");
+  return s.replace(CODE_SLOT_RE, (_m, i: string) => codes[Number(i)] ?? "");
 }
 
 /** 블록 스캐너: 코드펜스·제목·hr·인용·GFM 표·목록·문단. */
@@ -354,7 +356,7 @@ export async function getPlanDocIds(): Promise<Set<string>> {
 ```
 
 `api/index.ts`: `export { getDocContent, getPlanDocIds } from "./queries";`
-`index.ts`(slice root): `export { ... } from "./model/doc-location"; export { renderMarkdown, escapeHtml, renderInline } from "./model/markdown"; export { docContentUrl, plansDirUrl, docSourceUrl } from "./config/github";` — **api는 재수출하지 않는다**(agent-report/index.ts:1-6 패턴, 서버 쿼리는 `~/fsd/entities/repo-doc/api`로 직접 임포트).
+`index.ts`(slice root): `export { locationFromSlug, isWhitelistedDocPath, planDocHref, reportDocHref, docLinksForItem, type DocKind, type DocLink, type DocLocation } from "./model/doc-location"; export { renderMarkdown, escapeHtml, renderInline } from "./model/markdown"; export { docContentUrl, plansDirUrl, docSourceUrl } from "./config/github";` — `docSourceUrl`은 **config에서만** 나간다(doc-location에서 겹쳐 재수출하면 TS 중복 export 오류; doc-location은 임포트 없는 순수 파일로 유지). **api는 재수출하지 않는다**(agent-report/index.ts:1-6 패턴, 서버 쿼리는 `~/fsd/entities/repo-doc/api`로 직접 임포트).
 
 ### 5) `pages/doc-viewer/model/build-doc-view.ts` (신규) — 순수
 
@@ -438,9 +440,10 @@ export function buildDocView(
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import type { AgentReport } from "~/fsd/entities/agent-report";
 import { getAgentReportIndex } from "~/fsd/entities/agent-report/api";
 import { getPipelineBoard } from "~/fsd/entities/pipeline/api";
-import { latestItemById } from "~/fsd/entities/pipeline";
+import { latestItemById, type BoardItem } from "~/fsd/entities/pipeline";
 import { getDocContent, getPlanDocIds } from "~/fsd/entities/repo-doc/api";
 import { locationFromSlug } from "~/fsd/entities/repo-doc";
 import { buildDocView, DocViewer } from "~/fsd/pages/doc-viewer";
@@ -459,9 +462,9 @@ export default async function AdminPipelineDocRoute({ params }: { params: Promis
   if (content === null) notFound(); // 미존재(raw 404)
 
   // 항목 문서일 때만 보드 상태·게이트(스코프 a)·형제 탭(스코프 b) 문맥을 읽는다.
-  let boardItem = null;
+  let boardItem: BoardItem | null = null;
   let planDocIds: ReadonlySet<string> = new Set();
-  let reports: ReadonlyMap<string, unknown> = new Map();
+  let reports: ReadonlyMap<string, AgentReport[]> = new Map();
   if (location.itemId !== null) {
     const [sections, planIds, reportIndex] = await Promise.all([
       getPipelineBoard(), getPlanDocIds(), getAgentReportIndex(),
@@ -470,7 +473,7 @@ export default async function AdminPipelineDocRoute({ params }: { params: Promis
     planDocIds = planIds;
     reports = reportIndex;
   }
-  const view = buildDocView(location, content, boardItem, planDocIds, reports as never);
+  const view = buildDocView(location, content, boardItem, planDocIds, reports);
   return (
     <main className="bg-briefing min-h-screen">
       <DocViewer view={view} />
@@ -479,7 +482,7 @@ export default async function AdminPipelineDocRoute({ params }: { params: Promis
 }
 ```
 
-(구현 시 `reports` 타입은 `Map<string, AgentReport[]>`로 정확히 잡는다 — 위 `unknown`/`as never`는 스케치의 임포트 절약이다. `AgentReport`는 `~/fsd/entities/agent-report`에서 타입 임포트.)
+(타입은 스케치 그대로가 구현이다 — `let boardItem = null`처럼 명시 타입을 빼면 `any`로 넓혀져 `@typescript-eslint/no-unsafe-argument`(recommendedTypeChecked, `eslint.config.js:17`)에 걸리고 `check`의 lint 0 기준이 깨진다.)
 
 ### 8) 기존 파일 편집 (before/after)
 
@@ -548,14 +551,19 @@ function DeskReports({ reports }: { reports: AgentReport[] }) {
 
 `src/app/(protected)/pipeline/page.tsx`(`:18-22`):
 ```tsx
-// before
-const [sections, reports] = await Promise.all([getPipelineBoard(), getAgentReportIndex()]);
-const briefing = buildBriefing(sections, new Date());
+// before (실제 파일 :18-22 그대로)
+  const [sections, reports] = await Promise.all([
+    getPipelineBoard(),
+    getAgentReportIndex(),
+  ]);
+  const briefing = buildBriefing(sections, new Date());
 // after
-const [sections, reports, planDocIds] = await Promise.all([
-  getPipelineBoard(), getAgentReportIndex(), getPlanDocIds(),
-]);
-const briefing = buildBriefing(sections, new Date(), { planDocIds, reports });
+  const [sections, reports, planDocIds] = await Promise.all([
+    getPipelineBoard(),
+    getAgentReportIndex(),
+    getPlanDocIds(),
+  ]);
+  const briefing = buildBriefing(sections, new Date(), { planDocIds, reports });
 ```
 import 추가: `import { getPlanDocIds } from "~/fsd/entities/repo-doc/api";`
 
@@ -564,8 +572,8 @@ import 추가: `import { getPlanDocIds } from "~/fsd/entities/repo-doc/api";`
 ### 9) 경계 스크립트 (before/after)
 
 `scripts/verify-fsd-boundaries.mjs`:
-- `FSD_EFFECT_OWNERS.fetch`(`:33-38`)에 한 줄 추가: `"src/fsd/entities/repo-doc/api/queries.ts"`. 이 파일 하나가 `getDocContent`·`getPlanDocIds` 두 fetch를 소유한다(한 owner). 추가 안 하면 `--final`에서 owner mismatch(`:665-676`) + 실제 tree에서 `[R13]`(`:580-591`).
-- `REQUIRED_FINAL_FILES`(`:46-63`)에 신규 public entry 추가: `"src/fsd/entities/repo-doc/index.ts"`, `"src/fsd/entities/repo-doc/api/index.ts"`, `"src/fsd/pages/doc-viewer/index.ts"`.
+- `FSD_EFFECT_OWNERS.fetch`(`:32-38`)에 한 줄 추가: `"src/fsd/entities/repo-doc/api/queries.ts"`. 이 파일 하나가 `getDocContent`·`getPlanDocIds` 두 fetch를 소유한다(한 owner). 추가 안 하면 `--final`에서 owner mismatch(`:665-676`) + 실제 tree에서 `[R13]`(`:580-591`).
+- `REQUIRED_FINAL_FILES`(`:46-63`)에 신규 public entry 추가: `"src/fsd/entities/repo-doc/index.ts"`, `"src/fsd/entities/repo-doc/api/index.ts"`, `"src/fsd/pages/doc-viewer/index.ts"`, `"src/app/(protected)/pipeline/docs/[...slug]/page.tsx"` — 마지막은 (protected) 페이지 전부가 등재된 존재 요구 목록(`:47-50`)과의 일관.
 
 ## 테스트
 
@@ -578,6 +586,7 @@ import 추가: `import { getPlanDocIds } from "~/fsd/entities/repo-doc/api";`
 - `entities/repo-doc/model/markdown.test.mjs`
   - `escapeHtml`: `& < > "` 전부.
   - `renderInline`: `**볼드**`·`` `코드` ``(내부 미파싱)·`[t](https://x)`·`[t](/rel)`·`[t](javascript:alert(1))`는 링크로 안 만들고 텍스트 유지·코드 안의 `<`는 escape.
+  - `renderInline` 자리표시자 충돌 회귀: 평문 `"결함 0 건, 총 2 라운드"`가 그대로 보존(코드 스팬 없음) · `` "`code`와 숫자 3 개" ``에서 무관한 ` 3 `이 보존(코드 스팬 있음) — 공백-숫자-공백 자리표시자로 돌아가는 돌연변이를 사멸시키는 단언.
   - `renderMarkdown`: 제목 레벨(`#`~`######`)·문단·`ul`·`ol`·GFM 표(헤더+구분행+행)·코드펜스(내부 escape·인라인 미파싱)·인용·hr·빈 입력→`""`·**XSS: `<script>`가 `&lt;script&gt;`로**(원시 HTML 미통과).
 - `entities/repo-doc/api/queries.test.mjs` (module-mock `fetch`, live I/O 없음)
   - `getDocContent`: 화이트리스트 밖 경로→fetch 없이 null · raw 200→text · 404→null · 비-OK→throw.
@@ -597,7 +606,7 @@ import 추가: `import { getPlanDocIds } from "~/fsd/entities/repo-doc/api";`
 - 헤더의 `GateTransitionButton`/`RejectActions` 클라이언트 상호작용(useTransition·toast·router.refresh) — 기존 컴포넌트라 FEAT-08/09에서 이미 못 덮음으로 기록됨.
 - `next/link` 카드 링크 네비게이션·`DocLinks` 렌더.
 - 실제 raw CDN fetch·contents API 응답(module-mock로 호출 계약만 확인).
-- raw CDN 잔상: 게이트 전이 커밋 후 최대 5분간 뷰어 상태 칩이 옛 status일 수 있다(FEAT-10 결정 6, 범위 밖·후속).
+- raw CDN 잔상: raw CDN은 max-age=300(FEAT-10 실측)이라 게이트 전이 커밋 후 최대 5분간 뷰어 상태 칩이 옛 status일 수 있고, **문서 본문도 같은 raw 경로라** 방금 커밋된 문서가 최대 5분간 옛 본문이거나 404(→ Next 404)일 수 있다(FEAT-10 결정 6, 범위 밖·후속).
 
 `npm test`는 Node 내장 러너다. DOM·React 테스트 도구가 없고 DB/외부 I/O는 그 자체를 덮을 수 없다. 위 "못 덮는 범위"는 도구를 새로 깔지 않고 수동 smoke로 남긴다.
 
