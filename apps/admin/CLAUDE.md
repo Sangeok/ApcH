@@ -32,7 +32,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **21개 파일, 40개 suite, 182개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **21개 파일, 40개 suite, 187개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -43,7 +43,7 @@ npm run build -w apps/admin
 | `src/fsd/entities/analytics-event/api/queries.test.mjs` | 단일 read-only `findMany` shape와 최근 실패 filter/limit |
 | `src/fsd/entities/analytics-event/model/reporting.test.mjs` | 퍼널 순서·drop-off·실패 집계와 결정적 정렬 |
 | `src/fsd/entities/pipeline/api/queries.test.mjs` | raw board no-store GET과 non-OK 실패 |
-| `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱, 중복 `결과:` 누적 |
+| `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱, 중복 `결과:` 누적, `검증` 필드(부재→null) |
 | `src/fsd/entities/agent-report/model/report-index.test.mjs` | contents 디렉터리 응답 → 보고서 목록, README 제외, 결정적 정렬, 부분 집계 금지 |
 | `src/fsd/features/run-pipeline-command/api/post-pipeline-command.test.mjs` | auth-first, whitelist, exact GitHub POST |
 | `src/fsd/features/run-pipeline-command/model/commands.test.mjs` | command body와 key whitelist |
@@ -52,8 +52,8 @@ npm run build -w apps/admin
 | `src/fsd/features/run-pipeline-command/model/progress.test.mjs` | 명령:답글 FIFO 짝짓기, 상태 다섯, 임계·시계·접두 경계 |
 | `src/fsd/features/send-observability-test/api/send-observability-test-event.test.mjs` | auth-first Sentry scope/capture/flush 순서 |
 | `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.test.mjs` | auth-first, GET/PUT, optimistic lock, 실패 shape |
-| `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | 승인·반려 전이, 최소 diff, stale/format 거부 |
-| `src/fsd/pages/pipeline/model/briefing.test.mjs` | 보드→briefing·roster·발화 매핑 |
+| `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | 승인·반려 전이, 최소 diff, stale/format 거부, 되돌리기의 `검증:` 줄 제거(1줄·2줄) |
+| `src/fsd/pages/pipeline/model/briefing.test.mjs` | 보드→briefing·roster·발화 매핑, 검증 판정 전달(검토대기만) |
 | `src/fsd/pages/pipeline/model/desk-commands.test.mjs` | desk→command key와 whitelist 연결 |
 | `src/fsd/pages/pipeline/model/sprites.test.mjs` | pixel grid·appearance·tone 매핑 |
 | `src/fsd/shared/observability/report-error.test.mjs` | 예외 capture, user isolation, never-throw flush |
