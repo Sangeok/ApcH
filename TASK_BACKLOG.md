@@ -25,6 +25,28 @@
   - area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   - source: README "Currently in Development"
 
+## Admin / Dashboard
+
+- [ ] **FEAT-14**: `/pipeline` 기록 열람을 대시보드 안에서 — 항목 축 재배치 + 내부 문서 뷰어
+  - area: apps/admin
+  - source: 소유자 직접 발주 (2026-08-19, 채팅 설계 합의). 아래가 발주 계약이다.
+  - 관측 (2026-08-19 실측):
+    1. 책상 아래 `DeskReports`(`pixel-office.tsx`)가 에이전트별 보고서 파일명을 평문으로 전부 나열한다 — 링크가 없어 열 수 없다. 보고서는 append-only 규약(`docs/agents/README.md`)이라 목록은 계속 자라고, 코드포인트 파일명 정렬은 최근성 순서가 아니다.
+    2. `getAgentReportIndex()`가 fetch하는 `docs/agents/main-loop/` 기록(검증 라운드·게이트 결정)은 책상 roster에 main-loop이 없어 화면 어디에도 나오지 않는다 — 매 요청 fetch만 되고 버려진다.
+    3. 기록의 실제 소비 시점은 게이트 결정이다 — 게이트②에서 계획서와 검증 기록을 읽어야 하는데, 지금은 GitHub로 이탈해야만 읽을 수 있다(소유자가 마찰로 확인).
+  - 요구 (core):
+    1. 항목 카드(결재함·보고)에 그 항목의 **실재하는** 문서 링크 — 계획서(`docs/plans/<ID>.md`)·행위자 기록(`docs/agents/<행위자>/<ID>.md`). 실재 판별은 이미 fetch하는 report index 재사용(신규 요청 0).
+    2. 내부 뷰어 라우트(RSC, `requireAdmin`, force-dynamic): dev 브랜치 raw CDN에서 파일을 서버 fetch해 GFM 렌더(마크다운 렌더러 의존성 1개 수준). raw CDN은 파일 내용은 준다 — 404는 디렉터리 목록뿐(실측).
+    3. 컨텍스트 헤더: 경로에서 유도한 문서 종류 배지(계획서=현재 계약 하나만 유효 / 보고서=append-only 누적 기록) + 항목 ID.
+    4. 경로 화이트리스트: `docs/plans/`·`docs/agents/` 밖은 렌더하지 않는다 — URL 파라미터가 fetch 경로가 되기 때문.
+    5. GitHub 원문 링크(렌더 한계의 탈출구). 책상 아래 파일명 나열은 제거하고 "기록 N건"만 남긴다.
+  - 스코프 결정 사항 (계획서·게이트②에서 확정, 괄호는 소유자와 합의된 권장):
+    - (a) 뷰어 헤더에 보드 현재 상태 칩 + 항목이 `검토대기`면 게이트② 승인·반려 버튼(기존 `GateTransitionButton`/`RejectActions` 재사용) — **포함 권장**
+    - (b) 같은 항목 서류철 탭: 계획서 ↔ 검증 기록 ↔ 구현 보고, 실재하는 것만 — **포함 권장**
+    - (c) `##` 절 목차(append 누적 대비) — **보류**: 문서가 커져 실제 불편이 생기면 후속
+  - 비목표: 편집·코멘트(어드민 외부 쓰기 2경로 유지 — 뷰어는 순수 읽기), 화이트리스트 밖 경로 렌더, 캐시(no-store 유지), 파일 커밋 일시 표시, dialog/intercepting route(후속에 뷰어 위에 얹을 수 있음).
+  - 참고: 고정명 문서(`감사기록.md`·`정찰기록.md`)는 항목 무관이라 탭 없이 단독 렌더. 리포가 public이라 raw fetch에 토큰 불필요. 기각된 대안과 근거(GitHub 링크만·dialog·아카이브 페이지·최근 N건 나열)는 발주 대화에 있고, 핵심 기각 사유는 각각 흐름 이탈·긴 문서와 CSP·1인 운영 과잉·최근성 미도출이다.
+
 ## 비고
 
 - 위 항목의 우선순위는 아직 정해지지 않음 — PM 에이전트가 매일 이 목록에서 오늘 처리할 1~2개를 골라 PROJECT_BOARD.md에 "승인대기"로 기록한다.
