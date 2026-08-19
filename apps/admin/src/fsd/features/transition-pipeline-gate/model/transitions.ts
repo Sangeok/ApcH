@@ -48,6 +48,12 @@ function escapeRegExp(s: string): string {
 
 // board.ts와 같은 형식으로 이 항목 블록 안의 첫 status 줄을 잡는다(FIELD_RE 호환).
 const STATUS_LINE_RE = /^([ \t]+status:[ \t]*)(.+?)[ \t]*$/m;
+// `검증:` 줄 + 그 앞 개행을 통째로 잡는다(제거 시 빈 줄이 남지 않게).
+// 빈 문자열 치환이라 `$` 안전. 검증 줄이 없으면 매치 없음 → no-op.
+// g 플래그가 필수다: 보류 재개 때 규약의 줄 제거를 잊고 재검증이 둘째 줄을 남기면
+// (파서는 last-wins라 표시는 정상) 비전역 제거는 첫 줄만 지워 옛 판정이 살아남고,
+// 재작성된 계획서에 거짓 「검증 통과」가 붙는다 — 이 기능이 막으려는 바로 그 오판.
+const VALIDATION_LINE_RE = /\r?\n[ \t]+검증:[ \t]*[^\r\n]*/g;
 // 이 항목 블록의 끝: 다음 항목/헤딩/안내 블록 직전.
 const BLOCK_END_RE = /\n(?=- \[|#|>)/;
 
@@ -167,7 +173,10 @@ export function applyBounceTransition(
   if (!found.ok) return { ok: false, reason: found.reason };
   const { loc } = found;
   if (loc.statusValue !== expectedStatus) return { ok: false, reason: "stale" };
-  const newBlock = loc.block.replace(STATUS_LINE_RE, `${loc.statusPrefix}${to}`);
+  // 되돌리기 = 계획 재작성. 옛 검증 판정이 남으면 재작성된 계획서에 붙어
+  // 이 필드가 막으려는 오판을 이 필드가 일으킨다(FEAT-13 백로그 비고).
+  const withStatus = loc.block.replace(STATUS_LINE_RE, `${loc.statusPrefix}${to}`);
+  const newBlock = withStatus.replace(VALIDATION_LINE_RE, "");
   return {
     ok: true,
     to,

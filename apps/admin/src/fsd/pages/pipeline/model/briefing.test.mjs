@@ -44,12 +44,14 @@ const BOARD = `# PROJECT_BOARD
   area: apps/web
   status: 승인대기
   근거: pm이 오늘 고른 항목.
+  검증: 승인대기 위반 픽스처 — 판정은 null이어야 한다
 - [ ] FEAT-04: 파이프라인 개편
   agent: admin-dev
   area: apps/admin
   status: 검토대기
   근거: 계획을 올렸다.
   결과: 계획서 초안 완료.
+  검증: 클린 패스 (2026-08-14, 무편집 1라운드)
 - [ ] FEAT-06: 계획 단계 항목
   agent: admin-dev
   area: apps/admin
@@ -66,6 +68,7 @@ const BOARD = `# PROJECT_BOARD
   status: 완료
   근거: 정합성 결함.
   결과: pricingFaq 두 답변을 교체했다. 수정: apps/web/src/fsd/pages/pricing/config/index.ts.
+  검증: 완료 feed 위반 픽스처 — 판정은 null이어야 한다
 - [ ] BUG-05: 보류된 버그
   agent: admin-dev
   area: apps/admin
@@ -270,6 +273,44 @@ describe("buildBriefing", () => {
   it("wires the run plan from the deduped items (FEAT-06 계획지시 + FEAT-07 구현승인)", () => {
     assert.equal(briefing.plan.enabled, true);
     assert.equal(briefing.plan.label, "FEAT-06 계획서 작성 외 1건");
+  });
+
+  it("passes the board 검증 field to 검토대기 inbox items, null for 승인대기 and feed", () => {
+    const byId = new Map(
+      [...briefing.inbox, ...briefing.feed].map((s) => [s.id, s]),
+    );
+    // 검토대기(FEAT-04)는 보드 `검증:` 필드 값을 그대로 나른다(있으면 값).
+    assert.equal(
+      byId.get("FEAT-04").validation,
+      "클린 패스 (2026-08-14, 무편집 1라운드)",
+    );
+    // 승인대기(FEAT-05)는 계획이 없어 판정도 없다 — 픽스처에 `검증:` 줄이 있어도 null.
+    // (돌연변이 감지: 분기가 item.validation을 흘리면 이 단언이 사멸한다.)
+    assert.equal(byId.get("FEAT-05").validation, null);
+    assert.equal(byId.get("FEAT-01").validation, null);
+    // feed는 항상 null — 완료 BUG-06 픽스처에 `검증:` 줄이 있어도 null이어야 한다.
+    for (const item of briefing.feed) {
+      assert.equal(
+        item.validation,
+        null,
+        `${item.id} feed validation must be null`,
+      );
+    }
+  });
+
+  it("passes null validation for a 검토대기 item without a 검증 line (없으면 null)", () => {
+    const md = [
+      "## 2026-08-15",
+      "- [ ] FEAT-20: 검증 줄 없는 검토대기",
+      "  agent: admin-dev",
+      "  area: apps/admin",
+      "  status: 검토대기",
+      "  근거: 계획서만 올림.",
+    ].join(String.fromCharCode(10));
+    const b = buildBriefing(parseBoard(md), TODAY);
+    const [item] = b.inbox;
+    assert.equal(item.status, "검토대기");
+    assert.equal(item.validation, null);
   });
 });
 

@@ -14,6 +14,7 @@ export type SpeechItem = {
   id: string;
   title: string;
   status: string | null;
+  validation: string | null;
   speaker: AgentIdentity;
   line: string;
   detail: string | null;
@@ -98,6 +99,7 @@ function inboxSpeech(item: DatedItem, today: Date): SpeechItem {
       id: item.id,
       title: item.title,
       status: item.status,
+      validation: null,
       speaker: identityFor("pm"),
       line: `${item.id}, ${dayTag}계획 지시를 기다립니다.`,
       detail: item.reason,
@@ -111,6 +113,7 @@ function inboxSpeech(item: DatedItem, today: Date): SpeechItem {
     id: item.id,
     title: item.title,
     status: item.status,
+    validation: item.validation,
     speaker: identityFor(item.agent),
     line: `${item.id} 계획서를 올렸습니다 — ${dayTag}검토 대기 중입니다.`,
     detail: item.result ?? item.reason,
@@ -164,6 +167,7 @@ function feedSpeech(item: DatedItem): SpeechItem {
     id: item.id,
     title: item.title,
     status: item.status,
+    validation: null,
     speaker,
     line,
     detail,
