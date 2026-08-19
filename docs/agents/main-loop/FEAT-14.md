@@ -164,3 +164,40 @@ verify-fsd-boundaries.mjs --final   EXIT 0
 폐쇄 레시피 = **계획서 블록 추출 → 미러 재기록 → 바이트 대조 → tsc·eslint·fsd:final·fixture·test 실행**.
 미시험 경계: `npm run build`(Next 라우트 방출·Tailwind `.doc-prose` 방출 — B-5의 네 번째 명령이 목적지),
 DOM 시각(수동 smoke 규약), 실제 CDN 응답(module-mock 계약), §6 UI는 프로세 명세라 내 재현 구현으로만 lint 확인.
+
+## 계획서 재검증 (2026-08-20, 3회차) — 소득 0건
+
+사용자 재지시. 전체 캐노니컬 루프. **결함 0건, 편집 0건 — 개선할 점이 없었다.**
+소득 없는 라운드도 기록한다: 무엇을 닫았는지가 다음 라운드의 중복 조사를 막는다.
+
+검증 기반이 여전히 유효함을 먼저 확인했다 — `docs/plans/FEAT-14.md`는 `3517ff5`(툴체인을 통과한 바로 그 내용)
+이후 무변경이고, `apps/admin`은 `e48120c`(FEAT-13) 이후 무변경이다. 즉 5·6라운드의 실행 증거가 그대로 적용된다.
+
+이번에 새로 닫은 경계 셋(직전 라운드가 「미시험」으로 남긴 것들):
+
+1. **`.doc-prose` CSS 명세 실현 가능성.** §8의 목록을 집 관례(`@apply`, `globals.css:152-159`의 `@layer base` 패턴)대로
+   구현해 실제 Tailwind v4.1.17 PostCSS 파이프라인에 통과시켰다 — **컴파일 성공, 출력 111,135바이트, 경고 0건.**
+   `.doc-prose h1/table/blockquote` 방출 확인, Gowun Batang·`var(--stamp)`·`var(--active)` 해소 확인.
+   §8이 `@apply`인지 생 CSS인지 명시하지 않는 것은 사실이나, **두 읽기 모두 동작한다**(토큰은 `@theme inline`에 등록돼
+   있어 유틸리티로도 변수로도 쓸 수 있다). 오해를 낳는 텍스트가 아니라 두 정답이 있는 미명세라 블로커가 아니다.
+
+2. **테스트 명세의 구현 가능성.** 계획서가 기술한 `globalThis.fetch` 저장·스텁·`after` 복원 패턴은
+   기존 테스트 **4개**(`entities/pipeline/api`·`run-pipeline-command/api` 둘·`transition-pipeline-gate/api`)에
+   선례가 있다. `~/env` mock이 추가로 필요하다는 계획서 지시도 맞다 — `repo-doc/api/queries.ts`가
+   `getPlanDocIds`에서 `env`를 읽기 때문이고, 선례인 `pipeline/api/queries.test.mjs`가 `~/env`를 목하지 않는 것은
+   `getPipelineBoard`가 raw CDN이라 토큰이 없어서다.
+
+3. **GitHub contents API 요청 예산.** 이 기능은 `/pipeline`에 1회(`getPlanDocIds`), 뷰어 1회 열람마다 4회
+   (plans 1 + agents 1+N)를 더한다. 보드 본문은 raw CDN이라 한도와 무관하다. 비인증 한도는 60/시간이라
+   문제로 보였으나, **게이트 PUT이 토큰을 하드 요구하고**(`commit-gate-transition.ts:38-39`,
+   없으면 "GitHub 토큰이 설정되지 않았습니다"로 실패) 그 기능이 배포돼 쓰이고 있으므로 프로덕션에 토큰이 있다.
+   인증 시 5,000/시간이라 증가분은 유의미하지 않다. 계획서에 caveat을 억지로 넣지 않는다.
+
+**판정: 클린 패스(무편집).** 누적 7라운드·결함 9건.
+
+수확 곡선: 1–2라운드 7건 → 3–4라운드 1건 → 5–6라운드 1건 → **7라운드 0건.** 검증이 수렴했다.
+보드 안내 블록의 정지 규칙이 이 지점을 가리킨다 — "재검증은 계획서나 그것이 인용하는 코드가 바뀌었을 때만 돌린다".
+다음 유의미한 증거는 구현 자체(B단계 `check`·`test`·`verify:fsd:final`·`build`)에서 나온다.
+
+남은 미시험 경계(변동 없음): `npm run build`의 Next 라우트 방출(B-5 네 번째 명령이 목적지),
+DOM 시각·반응형(수동 smoke 규약), 실제 CDN/contents 응답(module-mock 계약), §6 UI 프로세 명세.
