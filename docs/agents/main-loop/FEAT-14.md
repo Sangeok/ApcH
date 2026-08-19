@@ -101,3 +101,66 @@ GFM 명세(§4.10)와 GitHub이 동일하게 쪼갠다. 스케치 결함이 아�
 경계 = 계획서가 인용한 코드 18곳 + 백로그 FEAT-14 발주 계약 + 보드 안내 블록,
 폐쇄 레시피 = 인용 전수 재실측 + §2 추출 37단언 + §3 추출 후 **실제 문서 18개 렌더 대조**(합성 프로브 아님) + 컴포넌트 시그니처 대조.
 미시험 경계: 전체 조립 tsc·eslint·build(신규 14파일 필요 — B단계 검증 명령이 목적지), DOM 시각(수동 smoke 규약), 실제 CDN 응답.
+
+## 계획서 재검증 (2026-08-20, 2회차) — reconciling-proposals-with-codebase, High-Risk 프로파일
+
+사용자 재지시. Repeat-Request Routing에 따라 리플레이가 아닌 전체 캐노니컬 루프.
+직전 패스가 못 닫은 경로 하나를 이번에 닫았다 — **스케치를 실제 툴체인에 통과시켜 본 적이 없었다.**
+`apps/admin` 미러(`.fm14`)에 §1~§9를 적용해 진짜 tsc·ESLint·FSD·테스트를 돌렸다.
+
+### 5라운드 — 편집 1건 (블로커 1)
+
+**[블로커·검증 게이트] 스케치가 `check`의 ESLint 0 기준을 통과하지 못한다.**
+
+계획서 §7 말미는 *"`check`의 lint 0 기준"*을 명시적으로 인지하고 스케치가 그것을 만족한다고 전제했다.
+**그 전제가 거짓이었다.** 미러에 스케치를 그대로 적용하고 실제 ESLint를 돌린 결과:
+
+```
+ESLint EXIT=1 — 오류 4건
+  repo-doc/api/queries.ts:35    prefer-optional-chain        `m && m[1] !== undefined`
+  repo-doc/model/markdown.ts:62 prefer-string-starts-ends-with  /^```/.test(line)
+  repo-doc/model/markdown.ts:66 prefer-string-starts-ends-with  !/^```/.test(lines[i] ?? "")
+  repo-doc/model/markdown.ts:88 prefer-includes              /-/.test(next)
+```
+
+기준선 대조: 수정 전 `apps/admin` 현재 tree에 같은 명령 → **EXIT 0**. 즉 4건 전부 이 계획이 새로 들이던 것이다.
+`stylisticTypeChecked`(`eslint.config.js:17`)가 켜져 있어 전부 **error**다 — 경고가 아니다.
+
+결과적으로 admin-dev가 스케치를 글자 그대로 구현하면 B-5의 `npm run check`가 실패하고,
+자기 계약("실제 출력을 봤고 모두 통과했다 / 아니면 보류")에 따라 **`보류`로 기록하고 멈춘다.**
+계획서가 스스로 막겠다고 적은 실패를 계획서가 일으킨다.
+
+수정: 네 곳을 `startsWith`/`includes`/옵셔널 체이닝으로 교체.
+**동작 보존 실증** — 수정 전후 렌더러로 문서 18개를 렌더해 출력 **421,098바이트 전량 바이트 일치**, 경계 케이스 8개도 일치.
+
+전파: §3·§4 스케치(수정, 이유 주석 포함) · §7 말미 lint 단락(추정 → 실측 근거로 교체).
+
+### 6라운드 — 무편집 클린 패스 (편집 0건, 결함 0건)
+
+**저장된 계획서에서 코드 블록을 다시 추출해 미러에 재기록**한 뒤(전사 오차 제거) 툴체인 전량 재실행.
+
+```
+계획서 블록 ↔ 미러 파일   6/6 바이트 일치 (불일치 0)
+tsc --noEmit                        EXIT 0
+eslint src                          EXIT 0
+verify-fsd-boundaries.mjs --final   EXIT 0
+경계 fixture                        12/12
+기존 테스트 스위트                  187/187 pass, 0 fail
+```
+
+**187/187이 닫은 것**: 계획서가 *"기존 단언(inbox/feed/team) 유지"*라고 주장했는데,
+`SpeechItem`에 필수 필드 `docs`를 더하고 `buildBriefing`에 선택 인자를 붙이는 변경이다.
+직전 라운드들은 이걸 코드 읽기로만 판단했다. 이번엔 실제로 돌려서 확인했다.
+
+`--final` EXIT 0이 닫은 것: §9의 `FSD_EFFECT_OWNERS.fetch` 한 줄 추가로 owner 집합이 실제 tree와 정확히 일치하고,
+`REQUIRED_FINAL_FILES`에 넣은 `src/app/(protected)/pipeline/docs/[...slug]/page.tsx`가 **대괄호 경로인데도** 존재 검사를 통과한다.
+
+부수 확인: §6 프로세 명세의 `status!` 비널 단언은 `no-non-null-assertion`이 이 설정에 없어 lint를 통과한다(실측).
+
+**판정: 클린 패스.** 이 세션 2라운드(편집 1·클린 1), 누적 6라운드·결함 9건.
+
+재현 앵커: 코드 기점 HEAD `be9df1d`(검증 중 `apps/admin` 무변경 — 미러는 저장소 밖 사본이며 검증 후 제거),
+경계 = 계획서 §1~§9 전체 + 인용 코드 18곳 + 실제 툴체인 5명령,
+폐쇄 레시피 = **계획서 블록 추출 → 미러 재기록 → 바이트 대조 → tsc·eslint·fsd:final·fixture·test 실행**.
+미시험 경계: `npm run build`(Next 라우트 방출·Tailwind `.doc-prose` 방출 — B-5의 네 번째 명령이 목적지),
+DOM 시각(수동 smoke 규약), 실제 CDN 응답(module-mock 계약), §6 UI는 프로세 명세라 내 재현 구현으로만 lint 확인.

@@ -272,11 +272,15 @@ export function renderMarkdown(md: string): string {
   while (i < lines.length) {
     const line = lines[i] ?? "";
 
-    if (/^```/.test(line)) {
+    // 정규식이 아니라 startsWith/includes를 쓰는 이유는 취향이 아니라 게이트다 —
+    // `/^\`\`\`/.test(line)`·`/-/.test(next)`는 stylisticTypeChecked의
+    // prefer-string-starts-ends-with·prefer-includes에 걸려 `check`의 lint 0 기준을 깬다
+    // (검증 라운드에서 실제 ESLint 실행으로 확인. 동작은 동일 — 문서 18개 421KB 출력 바이트 일치).
+    if (line.startsWith("```")) {
       flush();
       const body: string[] = [];
       i++;
-      while (i < lines.length && !/^```/.test(lines[i] ?? "")) { body.push(lines[i] ?? ""); i++; }
+      while (i < lines.length && !(lines[i] ?? "").startsWith("```")) { body.push(lines[i] ?? ""); i++; }
       i++; // 닫는 ```
       out.push(`<pre><code>${escapeHtml(body.join("\n"))}</code></pre>`);
       continue;
@@ -298,7 +302,7 @@ export function renderMarkdown(md: string): string {
     }
     // GFM 표: 헤더 + 구분행(| --- | --- |)
     const next = lines[i + 1] ?? "";
-    if (line.includes("|") && /-/.test(next) && /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(next)) {
+    if (line.includes("|") && next.includes("-") && /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(next)) {
       flush();
       const headers = splitRow(line);
       i += 2;
@@ -371,7 +375,7 @@ export async function getPlanDocIds(): Promise<Set<string>> {
     if (e === null || typeof e !== "object") continue;
     if (e.type !== "file" || typeof e.name !== "string") continue;
     const m = /^([A-Z]+-\d+)\.md$/.exec(e.name); // FEAT-14.md → FEAT-14; README.md·template.md 제외
-    if (m && m[1] !== undefined) ids.add(m[1]);
+    if (m?.[1] !== undefined) ids.add(m[1]); // 옵셔널 체이닝 — `m && m[1]`은 prefer-optional-chain 위반
   }
   return ids;
 }
@@ -507,6 +511,8 @@ export default async function AdminPipelineDocRoute({ params }: { params: Promis
 ```
 
 (타입은 스케치 그대로가 구현이다 — `let boardItem = null`처럼 명시 타입을 빼면 `any`로 넓혀져 `@typescript-eslint/no-unsafe-argument`(recommendedTypeChecked, `eslint.config.js:17`)에 걸리고 `check`의 lint 0 기준이 깨진다.)
+
+**스케치의 lint 0 여부는 추정이 아니라 실측이다.** 검증 라운드에서 `apps/admin` 미러에 위 §1~§9를 그대로 적용해 실제 툴체인을 돌렸다: `tsc --noEmit` EXIT 0 · `verify-fsd-boundaries.mjs` EXIT 0 · `--final` EXIT 0 · 경계 fixture 12/12 · 기존 테스트 **187/187 통과**(`SpeechItem.docs` 추가와 `buildBriefing` 선택 인자가 기존 단언을 깨지 않음을 실증) · ESLint EXIT 0. 첫 실행에서 ESLint가 오류 4건을 냈고(위 §3·§4의 `startsWith`/`includes`/옵셔널 체이닝 주석이 그 결과다) 그 4건을 고친 뒤 0이 됐다. 같은 명령의 수정 전 기준선(`apps/admin` 현재 tree)은 EXIT 0이므로, 그 4건은 전부 이 계획이 새로 들이던 것이었다.
 
 ### 8) 기존 파일 편집 (before/after)
 
