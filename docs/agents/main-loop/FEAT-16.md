@@ -143,3 +143,43 @@ HEAD와 일치함을 재확인했다. 신규 디렉터리만 지운다고 가정
 한계: 이 앵커는 적용 가능성의 기록이지 완전성·무결함의 증명이 아니다.
       wire 왕복과 ClipCard 시각 렌더는 배포 후에만 확인 가능하며 계획서 「테스트」가 그 전제를 명시한다.
 ```
+
+### 라운드 3 (무편집) — 사용자 지시 재검증, 결함 0건
+
+사용자가 다시 검증을 지시했다. Repeat-Request Routing 규칙상 모호한 "다시 검증"은 replay가 아니라
+**전체 캐노니컬 루프**다. 직전 앵커와 대조하지 않고 INV-1~INV-7을 새로 돌렸다.
+
+**지난 라운드에 안 판 곳을 새로 팠다.**
+
+| 새 확인 | 결과 |
+| --- | --- |
+| `updateClipMetadataFromBackendClips` 호출부 전수 | **2곳**이다 — `route.ts:258`(웹훅)과 **`functions.ts:244`(워커)**. 계획서 「현재 동작」 §1은 웹훅 쪽만 언급한다 |
+| └ 그래서 결함인가 | **아니다.** 워커 쪽 호출은 `createClipsBulk` 직후 방금 만든 행을 갱신하는데(`functions.ts:232-249`), 넘기는 `metadataClips` 필터가 `s3Key`만 검사해 세 값을 벗기지 않는다(`:234-240`). 계획서가 고치는 `ClipMetadataPatch`가 이 경로도 함께 덮는다. 동기 경로 전체가 `functions.ts` + `entities/clip`만으로 완결된다 |
+| `Clip` 행을 만드는 곳 전수 | 1곳뿐 — `createClipsBulk`(`functions.ts:232` → `entities/clip/api/index.ts:22`). 누락된 쓰기 경로 없음 |
+| `ModalWebhookClip` 소비처 전수 | `route.ts` 안 6곳뿐. 파일 밖으로 새지 않는다 |
+| `apps/web/CLAUDE.md` 테스트 표를 계획서가 예고해야 하나 | **아니다.** admin-dev 계획서엔 선례가 있으나(FEAT-03·07·08·09), **web-dev는 다르다** — FEAT-02가 같은 상황(신규 테스트 파일)에서 계획서에 안 적었고 B단계 `비고:`로 정상 반영됐다(그 행이 지금 `apps/web/CLAUDE.md:78`에 있다). `web-dev.md:119`가 B단계 의무로 이미 규정한다. 관례 이탈 아님 |
+| 코드 드리프트 | **0.** 계획서가 인용하는 10개 파일의 최종 커밋이 전부 검증(88e1f5b) 이전이다. 작업트리도 깨끗 |
+| 렌더 분기 정합성 | `hasClipRationale`의 trim 규칙과 `{hook && …}` 개별 진리값 판정이 같은 기준이라 **빈 블록이 렌더될 수 없다**. `showRationale`이 참이면 최소 하나는 반드시 그려진다 |
+
+**저장본 270줄을 다시 읽었다**(기억이 아니라 파일). 편집 0건.
+
+**돌리지 않은 것**: `npm run build -w apps/web`. 이 변경은 새 라우트도 새 CSS도 커스텀 Tailwind 클래스도
+만들지 않고(`line-clamp-2`·`text-muted-foreground` 등은 `apps/web`에 이미 쓰인다), 타입 게이트는
+라운드 1에서 스케치를 실제 적용해 `tsc --noEmit` 포함 `npm run check`를 EXIT 0으로 통과시켰다.
+build가 추가로 잡을 표면이 없다고 판단해 생략했다 — 통과했다고 주장하지 않는다.
+
+**Status: clean pass achieved** — 무편집 2라운드(라운드 2·3).
+
+정직하게 적어 둔다: **"처음부터 문제가 없었다"가 아니다.** 라운드 1에서 blocker 1건(시각 절반의
+검증 경로가 실행 불가능)을 찾아 고쳤다. 이번 라운드가 찾은 새 결함이 0건인 것이다.
+
+### Minimal Replay Anchor (라운드 3 갱신)
+
+```
+문서: docs/plans/FEAT-16.md (270줄, 88e1f5b 커밋본, 이후 무변경)
+코드 기준: origin/dev afd9cb5 — 인용 파일 10개 전부 그 이전 커밋에서 무변경
+검증 범위: 고칠 파일 7개, 인용 파일:줄 전수, 쓰기 경로 전수(create 1 / update 2), 읽기 경로 1
+실행 증거: (라운드 1) npm run check -w apps/web = EXIT 0 / npm test -w apps/web = EXIT 0 (51 tests)
+미실행: npm run build -w apps/web (근거는 위)
+한계: 적용 가능성의 기록이지 완전성·무결함의 증명이 아니다. wire 왕복과 시각 렌더는 배포 후에만 확인 가능하다.
+```
