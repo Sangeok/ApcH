@@ -5,9 +5,9 @@ agent: admin-dev
 ## 현재 동작
 
 - 사무실 책상은 개수 라벨만 있고 클릭 진입점이 없다. `PixelOffice`가 `team`을 `PixelDeskUnit`으로 매핑하고 그 아래에 `DeskReports`를 붙인다(`pixel-office.tsx:254-262`). `DeskReports`는 폴더가 있을 때 `기록 {reports.length}건` 한 줄만 렌더한다(`pixel-office.tsx:233-236`). 책상 SVG는 `role="img"` + 상태 `aria-label`만 갖고 링크가 없다(`pixel-office.tsx:128-134`). 명령 버튼(`PipelineCommandButton`)은 유닛 하단의 별도 인터랙티브 컨트롤이다(`pixel-office.tsx:150-156`).
-- roster는 pages/pipeline 안에만 있다. `ROSTER`(5인 맵, `known-agents.ts:9-30`), `ROSTER_ORDER`(닫힌 ID 배열 리터럴, `known-agents.ts:32-38`), `identityFor`(`known-agents.ts:40-47`), `initialOf`(`known-agents.ts:49-52`). 소비자는 pages/pipeline 내부뿐이다(`briefing.ts:6-10,260`, `agent-avatar.tsx:2`). `known-agents.ts:1`은 "DB·fetch를 들이지 않는다"고만 명시한다(임포트 자체를 금하는 계약은 reporting.ts뿐이다).
+- roster는 pages/pipeline 안에만 있다. `ROSTER`(5인 맵, `known-agents.ts:9-30`), `ROSTER_ORDER`(닫힌 ID 배열 리터럴, `known-agents.ts:32-38`), `identityFor`(`known-agents.ts:40-47`), `initialOf`(`known-agents.ts:49-52`). 소비자는 pages/pipeline 내부뿐이다(`briefing.ts:6-10,260`, `agent-avatar.tsx:2`). `known-agents.ts:1`은 "DB·fetch를 들이지 않는다"고만 명시한다 — 임포트 자체를 금하는 계약 파일(reporting.ts·report-index.ts:1·doc-location, `repo-doc/index.ts:2`)에 known-agents는 속하지 않으므로 순수 상수 임포트는 계약 위반이 아니다.
 - `.claude/agents/<id>.md`는 저장소에 6개 존재하고(pm·admin-dev·web-dev·doc-auditor·feature-scout·backend-dev, 전부 git 추적) frontmatter가 `---` 구분자 + 단일 줄 `name:`·`description:`(+선택 `tools:`/`model:`) + `---` 뒤 본문 구조다(6파일 실측). admin은 지금 이 경로를 못 읽는다 — 화이트리스트가 `docs/plans/`·`docs/agents/`만 통과시킨다(`doc-location.ts:47-56`).
-- 행위자 기록은 `getAgentReports(agent)`가 contents API로 `docs/agents/<agent>`를 읽어 `AgentReport[]`(name·label·size)를 준다(`agent-report/api/queries.ts:14-30`). 폴더가 없으면 404→빈 배열이며 그것이 "아직 기록 없음"이다(`:24`). 현재 이 목록은 책상 개수 라벨과 브리핑 카드의 항목별 `DocLinks`로만 노출된다(`briefing.ts:227-242`, `pipeline/ui/index.tsx:84-102`). 실측: `docs/agents/`에 admin-dev·feature-scout·main-loop 폴더만 있다(pm·web-dev·doc-auditor는 폴더 없음 → 빈 상태 대상).
+- 행위자 기록은 `getAgentReports(agent)`가 contents API로 `docs/agents/<agent>`를 읽어 `AgentReport[]`(name·label·size)를 준다(`agent-report/api/queries.ts:14-30`). 폴더가 없으면 404→빈 배열이며 그것이 "아직 기록 없음"이다(`:24`). 현재 이 목록은 책상 개수 라벨·브리핑 카드의 항목별 `DocLinks`·뷰어 서류철 탭 셋으로만 노출된다(`briefing.ts:227-242`, `pipeline/ui/index.tsx:84-102`, `build-doc-view.ts:29-37`). 실측: `docs/agents/`에 admin-dev·feature-scout·main-loop 폴더만 있다(pm·web-dev·doc-auditor는 폴더 없음 → 빈 상태 대상).
 - 내부 뷰어는 `/pipeline/docs/[...slug]`다(`docs/[...slug]/page.tsx`). `reportDocHref(agent, name)`가 `/pipeline/docs/agents/<agent>/<name>`을 만들고(`doc-location.ts:61-63`), 그 라우트가 `locationFromSlug`로 화이트리스트 통과 후 렌더한다(`doc-location.ts:18-44`).
 - 문서 raw 본문의 owner는 `getDocContent(path)` 하나뿐이고, fetch 직전에 `isWhitelistedDocPath(path)`로 경로를 다시 검사한다(`repo-doc/api/queries.ts:8-14`). 이 파일은 이미 등록된 fetch owner다(`verify-fsd-boundaries.mjs:37-38`).
 - 마크다운 렌더러 `renderMarkdown`은 `---` 줄을 `<hr />`로 렌더한다(`markdown.ts:82`). 따라서 정의 파일을 통째로 넘기면 frontmatter가 `<hr>`로 새므로, **본문 렌더 전에 frontmatter를 떼어내야 한다.**
@@ -382,6 +382,8 @@ after(SVG를 Link로 감싼다 — svg는 장식으로 내리고 링크가 접�
 ## 범위 밖 의존
 
 없음. 전부 `apps/admin/src`(+ 신규 라우트·신규 페이지 슬라이스·shared roster) 안에서 끝난다. `packages/db`·다른 워크스페이스를 건드리지 않는다. 새 외부 쓰기 경로 없음 — 정의는 기존 fetch owner `getDocContent`(GET)로, 기록은 기존 `getAgentReports`(contents GET)로 읽으며 둘 다 읽기 전용이다(요구 4). `verify-fsd-boundaries.mjs`의 fetch/db/sentry owner는 불변이라 경계 스크립트를 고치지 않는다.
+
+단, 문서 후속 하나가 이 계획의 수정 범위 밖에 남는다: `apps/admin/CLAUDE.md` 「테스트 인벤토리」(25개 파일 기준)가 신규 테스트 2개(`shared/agents/roster.test.mjs`, `pages/agent-profile/model/build-profile-view.test.mjs`)로 27개가 된다. 그 파일은 admin-dev가 고치지 않으며(스코프 가드), **완료 인수 시 메인 루프가 동기화한다.**
 
 ## 대안
 
