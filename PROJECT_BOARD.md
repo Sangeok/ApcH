@@ -34,7 +34,7 @@
 - [ ] FEAT-16: 최종 클립에 선택 근거(hook·payoff·clipType) 저장·표시 — 파이프라인이 보내는데 웹이 버리는 값
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
-  status: 검토대기
+  status: 구현승인
   근거: 소유자 직접 발주(pm 미경유). 백엔드가 클립마다 보내는 hook·payoff·clipType를 웹 파서가 버린다 — 상세는 백로그 FEAT-16. 선행 스키마·마이그레이션은 적용 완료.
   검증: 클린 패스 (2026-08-21, 무편집 1라운드)
 
