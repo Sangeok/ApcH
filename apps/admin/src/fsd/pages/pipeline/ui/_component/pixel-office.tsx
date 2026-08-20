@@ -229,22 +229,10 @@ function PixelRoomBackdrop() {
 
 // 이 행위자가 남긴 활동 기록. 폴더는 첫 보고서가 만들므로 없으면 안 보인다
 // (docs/agents/README.md — 부재 자체가 "아직 실행된 적 없음"이다).
+// 파일명 나열은 제거하고 개수만 남긴다(백로그 요구 5). 항목별 링크는 카드로 이동했다.
 function DeskReports({ reports }: { reports: AgentReport[] }) {
   if (reports.length === 0) return null;
-  return (
-    <details className="w-full">
-      <summary className="cursor-pointer list-none text-center text-[10px] text-muted-foreground underline decoration-dotted">
-        기록 {reports.length}건
-      </summary>
-      <ul className="mt-1 flex flex-col gap-0.5">
-        {reports.map((r) => (
-          <li key={r.name} className="truncate text-center text-[10px] text-muted-foreground">
-            {r.label}
-          </li>
-        ))}
-      </ul>
-    </details>
-  );
+  return <p className="text-center text-[10px] text-muted-foreground">기록 {reports.length}건</p>;
 }
 
 // 반응형: 폰 2열 격자 → 데스크톱 가로 flex-wrap, 가로 스크롤 없음.

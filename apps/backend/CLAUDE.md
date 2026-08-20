@@ -58,6 +58,37 @@ The local entrypoint uses hardcoded test credentials:
 - S3 key: `test2/testmin30.mp4`
 - Auth token: `123123`
 
+### 자동 검증 (테스트)
+
+저장소 루트에서, **맨 파이썬으로** 돈다. venv도 GPU도 필요 없다.
+
+```bash
+python -m unittest discover -s apps/backend -p "test_*.py"
+python -m py_compile apps/backend/main.py
+```
+
+**stdlib `unittest`를 쓰는 이유**: `requirements.txt`는 Modal이 GPU 이미지를 빌드하는 입력이다.
+pytest 같은 테스트 전용 패키지를 넣으면 L40S 이미지가 그만큼 불어난다. `unittest`는 표준 라이브러리라 아무것도 더하지 않는다.
+
+**`main.py`를 import하는 테스트는 돌지 않는다.** 최상단 `import whisperx`가 torch/transformers를 끌어오고,
+그 패키지들은 저장소 밖 venv에만 있다. 따라서 검증 가능한 판단 로직은 **stdlib만 import하는 별도 모듈**로 뺀다.
+
+```
+main.py             ← I/O·GPU·네트워크 껍데기
+<규칙모듈>.py        ← stdlib만. 판단·계산·분기
+test_<규칙모듈>.py   ← unittest
+```
+
+`backend-purity-contract: stdlib-only; torch/boto3/cv2/pysubs2/modal forbidden`
+
+이건 `apps/admin`의 `analytics-reporting-contract: import-free`와 같은 계약이고,
+`apps/web`의 `clip-count-budget`·`caption-presets`가 같은 형태다.
+
+**⚠️ 테스트가 0개여도 종료 코드는 0이다.** 출력이 `NO TESTS RAN`이면 통과가 아니다 —
+`Ran N tests ... OK`의 N을 눈으로 확인한다.
+
+GPU·S3·Gemini·Modal이 필요한 경로는 이 러너로 덮을 수 없다. 배포와 실행 검증(`modal run`)은 사용자가 한다.
+
 ## Architecture
 
 ### Modal Serverless Execution

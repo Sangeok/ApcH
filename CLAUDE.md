@@ -20,6 +20,7 @@ AI 팟캐스트 영상에서 YouTube Shorts 클립을 뽑는 SaaS. 1인 운영�
 | `pm` | 백로그에서 오늘 할 일 선정 + 근거 기록. 코드를 읽지 않는다 | 보드만 |
 | `web-dev` | `apps/web` 항목의 계획서 작성과 (승인 후) 구현 | 자기 워크스페이스 + 보드 자기 행 + `docs/plans/<항목ID>.md` + `docs/agents/web-dev/` + 백로그 항목 제거 |
 | `admin-dev` | `apps/admin` 동일 | 자기 워크스페이스 + 보드 자기 행 + `docs/plans/<항목ID>.md` + `docs/agents/admin-dev/` + 백로그 항목 제거 |
+| `backend-dev` | `apps/backend` 동일. 검증 게이트는 stdlib `unittest` — 판단 로직을 torch 없는 순수 모듈로 빼야 돈다 | 자기 워크스페이스(단 `asd/`·`requirements.txt` 제외) + 보드 자기 행 + `docs/plans/<항목ID>.md` + `docs/agents/backend-dev/` + 백로그 항목 제거 |
 | `doc-auditor` | 문서가 코드에 대해 하는 주장을 대조 감사. 보고만 | 없음 |
 | `feature-scout` | 외부 조사로 기능 제안. 보고만 | 없음 |
 

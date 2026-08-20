@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import type { AgentReport } from "~/fsd/entities/agent-report";
+import type { DocLink } from "~/fsd/entities/repo-doc";
 
 import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 import {
@@ -74,6 +76,28 @@ function ValidationMark({ validation }: { validation: string | null }) {
     >
       검증 전
     </span>
+  );
+}
+
+// 항목 카드에서 그 항목의 실재하는 문서(계획서·행위자 기록)로 가는 링크. 없으면 렌더 안 함.
+// 계획서=청색(--active), 보고서=회색. 클릭하면 내부 뷰어 라우트로 이동한다(GitHub 이탈 없음).
+function DocLinks({ docs }: { docs: DocLink[] }) {
+  if (docs.length === 0) return null;
+  return (
+    <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+      {docs.map((d) => (
+        <Link
+          key={d.href}
+          href={d.href}
+          className={cn(
+            "underline-offset-2 hover:underline",
+            d.kind === "plan" ? "text-active" : "text-muted-foreground",
+          )}
+        >
+          {d.label} →
+        </Link>
+      ))}
+    </p>
   );
 }
 
@@ -178,6 +202,7 @@ function InboxCard({ item }: { item: SpeechItem }) {
           actions={rejectActions}
         />
       )}
+      <DocLinks docs={item.docs} />
       {item.detail && (
         <details className="mt-3 border-t border-stamp/20 pt-2">
           <summary className="cursor-pointer text-xs text-muted-foreground">
@@ -225,6 +250,9 @@ function FeedZone({ items }: { items: SpeechItem[] }) {
                   {item.detail}
                 </p>
               )}
+              <div className="pl-11">
+                <DocLinks docs={item.docs} />
+              </div>
             </details>
           ))}
         </div>

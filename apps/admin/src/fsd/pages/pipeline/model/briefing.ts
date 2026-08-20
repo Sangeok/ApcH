@@ -1,4 +1,6 @@
+import type { AgentReport } from "~/fsd/entities/agent-report";
 import type { BoardItem, BoardSection } from "~/fsd/entities/pipeline";
+import { docLinksForItem, type DocLink } from "~/fsd/entities/repo-doc";
 import { describePipelineRun, type RunPlan } from "~/fsd/features/run-pipeline-command";
 import { isGateTransitionSource } from "~/fsd/features/transition-pipeline-gate";
 import {
@@ -20,6 +22,8 @@ export type SpeechItem = {
   detail: string | null;
   /** 보드 필드가 150자 예산을 넘었나. 넘치면 화면이 표시한다(보드 안내 블록의 기록 규칙). */
   overBudget: boolean;
+  /** 이 항목의 실재하는 문서 링크(계획서·행위자 기록). docs 인자를 안 주면 빈 배열. */
+  docs: DocLink[];
   tone: Tone;
 };
 export type TeamMember = {
@@ -90,7 +94,11 @@ function summarize(item: BoardItem): string | null {
   return src === null ? null : firstSentence(src);
 }
 
-function inboxSpeech(item: DatedItem, today: Date): SpeechItem {
+function inboxSpeech(
+  item: DatedItem,
+  today: Date,
+  resolveDocs: (id: string) => DocLink[],
+): SpeechItem {
   const n = nthDay(item.sectionDate, today);
   const dayTag = n === null ? "" : `${n}일째 `;
   if (item.status === "승인대기") {
@@ -104,6 +112,7 @@ function inboxSpeech(item: DatedItem, today: Date): SpeechItem {
       line: `${item.id}, ${dayTag}계획 지시를 기다립니다.`,
       detail: item.reason,
       overBudget: isOverBudget(item.reason),
+      docs: resolveDocs(item.id),
       tone: "pending",
     };
   }
@@ -118,6 +127,7 @@ function inboxSpeech(item: DatedItem, today: Date): SpeechItem {
     line: `${item.id} 계획서를 올렸습니다 — ${dayTag}검토 대기 중입니다.`,
     detail: item.result ?? item.reason,
     overBudget: isOverBudget(item.result) || isOverBudget(item.reason),
+    docs: resolveDocs(item.id),
     tone: "pending",
   };
 }
@@ -137,7 +147,10 @@ const FEED_TONE: Record<string, Tone> = {
   보류: "hold",
 };
 
-function feedSpeech(item: DatedItem): SpeechItem {
+function feedSpeech(
+  item: DatedItem,
+  resolveDocs: (id: string) => DocLink[],
+): SpeechItem {
   const speaker = identityFor(item.agent);
   const tone: Tone =
     item.status === null ? "muted" : (FEED_TONE[item.status] ?? "muted");
@@ -172,6 +185,7 @@ function feedSpeech(item: DatedItem): SpeechItem {
     line,
     detail,
     overBudget: isOverBudget(item.reason) || isOverBudget(item.result),
+    docs: resolveDocs(item.id),
     tone,
   };
 }
@@ -207,14 +221,42 @@ function formatToday(today: Date): string {
   return `${today.getUTCMonth() + 1}월 ${today.getUTCDate()}일`;
 }
 
-export function buildBriefing(sections: BoardSection[], today: Date): Briefing {
+// 항목 ID → 실재하는 문서 링크. docs 인자가 없으면(뷰어 밖 호출) 항상 빈 배열이라
+// 기존 소비자와 SpeechItem 단언이 깨지지 않는다. 카드별 추가 요청은 없다 — reports·planDocIds는
+// page-load당 한 번씩만 읽고, 이 리졸버는 이미 받은 인메모리 집합만 조회한다.
+function docResolver(
+  docs?: {
+    planDocIds: ReadonlySet<string>;
+    reports: ReadonlyMap<string, AgentReport[]>;
+  },
+): (id: string) => DocLink[] {
+  if (docs === undefined) return () => [];
+  return (id) => {
+    const agentsWithDoc = new Set(
+      [...docs.reports]
+        .filter(([, l]) => l.some((r) => r.name === `${id}.md`))
+        .map(([a]) => a),
+    );
+    return docLinksForItem(id, docs.planDocIds.has(id), agentsWithDoc);
+  };
+}
+
+export function buildBriefing(
+  sections: BoardSection[],
+  today: Date,
+  docs?: {
+    planDocIds: ReadonlySet<string>;
+    reports: ReadonlyMap<string, AgentReport[]>;
+  },
+): Briefing {
   const items = flatten(sections);
+  const resolveDocs = docResolver(docs);
   const inbox = items
     .filter((it) => it.status !== null && isGateTransitionSource(it.status))
-    .map((it) => inboxSpeech(it, today));
+    .map((it) => inboxSpeech(it, today, resolveDocs));
   const feed = items
     .filter((it) => it.status === null || !isGateTransitionSource(it.status))
-    .map((it) => feedSpeech(it));
+    .map((it) => feedSpeech(it, resolveDocs));
   const team = ROSTER_ORDER.map((id) => {
     const { state, heldId, tone } = teamState(id, items);
     return { identity: identityFor(id), state, heldId, tone };

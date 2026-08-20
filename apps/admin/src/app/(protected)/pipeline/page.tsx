@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { getAgentReportIndex } from "~/fsd/entities/agent-report/api";
 import { getPipelineBoard } from "~/fsd/entities/pipeline/api";
+import { getPlanDocIds } from "~/fsd/entities/repo-doc/api";
 import { buildBriefing, PipelineBriefing } from "~/fsd/pages/pipeline";
 import { requireAdmin } from "~/server/auth/guard";
 
@@ -15,11 +16,12 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPipelineRoute() {
   await requireAdmin();
-  const [sections, reports] = await Promise.all([
+  const [sections, reports, planDocIds] = await Promise.all([
     getPipelineBoard(),
     getAgentReportIndex(),
+    getPlanDocIds(),
   ]);
-  const briefing = buildBriefing(sections, new Date());
+  const briefing = buildBriefing(sections, new Date(), { planDocIds, reports });
 
   return (
     <main className="bg-briefing min-h-screen">

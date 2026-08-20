@@ -35,6 +35,7 @@ const FSD_EFFECT_OWNERS = {
     "src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts",
     "src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts",
     "src/fsd/entities/agent-report/api/queries.ts",
+    "src/fsd/entities/repo-doc/api/queries.ts",
   ]),
   sentry: new Set([
     "src/instrumentation.ts",
@@ -60,6 +61,10 @@ const REQUIRED_FINAL_FILES = [
   "src/fsd/entities/analytics-event/api/index.ts",
   "src/fsd/entities/pipeline/index.ts",
   "src/fsd/entities/pipeline/api/index.ts",
+  "src/fsd/entities/repo-doc/index.ts",
+  "src/fsd/entities/repo-doc/api/index.ts",
+  "src/fsd/pages/doc-viewer/index.ts",
+  "src/app/(protected)/pipeline/docs/[...slug]/page.tsx",
 ];
 
 const LEGACY_TOP_LEVEL = [

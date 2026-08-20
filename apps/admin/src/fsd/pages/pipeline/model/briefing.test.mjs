@@ -312,6 +312,35 @@ describe("buildBriefing", () => {
     assert.equal(item.status, "검토대기");
     assert.equal(item.validation, null);
   });
+
+  it("leaves docs empty on every item when no docs argument is passed", () => {
+    for (const item of [...briefing.inbox, ...briefing.feed]) {
+      assert.deepEqual(item.docs, [], `${item.id} docs must be empty`);
+    }
+  });
+
+  it("fills SpeechItem.docs from planDocIds and reports for the matching item", () => {
+    const b = buildBriefing(parseBoard(BOARD), TODAY, {
+      planDocIds: new Set(["FEAT-04"]),
+      reports: new Map([
+        ["main-loop", [{ name: "FEAT-04.md", label: "FEAT-04", size: 1 }]],
+      ]),
+    });
+    const feat04 = b.inbox.find((s) => s.id === "FEAT-04");
+    assert.deepEqual(
+      feat04.docs.map((d) => d.label),
+      ["계획서", "검증 기록"],
+    );
+    assert.deepEqual(
+      feat04.docs.map((d) => d.href),
+      [
+        "/pipeline/docs/plans/FEAT-04",
+        "/pipeline/docs/agents/main-loop/FEAT-04",
+      ],
+    );
+    // 계획도 기록도 없는 항목은 여전히 빈 배열.
+    assert.deepEqual(b.inbox.find((s) => s.id === "FEAT-05").docs, []);
+  });
 });
 
 describe("identityFor / initialOf", () => {

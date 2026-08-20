@@ -1,6 +1,6 @@
 # <항목ID>: <제목>
 
-agent: <web-dev | admin-dev>
+agent: <web-dev | admin-dev | backend-dev>
 
 > 이 파일은 계획서의 **절 구조를 정의하는 단일 출처**다. 담당 에이전트는 계획서를 쓰기 전에
 > 이 파일을 읽고 아래 절을 그대로 따른다. 절을 늘리거나 줄이지 않는다 —
