@@ -201,3 +201,46 @@ DOM 시각(수동 smoke 규약), 실제 CDN 응답(module-mock 계약), §6 UI�
 
 남은 미시험 경계(변동 없음): `npm run build`의 Next 라우트 방출(B-5 네 번째 명령이 목적지),
 DOM 시각·반응형(수동 smoke 규약), 실제 CDN/contents 응답(module-mock 계약), §6 UI 프로세 명세.
+
+## 계획서 재검증 (2026-08-20, 4회차) — 소득 0건, 마지막 미시험 게이트 폐쇄
+
+사용자 재지시. 전체 캐노니컬 루프. **결함 0건, 편집 0건 — 개선할 점이 없었다.**
+다만 이번 라운드는 빈손이 아니다: 7라운드까지 두 번 「미시험」으로 남겼던 **`npm run build`를 실제로 돌렸다.**
+
+### 방법
+
+`apps/admin-fm14`(같은 깊이 — `next.config.js`가 `../../.env`와 `outputFileTracingRoot: ../../`를 쓰므로
+경로 전제를 재현해야 한다)에 저장된 계획서의 §1~§9를 적용하고 진짜 `next build`를 실행했다.
+§6은 프로세 명세라 그 지시대로 재현했고, §8의 `.doc-prose`는 집 관례(`@apply`)로 구현했다.
+
+### 결과 — EXIT 0
+
+```
+✓ Compiled successfully
+Route (app)
+  ƒ /pipeline/docs/[...slug]      365 B    128 kB
+  ƒ /pipeline                    1.62 kB   130 kB
+ƒ  (Dynamic)  server-rendered on demand
+```
+
+계획서 「테스트」가 건 조건 — *"빌드 결과의 route 목록에 `/pipeline/docs/[...slug]`가 있어야 한다"* — **충족.**
+`ƒ`(동적)로 잡혔으므로 `force-dynamic`도 반영됐다. `.next/server/app/(protected)/pipeline/docs/[...slug]/` 실재 확인.
+
+산출 CSS 검사: **`.doc-prose` 규칙 21개 방출**, `Gowun Batang`·`var(--stamp)` 포함.
+7라운드의 격리된 PostCSS 프로브를 실제 프로덕션 번들로 승격해 닫았다.
+
+첫 시도는 `next.config.js`의 `@prisma/nextjs-monorepo-workaround-plugin` 타입 선언 부재로 실패했으나,
+이는 **새 디렉터리라 `.next/types`가 없어서 생긴 미러 인공물**이다(실제 `apps/admin`은 이전 빌드 산출물이 있어
+`tsc --noEmit` EXIT 0). FEAT-14가 건드리지 않는 파일이며, 셤 한 줄 추가 후 EXIT 0. 계획서 결함이 아니다.
+
+부수 관찰(FEAT-14 무관, 기존 조건): Sentry가 `global-error.js` 부재를 경고한다. 이 항목 범위 밖.
+
+**판정: 클린 패스(무편집).** 누적 8라운드·결함 9건.
+
+수확 곡선: 7 → 1 → 1 → 0 → **0.** 두 라운드 연속 소득 0이고, B-5의 네 명령
+(`check`·`test`·`verify:fsd:final`·`build`)이 **전부 실행 증거로 닫혔다.**
+
+남은 미시험 경계는 이제 원리적으로 이 단계에서 닫을 수 없는 것들뿐이다:
+DOM 시각·반응형(수동 smoke 규약), 실제 raw CDN/contents 응답(module-mock 계약),
+`GateTransitionButton`/`RejectActions`의 클라이언트 상호작용(FEAT-08·09에서 이미 못 덮음으로 기록).
+다음 유의미한 증거는 구현 자체에서 나온다.
