@@ -31,6 +31,12 @@
   - area: apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/entities/repo-doc + apps/admin/src/fsd/entities/agent-report
   - source: 운영 중 관측 — 사무실 라벨이 "기록 2건"처럼 개수만 보여주는데, 보드에서 내려간 항목의 기록(예: docs/agents/admin-dev/FEAT-13.md)은 화면에 클릭 진입점이 없어 직접 URL로만 접근 가능했다. 요구: (1) 책상 클릭 → 행위자 상세 페이지. 역할은 `.claude/agents/<이름>.md`의 frontmatter description 요약 + 본문 렌더(기존 마크다운 렌더러 재사용), 기록 목록은 기존 agent-report 목록 재사용에 각 항목을 내부 뷰어로 링크 (2) agent 파라미터는 roster 닫힌 목록으로 검증하고 그 밖은 notFound, 문서 화이트리스트는 접두사 규칙이 아니라 roster에서 조립한 `.claude/agents/<id>.md` 닫힌 경로만 추가 (3) 기록 없는 행위자는 빈 상태 표시 (4) 읽기 전용 — 새 외부 쓰기 경로 없음
 
+## Web / Clip
+
+- [ ] **FEAT-16**: 최종 클립에 선택 근거(hook·payoff·clipType) 저장·표시 — 파이프라인이 이미 계산해 보내는데 웹이 버리는 값
+  - area: apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
+  - source: **관측** — 백엔드가 auto·render 양쪽 모두 클립마다 `clipType`·`hook`·`payoff`를 생성해 성공 콜백에 싣는다(`apps/backend/main.py:1118-1120`). 그런데 웹 파서 `normalizeBackendClip`의 반환 객체 9개 필드에 이 셋이 없고(`apps/web/src/inngest/functions.ts:119-144`), `updateClipMetadataFromBackendClips`의 패치 타입에도 없다(`apps/web/src/fsd/entities/clip/api/index.ts:51-77`). 같은 값이 `ClipDraft`에는 저장되고 리뷰 카드가 판단 근거로 표시한다(`apps/web/src/fsd/widgets/clip-draft-review/ui/_component/ClipDraftCard.tsx:292-328`). `persist-clip-drafts`는 `analyzeVideo`에만 있어(`functions.ts:959`) auto 경로 클립에는 대응 ClipDraft 행이 없다 — 조인으로 대체할 수 없다. **진단(추정)** — 최종 클립 카드가 "왜 이 클립인가"를 안 보여줘서, 클립 여러 개 중 어느 것을 먼저 올릴지 정하려면 하나씩 재생해봐야 한다. 리뷰를 켠 경우에만 그 정보를 볼 수 있는데 리뷰는 `reviewBeforeGenerate @default(false)`라 주 경로가 아니다(디스패치 실측 auto 14 : analyze 5). **선행 완료** — `Clip.clipType/hook/payoff` 컬럼과 마이그레이션 `20260820000000_clip_selection_rationale`은 2026-08-20 메인 루프가 적용했고 프로덕션 반영을 확인했다. 따라서 이 항목은 `packages/db`를 건드리지 않는 순수 `apps/web` 작업이다 — web-dev 범위 안에서 끝난다. 출처: feature-scout 2차 정찰(`docs/agents/feature-scout/정찰기록.md`)
+
 ## 비고
 
 - 위 항목의 우선순위는 아직 정해지지 않음 — PM 에이전트가 매일 이 목록에서 오늘 처리할 1~2개를 골라 PROJECT_BOARD.md에 "승인대기"로 기록한다.

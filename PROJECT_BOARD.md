@@ -31,6 +31,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-20
+- [ ] FEAT-16: 최종 클립에 선택 근거(hook·payoff·clipType) 저장·표시 — 파이프라인이 보내는데 웹이 버리는 값
+  agent: web-dev
+  area: apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
+  status: 승인대기
+  근거: 소유자 직접 발주(pm 미경유). 백엔드가 클립마다 보내는 hook·payoff·clipType를 웹 파서가 버린다 — 상세는 백로그 FEAT-16. 선행 스키마·마이그레이션은 적용 완료.
+
 - [ ] FEAT-15: 파이프라인 대시보드에 행위자별 상세 페이지 추가 — 책상 클릭 → 행위자 역할·전체 기록 목록
   agent: admin-dev
   area: apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/entities/repo-doc + apps/admin/src/fsd/entities/agent-report
