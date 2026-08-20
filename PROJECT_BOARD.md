@@ -42,9 +42,9 @@
 - [ ] FEAT-15: 파이프라인 대시보드에 행위자별 상세 페이지 추가 — 책상 클릭 → 행위자 역할·전체 기록 목록
   agent: admin-dev
   area: apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/entities/repo-doc + apps/admin/src/fsd/entities/agent-report
-  status: 검토대기
+  status: 구현승인
   근거: 소유자가 방금 추가·오늘 진행 명시 지정, 미결 0건이라 선정 가능. 책상 기록이 개수만 보이고 클릭 진입점 없던 관측 해소.
-  검증: 클린 패스 (2026-08-21, 무편집 1라운드)
+  검증: 클린 패스 (2026-08-21, 무편집 3라운드)
 
 ## 2026-08-19
 - [x] FEAT-14: `/pipeline` 기록 열람을 대시보드 안에서 — 항목 축 재배치 + 내부 문서 뷰어
