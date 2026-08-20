@@ -56,6 +56,9 @@ type ClipMetadataPatch = {
   youtubeTitle?: string | null;
   youtubeDescription?: string | null;
   youtubeHashtags?: string[] | null;
+  clipType?: string | null;
+  hook?: string | null;
+  payoff?: string | null;
 };
 
 // Builds a partial Prisma update payload without clearing existing metadata.
@@ -73,6 +76,9 @@ function toClipMetadataUpdateData(
     ...(clip.youtubeHashtags != null
       ? { youtubeHashtags: JSON.stringify(clip.youtubeHashtags) }
       : {}),
+    ...(clip.clipType != null ? { clipType: clip.clipType } : {}),
+    ...(clip.hook != null ? { hook: clip.hook } : {}),
+    ...(clip.payoff != null ? { payoff: clip.payoff } : {}),
   };
 }
 
