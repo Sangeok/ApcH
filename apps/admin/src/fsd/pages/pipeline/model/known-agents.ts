@@ -1,4 +1,6 @@
 // 순수. 발화 주체의 정체성. board.ts/reporting.ts와 같은 이유로 DB·fetch를 들이지 않는다.
+import { ROSTER_AGENT_IDS } from "~/fsd/shared/agents/roster";
+
 export type AgentIdentity = {
   id: string;
   handle: string; // 화면 이름(보드 agent 필드와 연결)
@@ -29,13 +31,7 @@ const ROSTER: Record<string, AgentIdentity> = {
   },
 };
 
-export const ROSTER_ORDER: readonly string[] = [
-  "pm",
-  "admin-dev",
-  "web-dev",
-  "doc-auditor",
-  "feature-scout",
-];
+export const ROSTER_ORDER: readonly string[] = ROSTER_AGENT_IDS;
 
 export function identityFor(agentId: string | null): AgentIdentity {
   if (agentId !== null) {

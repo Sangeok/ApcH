@@ -27,10 +27,6 @@
 
 ## Admin / Pipeline
 
-- [ ] **FEAT-15**: 파이프라인 대시보드에 행위자별 상세 페이지 추가 — 사무실의 책상을 클릭하면 그 행위자의 역할과 전체 기록 목록을 보여주는 페이지로 이동
-  - area: apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/entities/repo-doc + apps/admin/src/fsd/entities/agent-report
-  - source: 운영 중 관측 — 사무실 라벨이 "기록 2건"처럼 개수만 보여주는데, 보드에서 내려간 항목의 기록(예: docs/agents/admin-dev/FEAT-13.md)은 화면에 클릭 진입점이 없어 직접 URL로만 접근 가능했다. 요구: (1) 책상 클릭 → 행위자 상세 페이지. 역할은 `.claude/agents/<이름>.md`의 frontmatter description 요약 + 본문 렌더(기존 마크다운 렌더러 재사용), 기록 목록은 기존 agent-report 목록 재사용에 각 항목을 내부 뷰어로 링크 (2) agent 파라미터는 roster 닫힌 목록으로 검증하고 그 밖은 notFound, 문서 화이트리스트는 접두사 규칙이 아니라 roster에서 조립한 `.claude/agents/<id>.md` 닫힌 경로만 추가 (3) 기록 없는 행위자는 빈 상태 표시 (4) 읽기 전용 — 새 외부 쓰기 경로 없음
-
 ## 비고
 
 - 위 항목의 우선순위는 아직 정해지지 않음 — PM 에이전트가 매일 이 목록에서 오늘 처리할 1~2개를 골라 PROJECT_BOARD.md에 "승인대기"로 기록한다.

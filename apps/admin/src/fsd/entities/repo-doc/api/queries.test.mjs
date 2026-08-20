@@ -57,6 +57,24 @@ describe("getDocContent", () => {
     state.response = { ok: false, status: 500, text: async () => "" };
     await assert.rejects(getDocContent("docs/plans/FEAT-14.md"), /500/);
   });
+
+  it("fetches a roster agent definition file", async () => {
+    state.response = { ok: true, status: 200, text: async () => "# 역할" };
+    const path = ".claude/agents/admin-dev.md";
+    assert.equal(await getDocContent(path), "# 역할");
+    assert.equal(calls.length, 1);
+    assert.deepEqual(calls[0], [docContentUrl(path), { cache: "no-store" }]);
+  });
+
+  it("returns null without fetching for a non-roster definition file", async () => {
+    assert.equal(await getDocContent(".claude/agents/backend-dev.md"), null);
+    assert.equal(calls.length, 0);
+  });
+
+  it("returns null without fetching for a traversal-shaped definition path", async () => {
+    assert.equal(await getDocContent(".claude/agents/../secret.md"), null);
+    assert.equal(calls.length, 0);
+  });
 });
 
 function jsonResponse(payload, { ok = true, status = 200 } = {}) {

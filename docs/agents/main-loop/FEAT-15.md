@@ -44,4 +44,19 @@
 - 새 폐쇄 경로(1~3라운드에서 안 본 표면만): ① `package.json` test 스크립트 실독 — `"src/**/*.test.mjs"` 전역 글롭이라 신규 테스트 위치 2곳(shared/agents·pages/agent-profile) 실제 수집 확인. ② `tsconfig.json` 실독 — `strict`·`noUncheckedIndexedAccess`(주석 추정이던 것을 직접 증거화)에 더해 `verbatimModuleSyntax: true` 확인, §2·§3·§5의 `import type`·§4 배럴의 인라인 `type` 재수출이 전부 부합. ③ §1·§2 스케치를 바이트 그대로 추출해 **실제 플래그(strict+noUncheckedIndexedAccess+verbatimModuleSyntax+isolatedModules)로 tsc 타입검사** — 클린. ④ before 스니펫 3곳 바이트 재대조 — 전부 MATCH.
 - **판정: 클린 패스, 개선점 0건** (3회 연속 무편집 클린).
 
+## 게이트② 개방과 완료 인수 (2026-08-21)
+
+- 전이: `검토대기` → `구현승인` (`4aabf70`). 결정자: 사용자 — 채팅에서 "좋다 구현 승인". 같은 커밋에서 보드 `검증:` 줄을 "무편집 1라운드" → "무편집 3라운드"로 정정(재검증 2회가 추가돼 실제 판정과 어긋나 있었다).
+- admin-dev 디스패치 → 구현 완료, 보드 `완료`·백로그 제거·`docs/agents/admin-dev/FEAT-15.md` 작성.
+
+### 인수 조건 다섯 — 메인 루프가 직접 재현
+
+1. **변경 파일 ↔ 계획서 「고칠 파일」**: `git status` 실측 = 수정 4(queries.ts·queries.test.mjs·known-agents.ts·pixel-office.tsx) + 신규 3디렉터리(`app/(protected)/pipeline/agents/`·`fsd/pages/agent-profile/`·`fsd/shared/agents/`, 파일 7개). 표 11개와 정확히 일치, 표 밖 파일 0(`verify-fsd-boundaries.mjs`·`apps/admin/CLAUDE.md` 미변경 확인).
+2. **diff ↔ 「구현 스케치」**: 수정 3파일 diff와 신규 5파일 전문을 §1~§8과 대조 — 분기·조건·리터럴·사용자 노출 문구 전부 일치. 유일한 차이는 `pixel-office.tsx`의 `<PixelDesk …/>`가 Link 래핑으로 3줄 줄바꿈된 것(prettier 산출, 의미 불변) — 보고가 스스로 신고한 그대로다.
+3. **검증 명령 직접 재실행**: `npm run check -w apps/admin` EXIT 0(fixture 13/13·FSD migration·ESLint 0·tsc 0), `npm test -w apps/admin` **264 pass / 0 fail (57 suites)**, `npm run verify:fsd:final -w apps/admin` EXIT 0(final), `npm run build -w apps/admin` EXIT 0 — 빌드 산출에 `ƒ /pipeline/agents/[agent] 341 B / 107 kB`가 `/pipeline/docs/[...slug]`와 나란히 등재됨을 눈으로 확인. 넷 다 보고 수치와 일치.
+4. **백로그 제거**: `grep -c FEAT-15 TASK_BACKLOG.md` = 0.
+5. **`결과`가 가리키는 상세 기록 실재**: `docs/agents/admin-dev/FEAT-15.md`(6,557B) 전문 확인 — 파일 목록·스케치 차이·검증 결과·경계 확인·못 덮는 범위·후속이 모두 실제와 부합.
+
+**인수 완료.** 후속 동기화(메인 루프 몫)도 이 시점에 처리: `apps/admin/CLAUDE.md`의 테스트 인벤토리 25/51/247 → **27/57/264**, 신규 테스트 2행 추가·`queries.test.mjs` 행에 정의 파일 케이스 반영, 라우트 표에 `/pipeline/agents/[agent]` 추가, 문서 GET owner 절에 `isAgentDefinitionPath` 두 번째 방어선 기재, shared 레이어 책임에 roster 멤버십 상수 기재.
+
 재현 앵커(적용성 증거일 뿐 완전성 증명 아님): 코드 기점 HEAD `53564cf`(검증 중 코드 무변경, 계획서·이 기록만 편집), 계획서 blob(1라운드 편집 후) `git hash-object` = 커밋 시 확정, 경계 = 계획서 인용 코드 20여 곳 + 백로그 FEAT-15 발주 계약 + 보드 안내 블록 + `.claude/agents/*.md` 6개 + `docs/agents/` 폴더 상태, 폐쇄 레시피 = 인용 전수 실측 + 소비자 여집합 grep 3종 + §1·§2 재추출 tsx 실행 + FSD 규칙 실코드 대조. 이 클린은 reconcile 범위의 판정이며 구현 후 런타임 정당성은 B단계 검증 명령과 수동 스모크가 닫는다.

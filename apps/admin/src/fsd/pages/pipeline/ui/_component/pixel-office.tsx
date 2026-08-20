@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import { PipelineCommandButton } from "~/fsd/features/run-pipeline-command";
 import type { AgentReport } from "~/fsd/entities/agent-report";
+import { agentProfileHref } from "~/fsd/shared/agents/roster";
 import type { TeamMember } from "../../model/briefing";
 import { deskCommandFor } from "../../model/desk-commands";
 import {
@@ -125,22 +128,30 @@ function PixelDeskUnit({ member }: { member: TeamMember }) {
   const bubbleColor = bubbleColorFor(member.tone);
   return (
     <div className="flex w-40 flex-col items-center gap-1.5">
-      <svg
-        viewBox="-32 0 160 132"
-        role="img"
-        aria-label={`${member.identity.handle} — ${member.state}`}
-        shapeRendering="crispEdges"
-        className="w-full"
+      <Link
+        href={agentProfileHref(member.identity.id)}
+        aria-label={`${member.identity.handle} 상세 — ${member.state}`}
+        className="block w-full transition-transform hover:-translate-y-0.5"
       >
-        {bubbleColor !== null && (
-          <SpeechBubble cx={48} text={member.state} color={bubbleColor} />
-        )}
-        {/* 캐릭터: 좌석 x+12, yChar 48. 책상이 뒤에 그려져 다리를 덮는다 */}
-        <g transform="translate(12 48)">
-          <PixelSprite agentId={member.identity.id} cell={6} />
-        </g>
-        <PixelDesk agentId={member.identity.id} name={member.identity.handle} />
-      </svg>
+        <svg
+          viewBox="-32 0 160 132"
+          aria-hidden="true"
+          shapeRendering="crispEdges"
+          className="w-full"
+        >
+          {bubbleColor !== null && (
+            <SpeechBubble cx={48} text={member.state} color={bubbleColor} />
+          )}
+          {/* 캐릭터: 좌석 x+12, yChar 48. 책상이 뒤에 그려져 다리를 덮는다 */}
+          <g transform="translate(12 48)">
+            <PixelSprite agentId={member.identity.id} cell={6} />
+          </g>
+          <PixelDesk
+            agentId={member.identity.id}
+            name={member.identity.handle}
+          />
+        </svg>
+      </Link>
       <p className="font-sans text-xs text-[#5c5348]">{member.identity.role}</p>
       {member.heldId && (
         <span className="border border-[#e0d7c2] bg-[#fffdf6] px-1 font-mono text-[10px] text-[#5c5348]">
