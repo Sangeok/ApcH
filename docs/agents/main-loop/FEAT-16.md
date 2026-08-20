@@ -183,3 +183,35 @@ build가 추가로 잡을 표면이 없다고 판단해 생략했다 — 통과�
 미실행: npm run build -w apps/web (근거는 위)
 한계: 적용 가능성의 기록이지 완전성·무결함의 증명이 아니다. wire 왕복과 시각 렌더는 배포 후에만 확인 가능하다.
 ```
+
+### 라운드 4 (무편집) — 사용자 지시 재검증, 결함 0건
+
+또 replay가 아니라 전체 루프다. **라운드 3이 남긴 구멍 셋**을 메웠다.
+
+| 새 확인 | 결과 |
+| --- | --- |
+| **`npm run build -w apps/web`** — 라운드 3에서 "안 돌렸다"고 명시했던 유일한 미실행 게이트 | **EXIT 0.** 스케치를 다시 적용해 실제 프로덕션 빌드를 돌렸다. 라우트 트리 정상 방출, 타입 검사 포함 통과 |
+| `ClipDisplay`가 `clip`을 가공하나 | **아니다.** `widgets/clip-display/ui/index.tsx`가 `Clip[]`을 받아 `optimisticClips.map`으로 `ClipCard`에 **객체 그대로** 넘긴다. 매핑·subset 타입이 없어 새 컬럼이 안 벗겨진다 — 읽기 경로가 DB부터 카드까지 끊김 없이 확정됐다 |
+| `ClipDraftCard.tsx:22-30` 인용이 정확한가 | ✅ `:22-26`이 "프롬프트의 요청일 뿐 강제 장치가 없어 다른 값이 올 수 있으니 매핑에 없으면 원본을 그대로" 주석이고 `:27-30`이 `CLIP_TYPE_LABELS = { qa: "Q&A", insight: "Insight" }`다. 계획서 신규 모듈이 이 규칙을 그대로 복제했다 |
+| `upload-detail/ui/index.tsx:187` | ✅ 정확히 `<ClipDisplay clips={clips} />` |
+
+복원 검증: `git diff HEAD apps/web/src` 비어 있음. 라운드 1의 사고(폴더 통째 삭제)를 반복하지 않도록
+이번엔 디렉터리가 아니라 생성한 파일 하나만 지웠고, 기존 `useMetadataClipboard.ts` 보존을 직접 확인했다.
+
+**최종 패스**: 이 패스에서 결함이 0건이라 Bounded 조건이 성립하므로, 저장본에 대한 **확인 재독**
+(전면 재도출이 아님)으로 마쳤다. 문서는 `88e1f5b` 커밋본에서 무변경임을 git으로 확인했다.
+
+**Status: clean pass achieved** — 무편집 3라운드(2·3·4).
+
+여전히 **"처음부터 문제가 없었다"가 아니다.** 라운드 1의 blocker 1건이 실재했고 고쳤다.
+라운드 2·3·4가 각각 새 각도로 팠으나 새 결함이 안 나온 것이다.
+
+### 실행 증거 누적
+
+```
+npm run check -w apps/web   EXIT 0   (라운드 1, 스케치 적용 상태)
+npm test -w apps/web        EXIT 0   (라운드 1, 51 tests / 12 suites)
+npm run build -w apps/web   EXIT 0   (라운드 4, 스케치 적용 상태)
+```
+세 게이트 전부 스케치를 실제 적용한 상태에서 돌렸고, 매번 복원 후 `git diff HEAD apps/web/src`가
+비어 있음을 확인했다. 구현은 한 번도 남기지 않았다.
