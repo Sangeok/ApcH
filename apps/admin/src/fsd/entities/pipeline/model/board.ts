@@ -103,3 +103,9 @@ export function parseBoard(markdown: string): BoardSection[] {
   // 항목이 없는 섹션(예: "## 파이프라인 구조")은 버린다.
   return sections.filter((section) => section.items.length > 0);
 }
+
+// 항목 최신(첫) 행 = 가장 위 행(briefing.flatten의 "첫 등장만 유효"와 같은 규칙).
+export function latestItemById(sections: BoardSection[], id: string): BoardItem | null {
+  for (const s of sections) for (const it of s.items) if (it.id === id) return it;
+  return null;
+}

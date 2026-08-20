@@ -1,5 +1,6 @@
 export {
   parseBoard,
+  latestItemById,
   type BoardItem,
   type BoardSection,
 } from "./model/board";

@@ -174,6 +174,25 @@ describe("FSD boundary analyzer", () => {
     assert.equal(found.filter((rule) => rule === "R13").length, 3);
   });
 
+  it("accepts fetch in the repo-doc query owner but rejects it at a non-owner repo-doc path", () => {
+    // 등록된 owner에서의 fetch 둘(getDocContent·getPlanDocIds)은 통과한다.
+    assert.deepEqual(
+      analyze({
+        "src/fsd/entities/repo-doc/api/queries.ts":
+          'export const a = () => fetch("x"); export const b = () => fetch("y");',
+      }),
+      [],
+    );
+    // 음성 시험(mutation): 같은 fetch를 owner가 아닌 repo-doc 경로(순수여야 하는 model)에 두면 R13.
+    // repo-doc owner 등록을 FSD_EFFECT_OWNERS.fetch에서 빼면 실제 queries.ts의 fetch가 바로 이
+    // 위반을 받는다 — 등록이 장식이 아님을 고정한다.
+    const found = rules({
+      "src/fsd/entities/repo-doc/model/markdown.ts":
+        'export const leak = () => fetch("z");',
+    });
+    assert.equal(found.filter((rule) => rule === "R13").length, 1);
+  });
+
   it("final mode rejects missing entries, legacy files, and effect-owner drift", () => {
     const found = rules(
       {

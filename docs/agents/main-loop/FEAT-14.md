@@ -255,3 +255,49 @@ B-5 네 명령이 모두 실행 증거로 닫힌 상태에서 구현에 들어�
 (`check` tsc·ESLint·fixture 12/12 / `test` 187/187 / `verify:fsd:final` / `build` EXIT 0 + 라우트 방출).
 
 구현 뒤 메인 루프가 인수 조건 다섯을 직접 재현한다 — 에이전트 보고가 아니라 직접 본 것이어야 한다.
+
+## 완료 인수 (2026-08-20)
+
+admin-dev의 보고를 받지 않고 보드 안내 블록의 인수 조건 **다섯을 직접 재현**했다.
+
+**① 변경 파일 ↔ 「고칠 파일」** — 기계 대조: 계획서 선언 25개, 실제 변경 25개, **정확 일치.**
+선언했으나 미변경 0건, **선언 밖 변경 0건**(범위 위반 없음).
+
+**② diff ↔ 「구현 스케치」** — 계획서 코드 블록 6개를 추출해 구현 파일과 바이트 대조: **5개 완전 일치.**
+불일치 1건은 §3 19행 `"\uFFFD"` → 리터럴 `"�"`로, admin-dev가 **스스로 신고한** 차이이며 런타임 동일 문자열이다
+(`node -e` 확인). 분기·조건·리터럴 값·노출 문구 불변.
+§8·§9 편집 실물 확인: `latestItemById` · `splitRow`의 `(?<!\)\|` 이스케이프 처리 · `startsWith`/`includes`
+(정규식으로 되돌리지 않음) · fetch owner 6번째 · `REQUIRED_FINAL_FILES` 신규 4 · `기록 {reports.length}건` ·
+`getPlanDocIds` · `.doc-prose` · `DocLinks`.
+
+**③ 검증 명령 직접 재실행** — 보고서 수치가 아니라 내 셸의 출력이다.
+
+```
+npm run check -w apps/admin              EXIT 0   ✔ No ESLint warnings or errors
+npm test -w apps/admin                   EXIT 0   247 pass / 51 suites / 0 fail
+npm run verify:fsd:final -w apps/admin   EXIT 0   FSD boundary check passed (final)
+npm run build -w apps/admin              EXIT 0   ƒ /pipeline/docs/[...slug]  366 B
+```
+
+**④ 백로그 제거** — `TASK_BACKLOG.md`에 `FEAT-14` 잔존 0건, 빈 섹션도 정리됨.
+
+**⑤ 상세 기록 실재** — `docs/agents/admin-dev/FEAT-14.md` 8,523바이트.
+
+보드 `결과` 129자 / 150 이내.
+
+### 메인 루프가 처리한 handoff
+
+admin-dev는 `apps/admin/CLAUDE.md` 쓰기 권한이 없어 셋을 넘겼고(둘은 자기 신고, 하나는 내가 여집합 확인에서 추가):
+
+1. 「테스트 인벤토리」 `21파일·40suite·187test` → **`25파일·51suite·247test`**. 숫자는 러너 출력과 파일 전수로 직접 셌다.
+   신규 4행(doc-location·markdown·repo-doc queries·build-doc-view) 추가, board.test·briefing.test 설명 확장.
+   갱신 후 대조: 표 25행 ↔ 실제 25파일, 누락 0·유령 0.
+2. 「데이터와 외부 효과 소유권」에 6번째 fetch owner 추가 — 두 방어선(라우트 slug 검증 + api 층 경로 재검사)을 명시.
+3. **(추가)** 「앱 개요」 라우트 표에 `/pipeline/docs/[...slug]` 누락 — admin-dev가 신고하지 않았다.
+   여집합 확인(라우트를 나열하는 문서를 전수)에서 잡았다.
+
+### 미실행으로 남은 것
+
+배포 후 수동 smoke 1~5(인가 보호·카드 링크·plan/report 렌더·화이트리스트 밖 404·게이트 가시성)는 인가 브라우저가 필요해
+구현 세션에서 실행하지 않았다. smoke 6(게이트 버튼 클릭)은 실제 `PROJECT_BOARD.md`를 바꾸는 외부 효과라
+계획서가 명시적으로 **누르지 말라**고 적었고 지키지 않을 이유가 없다.

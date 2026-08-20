@@ -13,6 +13,7 @@
 | `/analytics` | 개요·퍼널·이탈·최근 실패 |
 | `/observability` | Sentry 리포팅 점검 |
 | `/pipeline` | 파이프라인 보드 투영·게이트 전이·원격 명령 |
+| `/pipeline/docs/[...slug]` | 계획서·행위자 기록 내부 뷰어(읽기 전용). `docs/plans/`·`docs/agents/` 밖 경로는 렌더하지 않는다 |
 | `/api/auth/[...nextauth]` | NextAuth 핸들러 |
 
 `app/robots.ts`는 모든 크롤러에 `Disallow: /`를 반환한다.
@@ -32,7 +33,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **21개 파일, 40개 suite, 187개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **25개 파일, 51개 suite, 247개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -43,8 +44,11 @@ npm run build -w apps/admin
 | `src/fsd/entities/analytics-event/api/queries.test.mjs` | 단일 read-only `findMany` shape와 최근 실패 filter/limit |
 | `src/fsd/entities/analytics-event/model/reporting.test.mjs` | 퍼널 순서·drop-off·실패 집계와 결정적 정렬 |
 | `src/fsd/entities/pipeline/api/queries.test.mjs` | raw board no-store GET과 non-OK 실패 |
-| `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱, 중복 `결과:` 누적, `검증` 필드(부재→null) |
+| `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱, 중복 `결과:` 누적, `검증` 필드(부재→null), `latestItemById`의 최상단 행 우선 |
 | `src/fsd/entities/agent-report/model/report-index.test.mjs` | contents 디렉터리 응답 → 보고서 목록, README 제외, 결정적 정렬, 부분 집계 금지 |
+| `src/fsd/entities/repo-doc/model/doc-location.test.mjs` | slug→경로 화이트리스트(트래버설·점 세그먼트·길이 위반 거부), 경로 재검사, 형제 문서 링크의 결정적 순서 |
+| `src/fsd/entities/repo-doc/model/markdown.test.mjs` | GFM 부분집합 렌더, 전량 escape와 원시 HTML 미통과, 표의 `\|` 이스케이프 보존, 코드 슬롯 충돌 회귀 |
+| `src/fsd/entities/repo-doc/api/queries.test.mjs` | raw 문서 GET(화이트리스트 밖→fetch 없이 null, 404→null, 비-OK→throw)과 plans 목록 → 항목 ID 집합 |
 | `src/fsd/features/run-pipeline-command/api/post-pipeline-command.test.mjs` | auth-first, whitelist, exact GitHub POST |
 | `src/fsd/features/run-pipeline-command/model/commands.test.mjs` | command body와 key whitelist |
 | `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.test.mjs` | auth-first, 6h `since` 창, `created_at` 재필터, shape 실패 fail-closed, FIFO 입력 전달 |
@@ -53,7 +57,8 @@ npm run build -w apps/admin
 | `src/fsd/features/send-observability-test/api/send-observability-test-event.test.mjs` | auth-first Sentry scope/capture/flush 순서 |
 | `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.test.mjs` | auth-first, GET/PUT, optimistic lock, 실패 shape |
 | `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | 승인·반려 전이, 최소 diff, stale/format 거부, 되돌리기의 `검증:` 줄 제거(1줄·2줄) |
-| `src/fsd/pages/pipeline/model/briefing.test.mjs` | 보드→briefing·roster·발화 매핑, 검증 판정 전달(검토대기만) |
+| `src/fsd/pages/doc-viewer/model/build-doc-view.test.mjs` | 서류철 탭·종류 배지·게이트②/반려 노출 조건, 고정명 문서의 탭 없는 단독 렌더 |
+| `src/fsd/pages/pipeline/model/briefing.test.mjs` | 보드→briefing·roster·발화 매핑, 검증 판정 전달(검토대기만), 항목 문서 링크(미전달 시 빈 배열) |
 | `src/fsd/pages/pipeline/model/desk-commands.test.mjs` | desk→command key와 whitelist 연결 |
 | `src/fsd/pages/pipeline/model/sprites.test.mjs` | pixel grid·appearance·tone 매핑 |
 | `src/fsd/shared/observability/report-error.test.mjs` | 예외 capture, user isolation, never-throw flush |
@@ -105,6 +110,7 @@ Node module mock으로 DB/GitHub/Sentry 호출 계약을 실제 외부 I/O 없�
 - gate GET/PUT owner는 `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts`다.
 - progress GET owner는 `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts`다(FEAT-10, 읽기 전용).
 - 행위자 보고서 목록 GET owner는 `src/fsd/entities/agent-report/api/queries.ts`다(읽기 전용). 디렉터리 목록은 raw CDN이 404를 주므로 contents API만 가능하다.
+- 저장소 문서 GET owner는 `src/fsd/entities/repo-doc/api/queries.ts`다(FEAT-14, 읽기 전용). 문서 본문은 raw CDN, `docs/plans/` 목록은 contents API다. **URL 파라미터가 fetch 경로가 되므로** 이 owner는 fetch 직전에 `isWhitelistedDocPath`로 경로를 다시 검사한다 — 라우트의 slug 검증에 이어지는 두 번째 방어선이다.
 - Sentry SDK direct import는 `src/instrumentation.ts`, `src/sentry.server.config.ts`, `src/fsd/shared/observability/report-error.ts`만 허용한다.
 
 GitHub 쓰기 두 경로는 모두 `requireAdmin()` 뒤에서 실행되고 server-side whitelist를 사용한다. command client는 key만 보내며 자유 형식 body를 보내지 않는다. gate client는 action/id/화면이 읽은 status만 보내고, 서버가 최신 board와 대조해 whitelist된 `status/result/block` 최소 edit만 커밋한다. `discard`는 행 제거라 git revert 없이는 되돌릴 수 없다.

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { parseBoard } from "./board.ts";
+import { latestItemById, parseBoard } from "./board.ts";
 
 // 실제 PROJECT_BOARD.md 형식을 축약한 대표 문자열:
 // - 상단 `>` 안내 블록
@@ -151,5 +151,31 @@ describe("pipeline board parser", () => {
 
     assert.ok(!ids.includes("FAKE-99"));
     assert.deepEqual(ids, ["FEAT-03", "BUG-06", "FEAT-01"]);
+  });
+});
+
+describe("latestItemById", () => {
+  // 같은 ID가 여러 섹션에 있으면 가장 위(최신) 행이 유효하다(flatten과 같은 규칙).
+  const DUP = [
+    "## 2026-08-18",
+    "- [ ] FEAT-05: 최신 행",
+    "  agent: admin-dev",
+    "  status: 검토대기",
+    "  근거: 최신.",
+    "## 2026-08-10",
+    "- [x] FEAT-05: 옛 행",
+    "  agent: admin-dev",
+    "  status: 완료",
+    "  근거: 옛날.",
+  ].join(String.fromCharCode(10));
+
+  it("returns the top-most row when an id appears in several sections", () => {
+    const item = latestItemById(parseBoard(DUP), "FEAT-05");
+    assert.equal(item.status, "검토대기");
+    assert.equal(item.reason, "최신.");
+  });
+
+  it("returns null when the id is absent", () => {
+    assert.equal(latestItemById(parseBoard(DUP), "NOPE-1"), null);
   });
 });
