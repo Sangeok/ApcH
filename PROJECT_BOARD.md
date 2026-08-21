@@ -30,6 +30,23 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-20
+- [x] FEAT-16: 최종 클립에 선택 근거(hook·payoff·clipType) 저장·표시 — 파이프라인이 보내는데 웹이 버리는 값
+  agent: web-dev
+  area: apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
+  status: 완료
+  근거: 소유자 직접 발주(pm 미경유). 백엔드가 클립마다 보내는 hook·payoff·clipType를 웹 파서가 버린다 — 상세는 백로그 FEAT-16. 선행 스키마·마이그레이션은 적용 완료.
+  결과: 유실 5지점(파서·이벤트타입·DB create·패치)에 clipType·hook·payoff 복원 + ClipCard 근거 블록 + clip-rationale 순수모듈. 수정5·신규2. check·test 51/12 EXIT 0. 상세 web-dev/FEAT-16.
+  검증: 클린 패스 (2026-08-21, 무편집 1라운드)
+
+- [x] FEAT-15: 파이프라인 대시보드에 행위자별 상세 페이지 추가 — 책상 클릭 → 행위자 역할·전체 기록 목록
+  agent: admin-dev
+  area: apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/entities/repo-doc + apps/admin/src/fsd/entities/agent-report
+  status: 완료
+  근거: 소유자가 방금 추가·오늘 진행 명시 지정, 미결 0건이라 선정 가능. 책상 기록이 개수만 보이고 클릭 진입점 없던 관측 해소.
+  결과: 책상 클릭→행위자 상세(역할=정의 frontmatter·기록=뷰어 링크·빈 상태) + shared roster 단일 출처. 신규7·수정4. check·test 264/57·verify:fsd:final·build 넷 다 0. 상세 admin-dev/FEAT-15.
+  검증: 클린 패스 (2026-08-21, 무편집 3라운드)
+
 ## 2026-08-19
 - [x] FEAT-14: `/pipeline` 기록 열람을 대시보드 안에서 — 항목 축 재배치 + 내부 문서 뷰어
   agent: admin-dev

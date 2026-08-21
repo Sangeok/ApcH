@@ -17,6 +17,9 @@ interface ModalWebhookClip {
   youtubeTitle?: string | null;
   youtubeDescription?: string | null;
   youtubeHashtags?: string[] | null;
+  clipType?: string | null;
+  hook?: string | null;
+  payoff?: string | null;
 }
 
 interface RawModalWebhookClip {
@@ -36,6 +39,10 @@ interface RawModalWebhookClip {
   youtube_description?: string | null;
   youtubeHashtags?: string[] | null;
   youtube_hashtags?: string[] | null;
+  clipType?: string | null;
+  clip_type?: string | null;
+  hook?: string | null;
+  payoff?: string | null;
 }
 
 interface RawAnalyzedMoment {
@@ -140,6 +147,9 @@ function normalizeClip(rawClip: RawModalWebhookClip): ModalWebhookClip | null {
       rawClip.youtubeDescription ?? rawClip.youtube_description ?? null,
     youtubeHashtags:
       rawClip.youtubeHashtags ?? rawClip.youtube_hashtags ?? null,
+    clipType: rawClip.clipType ?? rawClip.clip_type ?? null,
+    hook: rawClip.hook ?? null,
+    payoff: rawClip.payoff ?? null,
   };
 }
 

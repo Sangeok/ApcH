@@ -7,6 +7,10 @@ import { getClipPlayUrl } from "~/fsd/features/clip/api";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
+import {
+  clipTypeLabel,
+  hasClipRationale,
+} from "~/fsd/widgets/clip-display/model/clip-rationale";
 import { parseJsonArray } from "~/fsd/shared/lib/utils";
 import { ClipActions } from "./ClipActions";
 import { ClipVideoPlayer } from "./ClipVideoPlayer";
@@ -43,6 +47,11 @@ export default function ClipCard({
   const hasMetadata = Boolean(
     clip.youtubeTitle ?? clip.youtubeDescription ?? youtubeHashtags.length > 0,
   );
+
+  const typeLabel = clipTypeLabel(clip.clipType);
+  const hook = clip.hook?.trim() ?? "";
+  const payoff = clip.payoff?.trim() ?? "";
+  const showRationale = hasClipRationale(clip);
 
   const handleCopyScript = async () => {
     if (!hasScript) {
@@ -84,6 +93,23 @@ export default function ClipCard({
         error={error}
         onPlay={handlePlay}
       />
+      {showRationale && (
+        <div className="flex flex-col gap-0.5">
+          {typeLabel && (
+            <span className="text-muted-foreground text-xs">{typeLabel}</span>
+          )}
+          {hook && (
+            <span className="line-clamp-2 text-sm leading-snug font-semibold">
+              {hook}
+            </span>
+          )}
+          {payoff && (
+            <span className="text-muted-foreground line-clamp-2 text-xs leading-snug">
+              {payoff}
+            </span>
+          )}
+        </div>
+      )}
       <ClipActions
         clip={clip}
         playUrl={playUrl}

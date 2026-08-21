@@ -1,12 +1,14 @@
 import "server-only";
 
 import { env } from "~/env";
+import { isAgentDefinitionPath } from "~/fsd/shared/agents/roster";
 import { docContentUrl, plansDirUrl } from "../config/github";
 import { isWhitelistedDocPath } from "../model/doc-location";
 
-/** 화이트리스트 통과 경로의 raw 내용. 404(없음)면 null. 방어선: 경로 재검사. */
+/** 화이트리스트 통과 경로의 raw 내용. 404(없음)면 null. 방어선: 경로 재검사.
+ *  docs/plans·docs/agents(뷰어)에 더해 roster 정의 파일(.claude/agents/<id>.md)을 통과시킨다. */
 export async function getDocContent(path: string): Promise<string | null> {
-  if (!isWhitelistedDocPath(path)) return null; // URL 파라미터가 fetch 경로가 되므로 여기서도 막는다
+  if (!isWhitelistedDocPath(path) && !isAgentDefinitionPath(path)) return null;
   const res = await fetch(docContentUrl(path), { cache: "no-store" });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Failed to fetch doc (${path}): ${res.status}`);

@@ -25,6 +25,8 @@
   - area: apps/web/src/fsd/features/billing + apps/web/src/fsd/entities/user + apps/web/src/inngest
   - source: README "Currently in Development"
 
+## Admin / Pipeline
+
 ## 비고
 
 - 위 항목의 우선순위는 아직 정해지지 않음 — PM 에이전트가 매일 이 목록에서 오늘 처리할 1~2개를 골라 PROJECT_BOARD.md에 "승인대기"로 기록한다.

@@ -6888,6 +6888,9 @@ export namespace Prisma {
     startSeconds: number | null
     endSeconds: number | null
     scriptText: string | null
+    clipType: string | null
+    hook: string | null
+    payoff: string | null
     createdAt: Date | null
     updatedAt: Date | null
     youtubeTitle: string | null
@@ -6904,6 +6907,9 @@ export namespace Prisma {
     startSeconds: number | null
     endSeconds: number | null
     scriptText: string | null
+    clipType: string | null
+    hook: string | null
+    payoff: string | null
     createdAt: Date | null
     updatedAt: Date | null
     youtubeTitle: string | null
@@ -6920,6 +6926,9 @@ export namespace Prisma {
     startSeconds: number
     endSeconds: number
     scriptText: number
+    clipType: number
+    hook: number
+    payoff: number
     createdAt: number
     updatedAt: number
     youtubeTitle: number
@@ -6950,6 +6959,9 @@ export namespace Prisma {
     startSeconds?: true
     endSeconds?: true
     scriptText?: true
+    clipType?: true
+    hook?: true
+    payoff?: true
     createdAt?: true
     updatedAt?: true
     youtubeTitle?: true
@@ -6966,6 +6978,9 @@ export namespace Prisma {
     startSeconds?: true
     endSeconds?: true
     scriptText?: true
+    clipType?: true
+    hook?: true
+    payoff?: true
     createdAt?: true
     updatedAt?: true
     youtubeTitle?: true
@@ -6982,6 +6997,9 @@ export namespace Prisma {
     startSeconds?: true
     endSeconds?: true
     scriptText?: true
+    clipType?: true
+    hook?: true
+    payoff?: true
     createdAt?: true
     updatedAt?: true
     youtubeTitle?: true
@@ -7085,6 +7103,9 @@ export namespace Prisma {
     startSeconds: number | null
     endSeconds: number | null
     scriptText: string | null
+    clipType: string | null
+    hook: string | null
+    payoff: string | null
     createdAt: Date
     updatedAt: Date
     youtubeTitle: string | null
@@ -7120,6 +7141,9 @@ export namespace Prisma {
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     youtubeTitle?: boolean
@@ -7138,6 +7162,9 @@ export namespace Prisma {
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     youtubeTitle?: boolean
@@ -7156,6 +7183,9 @@ export namespace Prisma {
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     youtubeTitle?: boolean
@@ -7174,6 +7204,9 @@ export namespace Prisma {
     startSeconds?: boolean
     endSeconds?: boolean
     scriptText?: boolean
+    clipType?: boolean
+    hook?: boolean
+    payoff?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     youtubeTitle?: boolean
@@ -7183,7 +7216,7 @@ export namespace Prisma {
     userId?: boolean
   }
 
-  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "processingAttempt" | "startSeconds" | "endSeconds" | "scriptText" | "createdAt" | "updatedAt" | "youtubeTitle" | "youtubeDescription" | "youtubeHashtags" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
+  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "processingAttempt" | "startSeconds" | "endSeconds" | "scriptText" | "clipType" | "hook" | "payoff" | "createdAt" | "updatedAt" | "youtubeTitle" | "youtubeDescription" | "youtubeHashtags" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
   export type ClipInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7210,6 +7243,9 @@ export namespace Prisma {
       startSeconds: number | null
       endSeconds: number | null
       scriptText: string | null
+      clipType: string | null
+      hook: string | null
+      payoff: string | null
       createdAt: Date
       updatedAt: Date
       youtubeTitle: string | null
@@ -7648,6 +7684,9 @@ export namespace Prisma {
     readonly startSeconds: FieldRef<"Clip", 'Float'>
     readonly endSeconds: FieldRef<"Clip", 'Float'>
     readonly scriptText: FieldRef<"Clip", 'String'>
+    readonly clipType: FieldRef<"Clip", 'String'>
+    readonly hook: FieldRef<"Clip", 'String'>
+    readonly payoff: FieldRef<"Clip", 'String'>
     readonly createdAt: FieldRef<"Clip", 'DateTime'>
     readonly updatedAt: FieldRef<"Clip", 'DateTime'>
     readonly youtubeTitle: FieldRef<"Clip", 'String'>
@@ -15039,6 +15078,9 @@ export namespace Prisma {
     startSeconds: 'startSeconds',
     endSeconds: 'endSeconds',
     scriptText: 'scriptText',
+    clipType: 'clipType',
+    hook: 'hook',
+    payoff: 'payoff',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     youtubeTitle: 'youtubeTitle',
@@ -15673,6 +15715,9 @@ export namespace Prisma {
     startSeconds?: FloatNullableFilter<"Clip"> | number | null
     endSeconds?: FloatNullableFilter<"Clip"> | number | null
     scriptText?: StringNullableFilter<"Clip"> | string | null
+    clipType?: StringNullableFilter<"Clip"> | string | null
+    hook?: StringNullableFilter<"Clip"> | string | null
+    payoff?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
     youtubeTitle?: StringNullableFilter<"Clip"> | string | null
@@ -15691,6 +15736,9 @@ export namespace Prisma {
     startSeconds?: SortOrderInput | SortOrder
     endSeconds?: SortOrderInput | SortOrder
     scriptText?: SortOrderInput | SortOrder
+    clipType?: SortOrderInput | SortOrder
+    hook?: SortOrderInput | SortOrder
+    payoff?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     youtubeTitle?: SortOrderInput | SortOrder
@@ -15713,6 +15761,9 @@ export namespace Prisma {
     startSeconds?: FloatNullableFilter<"Clip"> | number | null
     endSeconds?: FloatNullableFilter<"Clip"> | number | null
     scriptText?: StringNullableFilter<"Clip"> | string | null
+    clipType?: StringNullableFilter<"Clip"> | string | null
+    hook?: StringNullableFilter<"Clip"> | string | null
+    payoff?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
     youtubeTitle?: StringNullableFilter<"Clip"> | string | null
@@ -15731,6 +15782,9 @@ export namespace Prisma {
     startSeconds?: SortOrderInput | SortOrder
     endSeconds?: SortOrderInput | SortOrder
     scriptText?: SortOrderInput | SortOrder
+    clipType?: SortOrderInput | SortOrder
+    hook?: SortOrderInput | SortOrder
+    payoff?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     youtubeTitle?: SortOrderInput | SortOrder
@@ -15755,6 +15809,9 @@ export namespace Prisma {
     startSeconds?: FloatNullableWithAggregatesFilter<"Clip"> | number | null
     endSeconds?: FloatNullableWithAggregatesFilter<"Clip"> | number | null
     scriptText?: StringNullableWithAggregatesFilter<"Clip"> | string | null
+    clipType?: StringNullableWithAggregatesFilter<"Clip"> | string | null
+    hook?: StringNullableWithAggregatesFilter<"Clip"> | string | null
+    payoff?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
     youtubeTitle?: StringNullableWithAggregatesFilter<"Clip"> | string | null
@@ -16714,6 +16771,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -16730,6 +16790,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -16746,6 +16809,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16762,6 +16828,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16778,6 +16847,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -16794,6 +16866,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16808,6 +16883,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17886,6 +17964,9 @@ export namespace Prisma {
     startSeconds?: SortOrder
     endSeconds?: SortOrder
     scriptText?: SortOrder
+    clipType?: SortOrder
+    hook?: SortOrder
+    payoff?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     youtubeTitle?: SortOrder
@@ -17908,6 +17989,9 @@ export namespace Prisma {
     startSeconds?: SortOrder
     endSeconds?: SortOrder
     scriptText?: SortOrder
+    clipType?: SortOrder
+    hook?: SortOrder
+    payoff?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     youtubeTitle?: SortOrder
@@ -17924,6 +18008,9 @@ export namespace Prisma {
     startSeconds?: SortOrder
     endSeconds?: SortOrder
     scriptText?: SortOrder
+    clipType?: SortOrder
+    hook?: SortOrder
+    payoff?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     youtubeTitle?: SortOrder
@@ -19497,6 +19584,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -19512,6 +19602,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -19760,6 +19853,9 @@ export namespace Prisma {
     startSeconds?: FloatNullableFilter<"Clip"> | number | null
     endSeconds?: FloatNullableFilter<"Clip"> | number | null
     scriptText?: StringNullableFilter<"Clip"> | string | null
+    clipType?: StringNullableFilter<"Clip"> | string | null
+    hook?: StringNullableFilter<"Clip"> | string | null
+    payoff?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
     youtubeTitle?: StringNullableFilter<"Clip"> | string | null
@@ -19880,6 +19976,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -19895,6 +19994,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -20926,6 +21028,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -21103,6 +21208,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21118,6 +21226,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21133,6 +21244,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21211,6 +21325,9 @@ export namespace Prisma {
     startSeconds?: number | null
     endSeconds?: number | null
     scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     youtubeTitle?: string | null
@@ -21257,6 +21374,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21272,6 +21392,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21287,6 +21410,9 @@ export namespace Prisma {
     startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
     scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null

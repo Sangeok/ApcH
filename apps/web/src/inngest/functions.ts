@@ -46,6 +46,9 @@ type ProcessVideoBackendClip = {
   youtubeTitle?: string | null;
   youtubeDescription?: string | null;
   youtubeHashtags?: string[] | null;
+  clipType?: string | null;
+  hook?: string | null;
+  payoff?: string | null;
 };
 
 type RawProcessVideoBackendClip = {
@@ -65,6 +68,10 @@ type RawProcessVideoBackendClip = {
   youtube_description?: string | null;
   youtubeHashtags?: string[] | null;
   youtube_hashtags?: string[] | null;
+  clipType?: string | null;
+  clip_type?: string | null;
+  hook?: string | null;
+  payoff?: string | null;
 };
 
 function toErrorMessage(error: unknown): string {
@@ -140,6 +147,9 @@ function normalizeBackendClip(clip: unknown): ProcessVideoBackendClip | null {
       rawClip.youtubeDescription ?? rawClip.youtube_description ?? null,
     youtubeHashtags:
       rawClip.youtubeHashtags ?? rawClip.youtube_hashtags ?? null,
+    clipType: rawClip.clipType ?? rawClip.clip_type ?? null,
+    hook: rawClip.hook ?? null,
+    payoff: rawClip.payoff ?? null,
   };
 }
 
@@ -212,6 +222,9 @@ async function persistGeneratedClips(args: {
         youtubeHashtags: clip.youtubeHashtags
           ? JSON.stringify(clip.youtubeHashtags)
           : null,
+        clipType: clip.clipType ?? null,
+        hook: clip.hook ?? null,
+        payoff: clip.payoff ?? null,
       });
     }
   }
