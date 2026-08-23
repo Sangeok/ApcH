@@ -40,6 +40,7 @@
   area: apps/admin/src/fsd/pages/agent-profile
   status: 검토대기
   근거: 소유자 직접 발주(pm 미경유). 역할 정의가 지시문 전문 덤프로 렌더되는 관측 해소. 설계 결정 넷·펜스 함정은 백로그 FEAT-17이 원천.
+  검증: 클린 패스 (2026-08-23, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [ ] BUG-03: S3 업로드 실패에 대한 에러 핸들링 부재
   agent: backend-dev
   area: apps/backend
