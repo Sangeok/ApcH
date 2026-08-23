@@ -34,7 +34,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **27개 파일, 57개 suite, 264개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **27개 파일, 58개 suite, 273개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -59,7 +59,7 @@ npm run build -w apps/admin
 | `src/fsd/features/send-observability-test/api/send-observability-test-event.test.mjs` | auth-first Sentry scope/capture/flush 순서 |
 | `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.test.mjs` | auth-first, GET/PUT, optimistic lock, 실패 shape |
 | `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | 승인·반려 전이, 최소 diff, stale/format 거부, 되돌리기의 `검증:` 줄 제거(1줄·2줄) |
-| `src/fsd/pages/agent-profile/model/build-profile-view.test.mjs` | 정의 frontmatter 분리(없음·미닫힘 fail-open, CRLF, 빈 값→null)와 뷰 조립·기록 링크 매핑 |
+| `src/fsd/pages/agent-profile/model/build-profile-view.test.mjs` | 정의 frontmatter 분리(없음·미닫힘 fail-open, CRLF, 빈 값→null), `outlineDefinitionBody`의 펜스 밖 `##` 분할(펜스 안 제외·언어 태그 펜스 토글·`###` 비경계), 뷰의 intro/sections 조립·기록 링크 매핑 |
 | `src/fsd/pages/doc-viewer/model/build-doc-view.test.mjs` | 서류철 탭·종류 배지·게이트②/반려 노출 조건, 고정명 문서의 탭 없는 단독 렌더 |
 | `src/fsd/pages/pipeline/model/briefing.test.mjs` | 보드→briefing·roster·발화 매핑, 검증 판정 전달(검토대기만), 항목 문서 링크(미전달 시 빈 배열) |
 | `src/fsd/pages/pipeline/model/desk-commands.test.mjs` | desk→command key와 whitelist 연결 |

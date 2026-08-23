@@ -35,11 +35,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-23
-- [ ] FEAT-17: 행위자 상세 페이지의 역할 정의를 제목 주도 점진 공개로 — 첫 절만 펼치고 나머지 `##` 절은 접힌 details로
+- [x] FEAT-17: 행위자 상세 페이지의 역할 정의를 제목 주도 점진 공개로 — 첫 절만 펼치고 나머지 `##` 절은 접힌 details로
   agent: admin-dev
   area: apps/admin/src/fsd/pages/agent-profile
-  status: 구현승인
+  status: 완료
   근거: 소유자 직접 발주(pm 미경유). 역할 정의가 지시문 전문 덤프로 렌더되는 관측 해소. 설계 결정 넷·펜스 함정은 백로그 FEAT-17이 원천.
+  결과: 역할 정의를 펜스 밖 `##`로 나눠 도입부 카드+절별 접힌 details로 교체(+→× 마커). 수정3. check·test 273/58·verify:fsd:final·build 다 0. 상세 admin-dev/FEAT-17
   검증: 클린 패스 (2026-08-23, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [ ] BUG-03: S3 업로드 실패에 대한 에러 핸들링 부재
   agent: backend-dev

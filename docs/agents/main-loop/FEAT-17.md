@@ -81,3 +81,19 @@ M1을 잡음을 독립 재현**(그 단언 없으면 나머지 전부 통과, �
 사용자가 세션에서 "구현 승인"으로 개방. 추가 결정 없이 계획서 기본값 그대로 간다 —
 펜스 인식 `outlineDefinitionBody`·intro 카드+`<details>` 서랍·`+`→`×` 잉크 마커·수정 3파일·
 신규 export 없음·경계 무변경. 보드 행을 `구현승인`으로 전이하고 admin-dev를 디스패치했다.
+
+## 인수 (2026-08-24, 메인 루프 — 다섯 조건 직접 재현)
+
+1. **변경 파일 ↔ 「고칠 파일」**: `git status` 실측 — 코드 변경은 계획서의 3개(model·ui·test)뿐.
+   그 외는 보드·백로그·신규 보고서(+세션 전부터 있던 무관 `settings.local.json`).
+2. **diff ↔ 스케치**: 프로덕션 파일 2개가 **검증 라운드의 스크래치패드 패치본과 바이트 동일**
+   (`diff -q` 무출력) — 스케치 이식이 문자 그대로였다는 최강 형태의 증거. 테스트는 명세 자작이라
+   바이트 비교 대상이 아니고, 명세 케이스 9+2가 보고서와 대조 일치.
+3. **검증 명령 재실행**: `check` EXIT 0(ESLint 0·tsc 0) · `test` 273/0 (58 suites) ·
+   `verify:fsd:final` EXIT 0 · `build` EXIT 0 — 넷 다 직접 실행.
+4. **백로그 제거**: `grep -c FEAT-17 TASK_BACKLOG.md` = 0.
+5. **상세 기록 실재**: `docs/agents/admin-dev/FEAT-17.md` 전문 정독 — 착수 전 확인·스케치 무차이·
+   게이트 수치·못 덮는 범위·CLAUDE.md handoff까지 실질적.
+
+**범위 밖 문서 동기화(메인 루프)**: `apps/admin/CLAUDE.md` 테스트 인벤토리 57→58 suite·264→273 test,
+`build-profile-view.test.mjs` 행에 `outlineDefinitionBody` 계약 추가. 인수 종료 — status `완료` 수리.
