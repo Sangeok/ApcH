@@ -9,6 +9,7 @@ AI 팟캐스트 영상에서 YouTube Shorts 클립을 뽑는 SaaS. 1인 운영�
 | `TASK_BACKLOG.md` | 할 일 원장. pm의 유일한 입력 |
 | `PROJECT_BOARD.md` | 작업 상태 기계 — 전이 규칙·정지 규칙·인수 조건 포함. 맨 아래에 구조도 |
 | `docs/plans/<항목ID>.md` | 항목별 구현 계획서 |
+| `docs/plans/verification-paths.md` | 계획서 검증의 필수 경로 카탈로그 — 항목 성격이 검사를 정한다 |
 | `docs/agents/<행위자>/` | 행위자별 활동 보고서 — 보드가 담지 않는 상세. 규약은 그 안 `README.md` |
 | `.claude/agents/*.md` | 에이전트 정의 (역할·도구·제약) |
 | `apps/*/CLAUDE.md` | 워크스페이스별 지시 문서 |
@@ -23,6 +24,7 @@ AI 팟캐스트 영상에서 YouTube Shorts 클립을 뽑는 SaaS. 1인 운영�
 | `backend-dev` | `apps/backend` 동일. 검증 게이트는 stdlib `unittest` — 판단 로직을 torch 없는 순수 모듈로 빼야 돈다 | 자기 워크스페이스(단 `asd/`·`requirements.txt` 제외) + 보드 자기 행 + `docs/plans/<항목ID>.md` + `docs/agents/backend-dev/` + 백로그 항목 제거 |
 | `doc-auditor` | 문서가 코드에 대해 하는 주장을 대조 감사. 보고만 | 없음 |
 | `feature-scout` | 외부 조사로 기능 제안. 보고만 | 없음 |
+| `plan-verifier` | `검토대기` 계획서를 처음 보는 컨텍스트에서 검증. 결함을 증거와 함께 보고만 | 없음 (하니스는 스크래치패드에만) |
 
 행을 추가할 때는 `.claude/agents/<이름>.md`가 실재하는지 확인하고 넣는다 — `pm.md`의 표 관리 규칙과 같은 이유다.
 
@@ -33,7 +35,7 @@ AI 팟캐스트 영상에서 YouTube Shorts 클립을 뽑는 SaaS. 1인 운영�
 1. `pm` 디스패치 → 보드에 `승인대기` 기록, 미결 현황 보고
 2. **게이트①** — 사용자가 `계획지시`로 전이 (사용자만 할 수 있다)
 3. 담당 dev 디스패치 → `docs/plans/<항목ID>.md` 계획서만 작성, `검토대기`
-4. 메인 루프가 계획서를 `reconciling-proposals-with-codebase` 스킬로 검증. 무편집 클린 패스 1회면 검증 끝 (보드의 정지 규칙). 검증 라운드 기록은 `docs/agents/main-loop/<항목ID>.md`에 남긴다
+4. 메인 루프가 카탈로그(`docs/plans/verification-paths.md`)에서 필수 경로를 확정하고, `reconciling-proposals-with-codebase` 스킬로 검증·편집한다. 자기 라운드가 무소득이 되면 `plan-verifier`를 디스패치해 **독립 무편집 패스**를 받는다 — 클린 패스 판정은 보드의 정지 규칙을 따른다. 라운드 종료마다 `git status`로 트리 청결을 검산하고(검증자의 무수정 준수를 보고가 아니라 직접 확인), 검증 라운드 기록은 `docs/agents/main-loop/<항목ID>.md`에 남긴다
 5. **게이트②** — 사용자가 `구현승인`으로 전이
 6. 담당 dev 디스패치 → 구현, `docs/agents/<자기이름>/<항목ID>.md`에 구현 보고, 보드엔 150자 `결과` 요약, 백로그에서 항목 제거
 7. 메인 루프가 완료를 인수한다 — 보드 안내 블록의 인수 조건 **다섯**을 직접 재현(상세 기록의 실재 확인 포함)
