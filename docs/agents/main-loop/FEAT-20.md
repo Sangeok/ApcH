@@ -35,3 +35,43 @@ Provider 유지 / 서버 컴포넌트 children으로의 컨텍스트 전파 / `b
 보드 flip 후 잔여 잠금 부재 — 위 경로 실행 중 함께 검증한다.
 
 검증 순서: BUG-03 먼저(먼저 접수), FEAT-20 다음 — 메인 루프 검증은 직렬이다.
+
+## 검증 1라운드 (2026-08-25, reconciling — Standard 프로파일·전체 증거) — 결함 1건, 편집 1회
+
+방법: 계획서 8개 변경을 실제 트리에 **기계 조립**해 진짜 게이트를 돌리고, 종료 후 원복
+(`git status` 청결 검산·기준선 276/276 재확인). BUG-03 인수와 교차 없이 apps/admin만 사용.
+
+**경로 실행 증거**
+
+- **1 인용 전수**: 버튼 2파일·transitions.ts(`:19-26`·`:120`·`:156-160`·`:175`·`:209`·`:281`)·
+  index.ts(`:1-2`)·pipeline ui(`:8-13`·`:164-218`·`:181-204`)·doc-viewer ui(`:3-6`·`:13-15`·`:36-69`)·
+  build-doc-view(`:47-48`·`:60`)·briefing(`:267`)·commit-gate-transition(`:27`)·globals.css 토큰 —
+  전부 내용까지 실측 일치. **`item.key = item.id` 실측**(briefing.ts `:106`·`:121`·`:179`) —
+  잠금 수명 전제 성립.
+- **4 여집합**: 버튼 소비자 grep 전수 — 정확히 두 페이지(pipeline·doc-viewer)뿐. 네 액션
+  (도장+반려 3)이 전부 잠금 대상임을 스케치·REJECT_TRANSITIONS 열거로 확인.
+- **2·3 조립 실행**: 신규 1+수정 7 기계 적용 → `npm run check` **EXIT 0**(fsd fixture·tree·
+  ESLint 0·tsc 0 — 결함 ① 수정 후), `npm test` **278/278**(276+신규 2 it), `verify:fsd:final`
+  **EXIT 0**, 프로덕션 `build` 통과. §6·§7 골격형 스케치는 라인 범위가 정확해 무모호 적용.
+- **Tailwind 방출 검침**: 빌드 CSS에 `.bg-stamp{background-color:var(--stamp)}` **HIT**
+  (신규 유틸리티 — v4 스캐너가 문자열 리터럴에서 수집). `bg-hold` 등 기존 마커도 방출.
+- **7 음성 시험**: index.ts에 서버 액션 재수출을 심으니
+  `[R11] feature roots must not re-export Server Actions` **exit 1**, 제거 후 통과 —
+  GateCardLock 컴포넌트 export는 경계 통과(정당).
+- **8 실물 렌더**: tsx 러너 + `renderToStaticMarkup` — LockedChip 4종(마커 stamp/active/hold/
+  destructive·`aria-hidden`·`size-2`·muted 라벨) 마크업 정확, **Provider 무DOM 실증**
+  (`<i>true</i>` 그대로 — 계획의 레이아웃 불변 주장), Provider 밖 훅의 no-op 폴백 동작.
+- **5 돌연변이 3종**: 라벨 가운뎃점 변경·bounce 낱말 스왑·접미(`· 보드 반영 대기`) 탈락 —
+  **전원 사멸**(신규 2 it가 잡음).
+
+**결함 → 편집 (1건)**
+
+1. **[블로커] 스케치의 no-op 기본값 `setLock: () => {}`가 `@typescript-eslint/no-empty-function`
+   위반** — 계획서 스스로 성공 기준으로 둔 lint가 exit 1(FEAT-10 ⑯과 같은 부류, 조립 실측).
+   `() => undefined`(표현식 본문)로 교체하고 제약 주석을 스케치에 남김.
+
+프레임워크 전제 처리: `router.refresh()`의 클라 상태 보존은 Next 문서화된 동작이고 계획이
+수동 smoke + 서버 가드 fail-safe로 명시 — 증거 있는 범위 밖 처리 유지. 서버 컴포넌트
+children 합성의 컨텍스트 전달은 빌드 컴파일 + 렌더 하니스로 방증.
+
+Pass State: editing pass · source changed=yes · blockers resolved=1 · remaining=0 · next=무편집 최종 패스.

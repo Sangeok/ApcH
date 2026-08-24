@@ -95,8 +95,10 @@ type GateCardLockValue = {
 const GateCardLockContext = createContext<GateCardLockValue | null>(null);
 
 // Provider 밖에서 불릴 일은 없지만(두 소비자 모두 감싼다) no-op 기본값으로 안전하게.
+// 표현식 본문(`() => undefined`)인 이유: 빈 블록 `() => {}`는 이 프로젝트 ESLint의
+// @typescript-eslint/no-empty-function에 걸린다(검증 조립에서 실측 — lint exit 1).
 export function useGateCardLock(): GateCardLockValue {
-  return useContext(GateCardLockContext) ?? { lock: null, setLock: () => {} };
+  return useContext(GateCardLockContext) ?? { lock: null, setLock: () => undefined };
 }
 
 export function GateCardLock({ children }: { children: ReactNode }) {
