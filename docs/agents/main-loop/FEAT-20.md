@@ -137,6 +137,13 @@ HEAD `ef63715` 불변.
 **판정: 클린 패스, 개선점 0건.** FEAT-02·15와 같은 결과 — 클린 패스 뒤 무변경 재검증은 역대
 소득 0이라는 보드 정지 규칙의 근거를 재확인. 관찰 2건은 계획 수정을 요구하지 않는다.
 
+## 게이트② 개방 (2026-08-25)
+
+사용자가 세션에서 "진행"으로 `구현승인` 전이를 결정했다. 메인 루프가 보드를 편집했고 결정은
+사용자의 것이다. `검증:` 줄 유지(전진 전이). admin-dev를 구현으로 디스패치 — 백로그 FEAT-20
+항목 제거 시 바로 아래 BUG-07 항목을 건드리지 않도록 명시(이전 편집 사고의 재발 방지).
+구현 후 잠금 실동작(수동 smoke 목록)은 dev→main 합류·배포 뒤 원장에서 닫는다.
+
 Minimal Replay Anchor (적용성 증거일 뿐): HEAD `17cf453`(dev) · 원천 docs/plans/FEAT-20.md@17cf453 ·
 경계 apps/admin/src/fsd/{features/transition-pipeline-gate/**, pages/pipeline/ui,
 pages/doc-viewer/**, pages/pipeline/model/briefing.ts} + globals.css · 레시피 컴포넌트명 grep +
