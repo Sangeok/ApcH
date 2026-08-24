@@ -6,7 +6,8 @@ export type PipelineCommandKey =
   | "audit-run"
   | "scout-run"
   | "admin-work"
-  | "web-work";
+  | "web-work"
+  | "backend-work";
 
 // 모든 본문 불변식: (1) "[claude]"로 시작하지 않는다(webhook 계약, post-pipeline-command 주석).
 // (2) 게이트 전이(계획지시·구현승인)를 지시하지 않는다 — 아래 문구를 포함한다.
@@ -22,6 +23,7 @@ const PIPELINE_COMMANDS: Record<PipelineCommandKey, string> = {
   "scout-run": `feature-scout로서 개선 기회를 조사해 TASK_BACKLOG.md에 제안만 추가해 주세요(보드·계획서 수정 없음). ${GATE_GUARD}`,
   "admin-work": `admin-dev로서 PROJECT_BOARD.md에서 배정된 항목을 현재 status와 런북 규칙대로 처리해 주세요. ${GATE_GUARD}`,
   "web-work": `web-dev로서 PROJECT_BOARD.md에서 배정된 항목을 현재 status와 런북 규칙대로 처리해 주세요. ${GATE_GUARD}`,
+  "backend-work": `backend-dev로서 PROJECT_BOARD.md에서 배정된 항목을 현재 status와 런북 규칙대로 처리해 주세요. ${GATE_GUARD}`,
 };
 
 export function resolvePipelineCommand(key: string): string | null {

@@ -41,15 +41,37 @@ export function AgentProfile({ view }: { view: AgentProfileView }) {
         )}
       </section>
 
-      {view.bodyHtml !== "" && (
+      {(view.introHtml !== "" || view.sections.length > 0) && (
         <section className="flex flex-col gap-2">
           <h2 className="font-briefing-display text-sm tracking-widest text-muted-foreground">
             역할 정의
           </h2>
-          <article
-            className="doc-prose rounded-2xl border border-stamp/40 bg-briefing px-5 py-6 sm:px-8"
-            dangerouslySetInnerHTML={{ __html: view.bodyHtml }}
-          />
+          {view.introHtml !== "" && (
+            <article
+              className="doc-prose rounded-2xl border border-stamp/40 bg-briefing px-5 py-6 sm:px-8"
+              dangerouslySetInnerHTML={{ __html: view.introHtml }}
+            />
+          )}
+          {view.sections.map((s, i) => (
+            <details
+              key={i}
+              className="group rounded-2xl border border-stamp/40 bg-briefing"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-briefing-display text-foreground hover:text-stamp sm:px-8">
+                <span dangerouslySetInnerHTML={{ __html: s.titleHtml }} />
+                <span
+                  aria-hidden
+                  className="shrink-0 text-xl leading-none text-stamp transition-transform duration-200 group-open:rotate-45 motion-reduce:transition-none"
+                >
+                  +
+                </span>
+              </summary>
+              <article
+                className="doc-prose border-t border-stamp/20 px-5 py-6 sm:px-8"
+                dangerouslySetInnerHTML={{ __html: s.bodyHtml }}
+              />
+            </details>
+          ))}
         </section>
       )}
     </div>

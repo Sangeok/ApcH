@@ -29,6 +29,18 @@ const ROSTER: Record<string, AgentIdentity> = {
     role: "기능 조사",
     emoji: "🧭",
   },
+  "backend-dev": {
+    id: "backend-dev",
+    handle: "backend-dev",
+    role: "백엔드 개발",
+    emoji: "⚙️",
+  },
+  "plan-verifier": {
+    id: "plan-verifier",
+    handle: "plan-verifier",
+    role: "계획 검증",
+    emoji: "🔬",
+  },
 };
 
 export const ROSTER_ORDER: readonly string[] = ROSTER_AGENT_IDS;

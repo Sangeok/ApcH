@@ -34,7 +34,30 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-24
+- [x] FEAT-19: 배포 확인 원장 도입 — 완료 항목의 「배포 후 수동 확인」 선언을 모아 마감하는 상태 문서 + 런북 단계
+  agent: main-loop
+  area: 루트 문서 + docs
+  status: 완료
+  근거: 소유자 직접 발주(게이트 미경유, FEAT-12 전례로 메인 루프 직접 구현). 완료 항목들의 수동 확인 선언 20곳이 마감 기록 0건으로 쌓이는 관측 해소. 미결 2건 잔존이나 소유자 결정.
+  결과: docs/release-checks.md 신설(완료 16건 백필, 마감은 확인·대체·이관 증거로만) + 런북 절차 8단계 삽입·문서 지도 갱신. 코드 무변경. 상세 main-loop/FEAT-19
+- [x] FEAT-18: 대시보드 로스터를 현행 파이프라인 7인 체제로 동기화 — backend-dev·plan-verifier가 어드민 세계에 없음
+  agent: admin-dev
+  area: apps/admin/src/fsd/shared/agents + apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/features/run-pipeline-command
+  status: 완료
+  근거: 소유자 직접 선정. 대시보드 로스터가 현행 파이프라인 7인과 어긋나 backend-dev·plan-verifier가 어드민에 부재한 관측 해소. 미결 2건(BUG-03·BUG-02) 잔존이나 소유자 결정으로 기록.
+  결과: 계획서 작성 완료 → docs/plans/FEAT-18.md. 로스터 5→7인(roster·정체성·스프라이트·프로필 라우트·backend-work 명령), plan-verifier는 검토대기 파생·명령 없음. 수정12(신규0). 코드 미변경.
+  결과: 로스터 5→7인 편입 — roster·정체성·스프라이트 ledger 소품·backend-work 명령·plan-verifier 검증중 파생. 수정12. check·test 276·verify:fsd:final·build 다 0. 상세 admin-dev/FEAT-18
+  검증: 클린 패스 (2026-08-24, 독립 무편집 1라운드 — plan-verifier 2사이클째)
+
 ## 2026-08-23
+- [x] FEAT-17: 행위자 상세 페이지의 역할 정의를 제목 주도 점진 공개로 — 첫 절만 펼치고 나머지 `##` 절은 접힌 details로
+  agent: admin-dev
+  area: apps/admin/src/fsd/pages/agent-profile
+  status: 완료
+  근거: 소유자 직접 발주(pm 미경유). 역할 정의가 지시문 전문 덤프로 렌더되는 관측 해소. 설계 결정 넷·펜스 함정은 백로그 FEAT-17이 원천.
+  결과: 역할 정의를 펜스 밖 `##`로 나눠 도입부 카드+절별 접힌 details로 교체(+→× 마커). 수정3. check·test 273/58·verify:fsd:final·build 다 0. 상세 admin-dev/FEAT-17
+  검증: 클린 패스 (2026-08-23, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [ ] BUG-03: S3 업로드 실패에 대한 에러 핸들링 부재
   agent: backend-dev
   area: apps/backend

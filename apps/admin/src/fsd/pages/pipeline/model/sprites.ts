@@ -33,7 +33,7 @@ export const SPRITE_ROWS: readonly string[] = [
   ".ks.TTTT.sk.",
 ];
 
-export type Prop = "papers" | "laptop" | "glass" | "compass";
+export type Prop = "papers" | "laptop" | "glass" | "compass" | "ledger";
 
 // mockgen.py prop_grid() — 격자 + dy(책상 상판 기준 세로 셀 오프셋).
 export const PROP_GRIDS: Record<Prop, { rows: readonly string[]; dy: number }> =
@@ -42,6 +42,7 @@ export const PROP_GRIDS: Record<Prop, { rows: readonly string[]; dy: number }> =
     papers: { rows: ["wwww.", "wwwww", "wwwww"], dy: -3 },
     glass: { rows: ["..kk.", ".kwwk", ".kwwk", "k.kk."], dy: -4 },
     compass: { rows: [".kkk.", "kwGwk", "kwwwk", ".kkk."], dy: -4 },
+    ledger: { rows: ["kkkkk", "kwGwk", "kGwwk", "kkkkk"], dy: -4 },
   };
 
 // mockgen.py ID — 정체성 외형(캐릭터 완전 고정). id는 앱의 full agentId.
@@ -52,6 +53,8 @@ const APPEARANCE: Record<string, Appearance> = {
   "web-dev": { hair: "#7a5230", shirt: "#8a6b4f", prop: "laptop" },
   "doc-auditor": { hair: "#8f8a80", shirt: "#7a6296", prop: "glass" },
   "feature-scout": { hair: "#3c4a3a", shirt: "#4f7d78", prop: "compass" },
+  "backend-dev": { hair: "#52504b", shirt: "#37617a", prop: "laptop" },
+  "plan-verifier": { hair: "#443a4a", shirt: "#8a4a52", prop: "ledger" },
 };
 const FALLBACK_APPEARANCE: Appearance = {
   hair: "#5a3b28",

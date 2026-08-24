@@ -15,6 +15,7 @@ const KEYS = [
   "scout-run",
   "admin-work",
   "web-work",
+  "backend-work",
 ];
 
 describe("resolvePipelineCommand", () => {
@@ -57,7 +58,7 @@ describe("resolvePipelineCommand", () => {
   });
 
   it("routes each dev 작업 진행 command to its own workspace", () => {
-    for (const key of ["admin-work", "web-work"]) {
+    for (const key of ["admin-work", "web-work", "backend-work"]) {
       assert.ok(
         resolvePipelineCommand(key).includes(
           "배정된 항목을 현재 status와 런북 규칙대로",
@@ -67,5 +68,8 @@ describe("resolvePipelineCommand", () => {
     }
     assert.ok(resolvePipelineCommand("admin-work").startsWith("admin-dev로서"));
     assert.ok(resolvePipelineCommand("web-work").startsWith("web-dev로서"));
+    assert.ok(
+      resolvePipelineCommand("backend-work").startsWith("backend-dev로서"),
+    );
   });
 });

@@ -7,6 +7,7 @@ const DESK_COMMANDS: Record<string, DeskCommand> = {
   pm: { key: "pm-select", label: "선정 실행" },
   "admin-dev": { key: "admin-work", label: "작업 진행" },
   "web-dev": { key: "web-work", label: "작업 진행" },
+  "backend-dev": { key: "backend-work", label: "작업 진행" },
   "doc-auditor": { key: "audit-run", label: "감사 실행" },
   "feature-scout": { key: "scout-run", label: "조사 실행" },
 };
