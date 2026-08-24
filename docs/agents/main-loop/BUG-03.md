@@ -53,3 +53,26 @@ Modal 실배포 확인(`modal run`)은 사용자만 가능 — 검증 한계로 
 **부수 확인**: 콜백 `error` 문자열은 web이 불투명 통과(`functions.ts:477` `args.error ?? …` — 내용 매칭 없음) → 메시지 형식 변경 안전. 업로드는 고유 키 전체-객체 PUT이라 재시도 멱등·동시성 무해(공유 집계 read-then-mutate 없음). `modal==1.2.1`에 `add_local_python_source` 실재. 검증 명령 셸 실행성 확인.
 
 Pass State: editing pass · source changed=yes · blockers resolved=2 · remaining=0 · next=무편집 최종 패스.
+
+## 검증 2라운드 (2026-08-24) — 무편집 클린 패스 (편집 0건, 결함 0건)
+
+최신 저장본(`12e3883`) 전문 재독으로 INV-1~6 재수립 후 Coverage Stability Check와
+High-Risk 마감 체크리스트 실행:
+
+- **2차 발견 경로**: 최고 영향 폐쇄 주장("업로드는 세 곳뿐")을 grep 시그니처가 아니라 **버킷 이름
+  문자열 전수**로 재열거 — 다섯 지점(업로드 3·읽기 2) 정확히 일치. `asd/`·`ytdownload.py`는
+  boto/upload 무사용 실측(증거 있는 배제).
+- 1라운드 편집분 자기검토: 수정 분류기 = 재생에서 `retried=True`를 낸 검증본과 동일 로직,
+  import 순서·except 튜플 정합, 전파 완료(스케치·테스트 절·못 덮는 범위·단언 수).
+- 위험 경계 폐쇄: 재시도 멱등(전체-객체 PUT·run_id 고유 키 `:692`·`:962`), 콜백 error 불투명 통과,
+  검증 명령 기대 출력 명시(N-가시 함정은 워크스페이스 CLAUDE.md 소관), 컨테이너 실행은 문서화된
+  사용자 검증 경계.
+
+**판정: 메인 루프 무편집 클린 패스.** 보드 정지 규칙상 이는 트리거다 — `plan-verifier` 독립
+무편집 패스를 디스패치한다. `검증:` 줄은 독립 패스의 무소득 보고 후에만 쓴다.
+
+Minimal Replay Anchor (적용성 증거일 뿐 완전성·무결함 증명 아님):
+HEAD `12e3883`(dev) · 원천 docs/plans/BUG-03.md@12e3883 · 경계 apps/backend/{main.py,
+requirements.txt, CLAUDE.md} + venv boto3 1.43.62 · 레시피 grep `s3_client.|boto3.` +
+버킷 문자열 전수 + asd/ytdownload 배제 grep · 후보 {main.py:773·784·1002-1007 업로드,
+:981·:987 읽기} · 프로파일 High-Risk · 최종 패스 무편집.
