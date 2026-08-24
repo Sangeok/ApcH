@@ -35,6 +35,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-24
+- [x] FEAT-19: 배포 확인 원장 도입 — 완료 항목의 「배포 후 수동 확인」 선언을 모아 마감하는 상태 문서 + 런북 단계
+  agent: main-loop
+  area: 루트 문서 + docs
+  status: 완료
+  근거: 소유자 직접 발주(게이트 미경유, FEAT-12 전례로 메인 루프 직접 구현). 완료 항목들의 수동 확인 선언 20곳이 마감 기록 0건으로 쌓이는 관측 해소. 미결 2건 잔존이나 소유자 결정.
+  결과: docs/release-checks.md 신설(완료 16건 백필, 마감은 확인·대체·이관 증거로만) + 런북 절차 8단계 삽입·문서 지도 갱신. 코드 무변경. 상세 main-loop/FEAT-19
 - [x] FEAT-18: 대시보드 로스터를 현행 파이프라인 7인 체제로 동기화 — backend-dev·plan-verifier가 어드민 세계에 없음
   agent: admin-dev
   area: apps/admin/src/fsd/shared/agents + apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/features/run-pipeline-command
