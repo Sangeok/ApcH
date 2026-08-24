@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { commitRejectTransition } from "../api/commit-gate-transition";
-import type { RejectAction } from "../model/transitions";
+import { rejectLockLabel, type RejectAction } from "../model/transitions";
+import { useGateCardLock } from "./gate-card-lock";
 
 // 여백 펜 메모: 라벨은 근검정(--foreground, 대비 안전), 뜻은 낱말 + 작은 색 마커(비텍스트).
 // 색 일관성: bounce=active(피드 계획지시색) · hold=hold(피드 보류색) · discard=destructive(위험).
@@ -28,10 +29,12 @@ export function RejectActions({
   actions: RejectAction[];
 }) {
   const router = useRouter();
+  const { lock, setLock } = useGateCardLock();
   const [open, setOpen] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  if (lock !== null) return null;
   if (actions.length === 0) return null;
 
   const run = (action: RejectAction) => {
@@ -46,6 +49,10 @@ export function RejectActions({
           ? `${id}를 폐기했습니다. TASK_BACKLOG.md 항목은 직접 정리하세요.`
           : ACTION_META[action].toast,
       );
+      setLock({
+        label: rejectLockLabel(action),
+        marker: ACTION_META[action].marker,
+      });
       router.refresh();
     });
   };

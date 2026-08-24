@@ -6,6 +6,7 @@ import type { DocLink } from "~/fsd/entities/repo-doc";
 
 import { PipelineRunControl } from "~/fsd/features/run-pipeline-command";
 import {
+  GateCardLock,
   GateTransitionButton,
   RejectActions,
   rejectActionsFor,
@@ -179,29 +180,31 @@ function InboxCard({ item }: { item: SpeechItem }) {
         </p>
       </div>
       <p className="mt-3 text-lg text-stamp">{item.line}</p>
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          {item.id} · {item.status}
-          {item.status === "검토대기" && (
-            <ValidationMark validation={item.validation} />
+      <GateCardLock>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            {item.id} · {item.status}
+            {item.status === "검토대기" && (
+              <ValidationMark validation={item.validation} />
+            )}
+            {item.overBudget && <BudgetFlag />}
+          </p>
+          {gateTo !== null && (
+            <GateTransitionButton
+              id={item.id}
+              status={item.status ?? ""}
+              label={gateTo}
+            />
           )}
-          {item.overBudget && <BudgetFlag />}
-        </p>
-        {gateTo !== null && (
-          <GateTransitionButton
+        </div>
+        {rejectActions.length > 0 && (
+          <RejectActions
             id={item.id}
             status={item.status ?? ""}
-            label={gateTo}
+            actions={rejectActions}
           />
         )}
-      </div>
-      {rejectActions.length > 0 && (
-        <RejectActions
-          id={item.id}
-          status={item.status ?? ""}
-          actions={rejectActions}
-        />
-      )}
+      </GateCardLock>
       <DocLinks docs={item.docs} />
       {item.detail && (
         <details className="mt-3 border-t border-stamp/20 pt-2">

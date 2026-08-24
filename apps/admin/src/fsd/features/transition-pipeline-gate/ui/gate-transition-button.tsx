@@ -6,7 +6,8 @@ import { toast } from "sonner";
 
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { commitGateTransition } from "../api/commit-gate-transition";
-import { gateNextActionHint } from "../model/transitions";
+import { GATE_LOCK_LABEL, gateNextActionHint } from "../model/transitions";
+import { LockedChip, useGateCardLock } from "./gate-card-lock";
 
 // 도장 임프린트: 양피지 위 오커 잉크 글자 + 2px 도장 테두리 + hard 오프셋 그림자.
 // active에서 그림자를 지우고 눌러 찍는다. 라벨 잉크는 --stamp(3.71:1, 12px AA 미달)보다
@@ -27,6 +28,7 @@ export function GateTransitionButton({
   label: string;
 }) {
   const router = useRouter();
+  const { lock, setLock } = useGateCardLock();
   const [isPending, startTransition] = useTransition();
 
   const handleClick = () => {
@@ -37,10 +39,12 @@ export function GateTransitionButton({
         return;
       }
       toast.success(`${label}로 넘겼습니다. ${gateNextActionHint(label)}`);
+      setLock({ label: GATE_LOCK_LABEL, marker: "bg-stamp" });
       router.refresh();
     });
   };
 
+  if (lock !== null) return <LockedChip lock={lock} />;
   return (
     <Button
       type="button"

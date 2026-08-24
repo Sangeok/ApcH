@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import {
+  GateCardLock,
   GateTransitionButton,
   RejectActions,
 } from "~/fsd/features/transition-pipeline-gate";
@@ -33,40 +34,42 @@ export function DocViewer({ view }: { view: DocView }) {
           </a>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-          {/* 종류 배지: 고무도장 은유. 계획서=오커 실선(현재 계약 하나), 보고서=러스트(누적). */}
-          <span
-            className={cn(
-              "rounded-sm border px-2 py-0.5 font-briefing-display text-xs tracking-wide",
-              view.kind === "plan"
-                ? "border-stamp text-stamp"
-                : "border-hold text-hold",
+        <GateCardLock>
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+            {/* 종류 배지: 고무도장 은유. 계획서=오커 실선(현재 계약 하나), 보고서=러스트(누적). */}
+            <span
+              className={cn(
+                "rounded-sm border px-2 py-0.5 font-briefing-display text-xs tracking-wide",
+                view.kind === "plan"
+                  ? "border-stamp text-stamp"
+                  : "border-hold text-hold",
+              )}
+            >
+              {view.kindLabel}
+            </span>
+            <h1 className="font-briefing-display text-2xl text-foreground">
+              {view.title}
+            </h1>
+            {view.status !== null && (
+              <span className="text-xs text-muted-foreground">{view.status}</span>
             )}
-          >
-            {view.kindLabel}
-          </span>
-          <h1 className="font-briefing-display text-2xl text-foreground">
-            {view.title}
-          </h1>
-          {view.status !== null && (
-            <span className="text-xs text-muted-foreground">{view.status}</span>
-          )}
-          {runGate && (
-            <GateTransitionButton
+            {runGate && (
+              <GateTransitionButton
+                id={view.itemId ?? ""}
+                status={view.status ?? ""}
+                label={view.gateLabel ?? ""}
+              />
+            )}
+          </div>
+
+          {runReject && (
+            <RejectActions
               id={view.itemId ?? ""}
               status={view.status ?? ""}
-              label={view.gateLabel ?? ""}
+              actions={view.rejectActions}
             />
           )}
-        </div>
-
-        {runReject && (
-          <RejectActions
-            id={view.itemId ?? ""}
-            status={view.status ?? ""}
-            actions={view.rejectActions}
-          />
-        )}
+        </GateCardLock>
 
         {/* 서류철 탭: 형제 문서(계획→검증→구현→감사→정찰)를 물리 탭으로 인코딩.
             활성 탭은 시트와 같은 양피지 바탕이라 아래 시트에 이어붙는다. */}

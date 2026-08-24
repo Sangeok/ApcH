@@ -1,5 +1,6 @@
 export { GateTransitionButton } from "./ui/gate-transition-button";
 export { RejectActions } from "./ui/reject-actions";
+export { GateCardLock } from "./ui/gate-card-lock";
 export {
   GATE_TRANSITIONS,
   REJECT_TRANSITIONS,

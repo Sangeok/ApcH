@@ -144,6 +144,20 @@ HEAD `ef63715` 불변.
 항목 제거 시 바로 아래 BUG-07 항목을 건드리지 않도록 명시(이전 편집 사고의 재발 방지).
 구현 후 잠금 실동작(수동 smoke 목록)은 dev→main 합류·배포 뒤 원장에서 닫는다.
 
+## 완료 인수 (2026-08-25) — 다섯 조건 직접 재현, 전부 통과
+
+1. **변경 파일 ↔ 「고칠 파일」**: 신규 1 + 수정 7, 표와 정확히 일치. 표 밖 없음.
+2. **diff ↔ 스케치**: `gate-card-lock.tsx`는 계획서 §1 코드 블록과 **바이트 동일**(기계 대조).
+   수정 7파일의 훅 전부 스케치 원문 — model 추가·버튼/반려 배선·index export·테스트 describe.
+3. **검증 재실행**: check EXIT 0 · test **278/59** · verify:fsd:final EXIT 0 · build EXIT 0 — 넷 다 직접.
+4. **백로그 제거**: FEAT-20 소멸, **BUG-07 3줄 무결 직접 확인**(제목·area·source 원문 그대로).
+5. **상세 기록 실재**: `docs/agents/admin-dev/FEAT-20.md`(7,652B) — 파일 표·스케치 무차이 상세·
+   검증 출력·handoff가 실제와 부합.
+
+후속 동기화(메인 루프): `apps/admin/CLAUDE.md` 테스트 인벤토리 58→59 suite·276→278 test(파일 27
+불변), transitions.test.mjs 행에 잠금 칩 문구 계약 추가. 원장에 FEAT-20 절 등재(수동 smoke 6줄 —
+배포 전, dev→main 합류 후 확인). status `완료` 수리.
+
 Minimal Replay Anchor (적용성 증거일 뿐): HEAD `17cf453`(dev) · 원천 docs/plans/FEAT-20.md@17cf453 ·
 경계 apps/admin/src/fsd/{features/transition-pipeline-gate/**, pages/pipeline/ui,
 pages/doc-viewer/**, pages/pipeline/model/briefing.ts} + globals.css · 레시피 컴포넌트명 grep +

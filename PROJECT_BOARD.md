@@ -35,11 +35,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-24
-- [ ] FEAT-20: 게이트 도장·반려 성공 후 카드 버튼을 「반영 대기」로 잠그기 — CDN 잔상 5분 동안의 재클릭 유도 제거
+- [x] FEAT-20: 게이트 도장·반려 성공 후 카드 버튼을 「반영 대기」로 잠그기 — CDN 잔상 5분 동안의 재클릭 유도 제거
   agent: admin-dev
   area: apps/admin/src/fsd/features/transition-pipeline-gate
-  status: 구현승인
+  status: 완료
   근거: 소유자 직접 발주(pm 미경유). 첫 도장 실사용(BUG-03 게이트①)에서 성공 후에도 버튼이 활성으로 남아 재클릭을 유도한 관측 해소. 발주 계약은 백로그 FEAT-20. 미결 2건째(BUG-03 병렬).
+  결과: 신규 GateCardLock 컨텍스트로 도장·반려 성공 시 두 화면 카드 버튼을 잠금 칩으로 종결. 신규1·수정7. check·test 278/59·verify:fsd:final·build 넷 다 EXIT 0. 상세 admin-dev/FEAT-20
   검증: 클린 패스 (2026-08-25, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [x] FEAT-19: 배포 확인 원장 도입 — 완료 항목의 「배포 후 수동 확인」 선언을 모아 마감하는 상태 문서 + 런북 단계
   agent: main-loop
