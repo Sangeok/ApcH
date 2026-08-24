@@ -10,7 +10,7 @@ agent: admin-dev
 - `roster.ts:15-17` `isRosterAgentId`는 이 5인 집합 멤버십으로 판정한다. `roster.ts:20-22` `agentDefinitionPath`가 `.claude/agents/<id>.md`를 조립하고, `roster.ts:26-28`이 5인의 정의 경로 집합 `AGENT_DEFINITION_PATHS`를 만들며, `roster.ts:31-33` `isAgentDefinitionPath`가 그 집합 멤버십을 돌려준다.
 - `roster.ts:24-25`의 주석은 "backend-dev.md는 정의 파일이 있어도 책상이 없어 여기 없다 — 진입점 없는 문서는 못 읽는다"라고 적혀 있다.
 - `src/fsd/pages/pipeline/model/known-agents.ts:11-32` `ROSTER` 레코드가 같은 5인의 `AgentIdentity`(handle·role·emoji)를 담는다. `known-agents.ts:34` `ROSTER_ORDER = ROSTER_AGENT_IDS`. `known-agents.ts:36-43` `identityFor`는 `ROSTER`에 없는 id를 받으면 `{ handle: agentId, role: "에이전트", emoji: "" }`의 **폴백 정체성**을 돌려준다(`:40`).
-- `src/fsd/pages/pipeline/model/sprites.ts:48-55` `APPEARANCE`가 5인의 픽셀 외형(hair·shirt·prop)을 담고, `sprites.ts:56-63`은 미등록 agentId에 `FALLBACK_APPEARANCE`(hair `#5a3b28`·shirt `#6b7f96`·prop `papers`)를 준다. `sprites.ts:36` `Prop` 유니온은 `"papers" | "laptop" | "glass" | "compass"` 넷이고 `sprites.ts:39-45` `PROP_GRIDS`가 그 넷의 픽셀 격자를 담는다.
+- `src/fsd/pages/pipeline/model/sprites.ts:49-55` `APPEARANCE`가 5인의 픽셀 외형(hair·shirt·prop)을 담고, `sprites.ts:56-63`은 미등록 agentId에 `FALLBACK_APPEARANCE`(hair `#5a3b28`·shirt `#6b7f96`·prop `papers`)를 준다. `sprites.ts:36` `Prop` 유니온은 `"papers" | "laptop" | "glass" | "compass"` 넷이고 `sprites.ts:39-45` `PROP_GRIDS`가 그 넷의 픽셀 격자를 담는다.
 - `src/fsd/features/run-pipeline-command/model/commands.ts:3-9` `PipelineCommandKey`는 6키(pipeline-run·pm-select·audit-run·scout-run·admin-work·web-work)다. `commands.ts:16-25` `PIPELINE_COMMANDS`가 각 본문을 담고, `commands.ts:23-24`의 admin-work·web-work는 `"<agent>로서 PROJECT_BOARD.md에서 배정된 항목을 현재 status와 런북 규칙대로 처리해 주세요. ${GATE_GUARD}"` 형태다. `GATE_GUARD`(`commands.ts:13-14`)는 게이트 전이 금지 문구다.
 - `src/fsd/pages/pipeline/model/desk-commands.ts:6-12` `DESK_COMMANDS`가 5책상→{key,label}을 매핑한다. backend-work·backend-dev 항목이 없다.
 - `src/fsd/pages/pipeline/ui/_component/pixel-office.tsx:250-278` `PixelOffice`가 `team`(=ROSTER_ORDER 파생)을 `.map`으로 책상 렌더한다. `pixel-office.tsx:126-170` `PixelDeskUnit`은 `deskCommandFor`가 null이면 명령 버튼을 안 그리고(`:161-167`), `member.heldId`가 있으면 칩을 그린다(`:156-160`).
@@ -18,7 +18,7 @@ agent: admin-dev
 - 라우트 가드: `src/app/(protected)/pipeline/agents/[agent]/page.tsx:26`이 `if (!isRosterAgentId(agent)) notFound()`로 roster 밖 프로필을 404 처리한다.
 - 문서 fetch 가드: `src/fsd/entities/repo-doc/api/queries.ts:11`이 `if (!isWhitelistedDocPath(path) && !isAgentDefinitionPath(path)) return null`로, roster 밖 정의 파일은 fetch 없이 null을 준다. `src/fsd/entities/repo-doc/api/queries.test.mjs:69-72`가 이를 검증한다 — `.claude/agents/backend-dev.md`가 fetch 없이 null임을 단언.
 - 실측: `.claude/agents/` 폴더에 7개 정의 파일이 모두 실재한다(pm·admin-dev·web-dev·backend-dev·doc-auditor·feature-scout·plan-verifier). 즉 backend-dev·plan-verifier의 정의 파일은 있으나 로스터가 못 읽는다.
-- 실측: 보드에 `agent: backend-dev` 항목이 승인대기로 실재한다 — `PROJECT_BOARD.md:52-61`의 BUG-03·BUG-02.
+- 실측: 보드에 `agent: backend-dev` 항목이 승인대기로 실재한다 — 2026-08-23 섹션의 BUG-03(`:53-57`)·BUG-02(`:58-62`). 보드는 상태 전이로 줄이 밀리는 살아 있는 문서라 섹션·ID가 앵커다.
 
 **이미 맞는 곳(손대지 않는다):** `src/fsd/entities/repo-doc/model/doc-location.ts:64-76`의 `REPORT_LABEL`·`DOC_LINK_AGENTS`는 이미 backend-dev를 "구현 보고"로 알고 있고, `src/fsd/entities/agent-report/api/queries.ts:37-62` `getAgentReportIndex`는 실재하는 폴더를 **동적 열거**한다 — backend-dev 폴더가 생기면 자동으로 기록이 뜬다.
 
@@ -58,7 +58,7 @@ plan-verifier는 특별하다: 보드 `agent:` 필드에 **등장하지 않는�
   - **plan-verifier** = hair `#443a4a`(자두빛 슬레이트), shirt `#8a4a52`(버건디), prop `ledger`(신규). 근거: 적대적 독립 검토자의 "빨간 펜" 은유 → 버건디 셔츠(기존 셔츠 중 붉은 계열 전무). 흑연 회색(backend-dev)과 구분되는 자두빛 어두운 중성 머리.
   - 두 머리색·두 셔츠색 모두 기존 5인의 어느 값과도 hex가 다르며 색상(hue)도 구분된다. `FALLBACK_APPEARANCE`(`sprites.ts:56-60`)는 그대로 둔다.
 - **타이포·레이아웃(변경 없음):** 사무실 레이아웃은 이미 N개 책상을 처리한다 — 폰 2열 격자 → 데스크톱 `flex-wrap`(`pixel-office.tsx:264`, 가로 스크롤 없음). 5→7 책상이 이 레이아웃을 깨지 않는다. 명패는 `handle`을 픽셀 모노로 렌더(`pixel-office.tsx:106-116`)하고 "backend-dev"·"plan-verifier"는 기존 "feature-scout"(12자)와 같은 길이대라 명패 폭 처리(초과 허용, `:64` 주석)가 그대로 적용된다. 말풍선 색은 기존 tone 5색(`sprites.ts:69-75`)을 재사용한다 — 새 tone 없음.
-- **시그니처 요소(이 항목의 유일한 신규 시각물):** plan-verifier 전용 **ledger 소품** — 어두운 표지 안에 초록 체크 획을 둔 4행×5열 격자 `["kkkkk", "kwGwk", "kGwwk", "kkkkk"]`, `dy: -4`(glass·compass와 같은 착지 높이). `G`는 채도 초록 `#7fa66a`(`PIXEL_PALETTE.G`)로, 벽 장식 액자 `FRAME_GRID`(`pixel-office.tsx:172`, 옅은 `g` `#cfe3d8`·전부 흰 3행)와 격자 내용이 달라 혼동되지 않는다. "체크한 장부"는 체계적 검증의 signature이고, doc-auditor의 돋보기(glass)와 다른 독립 검증자 정체성을 준다. backend-dev에게는 새 소품을 주지 않는다(개발자는 laptop 공유가 체계 규칙).
+- **시그니처 요소(이 항목의 유일한 신규 시각물):** plan-verifier 전용 **ledger 소품** — 어두운 표지 안에 초록 체크 획을 둔 4행×5열 격자 `["kkkkk", "kwGwk", "kGwwk", "kkkkk"]`, `dy: -4`(glass·compass와 같은 착지 높이). `G`는 채도 초록 `#7fa66a`(`PIXEL_PALETTE.G`)로, 벽 장식 액자 `FRAME_GRID`(`pixel-office.tsx:172`, 4행 — 검은 테두리 안에 옅은 `g` `#cfe3d8` 창과 흰 `w` 내부)와 격자 내용이 달라 혼동되지 않는다. "체크한 장부"는 체계적 검증의 signature이고, doc-auditor의 돋보기(glass)와 다른 독립 검증자 정체성을 준다. backend-dev에게는 새 소품을 주지 않는다(개발자는 laptop 공유가 체계 규칙).
 
 **셀프 비평(생성형 기본값 대조):** 크림+세리프+테라코타 / 다크+애시드 / 브로드시트 hairline 세 클러스터 어디에도 해당 없음 — 저장소에 이미 확립된 픽셀 정체성을 확장한다. 자유 축에서 택한 유일한 특색(=정당화한 리스크)은 적대적 검토자의 버건디 "빨간 펜" 셔츠와 전용 ledger 소품이며, 둘 다 그 역할의 실제 성격(붉은 교정·체계적 검증)에서 도출했다. 소품을 재사용(예: plan-verifier에 glass)하면 두 검토자 정체성이 뭉개지므로, "새 역할=새 소품" 체계 규칙을 따라 하나만 추가한다(개발자는 laptop 공유로 절제).
 
@@ -227,7 +227,7 @@ tone "active"는 `bubbleColorFor("active")` = `#3e5a86`(파랑, `sprites.ts:71`)
   - `repo-doc/api/queries.test.mjs`:
     - 비-roster 정의 파일 음성 케이스(`:69-72`)를 `.claude/agents/backend-dev.md` → `.claude/agents/main-loop.md`로 교체(backend-dev는 이제 roster라 fetch 없이 null이 아니다; main-loop는 여전히 roster 밖). **backend-dev.md 양성 fetch 케이스를 추가한다(필수)** — 정의 파일 열람 개방(관측 2c 해소)의 직접 증거이고, 로스터에서 backend-dev를 빼면 이 케이스가 실패해 화이트리스트 실개방을 잡는 검출기가 된다(검증 라운드 음성 시험 실측).
 - **못 덮는 범위** (Node 러너·DOM/외부 I/O 없음): 새 두 책상의 픽셀 SVG 실제 렌더(스프라이트·ledger 소품 격자·명패 폭), 말풍선 색·"검증 중"/"작업 중" 문구의 시각 결과, 폰 2열/데스크톱 flex-wrap에서 7책상의 줄바꿈, backend-work 명령 버튼의 useTransition·토스트·GitHub POST, 프로필 라우트가 실제로 열리는지(`getDocContent`의 라이브 fetch), 새 hex 색의 픽셀 대비 — 배포 후 데스크톱+폰 수동 smoke.
-- 참고(읽기 전용 `apps/admin/CLAUDE.md` 동기화 대상): 신규 테스트 파일이 없어 「테스트 인벤토리」 표의 행(27파일)은 그대로이나, 여러 파일에 `it` 케이스가 늘어 총 suite·test 수(현재 58·273)가 증가한다 — 구현 후 실측 수치를 메인 루프에 비고로 보고한다.
+- 참고(읽기 전용 `apps/admin/CLAUDE.md` 동기화 대상): 신규 테스트 파일이 없어 「테스트 인벤토리」 표의 행(27파일)은 그대로이나, 여러 파일에 `it` 케이스가 늘어 총 test 수(현재 273)가 증가한다 — 신규 describe가 없어 suite 수(58)는 불변이다. 구현 후 실측 수치를 메인 루프에 비고로 보고한다.
 
 ## 범위 밖 의존
 
