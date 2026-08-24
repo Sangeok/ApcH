@@ -75,3 +75,19 @@ Provider 유지 / 서버 컴포넌트 children으로의 컨텍스트 전파 / `b
 children 합성의 컨텍스트 전달은 빌드 컴파일 + 렌더 하니스로 방증.
 
 Pass State: editing pass · source changed=yes · blockers resolved=1 · remaining=0 · next=무편집 최종 패스.
+
+## 검증 2라운드 (2026-08-25) — 무편집 클린 패스 (편집 0건, 결함 0건)
+
+최신 저장본(`17cf453`) 기준 재수립: §1이 게이트를 통과한 조립 검증본과 동일(조립은 결함 ① 수정
+**후** 실행됐으므로 통과 증거가 현재 계획서 원문에 그대로 대응). Coverage Stability —
+"버튼 소비자는 두 페이지뿐"을 2차 레시피(feature 경로 import 전수)로 재검: importer 4 중
+버튼 소비는 두 페이지 ui뿐, 나머지 둘(briefing·build-doc-view)은 순수 함수만 —
+계획서 「현재 동작」 기술과 일치. 사용자 노출 문구 4종은 리터럴 테스트로 고정(278/278).
+
+**판정: 메인 루프 무편집 클린 패스.** plan-verifier 독립 패스 디스패치.
+
+Minimal Replay Anchor (적용성 증거일 뿐): HEAD `17cf453`(dev) · 원천 docs/plans/FEAT-20.md@17cf453 ·
+경계 apps/admin/src/fsd/{features/transition-pipeline-gate/**, pages/pipeline/ui,
+pages/doc-viewer/**, pages/pipeline/model/briefing.ts} + globals.css · 레시피 컴포넌트명 grep +
+feature 경로 import grep + 조립 게이트 4종 + 방출 검침 + R11 음성 + 렌더 하니스 + 돌연변이 3 ·
+프로파일 Standard(전체 증거) · 최종 패스 무편집.
