@@ -61,7 +61,7 @@
 - [ ] BUG-03: S3 업로드 실패에 대한 에러 핸들링 부재
   agent: backend-dev
   area: apps/backend
-  status: 승인대기
+  status: 계획지시
   근거: 최종 산출물 유실 위험이 가장 큰 backend 신뢰성 결함. 백엔드 항목은 지금껏 한 번도 선정된 적 없고 미결 0건이라 착수 가능.
 - [ ] BUG-02: 한국어 번역 API 실패 시 영어로 조용히 폴백됨 (사용자에게 알림 없음)
   agent: backend-dev
