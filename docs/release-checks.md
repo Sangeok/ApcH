@@ -17,7 +17,7 @@
 - **이 문서는 상태 문서다** — `PROJECT_BOARD.md`처럼 갱신하며 `docs/agents/`의 append-only
   규약을 따르지 않는다. 확인 활동의 상세는 `docs/agents/main-loop/`에 쓴다.
 - 절은 항목별·최신순(보드 섹션 순서). 전부 닫힌 절도 지우지 않는다 — 닫혔다는 사실이 기록이다.
-- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션 — 상세는 `docs/agents/main-loop/FEAT-19.md`).
+- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조). 상세는 `docs/agents/main-loop/FEAT-19.md`.
 
 ---
 
@@ -54,7 +54,7 @@
 원천: `docs/agents/admin-dev/FEAT-15.md` 「못 덮는 범위」
 
 - [x] `/pipeline/agents/[agent]` 실제 진입 — `requireAdmin`·`notFound`·docs 라우트 공존 — 확인(2026-08-24, Playwright: pm 진입 렌더·roster 밖 backend-dev 404·`/pipeline/docs/**` 나란히 동작·비로그인 시 /login 리다이렉트)
-- [ ] `AgentProfile` 렌더 — 렌더·빈 상태("아직 기록이 없습니다")·GFM(표·목록·코드)은 실측 확인(2026-08-24). `.doc-prose` 시각 인상·`Link` 이동 클릭은 스크린샷 판정·실사용 대기
+- [x] `AgentProfile` 렌더 — 확인(2026-08-24: 렌더·빈 상태("아직 기록이 없습니다")·GFM 실측 + `.doc-prose` 시각 스크린샷 판정 합격. `Link` 클릭 경유만 실사용 시 자연 확인)
 - [ ] pixel-office 책상 `Link` hover 들림·접근명·중첩 인터랙티브(명령 버튼과 링크 분리)
 - [x] raw CDN이 `dev` 브랜치 `.claude/agents/*.md`를 실제로 서빙하는지 — 확인(2026-08-24, curl 200: backend-dev.md·plan-verifier.md)
 
@@ -62,10 +62,10 @@
 
 원천: `docs/agents/admin-dev/FEAT-14.md` 「테스트로 못 덮은 범위」
 
-- [ ] `DocViewer` 렌더 — 구조는 실측 확인(2026-08-24: FEAT-16 계획서 h1+prose 18블록+형제 탭 3 렌더). 시각 스타일(명조 제목·표 하드라인·오커 인용·모노 코드)·반응형 판정은 스크린샷 대기
+- [x] `DocViewer` 렌더 — 확인(2026-08-24: FEAT-16 계획서 h1+prose 18블록+형제 탭 3 실측 + 시각 판정 합격 — 명조 제목·오커 인용·모노 코드·서류철 탭 활성·375px 래핑 정상)
 - [ ] `next/link` 카드 링크 네비게이션·`DocLinks` 렌더 — 목적지 라우트 동작은 확인(직접 URL 진입), 카드 클릭 경유는 미실행
 - [x] 실제 raw CDN fetch·contents API 응답 — 확인(2026-08-24: 문서 본문 렌더=raw fetch 실동작, 책상 "기록 N건"=contents API 실동작)
-- [ ] 배포 후 smoke 목적지 1~6 — 인가 보호(비로그인 리다이렉트)·plan 렌더·화이트리스트 밖 404(`/pipeline/docs/secrets/nope`)는 확인(2026-08-24). 잔여: 행위자 기록(report) 렌더·게이트 가시성(현재 보드에 검토대기 없음 — 조건 미충족)
+- [ ] 배포 후 smoke 목적지 1~6 — 인가 보호·plan 렌더·행위자 기록(report) 렌더(`agents/admin-dev/FEAT-18`)·화이트리스트 밖 404(`/pipeline/docs/secrets/nope`)는 확인(2026-08-24). 잔여: 게이트 가시성(검토대기 발생 시)·카드 클릭 경유
 
 제외: 헤더 게이트/반려 버튼 상호작용은 FEAT-08·09 절에서 관리(보고 스스로 승계 명시).
 raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드오프(FEAT-10 결정 6).
@@ -91,7 +91,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 - [x] `PipelineRunControl` 폴링·disabled — 확인(2026-08-24: 35초 관찰 콘솔 에러 0, 여집합(게이트대기만) 보드에서 비활성 "진행할 작업 없음"+게이트대기 설명+"보드 반영까지 최대 5분" 카피·pill "최근 요청 없음" 실렌더 — 계획서 결정 사슬대로)
 - [ ] 실행 버튼 useTransition·토스트 — 클릭이 실제 이슈 #87 코멘트라 스윕 제외. 다음 실사용 시 확인
 - [ ] `ProgressPill` 다섯 상태 시각 — idle만 관측(2026-08-24). 요청 보냄/응답 옴/무응답의 점 색·awaiting 맥박·`motion-reduce`는 실제 명령이 돌 때 확인
-- [ ] 헤더 `flex-wrap` 반응형·설명 `max-w-64` — 스크린샷 판정 대기
+- [x] 헤더 `flex-wrap` 반응형·설명 `max-w-64` — 확인(2026-08-24, 스크린샷 판정: 데스크톱 우측 정렬 폭 제한 래핑·폰 세로 배치 정상)
 - [ ] `per_page=100` 상한(바쁜 창에서의 실동작)
 
 제외: 폴링 race는 제어흐름 재현으로 검증 시 확인됨. CDN 잔상은 결정 6(범위 밖·후속 항목).
@@ -101,7 +101,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 원천: 보드 FEAT-09 `결과`
 
 - [ ] `commitBoardEdit` GET/PUT·base64·sha 409·`commitRejectTransition` action 분기 — 실제 GitHub 상대 왕복 (반려 실사용 시 확인)
-- [ ] `RejectActions` useState/useTransition/toast/router.refresh·여백 펜 메모 시각(평평·산세리프·회색 접힘) — 버튼 존재는 실측(2026-08-24 스냅샷), 시각·클릭은 대기
+- [ ] `RejectActions` useState/useTransition/toast/router.refresh·여백 펜 메모 시각(평평·산세리프·회색 접힘) — 여백 펜 메모 시각은 스크린샷 판정 합격(2026-08-24: 도장과 형태 대비되는 평평한 회색 "반려"). 잔여: 클릭 동작
 - [ ] 폐기 확인 잉크 oklch(0.50 0.20 27) 12px AA 실측·마커 3:1
 - [ ] `requireAdmin` 차단 경로
 
@@ -111,7 +111,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 
 - [ ] 도장 커밋 왕복 — contents API GET/PUT·base64·sha 409 분기·토큰 미설정 토스트 (다음 게이트 결정을 대시보드 도장으로 하면 자연 마감)
 - [ ] `GateTransitionButton` useTransition·toast·router.refresh
-- [ ] 도장 임프린트 시각(테두리·hard 그림자·hover 들림·active 눌림)·라벨 잉크 5.20:1 실화면·세리프 폴백(폰) — 버튼 렌더는 실측(2026-08-24 스냅샷 "계획지시"), 시각 판정은 스크린샷 대기
+- [ ] 도장 임프린트 시각(테두리·hard 그림자·hover 들림·active 눌림)·라벨 잉크 5.20:1 실화면·세리프 폴백(폰) — 임프린트 렌더·라벨 가독은 스크린샷 판정 합격(2026-08-24). 잔여: hover 들림·active 눌림(정적 스크린샷으로 불가)·폰 실기기 세리프 폴백
 - [ ] 투영 지연 체감(raw CDN 잔상 — 커밋 성공 후 잠시 결재함에 남음, 성공 토스트가 결과 확정)
 
 비고: FEAT-09 근거가 "게이트①을 도장 버튼으로 열 예정(첫 실측 겸)"이라 적었으나 실측 결과 기록을
@@ -121,10 +121,13 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 
 원천: 보드 FEAT-07 `결과`
 
-- [ ] SVG 렌더·`crispEdges` 선명도·격자/말풍선/명패 기하·명패 폭 초과 — 렌더 자체는 실측(2026-08-24: 5책상·말풍선 문구 정상), 선명도·기하 판정은 스크린샷 대기
+- [x] SVG 렌더·`crispEdges` 선명도·격자/말풍선/명패 기하·명패 폭 초과 — 확인(2026-08-24, **승인 시안 v7(`docs/design/FEAT-07/pixel-office-mock.html`)과 실물 대조**: 그림체·말풍선·명패·기하 일치, 픽셀 선명, 명패 폭은 시안 ⑥이 "책상보다 넓어도 허용")
 - [x] 반응형 배치(폰 2열/데스크톱 flex-wrap, 5책상) — 대체(FEAT-18이 7책상 기준으로 재선언). 참고: 5책상 폰 2열은 2026-08-24 실측 확인(grid 150.5px×2·가로 스크롤 0)
-- [ ] 방 배경(벽·걸레받이·체커 바닥·화분·액자)·명령 버튼 픽셀 스타일 — 스크린샷 판정 대기
+- [x] 방 배경(벽·걸레받이·체커 바닥·화분·액자)·명령 버튼 픽셀 스타일 — 확인(2026-08-24, 시안 v7 대조 일치)
 - [ ] 책상 명령 버튼 5종 — `PipelineCommandButton` useTransition/토스트·`postPipelineCommand` GitHub POST (클릭이 실제 코멘트라 스윕 제외 — 실사용 시)
+
+관찰(2026-08-24, 원장 밖 개선 후보): 폰에서 "당신의 책상" 배너 SVG가 비율 축소돼 라벨이 매우 작다.
+시안 v7의 폰 데모에는 배너가 없어 계약 위반은 아님 — 개선 여부는 소유자 결정.
 
 ## FEAT-06 — 사무실 뷰·책상별 명령 (admin, 보드 2026-08-15 절)
 
@@ -141,7 +144,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 - [x] `TeamZone` 캐릭터 발화 칩 렌더 — 대체(FEAT-06이 책상 세로 스택으로 교체)
 - [x] `getPipelineBoard` raw fetch·`postPipelineCommand` POST·토스트 — 확인(2026-08-15, 원격 파이프라인 제안서 검증 ③ — 버튼→토스트→코멘트→`[claude]` 답글 전 구간 관측)
 - [x] 결재함·보고 `<details>` 피드 펼침·모바일 단일 컬럼 — 확인(2026-08-24: "근거 보기" 펼침 실측·375px 가로 스크롤 0·단일 컬럼)
-- [ ] line-clamp·group-open·색토큰(stamp/stamp-soft/active/silence/hold/briefing)·디스플레이 세리프의 시각 결과 — 스크린샷 판정 대기
+- [x] line-clamp·group-open·색토큰(stamp/stamp-soft/active/silence/hold/briefing)·디스플레이 세리프의 시각 결과 — 확인(2026-08-24, 스크린샷 판정: 세리프 디스플레이 헤딩·크림/브라운 토큰 일관·피드 줄임 정상)
 - [x] 폰 세리프 고딕 폴백 전제(iOS·Android) — 대체(FEAT-17이 동일 한계 재선언)
 - [ ] `requireAdmin` 차단 경로 — 비로그인 리다이렉트는 확인(2026-08-24). 잔여: 로그인했으나 ADMIN_EMAILS 밖 계정의 차단
 
