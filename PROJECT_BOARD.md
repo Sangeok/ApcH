@@ -34,6 +34,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-24
+- [ ] FEAT-18: 대시보드 로스터를 현행 파이프라인 7인 체제로 동기화 — backend-dev·plan-verifier가 어드민 세계에 없음
+  agent: admin-dev
+  area: apps/admin/src/fsd/shared/agents + apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/features/run-pipeline-command
+  status: 승인대기
+  근거: 소유자 직접 선정. 대시보드 로스터가 현행 파이프라인 7인과 어긋나 backend-dev·plan-verifier가 어드민에 부재한 관측 해소. 미결 2건(BUG-03·BUG-02) 잔존이나 소유자 결정으로 기록.
+
 ## 2026-08-23
 - [x] FEAT-17: 행위자 상세 페이지의 역할 정의를 제목 주도 점진 공개로 — 첫 절만 펼치고 나머지 `##` 절은 접힌 details로
   agent: admin-dev
