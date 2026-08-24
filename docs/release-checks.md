@@ -21,6 +21,14 @@
 
 ---
 
+## BUG-03 — S3 업로드 재시도·맥락 오류 (backend, 구현 2026-08-25)
+
+원천: `docs/agents/backend-dev/BUG-03.md` 「못 덮는 범위」. 전부 `modal run`/재배포가 필요해 **사용자만 닫을 수 있다**.
+
+- [ ] Modal 이미지에 `s3_upload_policy` 번들 — 컨테이너에서 `ModuleNotFoundError` 없이 import (`add_local_python_source` 효과)
+- [ ] 재시도 실동작 — `_s3_call_with_retry` 루프·`time.sleep`·boto 예외 매핑(S3UploadFailedError 원인 사슬 풀기 포함). 분류 로직 자체는 검증 라운드에서 boto3 1.43.62 재생으로 확인됨 — 남는 것은 컨테이너 배선
+- [ ] `modal deploy` 후 실제 업로드 경로 정상 (en·kr 클립 + analyze 전사)
+
 ## FEAT-18 — 대시보드 로스터 7인 동기화 (admin, 보드 2026-08-24 절)
 
 원천: `docs/agents/admin-dev/FEAT-18.md` 「못 덮는 범위」. PR #101 합류(2026-08-24 12:24Z)로 배포 → 같은 날 재스윕.

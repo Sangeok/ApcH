@@ -22,6 +22,15 @@ import re
 
 from google import genai
 
+from botocore.exceptions import BotoCoreError, ClientError
+from boto3.exceptions import S3UploadFailedError
+from s3_upload_policy import (
+    is_retriable_error,
+    should_retry,
+    next_backoff,
+    format_upload_error,
+)
+
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
     s3_key: str
@@ -54,7 +63,8 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "wget -O /usr/share/fonts/truetype/custom/NotoSansKR-Bold.otf https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/SubsetOTF/KR/NotoSansKR-Bold.otf",
         "fc-cache -f -v"
     ])
-    .add_local_dir("asd", "/asd", copy=True))
+    .add_local_dir("asd", "/asd", copy=True)
+    .add_local_python_source("s3_upload_policy"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -687,6 +697,51 @@ def generate_youtube_metadata(script_text: str, language: str, gemini_client) ->
         print(f"Metadata generation error: {e}")
         return default_metadata
 
+def _classify_s3_exception(exc):
+    """boto/botocore 예외를 순수 정책이 이해하는 (error_code, transport_error)로 변환.
+
+    주의 — upload_file은 ClientError를 그대로 던지지 않는다: 설치된 boto3(1.43.62 실측,
+    S3Transfer.upload_file 소스)가 ClientError를 잡아 S3UploadFailedError로 다시 던진다
+    (`from` 절 없이 — 원인은 __cause__가 아니라 __context__에만 남는다). 그래서
+    S3UploadFailedError는 원인 사슬(__cause__ 우선, 없으면 __context__)을 풀어 원인
+    기준으로 분류해야 클립 업로드 두 곳(주 경로)의 일시 오류가 재시도된다.
+    __cause__/__context__를 둘 다 보는 이유: requirements.txt의 boto3는 핀이 없어
+    `from e`로 던지는 판으로 바뀌어도 동작해야 한다.
+    """
+    if isinstance(exc, S3UploadFailedError):
+        cause = exc.__cause__ or exc.__context__
+        if isinstance(cause, ClientError):
+            return cause.response.get("Error", {}).get("Code"), False
+        if isinstance(cause, BotoCoreError):
+            return None, True
+        return None, False  # 원인 불명 — 재시도 안 함, 즉시 맥락 raise
+    if isinstance(exc, ClientError):
+        code = exc.response.get("Error", {}).get("Code")
+        return code, False
+    if isinstance(exc, BotoCoreError):
+        # EndpointConnectionError·ConnectTimeoutError·ReadTimeoutError 등 응답 코드 없는 전송 실패
+        return None, True
+    # 그 밖의 비-boto 예외는 이 래퍼가 잡지 않으므로 여기 오지 않는다
+    return None, False
+
+
+def _s3_call_with_retry(do_call, *, operation, s3_key):
+    """업로드성 S3 호출을 재시도 정책에 따라 수행. 최종 실패는 맥락을 담아 raise."""
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            return do_call()
+        except (BotoCoreError, ClientError, S3UploadFailedError) as exc:
+            code, transport = _classify_s3_exception(exc)
+            if should_retry(attempt, is_retriable_error(code, transport)):
+                wait = next_backoff(attempt)
+                print(f"S3 {operation} failed (attempt {attempt}, key {s3_key}): {exc}; retrying in {wait:.1f}s")
+                time.sleep(wait)
+                continue
+            raise RuntimeError(format_upload_error(operation, s3_key, attempt, exc)) from exc
+
+
 def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str, output_prefix: str | None = None, caption_style: dict | None = None):
     clip_name = f"clip_{clip_index}"
     s3_key_dir = (output_prefix or os.path.dirname(s3_key)).strip("/")
@@ -770,7 +825,11 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     
         # 영어 자막 영상 업로드
         english_s3_key = f"{s3_key_dir}/{clip_name}_en.mp4"
-        s3_client.upload_file(str(english_output_path), "ai-podcast-clipper-hamsoo", english_s3_key)
+        _s3_call_with_retry(
+            lambda: s3_client.upload_file(str(english_output_path), "ai-podcast-clipper-hamsoo", english_s3_key),
+            operation="upload",
+            s3_key=english_s3_key,
+        )
         
         uploaded_clip_s3_key = english_s3_key
         print(f"Uploaded English subtitle video: {english_s3_key}")
@@ -781,7 +840,11 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
 
         # 한글 자막 영상 업로드
         korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
-        s3_client.upload_file(str(korean_output_path), "ai-podcast-clipper-hamsoo", korean_s3_key)
+        _s3_call_with_retry(
+            lambda: s3_client.upload_file(str(korean_output_path), "ai-podcast-clipper-hamsoo", korean_s3_key),
+            operation="upload",
+            s3_key=korean_s3_key,
+        )
         
         uploaded_clip_s3_key = korean_s3_key
         print(f"Uploaded Korean subtitle video: {korean_s3_key}")
@@ -999,11 +1062,15 @@ Transcript:
             if mode == "analyze":
                 # 전사 JSON을 업로드 prefix에 저장해 렌더 단계와 편집 UI에서 재사용
                 transcript_key = f"{os.path.dirname(s3_key)}/transcript.json"
-                s3_client.put_object(
-                    Bucket="ai-podcast-clipper-hamsoo",
-                    Key=transcript_key,
-                    Body=transcript_segments_json.encode("utf-8"),
-                    ContentType="application/json",
+                _s3_call_with_retry(
+                    lambda: s3_client.put_object(
+                        Bucket="ai-podcast-clipper-hamsoo",
+                        Key=transcript_key,
+                        Body=transcript_segments_json.encode("utf-8"),
+                        ContentType="application/json",
+                    ),
+                    operation="put_object",
+                    s3_key=transcript_key,
                 )
 
                 # 후보 추출 (기존 auto 경로의 파싱 로직과 동일)
