@@ -135,14 +135,30 @@ from s3_upload_policy import (
 
 ```python
 def _classify_s3_exception(exc):
-    """boto/botocore 예외를 순수 정책이 이해하는 (error_code, transport_error)로 변환."""
+    """boto/botocore 예외를 순수 정책이 이해하는 (error_code, transport_error)로 변환.
+
+    주의 — upload_file은 ClientError를 그대로 던지지 않는다: 설치된 boto3(1.43.62 실측,
+    S3Transfer.upload_file 소스)가 ClientError를 잡아 S3UploadFailedError로 다시 던진다
+    (`from` 절 없이 — 원인은 __cause__가 아니라 __context__에만 남는다). 그래서
+    S3UploadFailedError는 원인 사슬(__cause__ 우선, 없으면 __context__)을 풀어 원인
+    기준으로 분류해야 클립 업로드 두 곳(주 경로)의 일시 오류가 재시도된다.
+    __cause__/__context__를 둘 다 보는 이유: requirements.txt의 boto3는 핀이 없어
+    `from e`로 던지는 판으로 바뀌어도 동작해야 한다.
+    """
+    if isinstance(exc, S3UploadFailedError):
+        cause = exc.__cause__ or exc.__context__
+        if isinstance(cause, ClientError):
+            return cause.response.get("Error", {}).get("Code"), False
+        if isinstance(cause, BotoCoreError):
+            return None, True
+        return None, False  # 원인 불명 — 재시도 안 함, 즉시 맥락 raise
     if isinstance(exc, ClientError):
         code = exc.response.get("Error", {}).get("Code")
         return code, False
     if isinstance(exc, BotoCoreError):
         # EndpointConnectionError·ConnectTimeoutError·ReadTimeoutError 등 응답 코드 없는 전송 실패
         return None, True
-    # S3UploadFailedError 등 나머지는 코드 없는 비-전송 실패로 취급 → 재시도 안 함, 즉시 맥락 raise
+    # 그 밖의 비-boto 예외는 이 래퍼가 잡지 않으므로 여기 오지 않는다
     return None, False
 
 
@@ -232,7 +248,7 @@ Modal 1.x는 사이드 로컬 Python 모듈을 자동 포함하지 않는다(자
 
 `apps/backend/test_s3_upload_policy.py` — `s3_upload_policy`만 import(stdlib-only, torch·boto3 불필요). `main.py`는 import하지 않는다.
 
-**덮는 것** (약 14개 단언):
+**덮는 것** (약 15개 단언):
 
 - `is_retriable_error`:
   - `transport_error=True`이면 코드와 무관하게 True (예: 코드 None·"AccessDenied"에서도)
@@ -247,6 +263,7 @@ Modal 1.x는 사이드 로컬 Python 모듈을 자동 포함하지 않는다(자
 - `next_backoff`:
   - attempt=1 → 1.0, attempt=2 → 2.0, attempt=3 → 4.0
   - 큰 attempt(예: 100) → cap(30.0)으로 클램프
+  - **아주 큰 attempt(예: 5000) → 30.0** — 지수 클램프의 존재 이유를 밟는 경계다. attempt=100은 `2**99`가 float로 표현돼 cap이 대신 막아주지만, 클램프를 빼면 `2**4999`의 float 변환이 OverflowError를 던진다(검증 돌연변이 M5가 100짜리 단언만으로 살아남은 구멍)
   - attempt<=0 → 0.0
 - `format_upload_error`:
   - 반환 문자열에 operation·s3_key·attempts·last_error가 모두 포함됨
@@ -254,7 +271,7 @@ Modal 1.x는 사이드 로컬 Python 모듈을 자동 포함하지 않는다(자
 **못 덮는 범위** (stdlib 러너로 확인 불가 — `modal run`으로 사용자 확인 필요):
 
 - 실제 `upload_file`/`put_object` I/O와 재시도 후 실제 성공/실패.
-- `_s3_call_with_retry`의 루프·`time.sleep`·`_classify_s3_exception`의 실제 boto/botocore 예외 타입 매핑(`ClientError.response` 구조, `BotoCoreError` 하위 타입). 순수 모듈은 (코드, transport) **평문 입력**만 받으므로 그 추출 배선은 이 러너로 덮이지 않는다.
+- `_s3_call_with_retry`의 루프·`time.sleep`·`_classify_s3_exception`의 실제 boto/botocore 예외 타입 매핑(`ClientError.response` 구조, `BotoCoreError` 하위 타입, **S3UploadFailedError 원인 사슬 풀기**). 순수 모듈은 (코드, transport) **평문 입력**만 받으므로 그 추출 배선은 이 러너로 덮이지 않는다. 분류 로직 자체는 검증 라운드에서 설치된 boto3 1.43.62로 재생 확인됐다(upload_file+SlowDown → 재시도 판정) — 남는 것은 main.py 배선과 컨테이너 실행이다.
 - Modal 이미지에 `s3_upload_policy` 모듈이 실제로 번들돼 컨테이너에서 import되는지(`add_local_python_source` 효과).
 
 ## 범위 밖 의존

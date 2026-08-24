@@ -30,3 +30,26 @@ backend-dev 디스패치(로컬) → `docs/plans/BUG-03.md` 작성, 보드 행 `
 계획서가 스스로 명시한 재확인 전제 넷(Modal 사이드 모듈 번들링 / boto 예외 구조 /
 botocore 내장 재시도와의 관계 / 범위 경계 둘)은 위 경로 실행 중 함께 검증한다.
 Modal 실배포 확인(`modal run`)은 사용자만 가능 — 검증 한계로 기록하고 구현 인수 조건에 넘긴다.
+
+## 검증 1라운드 (2026-08-24, reconciling-proposals-with-codebase · High-Risk 프로파일) — 결함 2건, 편집 1회
+
+하니스: 스크래치패드 `bug03/` (모듈·테스트 추출본, boto 재생, 돌연변이 러너).
+
+**경로 실행 증거**
+
+- **1 인용 전수**: `파일:줄` 인용 전부 내용까지 실측 일치 — `:1-23`(time :7·boto3 :14)·`:44-57`(이미지 체인 끝 `:57`)·`:690`·`:756`·`:773`·`:784`·`:973`·`:980`·`:981`·`:987`·`:1002-1007`·`:1104`·`:1122`·`:1134-1149`(`clips: []`는 `:1145`)·`:1151-1154`. before 조각 4개 들여쓰기까지 바이트 일치(기계 적용 가능 — 경로 3 겸).
+- **4 여집합 열거**: `apps/backend` 전체 `s3_client.|boto3.` grep — 업로드는 `:773`·`:784`·`:1002` 정확히 셋뿐(전칭 성립). 나머지는 읽기(`:981` download·`:987` get) — 계획 범위 밖이 옳다.
+- **2 스케치 추출·실행**: 순수 모듈+테스트를 맨 python 3.13.1로 실행 — 12/12(강화 후 13/13) `OK`. 검증 명령(`unittest discover`·`py_compile`)이 이 셸에서 실행 가능함도 확인. 신규 파일명 충돌 없음, 심볼 충돌 없음.
+- **6 실사건 재생(변형)**: venv(`C:\Users\hamso\venvs\apch-backend`, boto3 1.43.62)의 **설치된 S3Transfer.upload_file 소스 실측** — ClientError를 잡아 `S3UploadFailedError`로 재던짐(`from` 없음 → `__cause__=None`, `__context__=ClientError`). 계획 §2 분류기를 그대로 통과시킨 재생: `upload_file+SlowDown → classified=(None,False) → 재시도 안 됨`.
+- **5 돌연변이 10종**: 소진 off-by-one·transport 무시·멤버십 반전·cap 제거·**지수 클램프 제거**·and→or·음수 가드 제거·key 탈락·밑 2→3·SlowDown 제거 — 9 사멸, **M5(지수 클램프) 생존**(attempt=100 단언은 cap이 대신 막아 안 밟힘; 클램프의 실효 경계는 attempt≥약 1076의 float OverflowError).
+
+**결함 → 편집 (일괄 1회)**
+
+1. **[블로커] 분류기가 S3UploadFailedError를 안 푼다** — 주 경로(클립 업로드 2곳)에서 일시 오류가 한 번도 재시도되지 않아 계획이 자기 목적을 잃는다. §2 분류기를 원인 사슬(`__cause__ or __context__`) 풀기로 교체(양쪽을 보는 이유: boto3 무핀 — `from e` 판에서도 동작). 수정안 재생 결과 `retried=True`. 못 덮는 범위 문구도 배선 한정으로 정정.
+2. **[명세 구멍] next_backoff 지수 클램프 무단언** — attempt=5000 → 30.0 단언 추가(클램프 제거 시 OverflowError). 단언 수 약 14→약 15.
+
+강화 후 재검: 13/13 통과, 돌연변이 **10/10 사멸**.
+
+**부수 확인**: 콜백 `error` 문자열은 web이 불투명 통과(`functions.ts:477` `args.error ?? …` — 내용 매칭 없음) → 메시지 형식 변경 안전. 업로드는 고유 키 전체-객체 PUT이라 재시도 멱등·동시성 무해(공유 집계 read-then-mutate 없음). `modal==1.2.1`에 `add_local_python_source` 실재. 검증 명령 셸 실행성 확인.
+
+Pass State: editing pass · source changed=yes · blockers resolved=2 · remaining=0 · next=무편집 최종 패스.
