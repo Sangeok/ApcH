@@ -40,6 +40,7 @@
   area: apps/admin/src/fsd/features/transition-pipeline-gate
   status: 검토대기
   근거: 소유자 직접 발주(pm 미경유). 첫 도장 실사용(BUG-03 게이트①)에서 성공 후에도 버튼이 활성으로 남아 재클릭을 유도한 관측 해소. 발주 계약은 백로그 FEAT-20. 미결 2건째(BUG-03 병렬).
+  검증: 클린 패스 (2026-08-25, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [x] FEAT-19: 배포 확인 원장 도입 — 완료 항목의 「배포 후 수동 확인」 선언을 모아 마감하는 상태 문서 + 런북 단계
   agent: main-loop
   area: 루트 문서 + docs
