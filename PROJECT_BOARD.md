@@ -68,6 +68,7 @@
   area: apps/backend
   status: 검토대기
   근거: 최종 산출물 유실 위험이 가장 큰 backend 신뢰성 결함. 백엔드 항목은 지금껏 한 번도 선정된 적 없고 미결 0건이라 착수 가능.
+  검증: 클린 패스 (2026-08-24, 독립 무편집 1라운드)
 - [ ] BUG-02: 한국어 번역 API 실패 시 영어로 조용히 폴백됨 (사용자에게 알림 없음)
   agent: backend-dev
   area: apps/backend
