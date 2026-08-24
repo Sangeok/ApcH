@@ -86,6 +86,19 @@ Pass State: editing pass · source changed=yes · blockers resolved=1 · remaini
 
 **판정: 메인 루프 무편집 클린 패스.** plan-verifier 독립 패스 디스패치.
 
+## plan-verifier 독립 패스 — 1사이클 (2026-08-25) — 결함 2건 (문서 위생)
+
+독립 패스가 6경로 전부 실행(조립 게이트 4종·15개 before 조각 유일 매치·방출 4색 검침·R11에 더해
+**R13 음성 시험까지 추가**·렌더에서 Provider 무DOM `<span id="child">` 정확 일치·돌연변이 10/10 사멸)
+후 결함 2건 보고 — 둘 다 §디자인 방향의 줄번호 인용:
+
+1. `globals.css:36-41` 주장에서 destructive(`:34`)·muted-foreground(`:31`)가 범위 밖 → `:31-41`로 정정.
+2. "12px AA 미달" 기록은 `gate-transition-button.tsx:12`(주장 `:13`) → `:12`로 정정.
+
+둘 다 메인 루프가 실측 재확인 후 계획서 수정. **메인 루프 1라운드가 ±1줄 어긋남을 관용한 지점을
+독립 패스가 정확 기준으로 문 것** — 독립 검증의 소득. 트리 원복은 보고와 별개로 `git status` 직접
+검산(청결). 구현 오류 유발 결함 0건. 계획서가 바뀌었으므로 2사이클 디스패치.
+
 Minimal Replay Anchor (적용성 증거일 뿐): HEAD `17cf453`(dev) · 원천 docs/plans/FEAT-20.md@17cf453 ·
 경계 apps/admin/src/fsd/{features/transition-pipeline-gate/**, pages/pipeline/ui,
 pages/doc-viewer/**, pages/pipeline/model/briefing.ts} + globals.css · 레시피 컴포넌트명 grep +
