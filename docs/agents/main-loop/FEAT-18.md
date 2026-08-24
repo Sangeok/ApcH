@@ -1,0 +1,65 @@
+# FEAT-18 — 대시보드 로스터를 현행 파이프라인 7인 체제로 동기화
+
+## 게이트① (2026-08-24)
+
+사용자가 세션에서 "계획 지시"로 개방. 보드 행을 `승인대기` → `계획지시`로 전이했다(`99514ca`).
+
+발주 계약은 백로그 FEAT-18이 원천 — 관측 2(닫힌 5인 로스터·그 파급 4종) + 요구 3
+(① 두 에이전트 로스터·정체성·외형 편입과 프로필 라우트 개방 ② backend-work 책상 명령
+③ plan-verifier는 책상 명령 없음·상태는 보드 파생만). 항목 출처는 메인 루프의
+admin/pipeline 실측 분석(2026-08-24)이며, 소유자가 직접 선정했다(pm 스로틀 초과 기록은
+보드 근거 참조).
+
+## 필수 검증 경로 확정 (2026-08-24, 검토대기 진입)
+
+카탈로그(`docs/plans/verification-paths.md`) 대조 결과 — 트리거가 걸리는 경로 일곱:
+
+| 카탈로그 # | 경로 | 트리거 근거 |
+| --- | --- | --- |
+| 1 | 인용 전수 대조 | 모든 항목 공통 |
+| 2 | 스케치 추출·실행 | §1~§6에 코드 있음 |
+| 3 | before/after 기계 적용 | 기존 파일 12개 수정(코드 6 + 테스트 6) |
+| 4 | 전칭 여집합 열거 | "이미 맞는 곳"·"hex 비충돌"·"신규 파일/새 owner 없음"·"plan-verifier는 보드 agent: 필드에 등장하지 않는다" 등 전칭 다수 |
+| 5 | 돌연변이 검사 | `teamState` plan-verifier 분기 신설 등 판정 로직 변경 |
+| 7 | 음성 시험 | 항목의 본질이 화이트리스트 확장 — 로스터 멤버십·정의 경로 집합·명령 키·책상 명령 **부재**(요구 3). 빼도 통과하는 검사는 장식이므로 부재 단언까지 음성으로 확인 |
+| 8 | 실물 렌더 | 사무실 책상 2 신설·ledger 소품 신규 — 화면 변경 |
+
+비트리거: 6(외부 신호 해석 변경 없음 — 입력은 저장소 내 보드·정의 파일이고, backend-work는
+기존 이슈 코멘트 기계에 본문 문자열만 추가), 9(schema·config·생성 파일 변경 없음).
+
+## 검증 라운드 (2026-08-24, 메인 루프)
+
+**라운드 1 — 결함 2건(모두 「테스트」 절 명세).** 하니스: 스크래치패드 `feat18/`에 admin 전체 복사
++ node_modules 정션, 스케치 §1~§6을 앵커 1회 매칭 강제로 기계 적용(개행 혼재 감지 — roster.ts LF·
+known-agents.ts CRLF), 테스트 6파일도 명세대로 갱신.
+
+- 경로 1(인용 전수): 계획서의 `파일:줄` 인용 전부 실측 대조 — roster/known-agents/sprites/commands/
+  desk-commands/briefing/pixel-office/ui/page.tsx/repo-doc queries(+test)/doc-location/agent-report/
+  pixel-sprite/PROJECT_BOARD:52-61 일치. `.claude/agents/*.md` 정확 7개·main-loop.md 부재 실측.
+- 경로 3(before/after): 스케치 10헝크 + 테스트 16헝크 전부 **정확 1회 매칭**으로 적용. diff 범위가
+  「고칠 파일」 12개와 정확히 일치, 그 외 무변경.
+- 경로 2(추출·실행): 패치본 `tsc --noEmit` CLEAN(strict) · 전체 스위트 **276/276, 58 suites**
+  (기준 273 + 명세 신설 3) · 패치 6파일 ESLint 0 경고.
+- 경로 4(전칭 여집합): 에이전트 열거 지점 전수(`feature-scout` 스위프) = 계획의 12파일 + 불변 선언
+  파일(doc-location·doc-location.test)로 닫힘 / roster 소비자 4곳(page.tsx·repo-doc queries·
+  pixel-office·known-agents) 전부 상수 자동 확장 경로 / 보드에 `agent: plan-verifier|main-loop` 0건 /
+  신규 hex 4종 현행 소스 0건(비충돌) / `.claude/agents` 7파일.
+- 경로 8(실물 렌더): **실제 PROJECT_BOARD.md**를 패치본 `buildBriefing`에 통과 →
+  `renderToStaticMarkup(PixelOffice)` 6/6 — 로스터 순 책상 7·plan-verifier "검증 중"+실항목
+  FEAT-18 칩·버튼 6/책상 7(작업 진행 3, plan-verifier 무명령)·신규 셔츠 hex 2종·ledger 20렉트
+  dy −4·명패 2종. (참고: tsconfig `jsx: preserve`라 렌더 하니스는 전역 React 공급 필요 —
+  저장소 테스트는 렌더를 안 해 안 드러나는 특성.)
+- 경로 5(돌연변이): 9종 **전부 사멸** — pv분기 상태 오독(M1)·분기 제거(M2)·tone(M3)·heldId 상실(M9)·
+  roster 누락(M4)·GATE_GUARD 탈락(M5)·pv 책상 명령 부여=요구3 위반(M6)·ledger dy(M7)·prop 오배정(M8).
+  원복 후 276/276 재확인.
+- 경로 7(음성): N1 roster에서 backend-dev 제거 → 3검사 실패(양성 fetch 케이스가 화이트리스트
+  실개방 검출) · N2 PIPELINE_COMMANDS에서 backend-work 제거 → 5검사 실패(책상 명령 드리프트 감지
+  실동작) · N3 Prop 유니온만 남기고 ledger 격자 제거 → `tsc` TS2741 실패(컴파일 강제 실증).
+
+**결함**: (1) 테스트 절 roster.test 거부 '유지' 목록에서 `.claude/agents/pm`(접두형) 누락 —
+문자 그대로 따르면 커버리지 행 소실. (2) backend-dev.md 양성 fetch 케이스가 "필요 시"로 약함 —
+N1 실측상 화이트리스트 실개방의 직접 검출기. → 통합 편집 1회(「테스트」 절 2헝크).
+
+**라운드 2 — 무편집 확인(트리거).** `git diff` 범위 정확히 2헝크뿐, 보강 내용이 현행 실측과 일치
+(`roster.test.mjs:59` `.claude/agents/pm` 실재, "다섯 건 전부" 계수 일치), 인용 무파급, 하니스는
+두 항목을 이미 구현·사멸 확인. 메인 루프 무소득 — plan-verifier 디스패치 자격 충족.

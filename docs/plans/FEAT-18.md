@@ -206,7 +206,7 @@ tone "active"는 `bubbleColorFor("active")` = `#3e5a86`(파랑, `sprites.ts:71`)
   - `roster.test.mjs`:
     - 수용 목록을 7인으로 갱신(`ROSTER_AGENT_IDS` deepEqual = 위 §1 after 순서), 반복 수용 단언.
     - 거부 목록에서 `"backend-dev"`를 빼고 `"main-loop"`·`""`·`"PM"`·`"admin"`·`"../pm"`은 유지(plan-verifier는 이제 수용). 관련 주석 갱신.
-    - `isAgentDefinitionPath` 수용은 `ROSTER_AGENT_IDS` 반복이라 7건 자동 포함. 거부 목록에서 `.claude/agents/backend-dev.md`를 빼고(이제 수용) `.claude/agents/main-loop.md`·`.claude/agents/pm.mdx`·`.claude/agents/../secret.md`·`docs/plans/FEAT-15.md`는 유지. 주석("backend-dev has a definition file but no desk")을 main-loop 기준으로 교체.
+    - `isAgentDefinitionPath` 수용은 `ROSTER_AGENT_IDS` 반복이라 7건 자동 포함. 거부 목록에서 `.claude/agents/backend-dev.md`를 빼고(이제 수용) `.claude/agents/main-loop.md`·`.claude/agents/pm`(확장자 없는 접두형)·`.claude/agents/pm.mdx`·`.claude/agents/../secret.md`·`docs/plans/FEAT-15.md`는 **다섯 건 전부 유지**. 주석("backend-dev has a definition file but no desk")을 main-loop 기준으로 교체.
     - `agentDefinitionPath`에 backend-dev·plan-verifier 정확 경로 단언 추가.
   - `briefing.test.mjs`:
     - team 순서 deepEqual을 7인으로 갱신(`["pm","admin-dev","web-dev","backend-dev","plan-verifier","doc-auditor","feature-scout"]`).
@@ -225,7 +225,7 @@ tone "active"는 `bubbleColorFor("active")` = `#3e5a86`(파랑, `sprites.ts:71`)
     - "every desk command key resolves" 반복에 backend-dev 추가(plan-verifier는 제외).
     - `deskCommandFor("plan-verifier") === null` 단언(요구 3 고정).
   - `repo-doc/api/queries.test.mjs`:
-    - 비-roster 정의 파일 음성 케이스(`:69-72`)를 `.claude/agents/backend-dev.md` → `.claude/agents/main-loop.md`로 교체(backend-dev는 이제 roster라 fetch 없이 null이 아니다; main-loop는 여전히 roster 밖). 필요 시 backend-dev.md 양성 fetch 케이스 추가.
+    - 비-roster 정의 파일 음성 케이스(`:69-72`)를 `.claude/agents/backend-dev.md` → `.claude/agents/main-loop.md`로 교체(backend-dev는 이제 roster라 fetch 없이 null이 아니다; main-loop는 여전히 roster 밖). **backend-dev.md 양성 fetch 케이스를 추가한다(필수)** — 정의 파일 열람 개방(관측 2c 해소)의 직접 증거이고, 로스터에서 backend-dev를 빼면 이 케이스가 실패해 화이트리스트 실개방을 잡는 검출기가 된다(검증 라운드 음성 시험 실측).
 - **못 덮는 범위** (Node 러너·DOM/외부 I/O 없음): 새 두 책상의 픽셀 SVG 실제 렌더(스프라이트·ledger 소품 격자·명패 폭), 말풍선 색·"검증 중"/"작업 중" 문구의 시각 결과, 폰 2열/데스크톱 flex-wrap에서 7책상의 줄바꿈, backend-work 명령 버튼의 useTransition·토스트·GitHub POST, 프로필 라우트가 실제로 열리는지(`getDocContent`의 라이브 fetch), 새 hex 색의 픽셀 대비 — 배포 후 데스크톱+폰 수동 smoke.
 - 참고(읽기 전용 `apps/admin/CLAUDE.md` 동기화 대상): 신규 테스트 파일이 없어 「테스트 인벤토리」 표의 행(27파일)은 그대로이나, 여러 파일에 `it` 케이스가 늘어 총 suite·test 수(현재 58·273)가 증가한다 — 구현 후 실측 수치를 메인 루프에 비고로 보고한다.
 
