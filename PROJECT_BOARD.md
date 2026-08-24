@@ -35,12 +35,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-24
-- [ ] FEAT-18: 대시보드 로스터를 현행 파이프라인 7인 체제로 동기화 — backend-dev·plan-verifier가 어드민 세계에 없음
+- [x] FEAT-18: 대시보드 로스터를 현행 파이프라인 7인 체제로 동기화 — backend-dev·plan-verifier가 어드민 세계에 없음
   agent: admin-dev
   area: apps/admin/src/fsd/shared/agents + apps/admin/src/fsd/pages/pipeline + apps/admin/src/fsd/features/run-pipeline-command
-  status: 구현승인
+  status: 완료
   근거: 소유자 직접 선정. 대시보드 로스터가 현행 파이프라인 7인과 어긋나 backend-dev·plan-verifier가 어드민에 부재한 관측 해소. 미결 2건(BUG-03·BUG-02) 잔존이나 소유자 결정으로 기록.
   결과: 계획서 작성 완료 → docs/plans/FEAT-18.md. 로스터 5→7인(roster·정체성·스프라이트·프로필 라우트·backend-work 명령), plan-verifier는 검토대기 파생·명령 없음. 수정12(신규0). 코드 미변경.
+  결과: 로스터 5→7인 편입 — roster·정체성·스프라이트 ledger 소품·backend-work 명령·plan-verifier 검증중 파생. 수정12. check·test 276·verify:fsd:final·build 다 0. 상세 admin-dev/FEAT-18
   검증: 클린 패스 (2026-08-24, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
 ## 2026-08-23

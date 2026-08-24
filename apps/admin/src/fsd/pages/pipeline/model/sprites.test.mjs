@@ -70,11 +70,13 @@ describe("gridToRects", () => {
 });
 
 describe("PROP_GRIDS", () => {
-  it("has all four props with the mockgen dy offsets", () => {
+  it("has all five props with the mockgen dy offsets", () => {
+    assert.equal(Object.keys(PROP_GRIDS).length, 5);
     assert.equal(PROP_GRIDS.laptop.dy, -3);
     assert.equal(PROP_GRIDS.papers.dy, -3);
     assert.equal(PROP_GRIDS.glass.dy, -4);
     assert.equal(PROP_GRIDS.compass.dy, -4);
+    assert.equal(PROP_GRIDS.ledger.dy, -4);
   });
 });
 
@@ -104,6 +106,16 @@ describe("appearanceFor", () => {
       hair: "#3c4a3a",
       shirt: "#4f7d78",
       prop: "compass",
+    });
+    assert.deepEqual(appearanceFor("backend-dev"), {
+      hair: "#52504b",
+      shirt: "#37617a",
+      prop: "laptop",
+    });
+    assert.deepEqual(appearanceFor("plan-verifier"), {
+      hair: "#443a4a",
+      shirt: "#8a4a52",
+      prop: "ledger",
     });
   });
 

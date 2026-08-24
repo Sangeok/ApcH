@@ -35,6 +35,10 @@ describe("deskCommandFor", () => {
       key: "web-work",
       label: "작업 진행",
     });
+    assert.deepEqual(deskCommandFor("backend-dev"), {
+      key: "backend-work",
+      label: "작업 진행",
+    });
     assert.deepEqual(deskCommandFor("doc-auditor"), {
       key: "audit-run",
       label: "감사 실행",
@@ -49,12 +53,19 @@ describe("deskCommandFor", () => {
     assert.equal(deskCommandFor("unknown"), null);
   });
 
+  it("returns null for plan-verifier (roster member with no desk command, 요구 3)", () => {
+    // plan-verifier는 roster이지만 책상 명령이 없다 — 검증은 런북 4단계에서 메인 루프가
+    // 수행하는 일이라 별도 트리거 대상이 아니다. null이면 PixelDeskUnit이 버튼을 안 그린다.
+    assert.equal(deskCommandFor("plan-verifier"), null);
+  });
+
   it("every desk command key resolves to a real whitelist body", () => {
     // 라벨이 실제 화이트리스트 키에 붙어 있는지 — 두 모듈이 서로 드리프트하는 것을 막는다.
     for (const agentId of [
       "pm",
       "admin-dev",
       "web-dev",
+      "backend-dev",
       "doc-auditor",
       "feature-scout",
     ]) {

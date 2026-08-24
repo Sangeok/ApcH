@@ -6,6 +6,8 @@ export const ROSTER_AGENT_IDS = [
   "pm",
   "admin-dev",
   "web-dev",
+  "backend-dev",
+  "plan-verifier",
   "doc-auditor",
   "feature-scout",
 ] as const;
@@ -22,7 +24,8 @@ export function agentDefinitionPath(id: RosterAgentId): string {
 }
 
 // 접두사/정규식이 아니라 roster에서 조립한 정확 경로의 닫힌 집합(요구 2).
-// backend-dev.md는 정의 파일이 있어도 책상이 없어 여기 없다 — 진입점 없는 문서는 못 읽는다.
+// roster 7인의 정의 파일만 통과한다. main-loop는 오케스트레이터라 책상도 정의 파일도
+// 없어 여기에도 없다 — 진입점 없는 경로는 못 읽는다.
 const AGENT_DEFINITION_PATHS: ReadonlySet<string> = new Set(
   ROSTER_AGENT_IDS.map((id) => agentDefinitionPath(id)),
 );

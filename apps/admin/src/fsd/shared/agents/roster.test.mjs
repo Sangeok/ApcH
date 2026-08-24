@@ -10,7 +10,7 @@ const {
 } = await import("./roster.ts");
 
 describe("isRosterAgentId", () => {
-  it("accepts the five roster ids", () => {
+  it("accepts the seven roster ids", () => {
     for (const id of ROSTER_AGENT_IDS) {
       assert.equal(isRosterAgentId(id), true);
     }
@@ -18,13 +18,16 @@ describe("isRosterAgentId", () => {
       "pm",
       "admin-dev",
       "web-dev",
+      "backend-dev",
+      "plan-verifier",
       "doc-auditor",
       "feature-scout",
     ]);
   });
 
   it("rejects ids outside the closed roster", () => {
-    for (const id of ["backend-dev", "main-loop", "", "PM", "admin", "../pm"]) {
+    // backend-dev·plan-verifier는 이제 roster라 여기에 없다. main-loop는 오케스트레이터라 여전히 밖.
+    for (const id of ["main-loop", "", "PM", "admin", "../pm"]) {
       assert.equal(isRosterAgentId(id), false);
     }
   });
@@ -41,20 +44,27 @@ describe("agentDefinitionPath", () => {
       agentDefinitionPath("feature-scout"),
       ".claude/agents/feature-scout.md",
     );
+    assert.equal(
+      agentDefinitionPath("backend-dev"),
+      ".claude/agents/backend-dev.md",
+    );
+    assert.equal(
+      agentDefinitionPath("plan-verifier"),
+      ".claude/agents/plan-verifier.md",
+    );
   });
 });
 
 describe("isAgentDefinitionPath", () => {
-  it("accepts the five exact roster definition paths", () => {
+  it("accepts the seven exact roster definition paths", () => {
     for (const id of ROSTER_AGENT_IDS) {
       assert.equal(isAgentDefinitionPath(`.claude/agents/${id}.md`), true);
     }
   });
 
   it("rejects non-roster, prefix-shaped, and traversal paths", () => {
-    // backend-dev has a definition file but no desk → no reading entry point.
+    // main-loop has a definition-shaped path but no roster entry → no reading entry point.
     for (const path of [
-      ".claude/agents/backend-dev.md",
       ".claude/agents/main-loop.md",
       ".claude/agents/pm",
       ".claude/agents/pm.mdx",

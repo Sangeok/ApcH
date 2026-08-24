@@ -66,8 +66,18 @@ describe("getDocContent", () => {
     assert.deepEqual(calls[0], [docContentUrl(path), { cache: "no-store" }]);
   });
 
+  it("fetches the backend-dev definition file now that it is roster (관측 2c)", async () => {
+    // backend-dev를 roster에서 빼면 이 케이스가 fetch 없이 null이 돼 실패한다 —
+    // 정의 파일 열람 개방의 직접 증거이자 화이트리스트 실개방 검출기.
+    state.response = { ok: true, status: 200, text: async () => "# 역할" };
+    const path = ".claude/agents/backend-dev.md";
+    assert.equal(await getDocContent(path), "# 역할");
+    assert.equal(calls.length, 1);
+    assert.deepEqual(calls[0], [docContentUrl(path), { cache: "no-store" }]);
+  });
+
   it("returns null without fetching for a non-roster definition file", async () => {
-    assert.equal(await getDocContent(".claude/agents/backend-dev.md"), null);
+    assert.equal(await getDocContent(".claude/agents/main-loop.md"), null);
     assert.equal(calls.length, 0);
   });
 

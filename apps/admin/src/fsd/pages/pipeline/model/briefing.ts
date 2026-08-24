@@ -200,6 +200,18 @@ function teamState(
       ? { state: `${pending}건 결재 요청 중`, heldId: null, tone: "pending" }
       : { state: "새 선정 없음", heldId: null, tone: "muted" };
   }
+  if (agentId === "plan-verifier") {
+    // plan-verifier는 보드 `agent:` 필드에 등장하지 않는다(런북 4단계에서 메인 루프가
+    // 디스패치하는 독립 검증자). 그래서 pm처럼 보드에서 파생하는 특별 분기가 필요하다.
+    // 파생 규칙(백로그 요구 3): 검토대기 항목 = 검증 대상 계획서. 하나라도 있으면
+    // "검증 중"(그 계획서가 heldId), 없으면 "대기 중". items는 이미 dedupe된 최신 행이며
+    // find는 보드 순서(최신 섹션 우선) 첫 검토대기를 준다 — 미결 2건 제한상 보통 ≤1건이라
+    // admin/web-dev 책상의 heldId(.find) 패턴과 동형이다.
+    const review = items.find((it) => it.status === "검토대기");
+    return review !== undefined
+      ? { state: "검증 중", heldId: review.id, tone: "active" }
+      : { state: "대기 중", heldId: null, tone: "muted" };
+  }
   const mine = items.filter((it) => it.agent === agentId);
   const review = mine.find((it) => it.status === "검토대기");
   if (review !== undefined)

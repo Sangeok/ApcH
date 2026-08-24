@@ -243,7 +243,15 @@ describe("buildBriefing", () => {
   it("derives team roster in fixed order with state per agent", () => {
     assert.deepEqual(
       briefing.team.map((m) => m.identity.id),
-      ["pm", "admin-dev", "web-dev", "doc-auditor", "feature-scout"],
+      [
+        "pm",
+        "admin-dev",
+        "web-dev",
+        "backend-dev",
+        "plan-verifier",
+        "doc-auditor",
+        "feature-scout",
+      ],
     );
 
     const byId = new Map(briefing.team.map((m) => [m.identity.id, m]));
@@ -258,12 +266,36 @@ describe("buildBriefing", () => {
     assert.equal(byId.get("web-dev").state, "작업 중");
     assert.equal(byId.get("web-dev").heldId, "FEAT-07");
     assert.equal(byId.get("web-dev").tone, "active");
+    // backend-dev: 픽스처에 backend 항목 없음 → 대기 중, 든 항목 없음
+    assert.equal(byId.get("backend-dev").state, "대기 중");
+    assert.equal(byId.get("backend-dev").heldId, null);
+    assert.equal(byId.get("backend-dev").tone, "muted");
+    // plan-verifier: 보드 agent 필드에 없으나 검토대기(FEAT-04) 존재 → 검증 중, 그 계획서가 heldId
+    assert.equal(byId.get("plan-verifier").state, "검증 중");
+    assert.equal(byId.get("plan-verifier").heldId, "FEAT-04");
+    assert.equal(byId.get("plan-verifier").tone, "active");
     // 항목 없는 감사·스카우트 → 대기 중, 든 항목 없음
     assert.equal(byId.get("doc-auditor").state, "대기 중");
     assert.equal(byId.get("doc-auditor").heldId, null);
     assert.equal(byId.get("doc-auditor").tone, "muted");
     assert.equal(byId.get("feature-scout").state, "대기 중");
     assert.equal(byId.get("feature-scout").heldId, null);
+  });
+
+  it("shows plan-verifier 대기 중·muted when no 검토대기 item exists (파생 여집합)", () => {
+    const md = [
+      "## 2026-08-15",
+      "- [ ] FEAT-30: 검토대기 없는 소형 보드",
+      "  agent: admin-dev",
+      "  area: apps/admin",
+      "  status: 구현승인",
+      "  근거: 구현을 승인받음.",
+    ].join(String.fromCharCode(10));
+    const b = buildBriefing(parseBoard(md), TODAY);
+    const verifier = b.team.find((m) => m.identity.id === "plan-verifier");
+    assert.equal(verifier.state, "대기 중");
+    assert.equal(verifier.heldId, null);
+    assert.equal(verifier.tone, "muted");
   });
 
   it("formats today as M월 D일", () => {
@@ -352,6 +384,18 @@ describe("identityFor / initialOf", () => {
       emoji: "📋",
     });
     assert.equal(identityFor("admin-dev").emoji, "🛠️");
+    assert.deepEqual(identityFor("backend-dev"), {
+      id: "backend-dev",
+      handle: "backend-dev",
+      role: "백엔드 개발",
+      emoji: "⚙️",
+    });
+    assert.deepEqual(identityFor("plan-verifier"), {
+      id: "plan-verifier",
+      handle: "plan-verifier",
+      role: "계획 검증",
+      emoji: "🔬",
+    });
   });
 
   it("falls back to the raw handle with empty emoji for unknown ids", () => {

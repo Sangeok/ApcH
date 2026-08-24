@@ -115,3 +115,24 @@ backend-dev.md 양성 fetch 케이스가 로스터 제거를 잡음을 독립 �
 사용자가 세션에서 "구현 승인"으로 개방. 추가 결정 없이 계획서 기본값 그대로 간다 — 로스터 7인
 (backend-dev·plan-verifier), backend-work 명령, plan-verifier 검토대기 파생·무명령, ledger 소품,
 수정 12파일·신규 0·경계 무변경. 보드 행을 `구현승인`으로 전이하고 admin-dev를 디스패치했다.
+
+## 인수 (2026-08-24, 메인 루프 — 다섯 조건 직접 재현)
+
+1. **변경 파일 ↔ 「고칠 파일」**: `git status` 실측 — 코드·테스트 변경은 계획서의 12개뿐.
+   그 외는 보드·백로그·신규 보고서(+세션 전부터 있던 무관 `settings.local.json`).
+2. **diff ↔ 스케치**: 프로덕션 코드 6개가 **검증 라운드의 스크래치패드 패치본과 바이트 동일**
+   (`diff -q` 무출력 — 개행까지 동일). 테스트 6개는 명세 자작이라 참조본과 대조 — sprites·commands는
+   참조본과 완전 일치, 나머지 4개 차이는 주석 문구·포매팅·케이스 배치뿐(값·분기 동일, 오히려
+   queries 양성 케이스에 URL deepEqual이 추가돼 참조본보다 강함).
+3. **검증 명령 재실행**: `check` EXIT 0 · `test` **276/276 (58 suites)** · `verify:fsd:final` EXIT 0 ·
+   `build` EXIT 0 — 넷 다 직접 실행.
+4. **백로그 제거**: `grep -c FEAT-18 TASK_BACKLOG.md` = 0. 유일 항목이던 "## Admin / Dashboard"
+   헤더까지 함께 제거돼 일관 상태.
+5. **상세 기록 실재**: `docs/agents/admin-dev/FEAT-18.md` 전문 정독 — 착수 전 인용 전수 대조·
+   스케치 무차이·게이트 수치·개행 보존 실측·못 덮는 범위·CLAUDE.md handoff까지 실질적.
+
+보드 행 검산: `- [x]`·`완료`·`결과:` 2줄 누적(파서 규약대로)·`검증:` 줄 보존.
+
+**범위 밖 문서 동기화(메인 루프)**: `apps/admin/CLAUDE.md` 테스트 인벤토리 273→276 test
+(파일 27·suite 58 불변), briefing.test 행에 plan-verifier 검토대기 파생, desk-commands.test 행에
+plan-verifier 무명령(null) 고정 추가. 인수 종료 — status `완료` 수리.
