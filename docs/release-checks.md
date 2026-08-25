@@ -23,12 +23,12 @@
 
 ## BUG-02 — 번역 폴백 subtitleStatus 전달 (backend, 구현 2026-08-25)
 
-원천: `docs/agents/backend-dev/BUG-02.md` 「못 덮는 범위」. 전부 `modal run`/재배포 필요 —
-**사용자만 닫을 수 있다.** 배포는 BUG-03과 묶어 한 번의 `modal deploy`로 처리 예정.
+원천: `docs/agents/backend-dev/BUG-02.md` 「못 덮는 범위」. **배포 완료(2026-08-25, BUG-03과 묶어
+`modal deploy` — 사용자 승인 하에 메인 루프 실행, 6.7초 성공).** 잔여는 다음 실사용 실행에서 닫는다.
 
-- [ ] 실제 Gemini 호출·예외 → except 배선과 튜플 언패킹(`main.py:839`) 실동작
-- [ ] `subtitleStatus`가 클립 dict → 실제 콜백 페이로드로 전달(정상 `"ok"`·실패 시 `"full-fallback"` 관측)
-- [ ] Modal 이미지에 `translation_fallback` 번들 — 컨테이너 import (`add_local_python_source` 2인자)
+- [ ] 실제 Gemini 호출·예외 → except 배선과 튜플 언패킹 실동작 — 다음 실사용 업로드에서
+- [ ] `subtitleStatus`가 실제 콜백 페이로드로 전달(정상 `"ok"`·실패 시 폴백값 관측) — 다음 실사용에서
+- [ ] 컨테이너에서 `translation_fallback` import — **번들 자체는 배포 출력으로 실측**(`Created mount PythonPackage:s3_upload_policy, translation_fallback`), import는 다음 실행에서
 
 ## FEAT-20 — 게이트 카드 잠금(반영 대기 칩) (admin, 구현 2026-08-25)
 
@@ -43,11 +43,12 @@
 
 ## BUG-03 — S3 업로드 재시도·맥락 오류 (backend, 구현 2026-08-25)
 
-원천: `docs/agents/backend-dev/BUG-03.md` 「못 덮는 범위」. 전부 `modal run`/재배포가 필요해 **사용자만 닫을 수 있다**.
+원천: `docs/agents/backend-dev/BUG-03.md` 「못 덮는 범위」. **배포 완료(2026-08-25, BUG-02와 묶어
+`modal deploy` — 사용자 승인 하에 메인 루프 실행).** 잔여는 다음 실사용 실행에서 닫는다.
 
-- [ ] Modal 이미지에 `s3_upload_policy` 번들 — 컨테이너에서 `ModuleNotFoundError` 없이 import (`add_local_python_source` 효과)
-- [ ] 재시도 실동작 — `_s3_call_with_retry` 루프·`time.sleep`·boto 예외 매핑(S3UploadFailedError 원인 사슬 풀기 포함). 분류 로직 자체는 검증 라운드에서 boto3 1.43.62 재생으로 확인됨 — 남는 것은 컨테이너 배선
-- [ ] `modal deploy` 후 실제 업로드 경로 정상 (en·kr 클립 + analyze 전사)
+- [ ] 컨테이너에서 `s3_upload_policy` import — **번들 자체는 배포 출력으로 실측**(mount 생성), import는 다음 실행에서
+- [ ] 재시도 실동작 — 분류 로직은 검증 라운드에서 boto3 재생으로 확인됨, 컨테이너 배선은 다음 실사용에서
+- [x] `modal deploy` — 확인(2026-08-25: `App deployed in 6.706s`, process_video 웹 함수 등록). 업로드 경로 정상은 다음 실사용에서
 
 ## FEAT-18 — 대시보드 로스터 7인 동기화 (admin, 보드 2026-08-24 절)
 
