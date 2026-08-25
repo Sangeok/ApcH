@@ -190,6 +190,7 @@ exports.Prisma.ClipScalarFieldEnum = {
   clipType: 'clipType',
   hook: 'hook',
   payoff: 'payoff',
+  subtitleStatus: 'subtitleStatus',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   youtubeTitle: 'youtubeTitle',
