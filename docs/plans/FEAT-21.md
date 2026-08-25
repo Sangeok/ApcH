@@ -52,9 +52,11 @@ agent: web-dev
    → `ClipCard`로 넘긴다. `ClipCard`(`clip-display/ui/_component/ClipCard.tsx:28-138`)는 `clip: Clip`
    전체를 받지만 비디오·선택 근거(FEAT-16)·액션·모달만 렌더하고 `subtitleStatus`는 화면에 쓰지 않는다.
 
-**스키마 상태**: `Clip` 모델에 `clipType`·`hook`·`payoff`(FEAT-16, `schema.prisma:120-122`)는 있으나
-**`subtitleStatus` 컬럼은 없다**(`schema.prisma:107-139` 전수 확인). FEAT-16 때와 달리 이 값의
-저장 컬럼이 아직 존재하지 않는다 — 「범위 밖 의존」 참조.
+**스키마 상태**: `Clip` 모델에 `clipType`·`hook`·`payoff`(FEAT-16, `schema.prisma:120-122`)는 있다.
+`subtitleStatus` 컬럼은 계획 작성 시점(2026-08-25)에는 없었으나, **2026-08-26 선행 적용이 완료됐다**
+— 커밋 `19dda69`: `subtitleStatus String?` 추가(`schema.prisma:124-127` 부근), 마이그레이션
+`20260826000000_clip_subtitle_status` Neon 적용, Prisma 클라이언트 재생성(생성 타입 반영 검산).
+「범위 밖 의존」의 전제가 충족된 상태다 — 구현은 순수 apps/web 작업으로 착수 가능하다.
 
 ## 문제
 
@@ -234,6 +236,11 @@ snake를 둔 것은 `normalizeAnalyzedMoment`의 기존 `clip_type` 선례 때�
     - 미지 값(`"weird"`) → `null`
     - `null`·`undefined` → `null`
     - 빈 문자열·공백(`"  "`) → `null`
+    - **앞뒤 공백이 붙은 상태값(`" partial-fallback "`) → 안내** — `trim()`의 존재 이유를 밟는
+      단언이다. 검증 돌연변이에서 trim 제거가 이 단언 없이는 살아남았다(공백-only 케이스는 맵
+      조회 실패가 대신 null을 주어 못 잡는다)
+    - (기록) `trimmed.length === 0` 가드는 맵 조회 폴백(`?? null`)과 동작 등가라 제거 돌연변이가
+      사멸 불가능하다(등가 돌연변이 — 명세 구멍 아님). 의도 문서화용으로 유지한다
   - 상태 리터럴 회귀 가드: `"partial-fallback"`/`"full-fallback"`이 정확히 매핑에 있고
     `"ok"`는 없는 것을 단언한다(콜백 wire 계약과 어긋나면 안내가 조용히 꺼진다 —
     `clip-generation-outcome.test.mjs`가 노트 코드에 두는 것과 같은 이유).
@@ -278,6 +285,10 @@ Prisma 클라이언트를 재생성해야 한다 — 전부 `packages/db`이고 
 Prisma 클라이언트 재생성을 **구현 착수 전에** 적용한다(FEAT-16은 커밋 `544ac12`,
 마이그레이션 `20260820000000_clip_selection_rationale`으로 적용 완료 상태에서 web-dev에게
 발주됐다). 이 전제가 서면 이후 작업은 `packages/db`를 건드리지 않는 순수 `apps/web` 작업이다.
+
+**전제 충족(2026-08-26)**: 사용자 승인("적용") 후 메인 루프가 선행 적용을 완료했다 — 커밋
+`19dda69`(컬럼 + 마이그레이션 `20260826000000_clip_subtitle_status` Neon 적용 + 클라이언트
+재생성). 검증 라운드의 조립 게이트(check EXIT 0·tsc 통과)가 이 상태에서 실측됐다.
 
 ## 대안
 

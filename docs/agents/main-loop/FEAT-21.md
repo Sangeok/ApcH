@@ -33,3 +33,37 @@ web-dev → `docs/plans/FEAT-21.md`, 보드 행 `검토대기`(커밋 `1f5ee66`)
 **선결 결정(사용자)**: 스키마 선행 적용 시점 — 검증 조립 전 적용(권장, FEAT-16과 동일 상태로
 검증) vs 게이트② 후 적용. 적용 자체는 nullable 컬럼 추가라 저위험이나 프로덕션 DB ALTER이므로
 사용자 승인으로만 실행한다.
+
+## 선행 적용 (2026-08-26) — 사용자 "적용" 승인
+
+FEAT-16 절차(`544ac12`) 그대로: 스키마 컬럼 + 수기 마이그레이션 폴더 + `prisma migrate deploy`
+(루트에서 `--schema` 플래그로 실행 — packages/db 로컬에는 .env가 없어 루트 .env를 읽게) +
+클라이언트 재생성. 커밋 `19dda69`. 부수: 트리에서 소유자 핫픽스(Columbia `check=True`·
+scenedetect 핀) 발견 → 사용자 확인 후 별도 커밋 `8836cfd`.
+
+## 검증 1라운드 (2026-08-26, reconciling — Standard 프로파일·전체 증거) — 결함 2건, 편집 1회
+
+- **1 인용 전수**: route.ts(타입 2·반환·이벤트 발신·패치 호출)·client.ts(`:4-17`·`:84`)·
+  functions.ts(타입 2·반환·create·`:257`·`:482`·`:492/518/557`)·clip/api(`:51-62`·`:65-83`)·
+  uploaded-file api(`:413-`)·types(`:44`)·clip-display(`:30-38`)·ClipCard(`:10-13`·`:54`·`:90-96`)·
+  선례(ProcessingTimeline `:3`·`:176` AlertTriangle, CharacterCountBar `:3` amber) — 전부 일치.
+  삽입 지점의 before 맥락 유일성 확보(동형 꼬리를 가진 인터페이스들은 후속 선언명으로 구분).
+- **6 계약 교차 검산**: 스케치 매핑 키 = `translation_fallback.py` 상수 리터럴 3종 정확 일치
+  (교차 저장소 wire 계약).
+- **4 여집합**: `subtitleStatus` 현재 web 참조 0건(부분 작업 부재), 유실 사슬의 소비처 열거
+  (이벤트 발신 + 직접 패치 2경로) 계획서 기술과 일치.
+- **2·3 조립 실행**: 신규 2 + 수정 5 기계 적용 → `npm run check -w apps/web` **EXIT 0**
+  (선행 적용된 컬럼으로 tsc 통과 — 전제 실증), `npm test` **58/58**(기존 51+신규 7).
+- **5 돌연변이 6종**: 키 드리프트·문구 변조·ok 안내·trim 제거·미지값 통과·공백 가드 제거 —
+  4 사멸, **M4(trim 제거) 생존**(공백 낀 상태값 단언 부재 — 명세 구멍), **M6(공백 가드) 생존
+  = 등가 돌연변이**(맵 조회 폴백과 동작 동일, 사멸 불가 — 구멍 아님). 단언 추가 후 M4 사멸 재확인.
+- **8 실물 렌더 — 증거 있는 배제**: `npx tsx`로 ClipCard 로드 시도 → `server-only` 가드 발화
+  실측("cannot be imported from a Client Component module" — `getClipPlayUrl` 서버 액션 의존).
+  FEAT-16 선례(ClipCard 렌더 수동 확인, 원장 잔존 줄)와 동일 처리 — 순수 함수·마크업 문자열은
+  테스트가 덮고 실렌더는 원장으로.
+
+**결함 → 편집 (일괄 1회)**: ① 전제 서술 시효 — 선행 적용 완료(19dda69)를 「현재 동작」·
+「범위 밖 의존」에 기록(구현자가 "컬럼 없음"을 현재 상태로 오독하는 것 방지). ② 명세 구멍 —
+padded 상태값 단언 추가 + M6 등가 돌연변이 기록. 원복 후 기준선 51/51·트리 청결 검산.
+
+Pass State: editing pass · source changed=yes · blockers resolved=2 · remaining=0 · next=무편집 최종 패스.
