@@ -773,7 +773,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         f"--pretrainModel weight/finetuning_TalkSet.model"
     )
     columbia_start_time = time.time()
-    subprocess.run(columbia_commands, cwd="/asd", shell=True)
+    subprocess.run(columbia_commands, cwd="/asd", shell=True, check=True)
     columbia_end_time = time.time()
     print(f"Columbia script completed in {columbia_end_time - columbia_start_time:.2f} seconds")
 
