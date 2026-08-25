@@ -67,3 +67,20 @@ scenedetect 핀) 발견 → 사용자 확인 후 별도 커밋 `8836cfd`.
 padded 상태값 단언 추가 + M6 등가 돌연변이 기록. 원복 후 기준선 51/51·트리 청결 검산.
 
 Pass State: editing pass · source changed=yes · blockers resolved=2 · remaining=0 · next=무편집 최종 패스.
+
+## 검증 2라운드 (2026-08-26) — 무편집 클린 패스 (편집 0건, 결함 0건)
+
+최신 저장본(blob `d9117a5` = HEAD) 기준 재수립. 편집 3곳(전제 충족 2·테스트 절 1)이 조립 검증
+결과와 정합 — 조립은 이미 선행 적용 상태에서 실측됐으므로 통과 증거가 현재 계획서에 그대로
+대응. Coverage Stability 2차 레시피 — **쌍둥이 필드(clipType) 전수 추적**: clipType이 흐르는
+8파일 = 계획의 수정 5 + 정당 제외 3(clip-draft api·ClipDraftCard는 렌더 전이라 자막 상태가
+존재하지 않고, clip-rationale은 대안 절이 명시 기각한 별개 관심사) — 유실 지점 전칭이 두 번째
+경로로 폐쇄됨. 트리 청결 검산.
+
+**판정: 메인 루프 무편집 클린 패스.** plan-verifier 독립 패스 디스패치.
+
+Minimal Replay Anchor (적용성 증거일 뿐): HEAD `0f7cb9d`(dev) · 원천 docs/plans/FEAT-21.md@0f7cb9d ·
+경계 apps/web/src/{app/api/webhooks/modal, inngest, fsd/entities/clip, fsd/widgets/clip-display} +
+packages/db(선행 적용 19dda69) + apps/backend/translation_fallback.py(계약) · 레시피 조립 게이트
+2종 + 돌연변이 6 + 계약 교차 + 쌍둥이 필드 grep + server-only 로드 실측 · 프로파일 Standard(전체
+증거) · 최종 패스 무편집.
