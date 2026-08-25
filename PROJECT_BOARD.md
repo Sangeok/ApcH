@@ -40,11 +40,12 @@
   area: apps/admin/src/fsd/pages/pipeline
   status: 승인대기
   근거: FEAT-19 배포 확인 2차 스윕(2026-08-24)에서 실물로 확인된 결함. 미결 0건이라 선정 가능, 가장 최근 발견된 사용자 영향 항목.
-- [ ] FEAT-21: 번역 폴백 안내의 웹 절반 — `subtitleStatus` 소비·클립 카드 안내
+- [x] FEAT-21: 번역 폴백 안내의 웹 절반 — `subtitleStatus` 소비·클립 카드 안내
   agent: web-dev
   area: apps/web/src/app/api/webhooks/modal + apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
-  status: 구현승인
+  status: 완료
   근거: BUG-02 구현(2026-08-25)이 남긴 범위 밖 의존 — 백엔드는 신호를 보내지만 웹이 버려 사용자 알림이 없다. 함께 선정한다.
+  결과: subtitleStatus를 정규화·이벤트·DB쓰기 5지점에 잇고 ClipCard에 amber 폴백 안내 추가. 신규 순수모듈+테스트7. check EXIT0·test 58 pass/0 fail(51→58).
   검증: 클린 패스 (2026-08-26, 독립 무편집 1라운드)
 
 ## 2026-08-24

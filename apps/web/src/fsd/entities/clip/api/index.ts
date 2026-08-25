@@ -59,6 +59,7 @@ type ClipMetadataPatch = {
   clipType?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  subtitleStatus?: string | null;
 };
 
 // Builds a partial Prisma update payload without clearing existing metadata.
@@ -79,6 +80,9 @@ function toClipMetadataUpdateData(
     ...(clip.clipType != null ? { clipType: clip.clipType } : {}),
     ...(clip.hook != null ? { hook: clip.hook } : {}),
     ...(clip.payoff != null ? { payoff: clip.payoff } : {}),
+    ...(clip.subtitleStatus != null
+      ? { subtitleStatus: clip.subtitleStatus }
+      : {}),
   };
 }
 

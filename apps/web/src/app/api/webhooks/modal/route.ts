@@ -20,6 +20,7 @@ interface ModalWebhookClip {
   clipType?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  subtitleStatus?: string | null;
 }
 
 interface RawModalWebhookClip {
@@ -43,6 +44,7 @@ interface RawModalWebhookClip {
   clip_type?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  subtitleStatus?: string | null;
 }
 
 interface RawAnalyzedMoment {
@@ -150,6 +152,7 @@ function normalizeClip(rawClip: RawModalWebhookClip): ModalWebhookClip | null {
     clipType: rawClip.clipType ?? rawClip.clip_type ?? null,
     hook: rawClip.hook ?? null,
     payoff: rawClip.payoff ?? null,
+    subtitleStatus: rawClip.subtitleStatus ?? null,
   };
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import type { Clip } from "@repo/db";
+import { AlertTriangle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getClipPlayUrl } from "~/fsd/features/clip/api";
@@ -11,6 +12,7 @@ import {
   clipTypeLabel,
   hasClipRationale,
 } from "~/fsd/widgets/clip-display/model/clip-rationale";
+import { subtitleFallbackNotice } from "~/fsd/widgets/clip-display/model/subtitle-status";
 import { parseJsonArray } from "~/fsd/shared/lib/utils";
 import { ClipActions } from "./ClipActions";
 import { ClipVideoPlayer } from "./ClipVideoPlayer";
@@ -52,6 +54,7 @@ export default function ClipCard({
   const hook = clip.hook?.trim() ?? "";
   const payoff = clip.payoff?.trim() ?? "";
   const showRationale = hasClipRationale(clip);
+  const fallbackNotice = subtitleFallbackNotice(clip.subtitleStatus);
 
   const handleCopyScript = async () => {
     if (!hasScript) {
@@ -93,6 +96,12 @@ export default function ClipCard({
         error={error}
         onPlay={handlePlay}
       />
+      {fallbackNotice && (
+        <p className="flex items-start gap-1 text-xs leading-snug text-amber-600 dark:text-amber-500">
+          <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+          <span>{fallbackNotice}</span>
+        </p>
+      )}
       {showRationale && (
         <div className="flex flex-col gap-0.5">
           {typeLabel && (
