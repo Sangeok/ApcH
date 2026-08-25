@@ -7,10 +7,6 @@
 
 ## Backend / Pipeline
 
-- [ ] **BUG-02**: 한국어 번역 API 실패 시 영어로 조용히 폴백됨 (사용자에게 알림 없음)
-  - area: apps/backend
-  - source: README Known Issues
-
 - [ ] **BUG-04**: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
   - area: apps/backend
   - source: README Known Issues

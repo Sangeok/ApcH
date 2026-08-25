@@ -21,6 +21,15 @@
 
 ---
 
+## BUG-02 — 번역 폴백 subtitleStatus 전달 (backend, 구현 2026-08-25)
+
+원천: `docs/agents/backend-dev/BUG-02.md` 「못 덮는 범위」. 전부 `modal run`/재배포 필요 —
+**사용자만 닫을 수 있다.** 배포는 BUG-03과 묶어 한 번의 `modal deploy`로 처리 예정.
+
+- [ ] 실제 Gemini 호출·예외 → except 배선과 튜플 언패킹(`main.py:839`) 실동작
+- [ ] `subtitleStatus`가 클립 dict → 실제 콜백 페이로드로 전달(정상 `"ok"`·실패 시 `"full-fallback"` 관측)
+- [ ] Modal 이미지에 `translation_fallback` 번들 — 컨테이너 import (`add_local_python_source` 2인자)
+
 ## FEAT-20 — 게이트 카드 잠금(반영 대기 칩) (admin, 구현 2026-08-25)
 
 원천: `docs/agents/admin-dev/FEAT-20.md`·계획서 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후 확인 가능.**
