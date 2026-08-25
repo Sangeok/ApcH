@@ -45,6 +45,7 @@
   area: apps/web/src/app/api/webhooks/modal + apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
   status: 검토대기
   근거: BUG-02 구현(2026-08-25)이 남긴 범위 밖 의존 — 백엔드는 신호를 보내지만 웹이 버려 사용자 알림이 없다. 함께 선정한다.
+  검증: 클린 패스 (2026-08-26, 독립 무편집 1라운드)
 
 ## 2026-08-24
 - [x] FEAT-20: 게이트 도장·반려 성공 후 카드 버튼을 「반영 대기」로 잠그기 — CDN 잔상 5분 동안의 재클릭 유도 제거
