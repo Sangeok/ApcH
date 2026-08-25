@@ -34,6 +34,20 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-25
+- [ ] BUG-07: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
+  agent: admin-dev
+  area: apps/admin/src/fsd/pages/pipeline
+  status: 승인대기
+  근거: FEAT-19 배포 확인 2차 스윕(2026-08-24)에서 실물로 확인된 결함. 미결 0건이라 선정 가능, 가장 최근 발견된 사용자 영향 항목.
+- [x] FEAT-21: 번역 폴백 안내의 웹 절반 — `subtitleStatus` 소비·클립 카드 안내
+  agent: web-dev
+  area: apps/web/src/app/api/webhooks/modal + apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
+  status: 완료
+  근거: BUG-02 구현(2026-08-25)이 남긴 범위 밖 의존 — 백엔드는 신호를 보내지만 웹이 버려 사용자 알림이 없다. 함께 선정한다.
+  결과: subtitleStatus를 정규화·이벤트·DB쓰기 5지점에 잇고 ClipCard에 amber 폴백 안내 추가. 신규 순수모듈+테스트7. check EXIT0·test 58 pass/0 fail(51→58).
+  검증: 클린 패스 (2026-08-26, 독립 무편집 1라운드)
+
 ## 2026-08-24
 - [x] FEAT-20: 게이트 도장·반려 성공 후 카드 버튼을 「반영 대기」로 잠그기 — CDN 잔상 5분 동안의 재클릭 유도 제거
   agent: admin-dev
@@ -72,11 +86,13 @@
   근거: 최종 산출물 유실 위험이 가장 큰 backend 신뢰성 결함. 백엔드 항목은 지금껏 한 번도 선정된 적 없고 미결 0건이라 착수 가능.
   결과: 업로드 3곳(en·kr·transcript)을 재시도 래퍼로 감싸고 순수 정책 모듈+테스트 신설. unittest 15/15·py_compile 0. 스케치대로 무차이. 상세 backend-dev/BUG-03
   검증: 클린 패스 (2026-08-24, 독립 무편집 1라운드)
-- [ ] BUG-02: 한국어 번역 API 실패 시 영어로 조용히 폴백됨 (사용자에게 알림 없음)
+- [x] BUG-02: 한국어 번역 API 실패 시 영어로 조용히 폴백됨 (사용자에게 알림 없음)
   agent: backend-dev
   area: apps/backend
-  status: 승인대기
+  status: 완료
   근거: BUG-03과 같은 조용한 실패 계열의 대면 결함 — 사용자가 모른 채 영어 결과물을 받는다. 함께 제안한다.
+  결과: 폴백 판정을 순수 모듈로 빼 subtitleStatus를 create_korean→콜백까지 실어 조용한 유실 해소. 신규2·수정1(main.py 5지점). unittest 40(기존15+신규25)·py_compile 0. 상세 backend-dev/BUG-02
+  검증: 클린 패스 (2026-08-25, 독립 무편집 1라운드)
 
 ## 2026-08-20
 - [x] FEAT-16: 최종 클립에 선택 근거(hook·payoff·clipType) 저장·표시 — 파이프라인이 보내는데 웹이 버리는 값

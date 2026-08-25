@@ -49,6 +49,7 @@ type ProcessVideoBackendClip = {
   clipType?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  subtitleStatus?: string | null;
 };
 
 type RawProcessVideoBackendClip = {
@@ -72,6 +73,7 @@ type RawProcessVideoBackendClip = {
   clip_type?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  subtitleStatus?: string | null;
 };
 
 function toErrorMessage(error: unknown): string {
@@ -150,6 +152,7 @@ function normalizeBackendClip(clip: unknown): ProcessVideoBackendClip | null {
     clipType: rawClip.clipType ?? rawClip.clip_type ?? null,
     hook: rawClip.hook ?? null,
     payoff: rawClip.payoff ?? null,
+    subtitleStatus: rawClip.subtitleStatus ?? null,
   };
 }
 
@@ -225,6 +228,7 @@ async function persistGeneratedClips(args: {
         clipType: clip.clipType ?? null,
         hook: clip.hook ?? null,
         payoff: clip.payoff ?? null,
+        subtitleStatus: clip.subtitleStatus ?? null,
       });
     }
   }

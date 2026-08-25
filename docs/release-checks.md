@@ -21,12 +21,29 @@
 
 ---
 
+## FEAT-21 — 번역 폴백 안내의 웹 절반 (web, 구현 2026-08-26)
+
+원천: `docs/agents/web-dev/FEAT-21.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+
+- [ ] 정상 클립 카드 회귀 없음 — 기존 행(컬럼 NULL)·영어/정상 한국어 클립에서 안내 미표시 (배포 직후 확인 가능)
+- [ ] 폴백 안내 실표시 — amber `AlertTriangle` + 문구. **배포만으론 확인 불가**: 기존 행은 NULL이고 새 클립은 번역이 실제 실패해야 값이 실린다. 확인 방법 둘 중 사용자 선택 — (a) 번역 실패 소스 실주행(L40S 과금·비결정적) (b) 기존 행에 폴백값 임시 주입 후 되돌리기(프로덕션 DB 쓰기)
+- [ ] wire 왕복 — 백엔드 콜백 → 정규화 → 이벤트 → DB `subtitleStatus` 저장 (다음 실사용에서)
+
+## BUG-02 — 번역 폴백 subtitleStatus 전달 (backend, 구현 2026-08-25)
+
+원천: `docs/agents/backend-dev/BUG-02.md` 「못 덮는 범위」. **배포 완료(2026-08-25, BUG-03과 묶어
+`modal deploy` — 사용자 승인 하에 메인 루프 실행, 6.7초 성공).** 잔여는 다음 실사용 실행에서 닫는다.
+
+- [ ] 실제 Gemini 호출·예외 → except 배선과 튜플 언패킹 실동작 — 다음 실사용 업로드에서
+- [ ] `subtitleStatus`가 실제 콜백 페이로드로 전달(정상 `"ok"`·실패 시 폴백값 관측) — 다음 실사용에서
+- [ ] 컨테이너에서 `translation_fallback` import — **번들 자체는 배포 출력으로 실측**(`Created mount PythonPackage:s3_upload_policy, translation_fallback`), import는 다음 실행에서
+
 ## FEAT-20 — 게이트 카드 잠금(반영 대기 칩) (admin, 구현 2026-08-25)
 
 원천: `docs/agents/admin-dev/FEAT-20.md`·계획서 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후 확인 가능.**
 
-- [ ] 잠금 공유 — 도장 성공 → 반려 패널도 사라짐 / 반려 성공 → 도장 버튼도 칩으로 (카드 단위 한 성공에 함께 잠김)
-- [ ] `LockedChip` 시각 — 도장 슬롯 대체·점 마커 4색(stamp/active/hold/destructive) 3:1·`text-xs` muted AA
+- [ ] 잠금 공유 — 도장 성공 → 반려 패널도 사라짐 / 반려 성공 → 도장 버튼도 칩으로 (도장 쪽 절반은 2026-08-25 실사용에서 정황상 함께 발생 — 명시 관측은 다음 도장 때)
+- [x] `LockedChip` 시각 — 확인(2026-08-25, **첫 실사용 관측**: FEAT-21 게이트① 도장 직후 소유자가 "도장 찍음 · 보드 반영 대기" 칩 등장을 직접 봄. 점 마커 4색 정밀 대비는 스크린샷 판정 승계)
 - [ ] 실패는 잠그지 않음 — 스테일 실패 시 버튼 활성 유지·재시도 가능
 - [ ] `router.refresh()` 후 잠금 유지 + 보드 flip 시 카드 소멸로 잠금 자연 소거
 - [ ] 하드 리로드 시 CDN 창(≤5분) 동안 버튼 재노출(설계된 한계 — 서버 가드가 오커밋 차단)
@@ -34,11 +51,12 @@
 
 ## BUG-03 — S3 업로드 재시도·맥락 오류 (backend, 구현 2026-08-25)
 
-원천: `docs/agents/backend-dev/BUG-03.md` 「못 덮는 범위」. 전부 `modal run`/재배포가 필요해 **사용자만 닫을 수 있다**.
+원천: `docs/agents/backend-dev/BUG-03.md` 「못 덮는 범위」. **배포 완료(2026-08-25, BUG-02와 묶어
+`modal deploy` — 사용자 승인 하에 메인 루프 실행).** 잔여는 다음 실사용 실행에서 닫는다.
 
-- [ ] Modal 이미지에 `s3_upload_policy` 번들 — 컨테이너에서 `ModuleNotFoundError` 없이 import (`add_local_python_source` 효과)
-- [ ] 재시도 실동작 — `_s3_call_with_retry` 루프·`time.sleep`·boto 예외 매핑(S3UploadFailedError 원인 사슬 풀기 포함). 분류 로직 자체는 검증 라운드에서 boto3 1.43.62 재생으로 확인됨 — 남는 것은 컨테이너 배선
-- [ ] `modal deploy` 후 실제 업로드 경로 정상 (en·kr 클립 + analyze 전사)
+- [ ] 컨테이너에서 `s3_upload_policy` import — **번들 자체는 배포 출력으로 실측**(mount 생성), import는 다음 실행에서
+- [ ] 재시도 실동작 — 분류 로직은 검증 라운드에서 boto3 재생으로 확인됨, 컨테이너 배선은 다음 실사용에서
+- [x] `modal deploy` — 확인(2026-08-25: `App deployed in 6.706s`, process_video 웹 함수 등록). 업로드 경로 정상은 다음 실사용에서
 
 ## FEAT-18 — 대시보드 로스터 7인 동기화 (admin, 보드 2026-08-24 절)
 

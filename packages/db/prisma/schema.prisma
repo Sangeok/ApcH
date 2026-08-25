@@ -121,6 +121,11 @@ model Clip {
     hook         String?
     payoff       String?
 
+    // 렌더 시점의 자막 번역 폴백 상태다(BUG-02가 성공 콜백에 실음 —
+    // "ok" | "partial-fallback" | "full-fallback"). 여기 저장하지 않으면
+    // 웹이 폴백 사실을 표시할 방법이 없다(FEAT-21).
+    subtitleStatus String?
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 

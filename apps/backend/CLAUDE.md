@@ -116,8 +116,8 @@ GPU·S3·Gemini·Modal이 필요한 경로는 이 러너로 덮을 수 없다. �
 
 - Gemini 2.5 Flash with structured JSON output
 - Prompt engineering for Q&A extraction (30-90s clips)
-- Critical constraints: no overlap, sentence boundaries, max 90s. The bounds live in `MAX_CLIP_DURATION` / `MIN_CLIP_DURATION` (`main.py:88-89`) and are shared by the analyze, render, and auto paths
-- Returns: `[{"start": seconds, "end": seconds, "type": "qa" | "insight", "hook": str, "payoff": str}, ...]`. `type`, `hook`, and `payoff` were added after the original start/end pair and are consumed at `main.py:1040-1042`
+- Critical constraints: no overlap, sentence boundaries, max 90s. The bounds live in `MAX_CLIP_DURATION` / `MIN_CLIP_DURATION` (`main.py:104-105`) and are shared by the analyze, render, and auto paths
+- Returns: `[{"start": seconds, "end": seconds, "type": "qa" | "insight", "hook": str, "payoff": str}, ...]`. `type`, `hook`, and `payoff` were added after the original start/end pair and are consumed at `main.py:1104-1106`
 
 **Stage 3: Clip Processing** (`process_clip()` for each moment)
 
@@ -132,22 +132,22 @@ GPU·S3·Gemini·Modal이 필요한 경로는 이 러너로 덮을 수 없다. �
    - Fallback: blurred background with centered content
    - 1080x1920 output with GPU-accelerated encoding
 4. **Subtitle Overlay**: `create_subtitles_with_ffmpeg()` (English) / `create_korean_subtitles_with_ffmpeg()` (Korean)
-   - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:136`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
+   - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:152`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
    - Defaults differ by language:
 
-     | | English (`main.py:272-275`) | Korean (`main.py:388-391`) |
+     | | English (`main.py:288-291`) | Korean (`main.py:404-407`) |
      |---|---|---|
-     | font | Anton (`main.py:339`) | Noto Sans KR (`main.py:545`) |
+     | font | Anton (`main.py:355`) | Noto Sans KR (`main.py:550`) |
      | fontsize | 122 | 130 |
      | words per line | 5 | 3 |
      | marginv | 165 | 155 |
      | outline width | 1.1 | 1.3 |
 
-   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:112-116`)
-   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:119-122`)
+   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:127-131`)
+   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:134-137`)
    - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` and `outlineColor` as `#RRGGBB` (defaulting to white and black), `outlineWidth` 0–6, `uppercase` as a boolean (applied to the event text, so it only changes Latin characters in a Korean line)
    - **pysubs2 `SSAStyle` attribute names carry no underscore** — `primarycolor`, `outlinecolor`, `borderstyle`, `backcolor`. It is a dataclass, so assigning `primary_color` raises nothing and silently renders the default. That exact typo shipped once and made every user-picked caption color render white
-5. **S3 Upload**: Final clip uploaded to same directory as source
+5. **S3 Upload**: Final clip uploaded to same directory as source. Transient failures (throttling, timeouts, connection errors) retry with capped exponential backoff via `_s3_call_with_retry` (`main.py`), whose decisions live in the stdlib-pure `s3_upload_policy.py`; a final failure raises with the operation, key, and attempt count in the message (BUG-03)
 
 ### Columbia ASD Integration (asd/)
 
@@ -214,7 +214,6 @@ Key packages in requirements.txt:
 ## Current Known Issues
 
 - Gemini responses may include markdown code fences that need stripping
-- No error handling for failed S3 uploads
 - Temporary directories cleaned up regardless of processing success
 
 ## CRITICAL: File Editing on Windows

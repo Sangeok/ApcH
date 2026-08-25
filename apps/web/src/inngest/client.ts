@@ -14,6 +14,7 @@ type ProcessVideoBackendClip = {
   clipType?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  subtitleStatus?: string | null;
 };
 
 // 캡션 계약의 원천은 shared/config의 CaptionStyle 단일 타입이다.

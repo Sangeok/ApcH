@@ -30,6 +30,12 @@ from s3_upload_policy import (
     next_backoff,
     format_upload_error,
 )
+from translation_fallback import (
+    parse_translations,
+    assemble_korean_texts,
+    classify_translation,
+    TRANSLATION_OK,
+)
 
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
@@ -64,7 +70,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True)
-    .add_local_python_source("s3_upload_policy"))
+    .add_local_python_source("s3_upload_policy", "translation_fallback"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -513,27 +519,16 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
 
         translation_payload = json.loads(response_text)
 
-        translations_map = {}
-        if isinstance(translation_payload, list):
-            for item in translation_payload:
-                if not isinstance(item, dict):
-                    continue
-                idx = item.get("index")
-                text = item.get("translation")
-                if isinstance(idx, int) and isinstance(text, str):
-                    translations_map[idx] = text.strip()
-
-        korean_texts = []
-        for idx in range(len(english_texts)):
-            translation = translations_map.get(idx)
-            if not translation:
-                print(f"Warning: Missing translation for index {idx}, using English text fallback.")
-                translation = english_texts[idx]
-            korean_texts.append(translation)
+        translations_map = parse_translations(translation_payload)
+        korean_texts, missing_indices = assemble_korean_texts(english_texts, translations_map)
+        if missing_indices:
+            print(f"Warning: {len(missing_indices)} of {len(english_texts)} line(s) missing translation, using English fallback for indices {missing_indices}.")
+        subtitle_status = classify_translation(len(english_texts), missing_indices)
 
     except Exception as e:
         print(f"Translation error: {e}. Using original English text.")
         korean_texts = english_texts
+        subtitle_status = classify_translation(len(english_texts), [], hard_failure=True)
 
     # Step 5: 한글 자막과 타이밍 매핑
     korean_subtitles = []
@@ -590,7 +585,7 @@ def create_korean_subtitles_with_ffmpeg(transcript_segments: list, clip_start: f
 
     # Return the script text
     script_text = "\n".join(text for _, _, text in korean_subtitles if text)
-    return script_text
+    return script_text, subtitle_status
 
 def generate_youtube_metadata(script_text: str, language: str, gemini_client) -> dict:
     default_metadata = {
@@ -778,7 +773,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         f"--pretrainModel weight/finetuning_TalkSet.model"
     )
     columbia_start_time = time.time()
-    subprocess.run(columbia_commands, cwd="/asd", shell=True)
+    subprocess.run(columbia_commands, cwd="/asd", shell=True, check=True)
     columbia_end_time = time.time()
     print(f"Columbia script completed in {columbia_end_time - columbia_start_time:.2f} seconds")
 
@@ -816,6 +811,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     )
 
     script_text = ""
+    subtitle_status = TRANSLATION_OK
     uploaded_clip_s3_key = None
 
     if selected_language == "English":
@@ -836,7 +832,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     elif selected_language == "Korean":
         # 한글 자막 영상 생성
         print(f"Creating Korean subtitles for clip {clip_index}...")
-        script_text = create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3, caption_style=caption_style)
+        script_text, subtitle_status = create_korean_subtitles_with_ffmpeg(transcript_segments, start_time, end_time, vertical_mp4_path, korean_output_path, gemini_client, max_word=3, caption_style=caption_style)
 
         # 한글 자막 영상 업로드
         korean_s3_key = f"{s3_key_dir}/{clip_name}_kr.mp4"
@@ -863,6 +859,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         "s3Key": uploaded_clip_s3_key,
         "scriptText": script_text,
         "language": selected_language,
+        "subtitleStatus": subtitle_status,
         "youtubeTitle": youtube_metadata["title"],
         "youtubeDescription": youtube_metadata["description"],
         "youtubeHashtags": youtube_metadata["hashtags"],

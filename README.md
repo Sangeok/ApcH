@@ -349,9 +349,7 @@ apps/backend/
 ## Known Issues & Limitations
 
 - Korean translation may fallback to English on API errors
-- No error handling for S3 upload failures
 - Temporary directory cleanup regardless of success
-- Credits not consumed if pipeline fails mid-process
 
 ## License
 
