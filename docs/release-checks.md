@@ -17,31 +17,48 @@
 - **이 문서는 상태 문서다** — `PROJECT_BOARD.md`처럼 갱신하며 `docs/agents/`의 append-only
   규약을 따르지 않는다. 확인 활동의 상세는 `docs/agents/main-loop/`에 쓴다.
 - 절은 항목별·최신순(보드 섹션 순서). 전부 닫힌 절도 지우지 않는다 — 닫혔다는 사실이 기록이다.
-- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조). 상세는 `docs/agents/main-loop/FEAT-19.md`.
+- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조) · 3차(PR #101 합류 직후 재스윕 — FEAT-17·18 마감, 실보드 파생 상태 라이브 관측). 상세는 `docs/agents/main-loop/FEAT-19.md`.
 
 ---
 
+## FEAT-20 — 게이트 카드 잠금(반영 대기 칩) (admin, 구현 2026-08-25)
+
+원천: `docs/agents/admin-dev/FEAT-20.md`·계획서 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후 확인 가능.**
+
+- [ ] 잠금 공유 — 도장 성공 → 반려 패널도 사라짐 / 반려 성공 → 도장 버튼도 칩으로 (카드 단위 한 성공에 함께 잠김)
+- [ ] `LockedChip` 시각 — 도장 슬롯 대체·점 마커 4색(stamp/active/hold/destructive) 3:1·`text-xs` muted AA
+- [ ] 실패는 잠그지 않음 — 스테일 실패 시 버튼 활성 유지·재시도 가능
+- [ ] `router.refresh()` 후 잠금 유지 + 보드 flip 시 카드 소멸로 잠금 자연 소거
+- [ ] 하드 리로드 시 CDN 창(≤5분) 동안 버튼 재노출(설계된 한계 — 서버 가드가 오커밋 차단)
+- [ ] 서류철(doc-viewer) 게이트②에서 동일 잠금 동작
+
+## BUG-03 — S3 업로드 재시도·맥락 오류 (backend, 구현 2026-08-25)
+
+원천: `docs/agents/backend-dev/BUG-03.md` 「못 덮는 범위」. 전부 `modal run`/재배포가 필요해 **사용자만 닫을 수 있다**.
+
+- [ ] Modal 이미지에 `s3_upload_policy` 번들 — 컨테이너에서 `ModuleNotFoundError` 없이 import (`add_local_python_source` 효과)
+- [ ] 재시도 실동작 — `_s3_call_with_retry` 루프·`time.sleep`·boto 예외 매핑(S3UploadFailedError 원인 사슬 풀기 포함). 분류 로직 자체는 검증 라운드에서 boto3 1.43.62 재생으로 확인됨 — 남는 것은 컨테이너 배선
+- [ ] `modal deploy` 후 실제 업로드 경로 정상 (en·kr 클립 + analyze 전사)
+
 ## FEAT-18 — 대시보드 로스터 7인 동기화 (admin, 보드 2026-08-24 절)
 
-원천: `docs/agents/admin-dev/FEAT-18.md` 「못 덮는 범위」
-**⚠ 배포 전 — 프로덕션은 main 빌드(마지막 합류 PR #100)라 이 코드가 아직 없다(2026-08-24 실측: 책상 5개). dev→main 합류 후 확인 가능.**
+원천: `docs/agents/admin-dev/FEAT-18.md` 「못 덮는 범위」. PR #101 합류(2026-08-24 12:24Z)로 배포 → 같은 날 재스윕.
 
-- [ ] 새 두 책상(backend-dev·plan-verifier)의 픽셀 SVG 실제 렌더 — 스프라이트·ledger 소품 격자·명패 폭
-- [ ] 말풍선 색과 "검증 중"/"작업 중" 문구의 시각 결과
-- [ ] 폰 2열 / 데스크톱 flex-wrap에서 7책상 줄바꿈
-- [ ] backend-work 명령 버튼 — useTransition·토스트·GitHub POST
-- [ ] 프로필 라우트 실개방 — `/pipeline/agents/backend-dev`·`/pipeline/agents/plan-verifier` 라이브 fetch (2026-08-24 현재 404 — 배포 전이라 정상)
-- [ ] 새 hex 색의 픽셀 대비
+- [x] 새 두 책상(backend-dev·plan-verifier)의 픽셀 SVG 실제 렌더 — 확인(2026-08-24 재스윕: 스프라이트·소품·명패 수납, 기존 5책상과 픽셀 일관)
+- [x] 말풍선 색과 "검증 중"/"작업 중" 문구 — 확인(2026-08-24, 실보드 라이브: BUG-03 검토대기 파생으로 plan-verifier "검증 중", FEAT-20 계획지시로 admin-dev "작업 중" 동시 실렌더)
+- [x] 폰 2열 / 데스크톱 flex-wrap에서 7책상 줄바꿈 — 확인(grid 143px×2·넘침 0·데스크톱 wrap 실측)
+- [ ] backend-work 명령 버튼 — 렌더는 확인(backend-dev 책상 "작업 진행"), useTransition·토스트·GitHub POST는 클릭이 실제 코멘트라 실사용 시
+- [x] 프로필 라우트 실개방 — 확인(2026-08-24: `/pipeline/agents/backend-dev` 상세 렌더 실측·`/pipeline/agents/plan-verifier` 개방. 합류 전 404 → 합류 후 200 전환 관측)
+- [x] 새 hex 색의 픽셀 대비 — 확인(2026-08-24, 스크린샷 판정: 기존 팔레트와 일관·가독)
 
 ## FEAT-17 — 행위자 역할 정의 점진 공개 (admin, 보드 2026-08-23 절)
 
-원천: `docs/agents/admin-dev/FEAT-17.md` 「테스트로 못 덮은 범위」
-**⚠ 배포 전 — FEAT-18과 같음(2026-08-24 실측: pm 상세가 접힘 없는 전문 덤프로 렌더 = 이전 판).**
+원천: `docs/agents/admin-dev/FEAT-17.md` 「테스트로 못 덮은 범위」. PR #101 합류로 배포 → 같은 날 재스윕.
 
-- [ ] `<details>` 실제 펼침/접힘, `+`→`×` 마커 회전(`group-open:rotate-45`), `list-none` 마커 숨김
-- [ ] `hover:text-stamp`, `motion-reduce:transition-none`, 반응형 패딩(`sm:px-8`)
-- [ ] `dangerouslySetInnerHTML` 실제 렌더 모양
-- [ ] 명조 디스플레이(`font-briefing-display`)의 폰 폴백 — Gowun Batang → 고딕(FEAT-04와 동일 한계)
+- [x] `<details>` 실제 펼침/접힘, `+`→`×` 마커 회전, `list-none` — 확인(2026-08-24: backend-dev 프로필에서 10절 접힘·클릭 펼침·열림 시 `rotate: 45deg` 실측 — Tailwind v4가 `transform`이 아닌 `rotate` 속성으로 방출·네이티브 마커 없음)
+- [ ] `hover:text-stamp`, `motion-reduce:transition-none`, 반응형 패딩 — 클래스 실재·렌더 정상 확인. hover 시각만 잔여
+- [x] `dangerouslySetInnerHTML` 실제 렌더 모양 — 확인(2026-08-24: 역할 정의 본문 표·코드·강조 실렌더)
+- [ ] 명조 디스플레이(`font-briefing-display`)의 폰 폴백 — Gowun Batang → 고딕(실기기 필요, FEAT-04와 동일 한계)
 
 ## FEAT-16 — 최종 클립에 선택 근거 저장·표시 (web, 보드 2026-08-20 절)
 
@@ -63,9 +80,9 @@
 원천: `docs/agents/admin-dev/FEAT-14.md` 「테스트로 못 덮은 범위」
 
 - [x] `DocViewer` 렌더 — 확인(2026-08-24: FEAT-16 계획서 h1+prose 18블록+형제 탭 3 실측 + 시각 판정 합격 — 명조 제목·오커 인용·모노 코드·서류철 탭 활성·375px 래핑 정상)
-- [ ] `next/link` 카드 링크 네비게이션·`DocLinks` 렌더 — 목적지 라우트 동작은 확인(직접 URL 진입), 카드 클릭 경유는 미실행
+- [x] `next/link` 카드 링크 네비게이션·`DocLinks` 렌더 — 확인(2026-08-24 재스윕: BUG-03 카드 "계획서 →" 클릭 → 뷰어가 방금 푸시된 계획서 렌더)
 - [x] 실제 raw CDN fetch·contents API 응답 — 확인(2026-08-24: 문서 본문 렌더=raw fetch 실동작, 책상 "기록 N건"=contents API 실동작)
-- [ ] 배포 후 smoke 목적지 1~6 — 인가 보호·plan 렌더·행위자 기록(report) 렌더(`agents/admin-dev/FEAT-18`)·화이트리스트 밖 404(`/pipeline/docs/secrets/nope`)는 확인(2026-08-24). 잔여: 게이트 가시성(검토대기 발생 시)·카드 클릭 경유
+- [x] 배포 후 smoke 목적지 1~6 — 확인(2026-08-24: 인가 보호·plan 렌더·행위자 기록 렌더·화이트리스트 밖 404·카드 링크 경유·게이트 가시성(BUG-03 검토대기 카드에 구현승인 도장+검증 전 칩 노출) 전부 관측)
 
 제외: 헤더 게이트/반려 버튼 상호작용은 FEAT-08·09 절에서 관리(보고 스스로 승계 명시).
 raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드오프(FEAT-10 결정 6).
@@ -74,7 +91,8 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 
 원천: `docs/agents/admin-dev/FEAT-13.md`
 
-- [ ] `ValidationMark` 실물 렌더 — 실선 active 칩 vs 점선 hold 칩·`title` 툴팁·`flex-wrap` 반응형·토큰 시각 대비·검토대기에서만 렌더되는 조건부 (2026-08-24 스윕 시 보드에 검토대기 항목이 없어 조건 미충족 — 다음 검토대기 발생 시 확인)
+- [x] `ValidationMark` 점선 「검증 전」 칩 + 검토대기 조건부 — 확인(2026-08-24, 실보드: BUG-03 검토대기 카드에 점선 칩 실렌더, 승인대기 BUG-02 카드엔 없음 — 조건부 양·음성 동시 관측)
+- [ ] `ValidationMark` 실선 「검증 통과」 칩·`title` 툴팁 — BUG-03 검증 클린 패스 후 보드에 `검증:` 줄이 생기면 자연 확인
 
 ## FEAT-12 — 보드 감압·행위자 보고서 표시 (admin+루트 문서, 보드 2026-08-18 절)
 
@@ -82,7 +100,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 
 - [x] `getAgentReports`·`getAgentReportIndex` 실제 fetch·404→빈 목록 분기·토큰 유무 분기 — 확인(2026-08-24: 책상 "기록 5건/1건" 실표시, pm 프로필 "아직 기록이 없습니다"=폴더 부재의 빈 목록 처리)
 - [x] `BudgetFlag` 시각 — 확인(2026-08-24: 보고 피드에 "150자 초과" 칩 다수 실렌더, 툴팁 문구 포함)
-- [ ] `DeskReports` 렌더·`<details>` 펼침 (동일 네이티브 details 메커니즘은 결재함 "근거 보기"로 실측했으나 DeskReports 자체는 미클릭)
+- [x] `DeskReports` 렌더·`<details>` 펼침 — 대체(FEAT-14가 책상을 "기록 N건" 문구로, FEAT-15가 클릭을 행위자 상세 페이지로 교체 — 그 details 표면 자체가 더는 없음. 2026-08-24 실측: 책상엔 문구뿐)
 
 ## FEAT-10 — 동적 실행 콘솔·진행 pill (admin, 보드 2026-08-16 절)
 
@@ -109,13 +127,13 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 
 원천: 보드 FEAT-08 `결과`
 
-- [ ] 도장 커밋 왕복 — contents API GET/PUT·base64·sha 409 분기·토큰 미설정 토스트 (다음 게이트 결정을 대시보드 도장으로 하면 자연 마감)
-- [ ] `GateTransitionButton` useTransition·toast·router.refresh
+- [x] 도장 커밋 왕복 — 확인(2026-08-24, 실사용: BUG-03 게이트① 도장 → 커밋 `f028537`, status 1줄 최소 diff 실측. 잔여 이론 분기: sha 409 경합·토큰 미설정 토스트 — 미발생, 발생 시 확인)
+- [x] `GateTransitionButton` useTransition·toast — 확인(2026-08-24, 실사용: 소유자가 성공 토스트 관측. router.refresh는 CDN 잔상 탓에 화면 무변화가 설계된 정상 동작)
 - [ ] 도장 임프린트 시각(테두리·hard 그림자·hover 들림·active 눌림)·라벨 잉크 5.20:1 실화면·세리프 폴백(폰) — 임프린트 렌더·라벨 가독은 스크린샷 판정 합격(2026-08-24). 잔여: hover 들림·active 눌림(정적 스크린샷으로 불가)·폰 실기기 세리프 폴백
-- [ ] 투영 지연 체감(raw CDN 잔상 — 커밋 성공 후 잠시 결재함에 남음, 성공 토스트가 결과 확정)
+- [x] 투영 지연 체감(raw CDN 잔상) — 확인(2026-08-24, 실사용: 도장 후 "토스트만 뜨고 화면 무변화"를 소유자가 그대로 체감 — FEAT-10이 안내 카피까지 만든 설계된 트레이드오프)
 
-비고: FEAT-09 근거가 "게이트①을 도장 버튼으로 열 예정(첫 실측 겸)"이라 적었으나 실측 결과 기록을
-찾지 못해 닫지 않았다 — 소유자가 실사용 기억으로 닫을 수 있다.
+관찰(2026-08-24, 실사용 발견 → 백로그 FEAT-20 이관): 성공 후에도 도장·반려 버튼이 잔상 5분 동안
+활성으로 남아 재클릭을 유도한다. 재클릭 자체는 서버 스테일 가드가 거부(데이터 안전, 실측 커밋 1건).
 
 ## FEAT-07 — 픽셀 사무실 (admin, 보드 2026-08-15 절)
 

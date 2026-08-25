@@ -35,6 +35,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-24
+- [x] FEAT-20: 게이트 도장·반려 성공 후 카드 버튼을 「반영 대기」로 잠그기 — CDN 잔상 5분 동안의 재클릭 유도 제거
+  agent: admin-dev
+  area: apps/admin/src/fsd/features/transition-pipeline-gate
+  status: 완료
+  근거: 소유자 직접 발주(pm 미경유). 첫 도장 실사용(BUG-03 게이트①)에서 성공 후에도 버튼이 활성으로 남아 재클릭을 유도한 관측 해소. 발주 계약은 백로그 FEAT-20. 미결 2건째(BUG-03 병렬).
+  결과: 신규 GateCardLock 컨텍스트로 도장·반려 성공 시 두 화면 카드 버튼을 잠금 칩으로 종결. 신규1·수정7. check·test 278/59·verify:fsd:final·build 넷 다 EXIT 0. 상세 admin-dev/FEAT-20
+  검증: 클린 패스 (2026-08-25, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [x] FEAT-19: 배포 확인 원장 도입 — 완료 항목의 「배포 후 수동 확인」 선언을 모아 마감하는 상태 문서 + 런북 단계
   agent: main-loop
   area: 루트 문서 + docs
@@ -58,11 +65,13 @@
   근거: 소유자 직접 발주(pm 미경유). 역할 정의가 지시문 전문 덤프로 렌더되는 관측 해소. 설계 결정 넷·펜스 함정은 백로그 FEAT-17이 원천.
   결과: 역할 정의를 펜스 밖 `##`로 나눠 도입부 카드+절별 접힌 details로 교체(+→× 마커). 수정3. check·test 273/58·verify:fsd:final·build 다 0. 상세 admin-dev/FEAT-17
   검증: 클린 패스 (2026-08-23, 독립 무편집 1라운드 — plan-verifier 2사이클째)
-- [ ] BUG-03: S3 업로드 실패에 대한 에러 핸들링 부재
+- [x] BUG-03: S3 업로드 실패에 대한 에러 핸들링 부재
   agent: backend-dev
   area: apps/backend
-  status: 승인대기
+  status: 완료
   근거: 최종 산출물 유실 위험이 가장 큰 backend 신뢰성 결함. 백엔드 항목은 지금껏 한 번도 선정된 적 없고 미결 0건이라 착수 가능.
+  결과: 업로드 3곳(en·kr·transcript)을 재시도 래퍼로 감싸고 순수 정책 모듈+테스트 신설. unittest 15/15·py_compile 0. 스케치대로 무차이. 상세 backend-dev/BUG-03
+  검증: 클린 패스 (2026-08-24, 독립 무편집 1라운드)
 - [ ] BUG-02: 한국어 번역 API 실패 시 영어로 조용히 폴백됨 (사용자에게 알림 없음)
   agent: backend-dev
   area: apps/backend

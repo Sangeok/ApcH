@@ -11,10 +11,6 @@
   - area: apps/backend
   - source: README Known Issues
 
-- [ ] **BUG-03**: S3 업로드 실패에 대한 에러 핸들링 부재
-  - area: apps/backend
-  - source: README Known Issues
-
 - [ ] **BUG-04**: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
   - area: apps/backend
   - source: README Known Issues

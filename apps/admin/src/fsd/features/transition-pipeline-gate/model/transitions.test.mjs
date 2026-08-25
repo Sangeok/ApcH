@@ -7,11 +7,13 @@ import {
   applyDiscard,
   applyGateTransition,
   applyHoldTransition,
+  GATE_LOCK_LABEL,
   gateCommitMessage,
   gateNextActionHint,
   holdResultLine,
   rejectActionsFor,
   rejectCommitMessage,
+  rejectLockLabel,
   resolveGateTransition,
 } from "./transitions.ts";
 
@@ -579,5 +581,18 @@ describe("gateNextActionHint — 도장 성공 토스트에 잇는 안내", () =
         "보드에 반영되면 파이프라인 실행을 눌러 다음 단계를 진행하세요.",
       );
     }
+  });
+});
+
+// ── FEAT-20: 카드 잠금 표식 문구(순수) ─────────────────────────────────────
+describe("GATE_LOCK_LABEL·rejectLockLabel — 잠금 칩 문구(리터럴 고정)", () => {
+  it("도장 잠금 문구는 '도장 찍음 · 보드 반영 대기'로 고정", () => {
+    assert.equal(GATE_LOCK_LABEL, "도장 찍음 · 보드 반영 대기");
+  });
+
+  it("반려 잠금 문구는 액션별 낱말 + '· 보드 반영 대기'(3분기)", () => {
+    assert.equal(rejectLockLabel("bounce"), "되돌림 · 보드 반영 대기");
+    assert.equal(rejectLockLabel("hold"), "보류함 · 보드 반영 대기");
+    assert.equal(rejectLockLabel("discard"), "폐기함 · 보드 반영 대기");
   });
 });
