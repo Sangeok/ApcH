@@ -30,6 +30,7 @@ agent: admin-dev
 | `src/fsd/features/run-pipeline-command/model/run-plan.test.mjs` | `GATE_WAITING_DESC` 상수와 옛 문구를 인용하는 `it()` 제목을 새 문구로 갱신 |
 | `src/fsd/features/transition-pipeline-gate/model/transitions.ts` | 잠금 칩 문구에서 "· 보드 반영 대기" 지연 전제 절 제거(칩 자체·재클릭 방지는 유지) |
 | `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | `GATE_LOCK_LABEL`·`rejectLockLabel` 리터럴 단언과 옛 문구를 인용하는 `it()` 제목 둘을 새 문구로 갱신 |
+| `src/fsd/entities/pipeline/config/github.ts` | `BOARD_CONTENTS_URL` 부착 주석 2줄 갱신 — "raw=읽기·contents=커밋 전용" 분할 서술이 구현 후 거짓이 됨(코드 무변경, 주석만) |
 
 `scripts/verify-fsd-boundaries.mjs`는 **고치지 않는다** — `queries.ts`는 이미 fetch owner라 owner 집합(6개)이 바뀌지 않는다(판단 지점 3, 아래 「대안」·「테스트」에 확인 근거).
 
@@ -184,6 +185,25 @@ export function rejectLockLabel(action: RejectAction): string {
 ```
 
 근거: 잠금 칩 **자체는 유지한다**(도장·반려 성공 뒤 재클릭 방지 — 화면이 하드 리로드 전까지 클라이언트 상태로 잠긴 채 남는다). 잠금은 **카드 단위**다 — 카드마다 `GateCardLock` Provider 하나가 감싸고 그 카드의 도장 버튼·반려 패널이 상태를 나눈다(`gate-card-lock.tsx:8-11` "카드 단위 잠금", `:26-27` 카드별 `useState`). 낡는 것은 "보드 반영 대기"라는 지연 전제뿐이다: 도장 후 raw CDN 잔상 창(최대 5분) 동안 투영이 낡을 수 있음을 알리는 문구였는데, 이 항목이 그 창을 없앤다. "도장 찍음"·완료 동사만으로 종결을 전달하며(점 색은 비텍스트로 함께 전달, `gate-card-lock.tsx:41-45`), 새 지연 전제를 새로 만들지 않는다.
+
+### 4) `src/fsd/entities/pipeline/config/github.ts:10-11` — 상수 부착 주석 시효 정정
+
+before (`github.ts:10-11`):
+
+```ts
+// 게이트 전이 커밋용 contents API. raw URL은 투영(읽기)에 계속 쓰고,
+// 이 URL은 sha 읽기·status/result/block 최소 edit 커밋(commit-gate-transition.ts)에 쓴다.
+```
+
+after:
+
+```ts
+// 보드 콘텐츠 contents API. FEAT-22부터 읽기(투영) 주 경로도 이 URL을 쓴다(queries.ts —
+// raw URL은 토큰 부재 시 폴백으로만 남는다). 쓰기는 sha 읽기·status/result/block
+// 최소 edit 커밋(commit-gate-transition.ts)에 쓴다.
+```
+
+근거: 구현 후 이 상수의 소비자는 쓰기(`commit-gate-transition.ts`)와 읽기(`queries.ts`) 둘이 된다. 옛 주석의 "raw URL은 투영(읽기)에 계속 쓰고"·"게이트 전이 커밋용"이라는 분할은 같은 슬라이스의 `queries.ts` 새 주석(읽기=contents 주 경로·raw=폴백)과 정면 모순으로 남는다. 코드(상수 값·export)는 바꾸지 않는다.
 
 ## 테스트
 

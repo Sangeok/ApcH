@@ -38,9 +38,9 @@
 - [ ] FEAT-22: 파이프라인 보드 읽기의 최대 5분 지연 제거 — raw CDN을 contents API로 교체
   agent: admin-dev
   area: apps/admin/src/fsd/entities/pipeline
-  status: 검토대기
+  status: 구현승인
   근거: 소유자 직접 발주(게이트① 세션 지시). 도장 직후 낡은 보드로 실행 버튼 잠김·잠금 칩 "반영 대기" 문구의 공통 원인 제거. 발주 계약은 백로그 FEAT-22. 미결 2건째(BUG-07 병렬)는 소유자 결정.
-  결과: 계획서 작성 완료 → docs/plans/FEAT-22.md. 읽기 owner queries.ts를 토큰 시 contents API·부재 시 raw 폴백(shape fail-closed)으로 교체, 실행 콘솔·잠금 칩의 5분 지연 문구 정정. 수정6·코드 미변경.
+  결과: 계획서 작성 완료 → docs/plans/FEAT-22.md. 읽기 owner queries.ts를 토큰 시 contents API·부재 시 raw 폴백(shape fail-closed)으로 교체, 실행 콘솔·잠금 칩의 5분 지연 문구 정정. 수정7(주석 1 포함)·코드 미변경.
 
 ## 2026-08-25
 - [ ] BUG-07: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
