@@ -9,8 +9,7 @@ function item(id, status) {
 }
 
 const NO_ACTIONABLE_DESC = "지금 파이프라인이 진행할 항목이 없습니다.";
-const GATE_WAITING_DESC =
-  "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다. 방금 찍었다면 보드 반영까지 최대 5분 걸립니다.";
+const GATE_WAITING_DESC = "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다.";
 
 describe("describePipelineRun — 동적 라벨", () => {
   it("빈 배열 → 비활성, 진행할 작업 없음", () => {
@@ -34,7 +33,7 @@ describe("describePipelineRun — 동적 라벨", () => {
 
   // 승인대기만 / 검토대기만은 각각 단언한다 — 한 케이스로 묶으면 GATE_WAITING에서
   // 한쪽이 빠져도 나머지 하나가 플래그를 세워 통과한다(돌연변이 검사 실측).
-  it("승인대기만 → 비활성 + 도장 안내(반영 지연 포함)", () => {
+  it("승인대기만 → 비활성 + 도장 안내", () => {
     assert.deepEqual(describePipelineRun([item("FEAT-01", "승인대기")]), {
       enabled: false,
       label: "진행할 작업 없음",

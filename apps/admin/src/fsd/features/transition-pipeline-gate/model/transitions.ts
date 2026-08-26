@@ -160,11 +160,12 @@ export function rejectActionsFor(fromStatus: string): RejectAction[] {
 }
 
 // 카드 잠금 표식(FEAT-20): 도장·반려 성공 뒤 버튼 자리를 대신하는 비상호작용 칩의 재료.
-// label=낱말+"보드 반영 대기", marker=점 색 Tailwind class(비텍스트 — 색 단독 전달 아님).
+// label=완료 낱말, marker=점 색 Tailwind class(비텍스트 — 색 단독 전달 아님).
 export type CardLock = { label: string; marker: string };
 
-// 도장(게이트 전진) 성공 뒤 칩 문구. FEAT-10의 "보드 반영" 어휘를 잇는다.
-export const GATE_LOCK_LABEL = "도장 찍음 · 보드 반영 대기";
+// 도장(게이트 전진) 성공 뒤 칩 문구. 재클릭 방지용 종결 표식이다. "보드 반영 대기"
+// 절은 FEAT-22가 읽기 지연(raw CDN 잔상)을 없애 더는 참이 아니므로 뺀다.
+export const GATE_LOCK_LABEL = "도장 찍음";
 
 // 반려 성공 뒤 칩 문구. 낱말은 반려 액션 동사를 잇는다(reject-actions 토스트 어휘와 대칭).
 const REJECT_LOCK_WORD: Record<RejectAction, string> = {
@@ -173,7 +174,7 @@ const REJECT_LOCK_WORD: Record<RejectAction, string> = {
   discard: "폐기함",
 };
 export function rejectLockLabel(action: RejectAction): string {
-  return `${REJECT_LOCK_WORD[action]} · 보드 반영 대기`;
+  return REJECT_LOCK_WORD[action];
 }
 
 // 되돌리기(bounce) — status 줄만 교체. applyGateTransition과 같은 기계, 화이트리스트만 다르다.

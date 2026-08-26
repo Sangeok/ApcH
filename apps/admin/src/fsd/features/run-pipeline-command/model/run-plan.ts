@@ -41,7 +41,7 @@ export function describePipelineRun(items: BoardItem[]): RunPlan {
       enabled: false,
       label: "진행할 작업 없음",
       description: hasGateWaiting
-        ? "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다. 방금 찍었다면 보드 반영까지 최대 5분 걸립니다."
+        ? "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."
         : "지금 파이프라인이 진행할 항목이 없습니다.",
     };
   }
