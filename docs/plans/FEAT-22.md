@@ -204,6 +204,12 @@ export function rejectLockLabel(action: RejectAction): string {
 
 이 항목을 막는 범위 밖 의존은 **없다**(`packages/db`·타 워크스페이스·DB 쓰기 경로 불필요 — 읽기 owner 한 파일의 fetch 대상만 바꾼다).
 
+인수 시 메인 루프 동기화(비차단 — `apps/admin/CLAUDE.md`는 admin-dev 쓰기 범위 밖이라 메인 루프가 유지한다, FEAT-08~10 전례). 이 구현으로 시효가 되는 유지 인벤토리 **세 곳**:
+
+- `apps/admin/CLAUDE.md:37` 테스트 인벤토리 "27개 파일, 59개 suite, **278개 test**" → **281개 test**(파일 27·suite 59 불변 — queries.test.mjs가 2→5 test로 늘 뿐 파일·suite 수는 그대로).
+- `apps/admin/CLAUDE.md:47` `queries.test.mjs` 계약 행 "raw board no-store GET과 non-OK 실패" → "토큰 시 contents API GET(base64 디코드·shape fail-closed)·토큰 부재 시 raw 폴백·non-OK 실패"로 갱신.
+- `apps/admin/CLAUDE.md:111` "**raw** board GET owner는 `…/pipeline/api/queries.ts`다" → 주 경로가 contents API가 되므로 "보드 GET owner는 `…queries.ts`다(토큰 시 contents API, 부재 시 raw CDN 폴백)"로 라벨 정정.
+
 승계용 후속(판단 6, 이 항목을 막지는 않음): **dev 책상 「작업 진행」 버튼의 보드 상태 게이팅.** 백로그 FEAT-22 `source`가 명시하듯, 책상 버튼을 보드 status로 게이팅하는 것은 읽기가 신선해진 뒤에만 정당하다(낡은 보드로 게이팅하면 도장 직후 잘못 잠긴다). 이 항목이 읽기 신선도를 확보하므로 후속으로 다룰 수 있다. `apps/admin` 범위 안이지만 별도 요구·설계라 이 항목에 넣지 않는다 — 메인 루프 인수 시 백로그 후보로 제시.
 
 ## 대안
