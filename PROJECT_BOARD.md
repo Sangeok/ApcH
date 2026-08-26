@@ -38,7 +38,7 @@
 - [ ] FEAT-24: 원격 실행의 진행 과정을 대시보드에서 본다 — 루틴의 진행 코멘트 기반 실행 로그 + 대기 중 실행 버튼 잠금
   agent: admin-dev
   area: apps/admin/src/fsd/features/run-pipeline-command
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). BUG-07 실행 중 pill "무응답"·버튼 재활성으로 진행 여부 판단 불가 — 세션 API 직결 불가 확인 후 #87 진행 코멘트 경로로 등재. 미결 2건째(BUG-07 구현승인 병렬)는 소유자 결정.
 
 ## 2026-08-26
