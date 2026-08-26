@@ -14,6 +14,7 @@ agent: admin-dev
 - 앱 내 read owner 선례 둘이 이미 contents API를 인증과 함께 쓴다: 행위자 보고서 목록 (`agent-report/api/queries.ts:15-22`)과 계획서 목록 (`repo-doc/api/queries.ts:20-27`) — 둘 다 `env.GITHUB_PIPELINE_TOKEN`을 읽어 `token === undefined`면 `Authorization` 헤더를 뺀다.
 - `GITHUB_PIPELINE_TOKEN`은 optional이다 (`env.js:45`). 주석은 "없으면 미인증(60/h)으로 시도하되 폴링(240/h)이 한도를 넘으면 pill이 unknown"이라 적는다 (`env.js:41`).
 - `queries.ts`는 이미 승인된 fetch owner다 (`scripts/verify-fsd-boundaries.mjs:33`). fetch owner 집합은 6개다 (`verify-fsd-boundaries.mjs:32-39`).
+- 지연 전제 문구는 프로덕션 코드에 **세 곳**이다(`반영` 전수 grep, 주석 제외): ① 실행 콘솔 게이트대기 설명 "…최대 5분 걸립니다"(`run-plan.ts:44`) ② 잠금 칩 "· 보드 반영 대기"(`transitions.ts:167`·`:176`) ③ 도장 성공 토스트 힌트 "보드에 반영되면 파이프라인 실행을 눌러 …"(`transitions.ts:24-25`, `gateNextActionHint`). 이 계획은 ①②만 고치고 ③은 유지한다 — 근거는 「대안」의 해당 절.
 
 ## 문제
 
@@ -182,7 +183,7 @@ export function rejectLockLabel(action: RejectAction): string {
 }
 ```
 
-근거: 잠금 칩 **자체는 유지한다**(도장·반려 성공 뒤 재클릭 방지 — 화면이 하드 리로드 전까지 클라이언트 상태로 잠긴 채 남는다). 낡는 것은 "보드 반영 대기"라는 지연 전제뿐이다: FEAT-20 잠금은 페이지 전역 단일 lock이라 도장 후 raw CDN 잔상 창(최대 5분) 동안 투영이 낡을 수 있음을 알리는 문구였는데(`gate-card-lock.tsx:8-11`, 27), 이 항목이 그 창을 없앤다. "도장 찍음"·완료 동사만으로 종결을 전달하며(점 색은 비텍스트로 함께 전달, `gate-card-lock.tsx:41-45`), 새 지연 전제를 새로 만들지 않는다.
+근거: 잠금 칩 **자체는 유지한다**(도장·반려 성공 뒤 재클릭 방지 — 화면이 하드 리로드 전까지 클라이언트 상태로 잠긴 채 남는다). 잠금은 **카드 단위**다 — 카드마다 `GateCardLock` Provider 하나가 감싸고 그 카드의 도장 버튼·반려 패널이 상태를 나눈다(`gate-card-lock.tsx:8-11` "카드 단위 잠금", `:26-27` 카드별 `useState`). 낡는 것은 "보드 반영 대기"라는 지연 전제뿐이다: 도장 후 raw CDN 잔상 창(최대 5분) 동안 투영이 낡을 수 있음을 알리는 문구였는데, 이 항목이 그 창을 없앤다. "도장 찍음"·완료 동사만으로 종결을 전달하며(점 색은 비텍스트로 함께 전달, `gate-card-lock.tsx:41-45`), 새 지연 전제를 새로 만들지 않는다.
 
 ## 테스트
 
@@ -210,5 +211,6 @@ export function rejectLockLabel(action: RejectAction): string {
 - **런타임 폴백(contents API 실패 → raw CDN)**: 기각. contents API가 200이지만 shape 이상이거나 non-OK일 때 raw로 내려가면 조용히 낡은 보드를 주게 되어 이 항목이 없애려는 버그를 되살린다. fail-closed(throw)로 anomaly를 표면화한다.
 - **토큰 없이도 항상 contents API(미인증 60/h)**: 기각. 매 요청 no-store 읽기라 Vercel 공유 IP에서 남의 트래픽과 합쳐 60/h를 넘길 수 있다. 백로그도 "토큰 부재 시 raw CDN 폴백 유지"를 지시.
 - **raw URL에 캐시 무력화 쿼리(`?t=<now>`) 추가**: 기각. raw.githubusercontent.com 엣지 캐시의 max-age는 응답 헤더로 정해지며 임의 쿼리로 우회되지 않는다(그리고 새 URL마다 캐시 미스를 유발해도 신선도 보장이 없다). contents API가 정공법.
+- **도장 토스트 힌트(`transitions.ts:24-25` "보드에 반영되면 …")도 함께 수정**: 기각 — 유지한다. "보드 반영 대기"(칩)는 화면에 남는 **지속 상태 표식**이라 지연이 사라지면 거짓이 되지만, "보드에 반영되면 … 누르세요"(토스트)는 **조건 서술**이고 이 항목 뒤에도 참이다 — 반영은 이제 `router.refresh()` 왕복(수 초)으로 일어나며, 그 왕복이 끝나기 전 실행 버튼은 여전히 옛 상태다. 조건절을 지우면 사용자가 refresh 착지 전에 실행을 눌러 "진행할 작업 없음"을 보는 새 혼란을 만든다. 최대 5분 지연을 단정하지 않으므로 시효 문구가 아니다.
 - **잠금 칩 문구 수정을 후속으로 분리**: 기각. "보드 반영 대기"는 이 항목이 없애는 페이지 전역 지연 전제라, 두면 "반영 지연을 없앴는데 칩은 반영 대기라 말한다"는 모순이 배포된다(FEAT-10 3라운드가 잡은 "도장 직후 안내와 동적 라벨의 모순"과 같은 부류). 지시도 칩 메커니즘은 유지·문구만 시효라 명시하므로 메커니즘 재설계 없이 문구만 이 항목에서 정정한다.
 - **`scripts/verify-fsd-boundaries.mjs` 수정**: 불필요. `queries.ts`는 이미 fetch owner(`:33`)라 owner 집합(6개)이 그대로다. 검증에서 fetch가 같은 owner 파일 안에 남는지, owner 수가 6으로 유지되는지, `~/env` import가 경계를 깨지 않는지(선례 owner 둘이 이미 통과)를 `verify:fsd:final`로 확인한다.
