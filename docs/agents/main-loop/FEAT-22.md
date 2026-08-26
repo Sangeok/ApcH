@@ -164,3 +164,22 @@ raw는 폴백으로 강등되는데, 계획서의 시효 열거(테스트 제목
 
 반영 편집: 「고칠 파일」에 `config/github.ts` 행 추가(수정 6→7) + 스케치 4) 주석 before/after.
 보드 `결과` 줄의 "수정6"도 "수정7(주석 1 포함)"로 수리. admin-dev를 구현으로 디스패치.
+
+## 완료 인수 (2026-08-26) — 다섯 조건 직접 재현, 전부 통과
+
+1. **변경 파일 ↔ 「고칠 파일」**: 수정 7 + 보드·백로그 자기 행 + 신규 보고서, 표와 1:1. 표 밖 없음.
+2. **diff ↔ 스케치**: 프로덕션 4파일(queries.ts 전면·github.ts 주석·run-plan 문장·transitions
+   두 블록) **바이트 동일**(diff 전문 대조). 테스트 3파일은 명세 케이스 전부 대응 + "raw 미폴백"
+   명시 단언 추가 확인.
+3. **검증 재실행**: `check` EXIT 0 · `test` **281/60/0** · `verify:fsd:final` 통과 ·
+   `build` EXIT 0(/pipeline 1.63kB·130kB) — 넷 다 직접.
+4. **백로그**: FEAT-22 제거, 인접(BUG-04·BUG-08·FEAT-01·FEAT-23·BUG-07) 전문 무결 직접 확인.
+5. **상세 기록 실재**: `docs/agents/admin-dev/FEAT-22.md` — 주장 전부 직접 재검증과 일치.
+   **예외 1건 정정**: 보고서·계획서의 "suite 59 불변" 주장은 실측 **60**과 어긋난다(구현된
+   queries.test가 describe 2개). CLAUDE.md 동기화에는 실측치(27파일·60suite·281test)를 썼다.
+
+후속 동기화(메인 루프): `apps/admin/CLAUDE.md` 세 곳 — `:37` 테스트 인벤토리
+27파일·60suite·281test, `:47` queries.test 계약 행(contents API·fail-closed·raw 폴백),
+`:111` 보드 GET owner 라벨(raw 전용 서술 제거). 원장에 FEAT-22 절 등재 예정 — 못 덮는 범위:
+도장→즉시 반영 실물, 잠금 칩 새 문구("도장 찍음") 렌더, 게이트대기 설명 새 문구.
+이로써 도장 직후 5분 잔상이 코드에서 제거 — 배포(dev→main)만 남음.

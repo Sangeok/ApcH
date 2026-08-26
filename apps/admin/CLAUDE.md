@@ -34,7 +34,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **27개 파일, 59개 suite, 278개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **27개 파일, 60개 suite, 281개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -44,7 +44,7 @@ npm run build -w apps/admin
 | `src/server/auth/guard.test.mjs` | redirect·notFound·허용 identity |
 | `src/fsd/entities/analytics-event/api/queries.test.mjs` | 단일 read-only `findMany` shape와 최근 실패 filter/limit |
 | `src/fsd/entities/analytics-event/model/reporting.test.mjs` | 퍼널 순서·drop-off·실패 집계와 결정적 정렬 |
-| `src/fsd/entities/pipeline/api/queries.test.mjs` | raw board no-store GET과 non-OK 실패 |
+| `src/fsd/entities/pipeline/api/queries.test.mjs` | 토큰 시 contents API GET(base64 디코드·shape fail-closed·raw 미폴백)·토큰 부재 시 raw no-store 폴백·non-OK 실패 |
 | `src/fsd/entities/pipeline/model/board.test.mjs` | `PROJECT_BOARD.md` 파싱, 중복 `결과:` 누적, `검증` 필드(부재→null), `latestItemById`의 최상단 행 우선 |
 | `src/fsd/entities/agent-report/model/report-index.test.mjs` | contents 디렉터리 응답 → 보고서 목록, README 제외, 결정적 정렬, 부분 집계 금지 |
 | `src/fsd/entities/repo-doc/model/doc-location.test.mjs` | slug→경로 화이트리스트(트래버설·점 세그먼트·길이 위반 거부), 경로 재검사, 형제 문서 링크의 결정적 순서 |
@@ -108,7 +108,7 @@ Node module mock으로 DB/GitHub/Sentry 호출 계약을 실제 외부 I/O 없�
 
 - analytics DB read의 유일한 owner는 `src/fsd/entities/analytics-event/api/queries.ts`이며 허용 호출은 `db.analyticsEvent.findMany` 하나다.
 - analytics reporting은 `src/fsd/entities/analytics-event/model/reporting.ts`의 import-free 순수 함수다. canonical event/funnel 계약의 복사본을 만들지 않는다.
-- raw board GET owner는 `src/fsd/entities/pipeline/api/queries.ts`다.
+- 보드 GET owner는 `src/fsd/entities/pipeline/api/queries.ts`다(FEAT-22 — 토큰 시 contents API로 dev HEAD를 읽고, 토큰 부재 시 raw CDN 폴백).
 - command POST owner는 `src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts`다.
 - gate GET/PUT owner는 `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.ts`다.
 - progress GET owner는 `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts`다(FEAT-10, 읽기 전용).

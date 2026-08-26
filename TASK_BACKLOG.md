@@ -23,10 +23,6 @@
 
 ## Admin / Dashboard
 
-- [ ] **FEAT-22**: 파이프라인 보드 읽기의 최대 5분 지연 제거 — raw CDN을 contents API로 교체
-  - area: apps/admin/src/fsd/entities/pipeline
-  - source: 사용자 관측(2026-08-26 세션). **관측**: 게이트 도장 직후에도 대시보드가 낡은 보드를 최대 5분 보여줌 — 전역 「파이프라인 실행」 버튼이 "진행할 작업 없음"으로 잠기고, FEAT-20 잠금 칩 문구("보드 반영 대기")가 이 지연의 존재를 전제한다. 이번엔 "계획 지시 전인데 책상 버튼이 전부 활성"이라는 의문으로 재부상. **진단(코드 확정)**: `src/fsd/entities/pipeline/api/queries.ts:8`이 `BOARD_RAW_URL`(raw.githubusercontent.com)을 `cache: "no-store"`로 읽지만, raw CDN의 엣지 캐시 max-age=300은 클라이언트 캐시 모드와 무관하게 낡은 본문을 준다. **수정 방향**: contents API GET으로 교체(base64 디코드 필요). 인증은 기존 `GITHUB_PIPELINE_TOKEN` 재사용 — 비인증 contents API는 IP당 60회/시라 Vercel 공유 IP에서 위험, 인증 시 5,000회/시로 1인 운영 무관. 토큰 부재 시 raw CDN 폴백 유지. 앱 내 선례: agent-report·repo-doc 엔티티가 이미 contents API를 쓴다. **후속(이 항목 범위 밖)**: dev 책상 「작업 진행」 버튼의 보드 상태 게이팅은 읽기가 신선해진 뒤에만 정당하므로, 계획서 「범위 밖 의존」으로 기록해 승계한다.
-
 - [ ] **FEAT-23**: 항목 카드에 파이프라인 여정 스테퍼 — 전체 단계·현재 위치·다음 단계 표시
   - area: apps/admin/src/fsd/pages/pipeline
   - source: 사용자 관측(2026-08-26 세션). **관측**: 대시보드가 항목의 "지금 상태"(status 낱말·검토대기 카드의 검증 칩·문서 링크·책상 말풍선)는 보여주지만, 파이프라인 전 과정(선정 → 게이트① → 계획서 → 검증 → 게이트② → 구현 → 인수)에서 어디까지 왔고 다음 단계가 무엇인지는 보여주지 않는다 — status 낱말을 해석하려면 상태 기계를 외우고 있어야 한다. **진단(코드 확정)**: 필요한 데이터는 보드 파서가 이미 다 뽑는다(`entities/pipeline/model/board.ts`의 status + `검증:` 줄) — status→단계 인덱스 결정적 매핑 순수 모델 + 카드 스테퍼 UI만 얹으면 된다. 설계 시 판단: 게이트①②는 사용자 단계임을 구분 표시하면 "지금 누구를 기다리는지"까지 전달된다. `검증:` 줄 존재로 검토대기를 "검증 중/검증 통과·게이트② 대기" 둘로 쪼갤 수 있다(FEAT-13 칩과 같은 신호원).
