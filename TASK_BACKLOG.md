@@ -23,6 +23,10 @@
 
 ## Admin / Dashboard
 
+- [ ] **FEAT-22**: 파이프라인 보드 읽기의 최대 5분 지연 제거 — raw CDN을 contents API로 교체
+  - area: apps/admin/src/fsd/entities/pipeline
+  - source: 사용자 관측(2026-08-26 세션). **관측**: 게이트 도장 직후에도 대시보드가 낡은 보드를 최대 5분 보여줌 — 전역 「파이프라인 실행」 버튼이 "진행할 작업 없음"으로 잠기고, FEAT-20 잠금 칩 문구("보드 반영 대기")가 이 지연의 존재를 전제한다. 이번엔 "계획 지시 전인데 책상 버튼이 전부 활성"이라는 의문으로 재부상. **진단(코드 확정)**: `src/fsd/entities/pipeline/api/queries.ts:8`이 `BOARD_RAW_URL`(raw.githubusercontent.com)을 `cache: "no-store"`로 읽지만, raw CDN의 엣지 캐시 max-age=300은 클라이언트 캐시 모드와 무관하게 낡은 본문을 준다. **수정 방향**: contents API GET으로 교체(base64 디코드 필요). 인증은 기존 `GITHUB_PIPELINE_TOKEN` 재사용 — 비인증 contents API는 IP당 60회/시라 Vercel 공유 IP에서 위험, 인증 시 5,000회/시로 1인 운영 무관. 토큰 부재 시 raw CDN 폴백 유지. 앱 내 선례: agent-report·repo-doc 엔티티가 이미 contents API를 쓴다. **후속(이 항목 범위 밖)**: dev 책상 「작업 진행」 버튼의 보드 상태 게이팅은 읽기가 신선해진 뒤에만 정당하므로, 계획서 「범위 밖 의존」으로 기록해 승계한다.
+
 - [ ] **BUG-07**: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
   - area: apps/admin/src/fsd/pages/pipeline
   - source: FEAT-19 배포 확인 2차 스윕(2026-08-24, `docs/agents/main-loop/FEAT-19.md`). **관측**: 375px 스크린샷에서 배너 전체가 축소돼 "당신의 책상 / 결재 N건이 도장을 기다립니다" 라벨이 깨알 크기 — 데스크톱은 정상. **진단(추정)**: 배너 SVG가 고정 viewBox의 비율 축소라 텍스트도 함께 줄어듦. FEAT-07 승인 시안의 폰 데모에는 배너가 없어 시안 위반은 아님 — 폰 전용 배너 처리(라벨 분리 또는 최소 크기)가 필요할 것으로 보임.
