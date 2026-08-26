@@ -27,9 +27,9 @@ agent: admin-dev
 | `src/fsd/entities/pipeline/api/queries.ts` | 토큰 있으면 contents API GET(base64 디코드), 없으면 raw CDN 폴백. shape/디코드 실패는 fail-closed(throw) |
 | `src/fsd/entities/pipeline/api/queries.test.mjs` | `~/env` 모의 추가 후 두 분기(토큰 있음=contents API·토큰 없음=raw 폴백)와 shape fail-closed·non-OK를 덮도록 재작성 |
 | `src/fsd/features/run-pipeline-command/model/run-plan.ts` | 게이트 대기 설명에서 "방금 찍었다면 보드 반영까지 최대 5분 걸립니다." 문장 제거(지연이 사라졌으므로) |
-| `src/fsd/features/run-pipeline-command/model/run-plan.test.mjs` | `GATE_WAITING_DESC` 상수를 새 문구로 갱신 |
+| `src/fsd/features/run-pipeline-command/model/run-plan.test.mjs` | `GATE_WAITING_DESC` 상수와 옛 문구를 인용하는 `it()` 제목을 새 문구로 갱신 |
 | `src/fsd/features/transition-pipeline-gate/model/transitions.ts` | 잠금 칩 문구에서 "· 보드 반영 대기" 지연 전제 절 제거(칩 자체·재클릭 방지는 유지) |
-| `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | `GATE_LOCK_LABEL`·`rejectLockLabel` 리터럴 단언을 새 문구로 갱신 |
+| `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | `GATE_LOCK_LABEL`·`rejectLockLabel` 리터럴 단언과 옛 문구를 인용하는 `it()` 제목 둘을 새 문구로 갱신 |
 
 `scripts/verify-fsd-boundaries.mjs`는 **고치지 않는다** — `queries.ts`는 이미 fetch owner라 owner 집합(6개)이 바뀌지 않는다(판단 지점 3, 아래 「대안」·「테스트」에 확인 근거).
 
@@ -193,8 +193,8 @@ export function rejectLockLabel(action: RejectAction): string {
   - 토큰 있음·`content` 누락(빈 객체 JSON) → throw(shape fail-closed), raw CDN으로 폴백하지 않음(fetch 1회, raw URL 미호출).
   - 토큰 없음(`state.token = undefined`): `fetch`가 `[BOARD_RAW_URL, { cache: "no-store" }]`로 정확히 1회(헤더 없음), `text()` 본문을 `parseBoard`. 현재 동작 보존.
   - 토큰 없음·non-OK(503) → throw.
-  - `run-plan.test.mjs`: `GATE_WAITING_DESC` 상수(`:12-13`)를 새 문구 `"결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."`로 갱신 — 승인대기만·검토대기만 두 단언(`:37-51`)이 이를 참조하므로 함께 통과.
-  - `transitions.test.mjs`: `GATE_LOCK_LABEL` 단언(`:589-590`)을 `"도장 찍음"`으로, `rejectLockLabel` 3분기 단언(`:593-596`)을 `"되돌림"`·`"보류함"`·`"폐기함"`으로 갱신.
+  - `run-plan.test.mjs`: `GATE_WAITING_DESC` 상수(`:12-13`)를 새 문구 `"결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."`로 갱신 — 승인대기만·검토대기만 두 단언(`:37-51`)이 이를 참조하므로 함께 통과. `it()` 제목(`:37`) `"승인대기만 → 비활성 + 도장 안내(반영 지연 포함)"`에서 `(반영 지연 포함)`을 제거한다 — 제목이 지워진 문구를 계속 인용하면 라벨이 거짓이 된다(pass/fail 무관한 문서 위생).
+  - `transitions.test.mjs`: `GATE_LOCK_LABEL` 단언(`:589-590`)을 `"도장 찍음"`으로, `rejectLockLabel` 3분기 단언(`:593-596`)을 `"되돌림"`·`"보류함"`·`"폐기함"`으로 갱신. 옛 값을 인용하는 `it()` 제목 둘(`:589` `"도장 잠금 문구는 '도장 찍음 · 보드 반영 대기'로 고정"`·`:593` `"반려 잠금 문구는 액션별 낱말 + '· 보드 반영 대기'(3분기)"`)도 새 값 기준으로 갱신한다(`"도장 잠금 문구는 '도장 찍음'으로 고정"`·`"반려 잠금 문구는 액션별 낱말(3분기)"`).
 - **못 덮는 범위** (Node 러너·DOM/외부 I/O 없음):
   - 실제 GitHub contents API 응답의 base64 라인 wrapping·`encoding: "none"`(>1MB 파일) 경로 — 보드가 1MB 훨씬 아래라 실사용에서 발생하지 않지만 라이브 응답 자체는 모의로만 검증.
   - 토큰 부재 폴백이 **다시 최대 5분 잔상**을 낸다는 성질(판단 5) — 프로덕션은 토큰이 있어 이 경로를 타지 않음. 실물 확인은 배포 후 수동(토큰 설정 배포에서 도장→즉시 반영, 데스크톱).
