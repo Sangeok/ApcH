@@ -46,7 +46,7 @@
 - [ ] BUG-07: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
   agent: admin-dev
   area: apps/admin/src/fsd/pages/pipeline
-  status: 검토대기
+  status: 구현승인
   근거: FEAT-19 배포 확인 2차 스윕(2026-08-24)에서 실물로 확인된 결함. 미결 0건이라 선정 가능, 가장 최근 발견된 사용자 영향 항목.
   검증: 클린 패스 (2026-08-26, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [x] FEAT-21: 번역 폴백 안내의 웹 절반 — `subtitleStatus` 소비·클립 카드 안내
