@@ -46,6 +46,7 @@
   area: apps/admin/src/fsd/pages/pipeline
   status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 카드가 status 낱말만 보여 여정 위치·다음 단계·대기 주체를 못 읽는다는 관측 — 데이터는 board.ts가 이미 보유, 매핑 순수 모델+스테퍼 UI만 얹는다. 미결 2건째(FEAT-24 검토대기 병렬)는 소유자 결정.
+  검증: 클린 패스 (2026-08-27, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
 ## 2026-08-26
 - [x] FEAT-22: 파이프라인 보드 읽기의 최대 5분 지연 제거 — raw CDN을 contents API로 교체

@@ -9,12 +9,12 @@ agent: admin-dev
 
 ## 현재 동작
 
-- 결재함 카드는 `src/fsd/pages/pipeline/ui/index.tsx:165`의 `InboxCard`가 그린다. 카드는 위→아래로 발화 주체(`:173-181`) → 발화 한 줄(`:182` `<p className="text-lg text-stamp">{item.line}</p>`) → 메타·게이트 블록(`GateCardLock`으로 감싼 `:183-207`) → 문서 링크(`:208`) → 근거 details(`:209-218`) 순서다.
+- 결재함 카드는 `src/fsd/pages/pipeline/ui/index.tsx:165`의 `InboxCard`가 그린다. 카드는 위→아래로 발화 주체(`:173-181`) → 발화 한 줄(`:182` `<p className="mt-3 text-lg text-stamp">{item.line}</p>`) → 메타·게이트 블록(`GateCardLock`으로 감싼 `:183-207`) → 문서 링크(`:208`) → 근거 details(`:209-218`) 순서다.
 - 메타 행(`:184-191`)이 항목의 "지금 상태"를 나르는 유일한 곳이다: `{item.id} · {item.status}`(`:186`), 검토대기면 `ValidationMark`(`:187-189`), 예산 초과면 `BudgetFlag`(`:190`). `ValidationMark`(`:62-81`, FEAT-13)는 `검증:` 필드 유무로 **부서(countersign) 칩**(있으면 실선 active `검증 통과`, 없으면 점선 hold `검증 전`)만 보인다.
 - **여정 전 과정에서의 위치를 나르는 요소는 없다.** 카드는 status 낱말 하나(`:186`)와 검증 이진 칩(`:187-189`)만 보인다 — 선정→게이트①→계획서→검증→게이트②→구현→인수 중 어디까지 왔고 다음이 무엇이며 지금 누구를 기다리는지는 화면에 없다. status 낱말(`승인대기`·`검토대기`)을 여정 위치로 옮기려면 보는 사람이 상태 기계를 외우고 있어야 한다.
-- 스테퍼가 읽을 데이터는 이미 모든 결재함 `SpeechItem`에 있다. `SpeechItem`은 `status: string | null`(`src/fsd/pages/pipeline/model/briefing.ts:17`)과 `validation: string | null`(`briefing.ts:19`)을 나른다. `inboxSpeech`가 승인대기 분기에서 `validation: null`(`briefing.ts:110`)을, 검토대기 분기에서 `validation: item.validation`(`briefing.ts:125`)을 채운다. 결재함 필터는 `승인대기`·`검토대기`뿐이다(`briefing.ts:266-268`, `isGateTransitionSource`). 나머지 status(계획지시·구현승인·완료·보류·null)는 보고 피드로 간다(`briefing.ts:269-271`).
+- 스테퍼가 읽을 데이터는 이미 모든 결재함 `SpeechItem`에 있다. `SpeechItem`은 `status: string | null`(`src/fsd/pages/pipeline/model/briefing.ts:18`)과 `validation: string | null`(`briefing.ts:19`)을 나른다. `inboxSpeech`가 승인대기 분기에서 `validation: null`(`briefing.ts:110`)을, 검토대기 분기에서 `validation: item.validation`(`briefing.ts:125`)을 채운다. 결재함 필터는 `승인대기`·`검토대기`뿐이다(`briefing.ts:266-268`, `isGateTransitionSource`). 나머지 status(계획지시·구현승인·완료·보류·null)는 보고 피드로 간다(`briefing.ts:269-271`).
 - `validation`의 원천은 보드 파서다. `parseBoard`가 `검증:` 줄을 `BoardItem.validation`(`src/fsd/entities/pipeline/model/board.ts:13`, FIELD_RE `:23`, 대입 `:96-98`)에 담고, 메인 루프는 **검증 클린 패스일 때만** 이 줄을 쓴다(보드 안내 규약 — `board.ts:13` 주석). 줄이 없으면 `validation === null`이다. 즉 "검증 판정 존재 = 검증 통과"다(FEAT-13이 세운 계약).
-- 색 토큰은 이미 다 있다. `--stamp`(호박, `styles/globals.css:85`)·`--active`(남색, `:87`)·`--silence`(흑연, `:88`)·`--hold`(주홍, `:89`)와 `--muted-foreground`가 있고, `@theme inline`의 `--color-*` 매핑(`:36-41`)이 `text-stamp`·`bg-active`·`text-silence` 등 유틸을 방출한다. 팔레트는 의도적으로 절제돼 초록이 없다(`:84` 주석). FEAT-13의 `ValidationMark`가 이미 `text-active`·`border-active/60`·`bg-active/10`·`text-hold`·`border-hold/60`를 써서 이 토큰들이 방출됨을 실증했다(`:66-77`).
+- 색 토큰은 이미 다 있다. `--stamp`(호박, `styles/globals.css:85`)·`--active`(남색, `:87`)·`--silence`(흑연, `:88`)·`--hold`(주홍, `:89`)와 `--muted-foreground`가 있고, `@theme inline`의 `--color-*` 매핑(`:36-41`)이 `text-stamp`·`bg-active`·`text-silence` 등 유틸을 방출한다. 팔레트는 의도적으로 절제돼 있고(`:83-84` 주석 — 브리핑 토큰은 "결정 대기=강조 / 완료=침묵"을 색으로 코드화하며 `--picked`를 재사용하지 않는다), 토큰 목록(`:85-90`)에 초록 계열이 없다. FEAT-13의 `ValidationMark`가 이미 `text-active`·`border-active/60`·`bg-active/10`·`text-hold`·`border-hold/60`를 써서 이 토큰들이 방출됨을 실증했다(`:66-77`).
 - FSD 배치: 페이지-사설 순수 모델은 `pages/pipeline/model/`, 페이지-사설 UI는 `ui/_component/`에 산다(`agent-avatar.tsx`·`owner-banner.tsx`·`pixel-office.tsx`가 그 자리). 페이지 public API(`pages/pipeline/index.ts`)는 `PipelineBriefing`과 briefing 모델만 재수출한다 — 새 모델·컴포넌트는 슬라이스 내부 상대 import로 쓰이므로 재수출이 필요 없다. 보드는 `entities/pipeline`이 이미 한 번 읽으므로 새 fetch owner가 없다.
 
 ## 디자인 방향
@@ -67,7 +67,7 @@ _(frontend-design 스킬 2-pass 결과. 새 화면이 아니라 기존 결재함
 
 백로그 `source`(요구 원천, `TASK_BACKLOG.md:26-28`)가 지목한 것: 대시보드가 항목의 "지금 상태"(status 낱말 `index.tsx:186` · 검증 칩 `:187-189` · 문서 링크 · 책상 말풍선)는 보여주지만, **파이프라인 전 과정(선정→게이트①→계획서→검증→게이트②→구현→인수)에서 어디까지 왔고 다음이 무엇이며 지금 누구를 기다리는지는 보여주지 않는다** — status 낱말을 여정 위치로 해석하려면 상태 기계를 외우고 있어야 한다.
 
-백로그 진단(코드 확정)과 코드가 일치한다: 필요한 데이터는 보드 파서가 이미 다 뽑고(`board.ts`의 status + `검증:` 줄) 결재함 `SpeechItem`이 이미 나른다(`briefing.ts:17`·`:19`). 부족한 것은 **status(+검증 판정)를 여정 단계 인덱스로 옮기는 결정적 순수 매핑**과 그것을 그리는 **스테퍼 UI**뿐이다 — 새 데이터원·fetch·DB 접근이 필요 없다.
+백로그 진단(코드 확정)과 코드가 일치한다: 필요한 데이터는 보드 파서가 이미 다 뽑고(`board.ts`의 status + `검증:` 줄) 결재함 `SpeechItem`이 이미 나른다(`briefing.ts:18`·`:19`). 부족한 것은 **status(+검증 판정)를 여정 단계 인덱스로 옮기는 결정적 순수 매핑**과 그것을 그리는 **스테퍼 UI**뿐이다 — 새 데이터원·fetch·DB 접근이 필요 없다.
 
 설계 시 판단 둘(백로그·main-loop 기록):
 1. **게이트①②는 사용자 단계**임을 구분 표시하면 "지금 누구를 기다리는지"가 전달된다 → 현재 노드 색을 대기 주체(호박=당신/남색=팀)에 매핑한다.
