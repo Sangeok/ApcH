@@ -34,7 +34,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **27개 파일, 60개 suite, 281개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **28개 파일, 68개 suite, 307개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -53,15 +53,16 @@ npm run build -w apps/admin
 | `src/fsd/shared/agents/roster.test.mjs` | roster 닫힌 ID 멤버십, 정의 파일 정확 경로 집합(접두사 아님), 상세 페이지 href |
 | `src/fsd/features/run-pipeline-command/api/post-pipeline-command.test.mjs` | auth-first, whitelist, exact GitHub POST |
 | `src/fsd/features/run-pipeline-command/model/commands.test.mjs` | command body와 key whitelist |
-| `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.test.mjs` | auth-first, 6h `since` 창, `created_at` 재필터, shape 실패 fail-closed, FIFO 입력 전달 |
+| `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.test.mjs` | auth-first, 6h `since` 창, `created_at` 재필터, shape 실패 fail-closed, FIFO 입력 전달, 진행 코멘트 → `running` 통합(액션 무변경 실증) |
 | `src/fsd/features/run-pipeline-command/model/run-plan.test.mjs` | 실행 라벨 전 경우와 프로토타입 오염 방어 |
-| `src/fsd/features/run-pipeline-command/model/progress.test.mjs` | 명령:답글 FIFO 짝짓기, 상태 다섯, 임계·시계·접두 경계 |
+| `src/fsd/features/run-pipeline-command/model/progress.test.mjs` | 명령:답글 FIFO 짝짓기, 상태 여섯(`running` 포함), 진행 코멘트 귀속·귀속 리셋·분기 순서, 임계 둘·시계·접두 경계, `isRunLocked` |
 | `src/fsd/features/send-observability-test/api/send-observability-test-event.test.mjs` | auth-first Sentry scope/capture/flush 순서 |
 | `src/fsd/features/transition-pipeline-gate/api/commit-gate-transition.test.mjs` | auth-first, GET/PUT, optimistic lock, 실패 shape |
 | `src/fsd/features/transition-pipeline-gate/model/transitions.test.mjs` | 승인·반려 전이, 최소 diff, stale/format 거부, 되돌리기의 `검증:` 줄 제거(1줄·2줄), 카드 잠금 칩 문구(`GATE_LOCK_LABEL` 리터럴·`rejectLockLabel` 3분기) |
 | `src/fsd/pages/agent-profile/model/build-profile-view.test.mjs` | 정의 frontmatter 분리(없음·미닫힘 fail-open, CRLF, 빈 값→null), `outlineDefinitionBody`의 펜스 밖 `##` 분할(펜스 안 제외·언어 태그 펜스 토글·`###` 비경계), 뷰의 intro/sections 조립·기록 링크 매핑 |
 | `src/fsd/pages/doc-viewer/model/build-doc-view.test.mjs` | 서류철 탭·종류 배지·게이트②/반려 노출 조건, 고정명 문서의 탭 없는 단독 렌더 |
 | `src/fsd/pages/pipeline/model/briefing.test.mjs` | 보드→briefing·roster·발화 매핑, 검증 판정 전달(검토대기만), 항목 문서 링크(미전달 시 빈 배열), plan-verifier 검토대기 파생(검증 중/대기 중) |
+| `src/fsd/pages/pipeline/model/journey.test.mjs` | status→여정 단계 결정적 매핑(검토대기 이분·완료/보류/미지 여정 밖·단계 카탈로그·대기 낱말 고정) |
 | `src/fsd/pages/pipeline/model/desk-commands.test.mjs` | desk→command key와 whitelist 연결, plan-verifier 무명령(null) 고정 |
 | `src/fsd/pages/pipeline/model/sprites.test.mjs` | pixel grid·appearance·tone 매핑 |
 | `src/fsd/shared/observability/report-error.test.mjs` | 예외 capture, user isolation, never-throw flush |

@@ -13,8 +13,10 @@ import {
   resolveGateTransition,
 } from "~/fsd/features/transition-pipeline-gate";
 import { cn } from "~/fsd/shared/lib/utils";
+import { deriveJourney } from "../model/journey";
 import type { Briefing, SpeechItem, Tone } from "../model/briefing";
 import { AgentAvatar } from "./_component/agent-avatar";
+import { JourneyStepper } from "./_component/journey-stepper";
 import { OwnerBanner } from "./_component/owner-banner";
 import { PixelOffice } from "./_component/pixel-office";
 
@@ -168,6 +170,7 @@ function InboxCard({ item }: { item: SpeechItem }) {
     item.status === null ? null : resolveGateTransition(item.status);
   const rejectActions =
     item.status === null ? [] : rejectActionsFor(item.status);
+  const journey = deriveJourney(item.status, item.validation);
   return (
     <article className="rounded-2xl border border-stamp/40 bg-stamp-soft p-4">
       <div className="flex items-center gap-3">
@@ -180,6 +183,7 @@ function InboxCard({ item }: { item: SpeechItem }) {
         </p>
       </div>
       <p className="mt-3 text-lg text-stamp">{item.line}</p>
+      {journey !== null && <JourneyStepper journey={journey} />}
       <GateCardLock>
         <div className="mt-3 flex items-center justify-between gap-2">
           <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">

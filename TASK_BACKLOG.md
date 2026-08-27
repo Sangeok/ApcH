@@ -23,10 +23,6 @@
 
 ## Admin / Dashboard
 
-- [ ] **FEAT-23**: 항목 카드에 파이프라인 여정 스테퍼 — 전체 단계·현재 위치·다음 단계 표시
-  - area: apps/admin/src/fsd/pages/pipeline
-  - source: 사용자 관측(2026-08-26 세션). **관측**: 대시보드가 항목의 "지금 상태"(status 낱말·검토대기 카드의 검증 칩·문서 링크·책상 말풍선)는 보여주지만, 파이프라인 전 과정(선정 → 게이트① → 계획서 → 검증 → 게이트② → 구현 → 인수)에서 어디까지 왔고 다음 단계가 무엇인지는 보여주지 않는다 — status 낱말을 해석하려면 상태 기계를 외우고 있어야 한다. **진단(코드 확정)**: 필요한 데이터는 보드 파서가 이미 다 뽑는다(`entities/pipeline/model/board.ts`의 status + `검증:` 줄) — status→단계 인덱스 결정적 매핑 순수 모델 + 카드 스테퍼 UI만 얹으면 된다. 설계 시 판단: 게이트①②는 사용자 단계임을 구분 표시하면 "지금 누구를 기다리는지"까지 전달된다. `검증:` 줄 존재로 검토대기를 "검증 중/검증 통과·게이트② 대기" 둘로 쪼갤 수 있다(FEAT-13 칩과 같은 신호원).
-
 - [ ] **FEAT-25**: admin 검증기 인증 경로 — 비밀값 로그인으로 읽기 전용 `verifier` 세션 발급 (FEAT-26 선행)
   - area: apps/admin/src/server/auth
   - source: 사용자 결정(2026-08-27 세션) — 배포 확인 원장(`docs/release-checks.md`)을 사람 지시 없이 자동으로 닫는 검증 루틴(FEAT-26)을 두기로 함. **관측**: 원장 열린 줄 36건(2026-08-27), 닫힌 `확인(` 32건은 전부 사용자가 세션에서 지시했을 때 메인 루프가 이 PC의 Playwright 프로필 세션으로 스윕한 것(`docs/agents/main-loop/FEAT-19.md:52-110`). 클라우드에서 도는 루틴은 그 프로필이 없어 프로덕션 `/pipeline`을 열 수 없다. **진단(코드 확정)**: admin 로그인은 Google 단일 provider(`src/server/auth/config.ts:16`) + `ADMIN_EMAILS` 화이트리스트 signIn 콜백(`config.ts:22-24`)이고, `requireAdmin`(`src/server/auth/guard.ts:7-25`)이 세션 없으면 `/login`, 화이트리스트 밖이면 404. 세션 maxAge 8h(`config.edge.ts:11`). Google OAuth는 로봇이 통과할 수 없고, 프로필 쿠키는 8시간짜리라 자동화의 인증 경로가 없다. **수정 방향**: (1) `VERIFIER_SECRET`(optional env, 긴 난수)이 설정된 경우에만 활성되는 Credentials provider — 비밀값 일치 시 고정 신원 `verifier`(이메일 아님)의 JWT 세션 발급, 로그인 화면엔 노출하지 않음(POST 전용). (2) 읽기 전용 강제: `requireAdmin`은 verifier의 페이지 렌더를 허용하되, 쓰기 액션(게이트 전이 `commit-gate-transition.ts`, 반려, 명령 POST `post-pipeline-command.ts`, dev 책상 명령)은 verifier를 거부 — `requireAdmin`에 쓰기 모드 옵션을 두거나 `requireOperator`를 분리. 비밀값이 새도 화면 열람 이상은 불가해야 한다. (3) `ADMIN_EMAILS` 우회가 아니다 — 별도 신원이며 화이트리스트 검사 로직은 그대로. **설계 시 판단**: verifier 세션 maxAge는 짧게(루틴 1회 실행 분량, 예 1h). 테스트는 signIn/guard 순수 로직(토큰 부재 시 provider 비활성, verifier 쓰기 거부, Google 경로 회귀 없음). **범위 밖 의존**: 비밀값은 Vercel env와 claude.ai 환경변수 양쪽에 두며 후자는 시크릿 금고가 없어 그 환경을 쓰는 세션 전부가 읽는다(계정이 단일 소유자라 감수 — https://code.claude.com/docs/en/cloud-environments). web 앱은 대상 아님(원장의 web 줄 2건은 사용자 몫 유지).

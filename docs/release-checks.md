@@ -21,6 +21,16 @@
 
 ---
 
+## FEAT-23 — 항목 카드 파이프라인 여정 스테퍼 (admin, 구현 2026-08-27)
+
+원천: `docs/agents/admin-dev/FEAT-23.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+
+- [ ] 노드 색/형태 — done 흑연 채움 · **현재·사용자 게이트 = 호박 빈 링**(`border-2 border-stamp`) · **현재·팀 = 남색 채움**(`bg-active`) · upcoming 옅은 빈 링. 현재 노드 크기 강조(size-2.5 vs 1.5)와 연결선 색
+- [ ] 단계 라벨 반응형 — 데스크톱(sm↑) 7 라벨 노출, 폰에서 숨김(`hidden sm:block`)이되 노드 레일은 유지
+- [ ] 캡션 항상 표시 — "지금 <현재> · [대기 낱말] · 다음 <다음>", 호박/남색 색 일치, `flex-wrap` 폰 줄바꿈
+- [ ] `InboxCard` 통합 — 발화↔레일↔게이트 순서, `GateCardLock` 밖 배치, `ValidationMark` 칩과 시각 일관(검증 줄 있으면 칩=통과·레일=게이트②)
+- [ ] 신규 Tailwind 유틸 조합 방출 — `bg-silence`·`bg-active`·`border-stamp`·`border-active/50`·`border-stamp/50`가 실빌드에서 나오는지
+
 ## FEAT-24 — 원격 실행 진행 로그·버튼 잠금 (admin, 구현 2026-08-27)
 
 원천: `docs/agents/admin-dev/FEAT-24.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**

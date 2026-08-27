@@ -50,3 +50,30 @@ admin-dev를 계획서 작성에 디스패치한다. 핵심 판단 지점(계획
 동일 중립 브리핑 재디스패치. 도중 세션 사용량 한도로 중단 → 한도 재설정 후 같은 에이전트를 컨텍스트 유지로 재개(재개 지시에 결함/판정 정보 없음 — 독립성 유지). 7개 경로 전부 완결, **결함 0건**: 인용 전수 일치(전 격자 24입력 baseline 동일성 포함), 스케치 tsc 0·명세 실패 0, before 3곳 IDENTICAL, 여집합(`GATE_TRANSITIONS` 키 2·재수출 목록·journey 이름 충돌 0·초록 토큰 0), 돌연변이 7/7 사멸, 실보드 27항목 재생 일치, 렌더 3상태(user 게이트 호박 빈 링 vs 팀 남색 채움 상호 배타) 확인. 트리 청결 입증. 비-결함 관찰 1건: globals.css 인용의 `src/` 접두 생략(단일 파일이라 모호성 없음, 무수정 파일 — 결함 아님).
 
 **판정**: 독립 무편집 클린 패스 1회 달성 → 보드 정지 규칙 충족. `검증:` 줄 기록. 게이트②(구현승인) 대기 — 사용자만 연다. FEAT-24와 나란히 게이트② 대기 2건.
+
+## 구현 인수 (2026-08-27, 메인 루프)
+
+게이트②는 사용자 세션 지시로 개방(`733bf25`). FEAT-24 구현이 `ui/index.tsx`를 건드리지 않아
+이 계획서의 인용은 그대로 유효했고, B-3 대조도 어긋남 없이 통과했다.
+
+**인수 다섯 조건 — 전부 직접 재현:**
+1. **변경 파일 ↔ 「고칠 파일」**: 신규 3(`model/journey.ts`·`model/journey.test.mjs`·
+   `ui/_component/journey-stepper.tsx`) + 수정 1(`ui/index.tsx`)로 표와 정확히 일치. 범위 밖
+   (`board.ts`·`briefing.ts`·`pages/pipeline/index.ts`·`verify-fsd-boundaries.mjs`) 무접촉 확인.
+2. **diff ↔ 「구현 스케치」**: 매핑 계약(승인대기 1·계획지시 2·검토대기 `validation !== null ? 4 : 3`·
+   구현승인 5·나머지 null), `state: i < idx ? "done" : i === idx ? "current" : "upcoming"`,
+   `index.tsx` 4줄 삽입(임포트 2·`const journey` 1·조건부 렌더 1)까지 스케치와 동일.
+   순수 모듈 확인: `journey.ts` import 0건. 서버 컴포넌트 확인: `journey-stepper.tsx`에 `"use client"` 없음.
+3. **검증 직접 재실행**: `check` EXIT 0 · `test` EXIT 0(**307 pass/68 suites**, fail 0) · `verify:fsd:final` EXIT 0.
+   journey.test.mjs 11 케이스. 292→307(+15), 62→68 suite(+6), 파일 27→28.
+4. **백로그 제거**: FEAT-23 블록 소멸(잔존 0), 인접 BUG-04·BUG-08·FEAT-01·FEAT-25·26·27 무결 확인.
+5. **상세 기록 실재**: `docs/agents/admin-dev/FEAT-23.md`(5.3KB). 보드 `결과` 124자(예산 내).
+
+**CLAUDE.md 동기화(메인 루프 몫, 이번에 함께 처리)**: 「테스트 인벤토리」 총계를 실측치
+**28파일·68suite·307test**로 갱신하고 `journey.test.mjs` 행을 추가했다. FEAT-24분 미반영이 함께 밀려
+있었으므로 `progress.test.mjs`(상태 여섯·진행 코멘트 귀속·임계 둘·`isRunLocked`)와
+`get-pipeline-progress.test.mjs`(진행 코멘트 → running 통합) 행 문구도 같이 맞췄다.
+표 28행 = 실제 28파일을 **여집합 열거로 확인**(누락 0).
+
+「범위 밖 의존」: 없음(계획서 그대로) — 백로그 후보 없음.
+「못 덮는 범위」: `docs/release-checks.md`에 등재.
