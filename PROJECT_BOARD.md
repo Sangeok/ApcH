@@ -45,7 +45,7 @@
 - [ ] FEAT-23: 항목 카드에 파이프라인 여정 스테퍼 — 전체 단계·현재 위치·다음 단계 표시
   agent: admin-dev
   area: apps/admin/src/fsd/pages/pipeline
-  status: 검토대기
+  status: 구현승인
   근거: 소유자 직접 발주(게이트① 세션 지시). 카드가 status 낱말만 보여 여정 위치·다음 단계·대기 주체를 못 읽는다는 관측 — 데이터는 board.ts가 이미 보유, 매핑 순수 모델+스테퍼 UI만 얹는다. 미결 2건째(FEAT-24 검토대기 병렬)는 소유자 결정.
   검증: 클린 패스 (2026-08-27, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
