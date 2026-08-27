@@ -21,9 +21,32 @@
 
 ---
 
+## FEAT-23 — 항목 카드 파이프라인 여정 스테퍼 (admin, 구현 2026-08-27)
+
+원천: `docs/agents/admin-dev/FEAT-23.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+
+- [ ] 노드 색/형태 — done 흑연 채움 · **현재·사용자 게이트 = 호박 빈 링**(`border-2 border-stamp`) · **현재·팀 = 남색 채움**(`bg-active`) · upcoming 옅은 빈 링. 현재 노드 크기 강조(size-2.5 vs 1.5)와 연결선 색
+- [ ] 단계 라벨 반응형 — 데스크톱(sm↑) 7 라벨 노출, 폰에서 숨김(`hidden sm:block`)이되 노드 레일은 유지
+- [ ] 캡션 항상 표시 — "지금 <현재> · [대기 낱말] · 다음 <다음>", 호박/남색 색 일치, `flex-wrap` 폰 줄바꿈
+- [ ] `InboxCard` 통합 — 발화↔레일↔게이트 순서, `GateCardLock` 밖 배치, `ValidationMark` 칩과 시각 일관(검증 줄 있으면 칩=통과·레일=게이트②)
+- [ ] 신규 Tailwind 유틸 조합 방출 — `bg-silence`·`bg-active`·`border-stamp`·`border-active/50`·`border-stamp/50`가 실빌드에서 나오는지
+
+## FEAT-24 — 원격 실행 진행 로그·버튼 잠금 (admin, 구현 2026-08-27)
+
+원천: `docs/agents/admin-dev/FEAT-24.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+**선행 의존(사용자 몫)**: claude.ai 루틴 지침을 새 문안(계획서 「범위 밖 의존」 (1))으로 교체해야
+`[claude][진행]` 코멘트가 생기고 `running`이 보인다. 미교체 시 아래 running 줄은 관측 불가(퇴행은
+아님 — 진행 코멘트 0건이면 기존 awaiting/silent 동작, 실 #87 재생으로 회귀 0 확인).
+
+- [ ] `running` pill 실표시 — 파랑 점 + `animate-pulse` + "진행 중 · N분째"(N=0이면 "진행 중"). `motion-reduce` 정지
+- [ ] 실행 로그(`ProgressLog`) 실화면 — 단계 줄이 pill 아래로 누적, 마지막 단계만 `text-foreground` 대비, `items-end` 우측 정렬, `<ol>` 스크린리더 순서
+- [ ] 버튼 잠금/해제 전환 — awaiting·running에서 회색 비활성, responded·idle·silent에서 다시 활성(재전송 경로 유지)
+- [ ] `RUNNING_STALE`(10분) 오경보 여부 — 실제 루틴 진행 코멘트 간격이 전제(≤4분·커밋 직전 코멘트)를 지키는지. 어긋나면 정상 실행이 `silent`로 잘못 넘어간다 → 결함 시 백로그 이관
+- [ ] 진행 코멘트 도입 후 기존 상태 회귀 없음 — pm-select류 짧은 실행에서 awaiting→responded 정상
+
 ## BUG-07 — 폰 배너 라벨 판독 불가(라벨 분리) (admin, 구현 2026-08-27)
 
-원천: `docs/agents/admin-dev/BUG-07.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+원천: `docs/agents/admin-dev/BUG-07.md` 「못 덮는 범위」. **배포 완료(2026-08-27 10:28 KST, PR #105 머지).**
 참고: FEAT-07 절 하단의 관찰(2026-08-24, 원장 밖 개선 후보)이 이 항목으로 구현됨.
 
 - [ ] 폰 라벨 판독성 — 375px·320px에서 "당신의 책상"·부제가 고정 px(`text-sm`/`text-xs`)로 읽힘 (이전: 스케일 축소로 ≈7.8px/6.2px)
@@ -32,7 +55,7 @@
 
 ## FEAT-22 — 보드 읽기 raw CDN → contents API (admin, 구현 2026-08-26)
 
-원천: `docs/agents/admin-dev/FEAT-22.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+원천: `docs/agents/admin-dev/FEAT-22.md` 「못 덮는 범위」. **배포 완료(2026-08-27 10:28 KST, PR #105 머지).**
 참고: 이 항목은 클린 패스 없이 게이트②가 열렸다(3사이클 정지 규칙 위 사용자 결정 — 잔여는
 문서 위생 부류였고 조립·돌연변이·라이브 API 재생 증거는 3사이클 내내 유효).
 
@@ -60,7 +83,7 @@
 
 ## FEAT-20 — 게이트 카드 잠금(반영 대기 칩) (admin, 구현 2026-08-25)
 
-원천: `docs/agents/admin-dev/FEAT-20.md`·계획서 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후 확인 가능.**
+원천: `docs/agents/admin-dev/FEAT-20.md`·계획서 「못 덮는 범위」. **배포 완료 — PR #102(2026-08-25)로 이미 합류·배포됐음. 이 머리말의 "⚠ 배포 전"은 낡은 기록이었고(아래 2026-08-25 LockedChip 실사용 관측이 증거) 2026-08-27 정정.**
 
 - [ ] 잠금 공유 — 도장 성공 → 반려 패널도 사라짐 / 반려 성공 → 도장 버튼도 칩으로 (도장 쪽 절반은 2026-08-25 실사용에서 정황상 함께 발생 — 명시 관측은 다음 도장 때)
 - [x] `LockedChip` 시각 — 확인(2026-08-25, **첫 실사용 관측**: FEAT-21 게이트① 도장 직후 소유자가 "도장 찍음 · 보드 반영 대기" 칩 등장을 직접 봄. 점 마커 4색 정밀 대비는 스크린샷 판정 승계)

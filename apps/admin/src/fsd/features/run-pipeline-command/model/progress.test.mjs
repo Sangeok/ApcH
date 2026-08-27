@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { deriveProgress, SILENCE_THRESHOLD_MS } from "./progress.ts";
+import {
+  deriveProgress,
+  isRunLocked,
+  RUNNING_STALE_THRESHOLD_MS,
+  SILENCE_THRESHOLD_MS,
+} from "./progress.ts";
 
 const NOW = new Date("2026-08-15T15:00:00Z");
 function ago(minutes) {
@@ -13,6 +18,10 @@ function command(iso) {
 }
 function reply(iso) {
   return { body: "[claude] 처리했습니다.", createdAt: iso };
+}
+// 진행 코멘트([claude][진행] 접두 — 명령도 종료 답글도 아니다)
+function progress(text, iso) {
+  return { body: `[claude][진행] ${text}`, createdAt: iso };
 }
 
 describe("deriveProgress — 코멘트 → 진행 상태", () => {
@@ -158,5 +167,146 @@ describe("deriveProgress — 코멘트 → 진행 상태", () => {
 
   it("SILENCE_THRESHOLD_MS는 180000(3분)이다", () => {
     assert.equal(SILENCE_THRESHOLD_MS, 180_000);
+  });
+});
+
+describe("deriveProgress — 진행 코멘트(running)", () => {
+  it("진행 코멘트는 명령을 갚지 않는다(상환 제외) → running, responded 아님 — 분기 순서 고정", () => {
+    // [명령, [claude][진행] 접수]. 진행 코멘트가 명령을 갚으면 responded가 뜬다(거짓 초록).
+    // 1차 방어는 루프 분기 순서(isProgress를 isReply보다 먼저), 2차는 isReply의 !PROGRESS_PREFIX 제외.
+    // isReply를 먼저 판정하고 제외까지 뺀 오구현은 진행 코멘트를 답글로 소비해 running이 깨진다 —
+    // 이 full-shape 단언이 그 오구현을 잡는다(방어는 순서이고 제외는 이중화, 결정 1).
+    const cmdIso = ago(2);
+    const progIso = ago(2);
+    assert.deepEqual(deriveProgress([command(cmdIso), progress("접수", progIso)], NOW), {
+      kind: "running",
+      sinceIso: cmdIso,
+      lastEventIso: progIso,
+      minutes: 2,
+      steps: ["접수"],
+    });
+  });
+
+  it("running 단계 목록·순서(오래된 순)", () => {
+    const cmdIso = ago(6);
+    assert.deepEqual(
+      deriveProgress(
+        [command(cmdIso), progress("접수", ago(3)), progress("검증 중", ago(2))],
+        NOW,
+      ),
+      {
+        kind: "running",
+        sinceIso: cmdIso,
+        lastEventIso: ago(2),
+        minutes: 2,
+        steps: ["접수", "검증 중"],
+      },
+    );
+  });
+
+  it("running.minutes는 명령이 아니라 마지막 진행 코멘트 기준이다", () => {
+    // 명령 20분 전 + 진행 1분 전 → running{minutes:1}. 명령 기준 오구현은 20을 낸다.
+    const cmdIso = ago(20);
+    const progIso = ago(1);
+    assert.deepEqual(deriveProgress([command(cmdIso), progress("구현 중", progIso)], NOW), {
+      kind: "running",
+      sinceIso: cmdIso,
+      lastEventIso: progIso,
+      minutes: 1,
+      steps: ["구현 중"],
+    });
+  });
+
+  it("running → silent 경계: 마지막 진행 정확히 10분 전 → silent(경계 포함)", () => {
+    const cmdIso = ago(20);
+    const staleIso = new Date(NOW.getTime() - RUNNING_STALE_THRESHOLD_MS).toISOString();
+    assert.deepEqual(deriveProgress([command(cmdIso), progress("접수", staleIso)], NOW), {
+      kind: "silent",
+      sinceIso: cmdIso,
+      minutes: 10,
+    });
+  });
+
+  it("running → silent 경계: 마지막 진행 9분 전 → 아직 running", () => {
+    const cmdIso = ago(20);
+    const progIso = ago(9);
+    assert.deepEqual(deriveProgress([command(cmdIso), progress("접수", progIso)], NOW), {
+      kind: "running",
+      sinceIso: cmdIso,
+      lastEventIso: progIso,
+      minutes: 9,
+      steps: ["접수"],
+    });
+  });
+
+  it("귀속 리셋 — 갚힌 명령의 진행이 다음 명령으로 새지 않는다(로그 비-혼입)", () => {
+    // 명령2 뒤 진행 코멘트를 반드시 포함한다: 그래야 stepsForOldest=[]만 빠진 오구현이
+    // 명령1 로그("접수")를 명령2에 흘리는 것을 running.steps로 잡는다.
+    const cmd2Iso = ago(5);
+    const prog2Iso = ago(2);
+    const result = deriveProgress(
+      [
+        command(ago(20)),
+        progress("접수", ago(19)),
+        reply(ago(18)),
+        command(cmd2Iso),
+        progress("구현 중", prog2Iso),
+      ],
+      NOW,
+    );
+    assert.deepEqual(result, {
+      kind: "running",
+      sinceIso: cmd2Iso,
+      lastEventIso: prog2Iso,
+      minutes: 2,
+      steps: ["구현 중"],
+    });
+    assert.ok(!result.steps.includes("접수"), "명령1 로그가 명령2로 새면 안 된다");
+  });
+
+  it("귀속 대상 없는 진행(고아)은 뒤 명령에 붙지 않는다 → awaiting", () => {
+    // unanswered.length > 0 가드를 빼면 고아 진행이 뒤 명령에 붙어 running이 된다.
+    const cmdIso = ago(1);
+    assert.deepEqual(deriveProgress([progress("접수", ago(2)), command(cmdIso)], NOW), {
+      kind: "awaiting",
+      sinceIso: cmdIso,
+      minutes: 1,
+    });
+  });
+
+  it("본문 중간의 [claude][진행]은 진행 코멘트가 아니다(startsWith 접두 판정)", () => {
+    // includes 오구현이면 이 명령을 진행 코멘트로 오인한다. 접두가 아니므로 명령으로 세어 silent.
+    const iso = ago(5);
+    const midProgress = { body: "메모: [claude][진행] 관련 작업", createdAt: iso };
+    assert.deepEqual(deriveProgress([midProgress], NOW), {
+      kind: "silent",
+      sinceIso: iso,
+      minutes: 5,
+    });
+  });
+
+  it("RUNNING_STALE_THRESHOLD_MS는 600000(10분)이다", () => {
+    assert.equal(RUNNING_STALE_THRESHOLD_MS, 600_000);
+  });
+});
+
+describe("isRunLocked — 실행 버튼 잠금 범위(결정 4)", () => {
+  it("awaiting·running은 잠그고 silent·responded·idle·unknown은 열어 둔다", () => {
+    assert.equal(isRunLocked({ kind: "awaiting", sinceIso: "x", minutes: 1 }), true);
+    assert.equal(
+      isRunLocked({
+        kind: "running",
+        sinceIso: "x",
+        lastEventIso: "y",
+        minutes: 1,
+        steps: ["접수"],
+      }),
+      true,
+    );
+    // silent는 재전송해야 하는 상태라 잠그지 않는다(2026-08-15 삼킴 사건 재전송 경로).
+    assert.equal(isRunLocked({ kind: "silent", sinceIso: "x", minutes: 5 }), false);
+    assert.equal(isRunLocked({ kind: "responded", sinceIso: "x" }), false);
+    assert.equal(isRunLocked({ kind: "idle" }), false);
+    assert.equal(isRunLocked({ kind: "unknown" }), false);
   });
 });

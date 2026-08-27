@@ -35,11 +35,19 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-27
-- [ ] FEAT-24: 원격 실행의 진행 과정을 대시보드에서 본다 — 루틴의 진행 코멘트 기반 실행 로그 + 대기 중 실행 버튼 잠금
+- [x] FEAT-24: 원격 실행의 진행 과정을 대시보드에서 본다 — 루틴의 진행 코멘트 기반 실행 로그 + 대기 중 실행 버튼 잠금
   agent: admin-dev
   area: apps/admin/src/fsd/features/run-pipeline-command
-  status: 검토대기
+  status: 완료
   근거: 소유자 직접 발주(게이트① 세션 지시). BUG-07 실행 중 pill "무응답"·버튼 재활성으로 진행 여부 판단 불가 — 세션 API 직결 불가 확인 후 #87 진행 코멘트 경로로 등재. 미결 2건째(BUG-07 구현승인 병렬)는 소유자 결정.
+  결과: progress.ts running 상태+isRunLocked+진행 코멘트 FIFO 귀속, pill·실행 로그·버튼 잠금 추가. 수정5. check·test 292/62·fsd:final·build 다 0. 상세 admin-dev/FEAT-24
+  검증: 클린 패스 (2026-08-27, 독립 무편집 1라운드 — plan-verifier 2사이클째)
+- [x] FEAT-23: 항목 카드에 파이프라인 여정 스테퍼 — 전체 단계·현재 위치·다음 단계 표시
+  agent: admin-dev
+  area: apps/admin/src/fsd/pages/pipeline
+  status: 완료
+  근거: 소유자 직접 발주(게이트① 세션 지시). 카드가 status 낱말만 보여 여정 위치·다음 단계·대기 주체를 못 읽는다는 관측 — 데이터는 board.ts가 이미 보유, 매핑 순수 모델+스테퍼 UI만 얹는다. 미결 2건째(FEAT-24 검토대기 병렬)는 소유자 결정.
+  결과: status→여정 매핑 순수모델(검토대기 이분·완료/보류 여정 밖)+스테퍼 서버컴포넌트를 결재함 카드에 삽입. 신규3·수정1. check·test 307/68·fsd:final 다 0. 상세 admin-dev/FEAT-23
   검증: 클린 패스 (2026-08-27, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
 ## 2026-08-26
