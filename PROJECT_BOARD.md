@@ -34,6 +34,14 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-27
+- [ ] FEAT-24: 원격 실행의 진행 과정을 대시보드에서 본다 — 루틴의 진행 코멘트 기반 실행 로그 + 대기 중 실행 버튼 잠금
+  agent: admin-dev
+  area: apps/admin/src/fsd/features/run-pipeline-command
+  status: 검토대기
+  근거: 소유자 직접 발주(게이트① 세션 지시). BUG-07 실행 중 pill "무응답"·버튼 재활성으로 진행 여부 판단 불가 — 세션 API 직결 불가 확인 후 #87 진행 코멘트 경로로 등재. 미결 2건째(BUG-07 구현승인 병렬)는 소유자 결정.
+  검증: 클린 패스 (2026-08-27, 독립 무편집 1라운드 — plan-verifier 2사이클째)
+
 ## 2026-08-26
 - [x] FEAT-22: 파이프라인 보드 읽기의 최대 5분 지연 제거 — raw CDN을 contents API로 교체
   agent: admin-dev
@@ -43,11 +51,13 @@
   결과: queries.ts 읽기를 토큰 시 contents API(fail-closed)·부재 시 raw 폴백으로 교체, 콘솔·잠금 칩 지연 문구 제거. 수정7. check·test 281/60·fsd:final·build 다 0. 상세 admin-dev/FEAT-22
 
 ## 2026-08-25
-- [ ] BUG-07: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
+- [x] BUG-07: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
   agent: admin-dev
   area: apps/admin/src/fsd/pages/pipeline
-  status: 승인대기
+  status: 완료
   근거: FEAT-19 배포 확인 2차 스윕(2026-08-24)에서 실물로 확인된 결함. 미결 0건이라 선정 가능, 가장 최근 발견된 사용자 영향 항목.
+  결과: 배너 텍스트를 스케일되는 SVG 좌표계에서 빼내 aria-hidden SVG 위 절대배치 HTML 오버레이(pl-[30.3%]·text-sm/xs 고정)로 이전. owner-banner.tsx 1개 수정, check·test281·fsd:final 다 0.
+  검증: 클린 패스 (2026-08-26, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [x] FEAT-21: 번역 폴백 안내의 웹 절반 — `subtitleStatus` 소비·클립 카드 안내
   agent: web-dev
   area: apps/web/src/app/api/webhooks/modal + apps/web/src/inngest + apps/web/src/fsd/entities/clip + apps/web/src/fsd/widgets/clip-display
