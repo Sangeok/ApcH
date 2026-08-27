@@ -21,6 +21,19 @@
 
 ---
 
+## FEAT-24 — 원격 실행 진행 로그·버튼 잠금 (admin, 구현 2026-08-27)
+
+원천: `docs/agents/admin-dev/FEAT-24.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+**선행 의존(사용자 몫)**: claude.ai 루틴 지침을 새 문안(계획서 「범위 밖 의존」 (1))으로 교체해야
+`[claude][진행]` 코멘트가 생기고 `running`이 보인다. 미교체 시 아래 running 줄은 관측 불가(퇴행은
+아님 — 진행 코멘트 0건이면 기존 awaiting/silent 동작, 실 #87 재생으로 회귀 0 확인).
+
+- [ ] `running` pill 실표시 — 파랑 점 + `animate-pulse` + "진행 중 · N분째"(N=0이면 "진행 중"). `motion-reduce` 정지
+- [ ] 실행 로그(`ProgressLog`) 실화면 — 단계 줄이 pill 아래로 누적, 마지막 단계만 `text-foreground` 대비, `items-end` 우측 정렬, `<ol>` 스크린리더 순서
+- [ ] 버튼 잠금/해제 전환 — awaiting·running에서 회색 비활성, responded·idle·silent에서 다시 활성(재전송 경로 유지)
+- [ ] `RUNNING_STALE`(10분) 오경보 여부 — 실제 루틴 진행 코멘트 간격이 전제(≤4분·커밋 직전 코멘트)를 지키는지. 어긋나면 정상 실행이 `silent`로 잘못 넘어간다 → 결함 시 백로그 이관
+- [ ] 진행 코멘트 도입 후 기존 상태 회귀 없음 — pm-select류 짧은 실행에서 awaiting→responded 정상
+
 ## BUG-07 — 폰 배너 라벨 판독 불가(라벨 분리) (admin, 구현 2026-08-27)
 
 원천: `docs/agents/admin-dev/BUG-07.md` 「못 덮는 범위」. **배포 완료(2026-08-27 10:28 KST, PR #105 머지).**

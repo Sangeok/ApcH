@@ -17,6 +17,8 @@ import {
 // 저장소 소유자 (c) "[claude]"로 시작하지 않음 — 세 조건으로 명령을 고른다.
 // 따라서 이 문자열은 "[claude]"로 시작하면 안 되고, 게시 계정이 소유자여야 한다.
 // 게시 가능한 본문은 commands.ts의 화이트리스트가 유일한 출처다(보안 경계).
+// 루틴이 실행 중 남기는 진행 코멘트("[claude][진행]" 접두)도 (c)에 걸려 명령이 아니다 —
+// get-pipeline-progress.ts/progress.ts가 이를 진행 상태(running)로 읽는다(FEAT-24).
 
 export async function postPipelineCommand(
   command: PipelineCommandKey,

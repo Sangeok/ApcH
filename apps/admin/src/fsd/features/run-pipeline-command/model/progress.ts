@@ -1,48 +1,72 @@
 // 순수. board.ts/commands.ts와 같은 이유로 임포트 없음(progress.test.mjs로 덮인다).
-// 이슈 #87 코멘트에서 "요청→응답"을 도출한다. 명령 코멘트와 [claude] 답글의 유일한
-// 구분자는 본문 "[claude]" 접두다 — 둘 다 소유자 계정으로 게시되므로 작성자로는 못 가른다
-// (2026-08-16 실측: 코멘트 12개 전부 Sangeok, 답글만 [claude] 접두). post-pipeline-command.ts의
-// 계약(명령 본문은 [claude]로 시작하지 않는다)과 대칭이다.
+// 이슈 #87 코멘트에서 "요청 → (진행) → 응답"을 도출한다. 세 종류를 본문 접두로 가른다:
+//  · 명령        : "[claude]"로 시작하지 않음(post-pipeline-command.ts 계약)
+//  · 진행 코멘트 : "[claude][진행]"로 시작(루틴이 실행 중 남긴다 — [claude] 접두라 명령 필터를 통과하지 않는다)
+//  · 종료 답글   : "[claude]"로 시작하되 "[claude][진행]"는 아님
+// 셋 다 소유자 계정으로 게시되므로 작성자로는 못 가른다(2026-08-16 실측: 코멘트 전부 Sangeok).
 export type CommentLite = { body: string; createdAt: string };
 
-// sinceIso는 화면에 렌더하지 않는다 — pill은 kind와 minutes만 읽는다. 그래도 지우면 안 된다:
-// "이 상태가 어느 명령을 가리키는가"를 테스트가 단언할 수 있는 유일한 관측점이고, 그게 없으면
-// 아래 두 규칙을 고정할 수 없다 — awaiting/silent의 "가장 오래된 미응답 기준", responded의
-// "최신 명령 기준". 둘 다 어긋난 구현이 나머지 명세를 전부 통과한다(돌연변이 검사 실측).
+// sinceIso/lastEventIso는 화면에 렌더하지 않는다 — "이 상태가 어느 명령/어느 진행 이벤트를 가리키는가"를
+// 테스트가 단언하는 관측점이다(둘이 어긋난 오구현이 나머지 명세를 통과하는 것을 돌연변이 검사가 잡는다).
+// running.steps는 진행 코멘트에서 뽑은 단계 텍스트(오래된 순).
 export type ProgressState =
   | { kind: "idle" }
   | { kind: "awaiting"; sinceIso: string; minutes: number }
+  | {
+      kind: "running";
+      sinceIso: string;
+      lastEventIso: string;
+      minutes: number;
+      steps: string[];
+    }
   | { kind: "silent"; sinceIso: string; minutes: number }
   | { kind: "responded"; sinceIso: string }
   | { kind: "unknown" };
 
-// 3분. 실측 정상 응답은 0.3~2.6분(2026-08-16), 그 위를 "오래 무응답"으로 본다.
-// 실패 단정이 아니라 "이슈 스레드를 확인하라"는 신호다(답글이 늦게 올 수도 있다 — 실측 23분).
+// 진행 코멘트가 0건인 명령의 무응답(삼킴) 임계 — 명령 시각 기준. 3분(실측 정상 0.3~2.6분 위, 기존값 유지).
 export const SILENCE_THRESHOLD_MS = 180_000;
+// 진행 코멘트가 있었으나 끊긴 세션의 무응답 임계 — 마지막 진행 코멘트 시각 기준. 10분.
+// 실측 단계 간격 ≤4분 + 지침의 "커밋 직전 진행 코멘트" 규약이라 정상 실행은 닿지 않는다.
+// 마지막 신호 후 10분 침묵 = 중단으로 보고 silent(점검·재전송 신호)로 넘긴다.
+export const RUNNING_STALE_THRESHOLD_MS = 600_000;
 
+const PROGRESS_PREFIX = "[claude][진행]";
+
+function isProgress(body: string): boolean {
+  return body.trimStart().startsWith(PROGRESS_PREFIX);
+}
+// 종료 답글: [claude] 접두이되 진행 코멘트는 아니다. 이 제외가 진행 코멘트를 상환에서 빼낸다 —
+// 없으면(startsWith("[claude]") 하나면) 접수 코멘트가 곧바로 명령을 갚아 "응답 옴"이 뜬다.
 function isReply(body: string): boolean {
-  return body.trimStart().startsWith("[claude]");
+  const t = body.trimStart();
+  return t.startsWith("[claude]") && !t.startsWith(PROGRESS_PREFIX);
+}
+function progressText(body: string): string {
+  return body.trimStart().slice(PROGRESS_PREFIX.length).trim();
 }
 
 export function deriveProgress(
   comments: CommentLite[],
   now: Date,
 ): ProgressState {
-  // 짝짓기 모델. 루틴 지침이 "명령 1건당 답글 1건"을 보장하므로, 답글 1건이 미응답
-  // 명령 1건을 오래된 것부터(FIFO) 갚는다. 갚히지 않고 남은 가장 오래된 명령이 곧
-  // "삼켜졌을 수 있는" 그것이고, 화면은 그 명령의 경과를 말한다.
-  //
-  // "최신 명령 뒤에 답글이 있나"로 보면 안 된다 — 2026-08-15 실측 사건에서 답글 1건이
-  // 명령 2건 뒤에 달렸고, 그 답글은 앞 명령 것이었다. 그 모델이면 삼켜진 뒤 명령에
-  // "응답 옴"이 떠서 성공과 구분되지 않는다(요구 4가 없애려는 바로 그 상태).
-  //
-  // 코멘트 순서: REST 문서가 보장하는 것은 "ID 오름차순"이고, 이슈 코멘트 ID는 생성
-  // 시점에 매겨지므로 곧 생성순이다(실측한 12건도 created_at 오름차순). 앞에서부터 훑는다.
+  // 짝짓기(FIFO) 모델은 그대로. 답글 1건이 가장 오래된 미응답 명령을 갚고(shift), 진행 코멘트는
+  // 상환하지 않고 그 오래된 미응답 명령에 귀속한다. 답글이 명령을 갚으면 그 명령의 진행은 종결되고
+  // 다음 오래된 명령은 빈 로그로 시작한다(귀속 리셋 — 두 명령이 밀려도 로그가 섞이지 않는다).
   const unanswered: string[] = []; // 미응답 명령의 createdAt(오래된 순)
   let lastCommandIso: string | null = null;
+  let stepsForOldest: string[] = []; // 현재 가장 오래된 미응답 명령의 진행 단계
+  let lastEventIso: string | null = null; // 그 명령의 마지막 진행 코멘트 시각
   for (const c of comments) {
-    if (isReply(c.body)) {
+    if (isProgress(c.body)) {
+      // 귀속 대상(가장 오래된 미응답 명령)이 있을 때만 단계로 센다. 없으면 창 밖 명령의 진행 — 무시.
+      if (unanswered.length > 0) {
+        stepsForOldest.push(progressText(c.body));
+        lastEventIso = c.createdAt;
+      }
+    } else if (isReply(c.body)) {
       unanswered.shift(); // 가장 오래된 미응답 명령을 갚는다(없으면 창 밖 명령의 답글 — 무시)
+      stepsForOldest = []; // 갚힌 명령의 진행은 종결 — 다음 오래된 명령은 새로 시작
+      lastEventIso = null;
     } else {
       unanswered.push(c.createdAt);
       lastCommandIso = c.createdAt;
@@ -57,10 +81,28 @@ export function deriveProgress(
       : { kind: "responded", sinceIso: lastCommandIso };
   }
 
+  // 진행 코멘트가 있으면 마지막 진행 코멘트 기준으로 잰다(진행 중 vs 끊김).
+  if (stepsForOldest.length > 0 && lastEventIso !== null) {
+    const elapsed = now.getTime() - Date.parse(lastEventIso);
+    if (Number.isNaN(elapsed)) return { kind: "unknown" };
+    const minutes = Math.max(0, Math.floor(elapsed / 60_000));
+    return elapsed >= RUNNING_STALE_THRESHOLD_MS
+      ? { kind: "silent", sinceIso: oldest, minutes }
+      : { kind: "running", sinceIso: oldest, lastEventIso, minutes, steps: stepsForOldest };
+  }
+
+  // 진행 코멘트가 0건이면 명령 시각 기준(기존 로직 — 삼킴 탐지 보존).
   const elapsed = now.getTime() - Date.parse(oldest);
   if (Number.isNaN(elapsed)) return { kind: "unknown" }; // created_at 파싱 불가
   const minutes = Math.max(0, Math.floor(elapsed / 60_000));
   return elapsed >= SILENCE_THRESHOLD_MS
     ? { kind: "silent", sinceIso: oldest, minutes }
     : { kind: "awaiting", sinceIso: oldest, minutes };
+}
+
+// 실행 버튼 잠금 판정(순수). 미응답 명령이 대기·진행 중이면(awaiting/running) 재클릭을 막는다 —
+// 재클릭은 같은 명령 재게시 → 루틴 재발화 → 동시 실행 위험이다. silent(삼킴·끊김)는 잠그지 않는다:
+// 2026-08-15 삼킴 사건 때 재전송이 필요했다(재전송 경로를 남긴다). responded/idle/unknown도 안 잠근다.
+export function isRunLocked(state: ProgressState): boolean {
+  return state.kind === "awaiting" || state.kind === "running";
 }

@@ -62,3 +62,32 @@ admin-dev를 계획서 작성에 디스패치한다. 핵심 판단 지점(계획
 **판정**: 독립 무편집 클린 패스 1회 달성 → 보드 정지 규칙 충족. `검증:` 줄 기록. 게이트②(구현승인) 대기 — 사용자만 연다.
 
 **게이트②에서 사용자가 알아야 할 것**: 구현 자체는 `apps/admin/src/**` 안에서 닫히지만, 이 기능이 실제로 `running`을 보이려면 **claude.ai 루틴 지침 변경이 선행**돼야 한다(계획서 「범위 밖 의존」의 새 지침 전문). 지침 미변경 시 화면은 기존 awaiting/silent만 보인다(퇴행은 아님 — 실 #87 재생으로 회귀 0 확인). 지침 변경은 사용자 몫이고, 저장소 계약 사본 2곳(proposals 문서·post-pipeline-command.ts 주석) 중 후자만 구현 범위 안이다.
+
+## 구현 인수 (2026-08-27, 메인 루프)
+
+게이트②는 사용자 세션 지시로 개방(`0195f4a`). 구현 순서를 FEAT-23보다 앞에 둔 이유: (a) 대기 중
+재클릭 방지가 운영 안전장치이고, (b) FEAT-24는 `features/run-pipeline-command/**`만 만져
+FEAT-23 계획서가 인용한 `ui/index.tsx` 줄번호를 밀지 않는다(반대 순서면 B-3 대조에서 어긋난다).
+
+**인수 다섯 조건 — 전부 직접 재현:**
+1. **변경 파일 ↔ 「고칠 파일」**: 코드 5개가 표와 정확히 일치(progress.ts·progress.test.mjs·
+   get-pipeline-progress.test.mjs·pipeline-run-control.tsx·post-pipeline-command.ts) + 보드·백로그·구현 보고.
+   범위 밖(`get-pipeline-progress.ts` 본체·`verify-fsd-boundaries.mjs`·`run-plan.ts`·`briefing.ts`·`env.js`) 무접촉 확인.
+2. **diff ↔ 「구현 스케치」**: 분기 순서(`isProgress`→`isReply`), 귀속 리셋 2문장(`stepsForOldest=[]`+`lastEventIso=null`),
+   `RUNNING_STALE_THRESHOLD_MS = 600_000`, `isRunLocked`(awaiting·running만), UI 3개소(running 케이스·`ProgressLog`·
+   `disabled`에 `isRunLocked` 합류)까지 스케치와 동일. **검증 라운드에서 강화한 두 단언이 실제 테스트에 반영됨을
+   직접 확인**: 귀속 리셋 벡터가 명령2 뒤 진행 코멘트를 포함(`progress.test.mjs:243-250`), 분기 순서 고정 단언(`:174-178`).
+3. **검증 직접 재실행**: `check` EXIT 0 · `test` EXIT 0(292 pass/62 suites, fail 0) · `verify:fsd:final` EXIT 0.
+   에이전트 보고가 아니라 메인 루프가 재실행한 출력. 테스트 281→292(+11), suite 60→62(+2), 파일 수 27 불변.
+4. **백로그 제거**: FEAT-24 블록 소멸, 인접 FEAT-23·25·26·27 전문 무결 직접 확인.
+5. **상세 기록 실재**: `docs/agents/admin-dev/FEAT-24.md`(8.8KB). 보드 `결과` 136자(예산 내).
+
+**「범위 밖 의존」 처리**: (1) claude.ai 루틴 지침 — 사용자 몫, 계획서에 새 문안 전문 수록. 미반영 시
+`running`이 안 보이나 퇴행은 없다(진행 코멘트 0건이면 기존 awaiting/silent 동작, 실 #87 재생으로 회귀 0 확인).
+(2) `docs/proposals/active/remote-agent-pipeline-generalization.md` 정합 사본 3곳(`:120`·`:130-144`·`:168`) —
+admin-dev 쓰기 범위 밖이라 메인 루프가 지침 교체 확정 후 반영한다(지금 반영하면 아직 안 바뀐 지침과 어긋난다).
+
+**CLAUDE.md handoff**: `apps/admin/CLAUDE.md:37` 테스트 인벤토리 총계 281→292 test·60→62 suite(파일 27 불변),
+`progress.test.mjs`·`get-pipeline-progress.test.mjs` 행 계약 문구 갱신 — 읽기 전용 파일이라 메인 루프가 동기화.
+
+「못 덮는 범위」는 `docs/release-checks.md`에 등재.

@@ -185,4 +185,18 @@ describe("getPipelineProgress", () => {
     assert.equal(result.sinceIso, cmd2);
     assert.equal(result.minutes, 2);
   });
+
+  it("진행 코멘트([claude][진행])가 창 필터를 통과해 running으로 도출된다(코드 무변경 실증)", async () => {
+    // 진행 코멘트도 {body, created_at} 코멘트라 기존 shape 검사·창 필터를 그대로 통과한다.
+    // 접두 해석은 progress.ts가 한다 — get-pipeline-progress.ts는 안 고친다(FEAT-24).
+    const cmd = new Date(Date.now() - 5 * 60_000).toISOString();
+    const prog = new Date(Date.now() - 60_000).toISOString();
+    state.response = jsonResponse([
+      { body: "파이프라인을 진행해 주세요.", created_at: cmd },
+      { body: "[claude][진행] 접수", created_at: prog },
+    ]);
+    const result = await getPipelineProgress();
+    assert.equal(result.kind, "running");
+    assert.deepEqual(result.steps, ["접수"]);
+  });
 });
