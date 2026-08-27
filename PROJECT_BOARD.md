@@ -51,11 +51,12 @@
   결과: queries.ts 읽기를 토큰 시 contents API(fail-closed)·부재 시 raw 폴백으로 교체, 콘솔·잠금 칩 지연 문구 제거. 수정7. check·test 281/60·fsd:final·build 다 0. 상세 admin-dev/FEAT-22
 
 ## 2026-08-25
-- [ ] BUG-07: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
+- [x] BUG-07: 폰 뷰포트에서 `/pipeline` "당신의 책상" 배너 라벨이 판독 불가 수준으로 작게 렌더됨
   agent: admin-dev
   area: apps/admin/src/fsd/pages/pipeline
-  status: 구현승인
+  status: 완료
   근거: FEAT-19 배포 확인 2차 스윕(2026-08-24)에서 실물로 확인된 결함. 미결 0건이라 선정 가능, 가장 최근 발견된 사용자 영향 항목.
+  결과: 배너 텍스트를 스케일되는 SVG 좌표계에서 빼내 aria-hidden SVG 위 절대배치 HTML 오버레이(pl-[30.3%]·text-sm/xs 고정)로 이전. owner-banner.tsx 1개 수정, check·test281·fsd:final 다 0.
   검증: 클린 패스 (2026-08-26, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 - [x] FEAT-21: 번역 폴백 안내의 웹 절반 — `subtitleStatus` 소비·클립 카드 안내
   agent: web-dev

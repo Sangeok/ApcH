@@ -21,68 +21,64 @@ export function OwnerBanner({ pendingCount }: { pendingCount: number }) {
   );
 
   return (
-    <svg
-      viewBox="0 0 660 96"
-      role="img"
-      aria-label={`당신의 책상 — ${subtitle}`}
-      shapeRendering="crispEdges"
-      className="w-full"
-    >
-      <rect width={660} height={96} fill="#f5efdf" />
-      {Array.from({ length: 44 }, (_, index) => (
-        <g key={index}>
-          <rect x={index * 15} y={56} width={15} height={8} fill="#b08968" />
-          <rect x={index * 15} y={64} width={15} height={26} fill="#8b5e34" />
-        </g>
-      ))}
-      {docRects.map((rect, index) => (
-        <rect
-          key={`d${index}`}
-          x={rect.x}
-          y={rect.y}
-          width={rect.size}
-          height={rect.size}
-          fill={rect.color}
-        />
-      ))}
-      <rect
-        x={57}
-        y={23}
-        width={60}
-        height={36}
-        fill="none"
-        stroke="#2b2420"
-        strokeWidth={2}
-      />
-      {stampRects.map((rect, index) => (
-        <rect
-          key={`s${index}`}
-          x={rect.x}
-          y={rect.y}
-          width={rect.size}
-          height={rect.size}
-          fill={rect.color}
-        />
-      ))}
-      <text
-        x={200}
-        y={38}
-        fontFamily="ui-monospace, monospace"
-        fontSize={15}
-        fontWeight={700}
-        fill="#2b2420"
+    <div className="relative">
+      <svg
+        viewBox="0 0 660 96"
+        aria-hidden="true"
+        shapeRendering="crispEdges"
+        className="w-full"
       >
-        당신의 책상
-      </text>
-      <text
-        x={200}
-        y={54}
-        fontFamily="ui-sans-serif, system-ui"
-        fontSize={12}
-        fill="#976014"
-      >
-        {subtitle}
-      </text>
-    </svg>
+        <rect width={660} height={96} fill="#f5efdf" />
+        {Array.from({ length: 44 }, (_, index) => (
+          <g key={index}>
+            <rect x={index * 15} y={56} width={15} height={8} fill="#b08968" />
+            <rect x={index * 15} y={64} width={15} height={26} fill="#8b5e34" />
+          </g>
+        ))}
+        {docRects.map((rect, index) => (
+          <rect
+            key={`d${index}`}
+            x={rect.x}
+            y={rect.y}
+            width={rect.size}
+            height={rect.size}
+            fill={rect.color}
+          />
+        ))}
+        <rect
+          x={57}
+          y={23}
+          width={60}
+          height={36}
+          fill="none"
+          stroke="#2b2420"
+          strokeWidth={2}
+        />
+        {stampRects.map((rect, index) => (
+          <rect
+            key={`s${index}`}
+            x={rect.x}
+            y={rect.y}
+            width={rect.size}
+            height={rect.size}
+            fill={rect.color}
+          />
+        ))}
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-center gap-1 pl-[30.3%] pr-3">
+        <p
+          className="text-sm leading-tight font-bold"
+          style={{ fontFamily: "ui-monospace, monospace", color: "#2b2420" }}
+        >
+          당신의 책상
+        </p>
+        <p
+          className="text-xs leading-snug"
+          style={{ fontFamily: "ui-sans-serif, system-ui", color: "#976014" }}
+        >
+          {subtitle}
+        </p>
+      </div>
+    </div>
   );
 }
