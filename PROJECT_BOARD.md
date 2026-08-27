@@ -40,6 +40,7 @@
   area: apps/admin/src/fsd/features/run-pipeline-command
   status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). BUG-07 실행 중 pill "무응답"·버튼 재활성으로 진행 여부 판단 불가 — 세션 API 직결 불가 확인 후 #87 진행 코멘트 경로로 등재. 미결 2건째(BUG-07 구현승인 병렬)는 소유자 결정.
+  검증: 클린 패스 (2026-08-27, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
 ## 2026-08-26
 - [x] FEAT-22: 파이프라인 보드 읽기의 최대 5분 지연 제거 — raw CDN을 contents API로 교체

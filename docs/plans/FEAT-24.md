@@ -12,9 +12,9 @@ agent: admin-dev
 `/pipeline` 헤더의 실행 콘솔(FEAT-10)은 이슈 #87 코멘트를 15초 폴링해 "요청 → 응답"만 도출한다. **진행 중을 나타내는 상태가 없고**, 루틴이 답글을 종료 시 1건만 남기므로 실행 중 창은 코멘트가 0건이라 곧바로 무응답으로 오판된다. **버튼은 POST 왕복 중에만 비활성**이라 대기 중 재클릭을 막지 못한다.
 
 - `features/run-pipeline-command/model/progress.ts`의 `ProgressState`(`:12-17`)는 `idle`·`awaiting`·`silent`·`responded`·`unknown` 다섯뿐 — **"진행 중"이 없다.** `deriveProgress`(`:27-66`)는 명령:답글을 FIFO로 짝지어(`:43-50` 루프, `:52-58` 오래된 미응답), 미응답이 남으면 경과가 임계(`SILENCE_THRESHOLD_MS = 180_000`, `:21`) 미만이면 `awaiting`, 이상이면 `silent`를 낸다(`:60-65`). 경과는 **명령 시각** 기준이다(`:60` `Date.parse(oldest)`).
-- 명령/답글의 유일한 구분자는 본문 접두다. `isReply`(`:23-25`)는 `body.trimStart().startsWith("[claude]")` 하나로 답글을 판정하고, 그 답글이 미응답 명령을 상환한다(`:44` `unanswered.shift()`). 명령은 `[claude]`로 시작하지 않는다는 계약(`post-pipeline-command.ts:12-19`, `commands.ts:12`)과 대칭이다.
+- 명령/답글의 유일한 구분자는 본문 접두다. `isReply`(`:23-25`)는 `body.trimStart().startsWith("[claude]")` 하나로 답글을 판정하고, 그 답글이 미응답 명령을 상환한다(`:45` `unanswered.shift()`). 명령은 `[claude]`로 시작하지 않는다는 계약(`post-pipeline-command.ts:12-19`, `commands.ts:12`)과 대칭이다.
 - `SILENCE_THRESHOLD_MS = 180_000`(3분, `:21`)의 근거는 pm-select류 정상 응답 0.3~2.6분(`docs/plans/FEAT-10.md:127`)이다 — 그보다 오래 걸리는 계획서 작성·구현 실행에선 진행 코멘트가 없는 한 항상 3분에 `silent`로 넘어간다.
-- 진행 read owner는 `features/run-pipeline-command/api/get-pipeline-progress.ts`다(읽기 전용, `apps/admin/CLAUDE.md:114`). `requireAdmin()`(`:14`) 뒤 이슈 #87 코멘트를 `WINDOW_MS = 6h`(`:10`) `since` 창·`per_page=100`(`:18`)으로 GET하고, `created_at`이 창 안인 것만(`:59-61`) `{body, createdAt}` 배열로 `deriveProgress`에 넘긴다(`:63`). 토큰 있으면 Bearer 인증(`:26-27`), 읽기 실패는 전부 `unknown`(`:34`·`:38`·`:40`·`:57`·`:60`).
+- 진행 read owner는 `features/run-pipeline-command/api/get-pipeline-progress.ts`다(읽기 전용, `apps/admin/CLAUDE.md:114`). `requireAdmin()`(`:14`) 뒤 이슈 #87 코멘트를 `WINDOW_MS = 6h`(`:10`) `since` 창·`per_page=100`(`:18`)으로 GET하고, `created_at`이 창 안인 것만(`:59-61`) `{body, createdAt}` 배열로 `deriveProgress`에 넘긴다(`:63`). 토큰 있으면 Bearer 인증(`:26-27`), 읽기 실패는 전부 `unknown`(`:34`·`:38`·`:40`·`:52`·`:57`·`:60` — 6곳).
 - 실행 콘솔 `features/run-pipeline-command/ui/pipeline-run-control.tsx`(`"use client"` `:1`)는 15초 폴링(`POLL_MS = 15_000`, `:13`)으로 `getPipelineProgress`를 읽어(`readProgress` `:69-83`, `progressRequestRef` 순번 가드 `:72`·`:75`) `ProgressPill`(`:18-61`)에 반영한다. pill은 점(비텍스트) + 낱말이고 색은 브리핑 tone 토큰이다: awaiting=`bg-active`+맥박(`:24-32`)·responded=`bg-silence`(`:33-36`)·silent=`bg-hold`(`:37-41`)·idle/unknown=`bg-muted-foreground`(`:42-47`).
 - **버튼 비활성 조건은 `disabled={isPending || !plan.enabled}`(`:114`)뿐이다.** `isPending`은 `startTransition`(`:96`)의 POST 왕복 동안만 true이므로, POST가 끝나면 명령이 아직 미응답(awaiting/silent)이어도 버튼은 다시 활성으로 돌아온다. 클릭 성공 토스트는 `파이프라인 실행을 요청했습니다 (이슈 #87). 아래에서 진행을 확인하세요.`(`:104`)이고 클릭 직후 `readProgress()`로 즉시 갱신한다(`:106`).
 - 콘솔은 헤더 우측에 세로 스택으로 배치된다(`pipeline/ui/index.tsx:129` `<PipelineRunControl plan={briefing.plan} />`, 콘솔 내부는 `flex flex-col items-end gap-1.5` `:111`, 설명 `max-w-64 text-right` `:119`).
@@ -88,7 +88,7 @@ _(새 화면이 아니라 FEAT-10 실행 콘솔에 진행 상태 하나와 잠�
 | `src/fsd/features/run-pipeline-command/ui/pipeline-run-control.tsx` `(수정, "use client")` | `ProgressPill`에 `running` 케이스 추가 + `ProgressLog`(실행 로그) 렌더 + 버튼 `disabled`에 `isRunLocked(progress)` 합류 |
 | `src/fsd/features/run-pipeline-command/api/post-pipeline-command.ts` `(수정, 주석만)` | 명령 필터 계약 주석에 진행 코멘트 접두(`[claude][진행]`) 규약 한 줄 추가(계약 사본 정합) |
 
-여기 없는 파일은 고치지 않는다. 특히 **`get-pipeline-progress.ts`는 고치지 않는다** — 진행 코멘트도 `{body, created_at}` 코멘트라 기존 shape 검사·창 필터·FIFO 전달을 그대로 통과하고, 접두 해석은 전부 `progress.ts`가 한다(결정 5의 예산도 코드 변경을 요구하지 않는다). **`scripts/verify-fsd-boundaries.mjs`도 고치지 않는다** — 새 fetch/DB/Sentry owner가 없고(진행 read owner는 FEAT-10의 네 번째 그대로), public boundary도 안 바뀐다(`running`·`isRunLocked`는 feature 내부 구현이라 `index.ts` 재수출 없이 같은 feature UI가 상대 import한다). **`run-plan.ts`·`briefing.ts`·`env.js`도 안 고친다** — 라벨/enabled는 보드 도출이라 진행과 무관하고, 토큰 주석은 이미 "(3) 진행 신호로 이슈 #87 코멘트 읽기"를 담는다(코멘트 읽기는 진행 코멘트를 포함하며 새 권한이 아니다). 게이트 잠금(`gate-card-lock.tsx`)도 안 건드린다 — 실행 잠금은 별개의 `disabled` 어포던스다(결정 4).
+여기 없는 파일은 고치지 않는다. 특히 **`get-pipeline-progress.ts`는 고치지 않는다** — 진행 코멘트도 `{body, created_at}` 코멘트라 기존 shape 검사·창 필터·FIFO 전달을 그대로 통과하고, 접두 해석은 전부 `progress.ts`가 한다(결정 5의 예산도 코드 변경을 요구하지 않는다). **`scripts/verify-fsd-boundaries.mjs`도 고치지 않는다** — 새 fetch/DB/Sentry owner가 없고(진행 read owner `get-pipeline-progress.ts`는 현재 fetch owner **6개 중 3번째**로 이미 등록돼 있어 그대로), public boundary도 안 바뀐다(`running`·`isRunLocked`는 feature 내부 구현이라 `index.ts` 재수출 없이 같은 feature UI가 상대 import한다). **`run-plan.ts`·`briefing.ts`·`env.js`도 안 고친다** — 라벨/enabled는 보드 도출이라 진행과 무관하고, 토큰 주석은 이미 "(3) 진행 신호로 이슈 #87 코멘트 읽기"를 담는다(코멘트 읽기는 진행 코멘트를 포함하며 새 권한이 아니다). 게이트 잠금(`gate-card-lock.tsx`)도 안 건드린다 — 실행 잠금은 별개의 `disabled` 어포던스다(결정 4).
 
 ## 구현 스케치
 
@@ -324,14 +324,14 @@ $env:SENTRY_DISABLE_AUTO_UPLOAD='true'
 npm.cmd run build -w apps/admin
 ```
 
-성공 기준은 runtime test·boundary fixture/final tree·lint·production typecheck·Next production build가 모두 0 exit인 것이다. `verify:fsd:final`은 **owner를 늘리지 않으므로** 정확히 fetch owner 4개(FEAT-10 그대로)를 계속 통과해야 한다.
+성공 기준은 runtime test·boundary fixture/final tree·lint·production typecheck·Next production build가 모두 0 exit인 것이다. `verify:fsd:final`은 **owner를 늘리지 않으므로** 현재 fetch owner **6개**(FEAT-14/15·agent-report·FEAT-22가 FEAT-10 시절 4개에서 늘린 값 — `scripts/verify-fsd-boundaries.mjs:32-38`)를 그대로 계속 통과해야 한다. 스크립트는 성공 시 이 수를 단언·출력하지 않으므로 개수 자체가 빌드를 가르지는 않는다.
 
 - **덮는 것 (순수 함수):**
   - `progress.test.mjs` (수정) — `deriveProgress`·`isRunLocked`. **기존 단언은 전부 유지된다**(진행 코멘트가 없는 흐름은 로직이 동일하므로). 추가:
-    - **진행 코멘트는 명령을 갚지 않는다(상환 제외).** `[명령, [claude][진행] 접수]` → `running{steps:["접수"], sinceIso:명령, lastEventIso:진행시각}` — **`responded`가 아니다.** 이 단언이 없으면 `isReply`에서 `!isProgress` 제외를 빼도(즉 진행 코멘트를 답글로 취급) 나머지가 통과한다(결정 1의 핵심).
+    - **진행 코멘트는 명령을 갚지 않는다(상환 제외).** `[명령, [claude][진행] 접수]` → `running{steps:["접수"], sinceIso:명령, lastEventIso:진행시각}` — **`responded`가 아니다.** 이 도출을 지키는 1차 방어는 루프의 **분기 순서**(`isProgress`를 `isReply`보다 먼저 검사)라, 진행 코멘트는 `isReply`에 도달하지 않는다. `isReply`의 `!PROGRESS_PREFIX` 제외는 그 순서가 뒤집혀도 진행 코멘트가 답글로 새지 않게 하는 **2차 방어**다 — 검증 실측(스크래치패드 harness.mjs): 제외만 제거하면 순서가 지키므로 도출 불변, **순서를 뒤집고 제외까지 빼야** `running`이 `awaiting`/`responded`로 깨진다. 따라서 이 단언에 더해 **분기 순서를 고정하는 단언**을 함께 둔다: `isReply`를 먼저 판정하는 오구현이 진행 코멘트를 답글로 소비하면 위 입력이 `running`이 아니게 되어 잡힌다(결정 1의 핵심 — 방어는 순서이고 제외는 이중화다).
     - **running 단계 목록·순서.** `[명령, 진행"접수", 진행"검증 중"]`(마지막 2분 전) → `running{steps:["접수","검증 중"], minutes:2}`. `minutes`가 **명령이 아니라 마지막 진행 코멘트 기준**임을 고정: 명령 20분 전 + 진행 1분 전 → `running{minutes:1}`(명령 기준 오구현은 20을 낸다).
     - **running → silent 경계.** 진행 마지막 이벤트가 정확히 10분 전(`RUNNING_STALE_THRESHOLD_MS`) → `silent{minutes:10}`; 9분 전 → `running{minutes:9}`. 경계 포함(`>=`).
-    - **귀속 리셋.** `[명령1, 진행1, 답글1, 명령2]` → `awaiting`(명령2 기준, 진행 0건) — 명령1의 진행이 명령2로 새지 않음(리셋 없는 오구현은 `running{steps:[진행1]}`을 낸다).
+    - **귀속 리셋(로그 비-혼입).** 벡터에 **명령2 뒤 진행 코멘트를 반드시 포함**한다: `[명령1, 진행1"접수", 답글1, 명령2, 진행2"구현중"]` → `running{steps:["구현중"]}` — **`steps`에 "접수" 부재를 단언**한다. `[명령1, 진행1, 답글1, 명령2]`(명령2 뒤 진행 없음)만으로는 부족하다(검증 실측: 그 벡터는 baseline·리셋-제거 오구현 **양쪽 다 `awaiting{2}`**라 오구현이 생존하고, "리셋 없으면 `running`" 근거도 틀리다). 상환 리셋은 두 문장(`stepsForOldest = []` + `lastEventIso = null`)인데, `stepsForOldest = []`만 빠진 오구현이 명령2에 진행이 붙는 순간 `steps:["접수","구현중"]`로 명령1 로그를 흘린다(결정 2·`:71`이 막겠다는 결함) — 명령2 뒤 진행이 있는 벡터라야 이 돌연변이가 사멸한다.
     - **귀속 대상 없는 진행은 무시.** `[진행(고아), 명령(1분 전)]` → `awaiting{minutes:1}` — `unanswered.length > 0` 가드를 빼면 고아 진행이 뒤 명령에 붙어 `running`이 된다.
     - **`isProgress`는 접두(startsWith)다.** 본문 *중간*에 `[claude][진행]`이 든 명령(사람 메모)은 진행 코멘트가 아니다 → 명령으로 세어 `awaiting`/`silent`. `includes` 오구현을 잡는다.
     - **`isRunLocked`:** `awaiting`→true, `running`→true, `silent`→**false**, `responded`→false, `idle`→false, `unknown`→false(결정 4의 잠금 범위 고정 — silent를 포함하는 오구현은 재전송 경로를 막는다).
