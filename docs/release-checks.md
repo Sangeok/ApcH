@@ -23,7 +23,9 @@
 
 ## FEAT-23 — 항목 카드 파이프라인 여정 스테퍼 (admin, 구현 2026-08-27)
 
-원천: `docs/agents/admin-dev/FEAT-23.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+원천: `docs/agents/admin-dev/FEAT-23.md` 「못 덮는 범위」. **배포 완료(2026-08-27 14:23 KST, PR #106 머지).**
+주의: 스테퍼는 **결재함 카드에만** 뜬다 — 미결 0건이면 결재함이 비어 관측 자체가 불가하다. 다음 pm
+선정이나 게이트 항목이 생길 때 확인한다.
 
 - [ ] 노드 색/형태 — done 흑연 채움 · **현재·사용자 게이트 = 호박 빈 링**(`border-2 border-stamp`) · **현재·팀 = 남색 채움**(`bg-active`) · upcoming 옅은 빈 링. 현재 노드 크기 강조(size-2.5 vs 1.5)와 연결선 색
 - [ ] 단계 라벨 반응형 — 데스크톱(sm↑) 7 라벨 노출, 폰에서 숨김(`hidden sm:block`)이되 노드 레일은 유지
@@ -33,10 +35,10 @@
 
 ## FEAT-24 — 원격 실행 진행 로그·버튼 잠금 (admin, 구현 2026-08-27)
 
-원천: `docs/agents/admin-dev/FEAT-24.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
-**선행 의존(사용자 몫)**: claude.ai 루틴 지침을 새 문안(계획서 「범위 밖 의존」 (1))으로 교체해야
-`[claude][진행]` 코멘트가 생기고 `running`이 보인다. 미교체 시 아래 running 줄은 관측 불가(퇴행은
-아님 — 진행 코멘트 0건이면 기존 awaiting/silent 동작, 실 #87 재생으로 회귀 0 확인).
+원천: `docs/agents/admin-dev/FEAT-24.md` 「못 덮는 범위」. **배포 완료(2026-08-27 14:23 KST, PR #106 머지).**
+**선행 의존 — 해소됨**: claude.ai 루틴 지침을 새 문안으로 교체 완료(2026-08-27 05:04Z, 메인 루프가
+`RemoteTrigger update`로 실행). 다음 원격 실행부터 `[claude][진행]` 코멘트가 쌓이므로 아래 running
+줄들이 관측 가능해졌다 — **실행 버튼을 한 번 누르면 대부분 함께 닫힌다.**
 
 - [ ] `running` pill 실표시 — 파랑 점 + `animate-pulse` + "진행 중 · N분째"(N=0이면 "진행 중"). `motion-reduce` 정지
 - [ ] 실행 로그(`ProgressLog`) 실화면 — 단계 줄이 pill 아래로 누적, 마지막 단계만 `text-foreground` 대비, `items-end` 우측 정렬, `<ol>` 스크린리더 순서
