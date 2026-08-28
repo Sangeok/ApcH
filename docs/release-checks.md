@@ -44,7 +44,7 @@
 - [x] verifier 세션으로 protected 페이지 GET(`/pipeline`·`/analytics`·`/observability`·`/pipeline/docs/…`·`/pipeline/agents/…`)이 렌더되고(Edge가 실제 verifier JWT를 통과), 헤더에 「검증기 (읽기 전용)」 폴백, `/login`은 `/analytics`로 리다이렉트 — 확인(2026-08-28 12:28 KST, curl 실측: 다섯 경로 전부 200·본문에 「검증기 (읽기 전용)」·이메일 없음; `/login` 302 `Location: /analytics`; 무세션 `/pipeline` 307 `/login?callbackUrl=…`)
 - [x] 쓰기 거부 — verifier 세션으로 쓰기 액션이 404(`notFound`)로 막힘 — 확인(2026-08-28 12:32 KST, Playwright 실측: verifier 세션 쿠키로 `/observability` 렌더(헤더 「검증기 (읽기 전용)」) 후 「Send test event」 클릭 → 서버 액션 POST **HTTP 404** `text/x-component`, 화면 "404: This page could not be found." 나머지 3곳(명령 POST·게이트 승인·반려)은 같은 `requireAdmin({ write: true })` 호출이며 단위 테스트가 덮는다 — 게이트 버튼은 결재함이 비어 실물 클릭 대상이 없었음)
 - [ ] Google admin 회귀 없음 — 관리자 계정으로 도장·실행 버튼이 그대로 동작 (사용자의 다음 실제 도장·실행 때 확인)
-- [ ] 1h 만료 — 발급 1h 뒤 같은 세션 쿠키로 protected 페이지 → 404, 재로그인으로 복구 (2026-08-28 12:29 KST 발급 세션을 보관 중 — 13:30 KST 이후 재확인)
+- [x] 1h 만료 — 발급 1h 뒤 같은 세션 쿠키로 protected 페이지 → 404, 재로그인으로 복구 — 확인(2026-08-29 00:47 KST, curl 실측: 23:40 KST 발급 세션(JWT 8h 유효, `/api/auth/session`에 verifier 신원 그대로)으로 67분 뒤 `/pipeline`·`/analytics`·`/observability` 전부 **404**(guard의 1h 가드), 재로그인 302 → `/pipeline` 200. 참고: 12:29 KST 세션은 8h JWT 만료 뒤 확인해 `session null`·307이었음 — 가드가 아니라 쿠키 만료라 관측 창을 다시 잡았다)
 
 ## FEAT-23 — 항목 카드 파이프라인 여정 스테퍼 (admin, 구현 2026-08-27)
 

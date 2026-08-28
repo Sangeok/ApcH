@@ -156,3 +156,7 @@ PR #107 머지(12:07 KST) 직후 첫 실측은 `providers = [google]`·callback 
 ## 배포 확인 스윕 2 — 쓰기 거부 (2026-08-28, 메인 루프 — Playwright MCP, admin 프로덕션)
 
 세션 토큰을 제 도구 호출 텍스트에 노출하지 않으려고, Playwright 서버 프로세스가 스크래치패드의 curl jar를 `file://`로 읽어 `context.addCookies`로 주입했다(비밀값·토큰은 기록·출력 어디에도 없음). verifier로 `/observability` 렌더(헤더 「검증기 (읽기 전용)」, 버튼 「Send test event」) → 클릭 → 서버 액션 POST 응답 **HTTP 404** `text/x-component`, 페이지가 Next의 not-found 경계("404: This page could not be found.")로 전환 — `send-observability-test-event.ts:27`의 `requireAdmin({ write: true })`가 설계대로 `notFound()`. 명령 POST·게이트 승인/반려는 같은 호출(단위 테스트 6분기)이고 결재함이 비어 게이트 버튼은 실물 대상이 없었다. 원장 3줄을 「verifier 거부(확인)」와 「Google admin 회귀 없음(사용자 다음 도장 때)」로 분리 마감. 남은 줄: 1h 만료(04:30Z 이후), Google 회귀.
+
+## 배포 확인 스윕 3 — 1h 만료 (2026-08-29 00:47 KST, 메인 루프 — curl)
+
+23:40 KST 발급 세션을 67분 뒤 재사용: `/api/auth/session`은 JWT가 유효해 `{id: verifier, role: verifier}`를 그대로 주지만 `/pipeline`·`/analytics`·`/observability`는 **404** — `guard.ts`의 `Date.now() - verifierIssuedAt > 1h` 분기가 프로덕션에서 작동. 재로그인 302 → `/pipeline` 200으로 복구. 앞서 12:29 KST 세션을 11시간 뒤 봤을 때의 `session null`·307은 8h 쿠키 만료(정상)라 가드 관측이 아니었다. 원장 FEAT-25 절은 이제 Google admin 회귀 1줄(사용자 다음 도장 때)만 남는다.
