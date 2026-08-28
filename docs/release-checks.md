@@ -23,7 +23,7 @@
 
 ## FEAT-25 — admin 검증기 인증 경로(읽기 전용 verifier 세션) (admin, 구현 2026-08-28)
 
-원천: `docs/agents/admin-dev/FEAT-25.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에만 있음, PR 머지 후 확인 가능.
+원천: `docs/agents/admin-dev/FEAT-25.md` 「테스트로 못 덮은 범위」. **배포 완료(2026-08-28 12:07 KST, PR #107 머지).**
 선행: Vercel admin 프로젝트 env에 `VERIFIER_SECRET`(긴 난수) 주입 — 미주입이면 provider가 등록되지 않아 아래
 첫 줄이 "callback 실패"로 보이는 것이 정상이다(기능 휴면). 아래 줄들은 FEAT-26 루틴이 처음 성공적으로 돌면
 `대체(FEAT-26)`로 닫힌다.
