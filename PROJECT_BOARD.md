@@ -40,6 +40,7 @@
   area: apps/backend
   status: 검토대기
   근거: 성공/실패와 무관하게 임시 디렉토리 정리가 항상 실행되는 backend 신뢰성 결함. area가 apps/backend 단일이라 담당 명확. 미결 0건이라 선정 가능.
+  검증: 클린 패스 (2026-08-29, 독립 무편집 1라운드 — plan-verifier 3사이클째)
 - [ ] BUG-08: 에러 콜백이 `clips: []`를 하드코딩해 부분 성공을 유실함
   agent: backend-dev
   area: apps/backend + apps/web/src/inngest
