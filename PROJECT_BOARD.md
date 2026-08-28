@@ -34,6 +34,18 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-29
+- [ ] BUG-04: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
+  agent: backend-dev
+  area: apps/backend
+  status: 승인대기
+  근거: 성공/실패와 무관하게 임시 디렉토리 정리가 항상 실행되는 backend 신뢰성 결함. area가 apps/backend 단일이라 담당 명확. 미결 0건이라 선정 가능.
+- [ ] BUG-08: 에러 콜백이 `clips: []`를 하드코딩해 부분 성공을 유실함
+  agent: backend-dev
+  area: apps/backend + apps/web/src/inngest
+  status: 승인대기
+  근거: 에러 콜백의 clips:[] 하드코딩으로 이미 S3에 오른 앞쪽 클립이 리포트에서 유실. 원 결함은 backend 콜백이라 backend-dev, 웹 inngest 계약 변경은 경계 판단으로 계획 단계에 맡긴다.
+
 ## 2026-08-28
 - [x] FEAT-26: release-verifier 루틴 — 배포 확인 원장의 화면 판정 가능 줄을 매일·배포 직후 자동 확인·마감
   agent: main-loop
