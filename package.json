@@ -10,7 +10,9 @@
     "test": "npm run test --workspaces --if-present",
     "db:push": "npm run db:push -w @repo/db",
     "db:migrate": "npm run db:migrate -w @repo/db",
-    "db:studio": "npm run db:studio -w @repo/db"
+    "db:studio": "npm run db:studio -w @repo/db",
+    "release-verify": "node --env-file=.env scripts/release-verify/run.mjs",
+    "test:release-verify": "node --test \"scripts/release-verify/*.test.mjs\""
   },
   "packageManager": "npm@10.9.2"
 }
