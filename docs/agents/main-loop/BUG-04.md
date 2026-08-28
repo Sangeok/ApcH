@@ -14,3 +14,11 @@ backend-dev에 디스패치한다. 메인 루프가 코드를 읽고 잡은 핵�
 - **재시도와 디스크**: 정리를 미루면 warm 컨테이너에서 실패가 반복될 때 `/tmp`가 찬다(디스크 한도는 Modal 이미지 설정). "보존"을 택하면 상한·만료 규칙이 필요하다.
 - **테스트**: stdlib `unittest`(`python -m unittest discover -s apps/backend -p "test_*.py"`)로 정책 함수만 덮고, 실제 `rmtree`·컨테이너 동작은 「못 덮는 범위」. `main.py` import 금지(torch).
 - **범위 밖**: `modal deploy`·`modal run`은 사용자 몫(`backend-dev.md:81`). README 수정은 backend-dev 쓰기 범위 밖 — 메인 루프 handoff.
+
+## 필수 검증 경로 확정 · 검증 1라운드 (2026-08-29, 메인 루프)
+
+경로: 1 인용 전수 · 2 스케치 추출·실행(순수 모듈 + `main.py` before/after 적용 → `unittest`·`py_compile`) · 3 before/after 기계 적용 · 4 여집합(앵커 유일성·"translation_fallback이 마지막 순수 import"·재시도 시 새 uuid) · 5 돌연변이 · 7 음성(`KEEP_TEMP_ON_FAILURE` 미설정 → 성공·실패 모두 정리 = 현 동작 불변) · 9 구조(AST — `succeeded = True`가 try 본문 마지막 문장, `finally`가 정책 함수 호출). 6(외부 신호 없음)·8(화면 없음) 트리거 없음.
+
+하니스: 스크래치패드 `bugs/`(python 펜스의 `# before`/`# after` 분리 적용기, 명세→unittest, 돌연변이, 인용 덤프, AST 검사). 결과 — 인용 17+4 전부 내용 일치 · before 5쌍 + 신규 1 = 6/6 · 단독 적용 `unittest` **47 OK**(40+7)·`py_compile` OK·순수 모듈 torch 없이 import OK · AST: try 본문 마지막 = `succeeded = True`, `finally`가 `should_cleanup_temp_dir(succeeded, keep_temp_on_failure)` 호출 · 돌연변이 5/5 사멸(truthy `on` 제거·strip 제거·isinstance 가드 제거·실패 정책 반전·성공 시 보존) · **BUG-08과 합본 적용**(`:73` 앵커를 두 모듈 포함으로 합침) `unittest` 47 OK·`py_compile` OK·AST 양쪽 조건 동시 만족 — 두 계획이 공존한다(계획서의 "나중 구현 시 재독" 주석대로). 트리 복원 확인.
+
+**결함 0건.** 판정: 메인 루프 라운드 무소득 → `plan-verifier` 디스패치 자격.
