@@ -24,7 +24,7 @@ export async function postPipelineCommand(
   command: PipelineCommandKey,
 ): Promise<ActionResult<void>> {
   // 목적지 인가는 그대로 try 밖·최상단(NEXT_REDIRECT를 catch가 삼키지 않게).
-  await requireAdmin();
+  await requireAdmin({ write: true });
 
   // 화이트리스트 밖 key는 여기서 거부한다. 클라이언트는 key만 보내고 본문은 서버가 정한다.
   const body = resolvePipelineCommand(command);

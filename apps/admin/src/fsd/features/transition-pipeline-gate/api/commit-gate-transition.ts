@@ -95,7 +95,7 @@ export async function commitGateTransition(
   expectedStatus: string,
 ): Promise<ActionResult<void>> {
   // 인가는 try 밖 최상단(NEXT_REDIRECT를 catch가 삼키지 않게, post-pipeline-command.ts와 동일).
-  await requireAdmin();
+  await requireAdmin({ write: true });
   return commitBoardEdit((markdown) => {
     const edit = applyGateTransition(markdown, id, expectedStatus);
     if (!edit.ok) {
@@ -118,7 +118,7 @@ export async function commitRejectTransition(
   id: string,
   expectedStatus: string,
 ): Promise<ActionResult<void>> {
-  await requireAdmin();
+  await requireAdmin({ write: true });
   return commitBoardEdit((markdown) => {
     switch (action) {
       case "bounce": {

@@ -9,7 +9,7 @@
 | 라우트 | 내용 |
 | --- | --- |
 | `/` | `/analytics`로 리다이렉트 |
-| `/login` | Google 로그인 |
+| `/login` | Google 로그인. 검증기(FEAT-25)는 화면 없이 `GET /api/auth/csrf` → `POST /api/auth/callback/verifier`로만 진입하며 `VERIFIER_SECRET` 설정 시에만 provider가 있다 |
 | `/analytics` | 개요·퍼널·이탈·최근 실패 |
 | `/observability` | Sentry 리포팅 점검 |
 | `/pipeline` | 파이프라인 보드 투영·게이트 전이·원격 명령 |
@@ -34,14 +34,15 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **28개 파일, 68개 suite, 307개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **29개 파일, 75개 suite, 334개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
 | `src/server/auth/parse-admin-emails.test.mjs` | 관리자 이메일 정규화·빈 값·중복 제거 |
 | `src/server/auth/config.edge.test.mjs` | 로그인 경로와 protected 경로의 Edge authorized 분기 |
-| `src/server/auth/config.test.mjs` | Node sign-in allowlist |
-| `src/server/auth/guard.test.mjs` | redirect·notFound·허용 identity |
+| `src/server/auth/config.test.mjs` | Node sign-in allowlist, verifier provider 조건 등록(`.options` 표면)·signIn provider 분기·jwt/session 클레임 왕복 |
+| `src/server/auth/guard.test.mjs` | redirect·notFound·허용 identity, verifier 읽기 허용·`{ write: true }` 거부·1h 만료·클레임 부재·화이트리스트 미조회·admin write 허용 |
+| `src/server/auth/verifier.test.mjs` | 비밀값 timing-safe 비교(부재·빈 값·비문자열·길이 불일치), authorize 고정 신원, provider 조건 등록과 `options.authorize` |
 | `src/fsd/entities/analytics-event/api/queries.test.mjs` | 단일 read-only `findMany` shape와 최근 실패 filter/limit |
 | `src/fsd/entities/analytics-event/model/reporting.test.mjs` | 퍼널 순서·drop-off·실패 집계와 결정적 정렬 |
 | `src/fsd/entities/pipeline/api/queries.test.mjs` | 토큰 시 contents API GET(base64 디코드·shape fail-closed·raw 미폴백)·토큰 부재 시 raw no-store 폴백·non-OK 실패 |
@@ -105,6 +106,8 @@ Node module mock으로 DB/GitHub/Sentry 호출 계약을 실제 외부 I/O 없�
 
 `src/app/(protected)/layout.tsx`도 인증을 확인하지만, page/action의 목적지 재검사를 대체하지 않는다. `authorized`를 단순 `!!auth?.user`로 바꾸면 matcher에 포함된 `/login`이 자기 자신으로 redirect될 수 있다. Edge config는 Node env/provider/config를 import하면 안 된다.
 
+**검증기(FEAT-25)**: `VERIFIER_SECRET`이 설정된 경우에만 `src/server/auth/verifier.ts`의 Credentials provider(id `verifier`)가 `config.ts`에 등록된다 — `ADMIN_EMAILS` 우회가 아니라 별도 신원이다. 세 층을 이렇게 지난다: 로그인 거부 층은 `account.provider === "verifier"`면 이메일 검사 없이 통과(비밀값은 `authorize`가 길이 검사 + `timingSafeEqual`로 검증), 경로 보호 층은 JWT만 보므로 그대로 통과, 목적지 재검사 층의 `requireAdmin()`이 `session.user.role === "verifier"`를 admin 검사보다 먼저 처리해 읽기는 허용하고 `requireAdmin({ write: true })`(명령 POST·게이트 승인/반려·Sentry 테스트 전송 4곳)와 발급 1h 초과·클레임 부재는 `notFound()`로 막는다. 반환 `email`은 verifier에서 `null`이고 헤더는 「검증기 (읽기 전용)」을 보여준다. 로봇의 진입은 `GET /api/auth/csrf` → `POST /api/auth/callback/verifier`뿐이며 실패도 302(세션 쿠키 없음)라 소비자는 쿠키 존재로 판정한다(계약 전문은 `docs/plans/FEAT-25.md` 「공개 계약」). `JWT` 타입은 증강하지 않는다 — `next-auth/jwt`가 `export *` 재수출이라 병합되지 않으므로 `session` 콜백이 `typeof`로 좁힌다.
+
 ## 데이터와 외부 효과 소유권
 
 - analytics DB read의 유일한 owner는 `src/fsd/entities/analytics-event/api/queries.ts`이며 허용 호출은 `db.analyticsEvent.findMany` 하나다.
@@ -121,7 +124,7 @@ GitHub 쓰기 두 경로는 모두 `requireAdmin()` 뒤에서 실행되고 serve
 
 ## 환경 변수와 빌드
 
-`src/env.js`는 `@t3-oss/env-nextjs`와 Zod로 환경 변수를 검증하며 client 공개 변수는 없다. `ADMIN_EMAILS`는 production에서 필수다. `GITHUB_PIPELINE_TOKEN`은 optional이며 Issues RW와 Contents RW가 필요하다.
+`src/env.js`는 `@t3-oss/env-nextjs`와 Zod로 환경 변수를 검증하며 client 공개 변수는 없다. `ADMIN_EMAILS`는 production에서 필수다. `VERIFIER_SECRET`은 optional이며 설정 시에만 검증기 Credentials provider가 등록된다(FEAT-25 — 미설정이면 기능 자체가 꺼진다). `GITHUB_PIPELINE_TOKEN`은 optional이며 Issues RW와 Contents RW가 필요하다.
 
 루트 `.env`는 `next.config.js`가 먼저 로드한 뒤 `await import("./src/env.js")`로 검증한다. 이 dynamic import를 static import로 바꾸면 ESM 평가 순서 때문에 dotenv보다 검증이 먼저 실행될 수 있다.
 

@@ -21,6 +21,18 @@
 
 ---
 
+## FEAT-25 — admin 검증기 인증 경로(읽기 전용 verifier 세션) (admin, 구현 2026-08-28)
+
+원천: `docs/agents/admin-dev/FEAT-25.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에만 있음, PR 머지 후 확인 가능.
+선행: Vercel admin 프로젝트 env에 `VERIFIER_SECRET`(긴 난수) 주입 — 미주입이면 provider가 등록되지 않아 아래
+첫 줄이 "callback 실패"로 보이는 것이 정상이다(기능 휴면). 아래 줄들은 FEAT-26 루틴이 처음 성공적으로 돌면
+`대체(FEAT-26)`로 닫힌다.
+
+- [ ] 실제 핸드셰이크 — `GET /api/auth/csrf`(`__Host-authjs.csrf-token` 쿠키) → `POST /api/auth/callback/verifier`(urlencoded `csrfToken`+`secret`) → **302 + `__Secure-authjs.session-token` 설정**. 오답이면 302 `/login?error=CredentialsSignin&code=credentials` + 세션 쿠키 없음
+- [ ] verifier 세션으로 protected 페이지 GET(`/pipeline`·`/analytics`·`/observability`·`/pipeline/docs/…`·`/pipeline/agents/…`)이 렌더되고(Edge가 실제 verifier JWT를 통과), 헤더에 「검증기 (읽기 전용)」 폴백, `/login`은 `/analytics`로 리다이렉트
+- [ ] 쓰기 거부 — verifier 세션으로 게이트 도장·반려·실행 버튼·observability 테스트 전송이 404(`notFound`)로 막힘. Google admin은 도장·실행 그대로 동작(회귀 없음)
+- [ ] 1h 만료 — 발급 1h 뒤 같은 세션 쿠키로 protected 페이지 → 404, 재로그인으로 복구
+
 ## FEAT-23 — 항목 카드 파이프라인 여정 스테퍼 (admin, 구현 2026-08-27)
 
 원천: `docs/agents/admin-dev/FEAT-23.md` 「못 덮는 범위」. **배포 완료(2026-08-27 14:23 KST, PR #106 머지).**

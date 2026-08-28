@@ -128,3 +128,17 @@ Minimal Replay Anchor(응답 내 기록; 완전성 증명 아님): HEAD `0980119
 ## 게이트② 개방 (2026-08-28)
 
 사용자가 세션에서 "구현 승인"으로 개방. 메인 루프가 보드를 `구현승인`으로 편집했고 결정은 사용자의 것이다. 계획서는 클린 패스 시점(`82b9495`) 그대로 — 사용자 편집 없음. 병렬 미결 없음. admin-dev를 B단계(구현)에 디스패치한다 — B-1 계획서 파일 재독, B-3 「현재 동작」↔코드 대조, B-4 「고칠 파일」 12개 밖 무접촉, B-5 세 명령 통과가 조건이며, 읽기 전용 파일(`apps/admin/CLAUDE.md`·루트 `.env.example`) 동기화는 `비고:`로 받아 메인 루프가 인수 시 처리한다.
+
+## 구현 인수 (2026-08-28, 메인 루프)
+
+**인수 다섯 조건 — 전부 직접 재현**(스크래치패드 `feat25/accept.sh`):
+1. **변경 파일 ↔ 「고칠 파일」**: `git status --untracked-files=all` 집합이 신규 3(`verifier.ts`·`next-auth.d.ts`·`verifier.test.mjs`) + 수정 9 + 보드·백로그·보고서와 **정확히 일치**(diff 0). `layout.tsx`·`config.edge.ts`·`middleware.ts`·경계 스크립트 무접촉.
+2. **diff ↔ 「구현 스케치」**: 계획서 after 블록 13개가 전부 실제 파일에 바이트 포함, before 블록 8개 전부 소멸(기계 검사). 분기 순서·조건·리터럴·문구 스케치와 동일 — admin-dev 보고와 일치.
+3. **검증 직접 재실행**: `check` EXIT 0 · `test` EXIT 0(**334 pass/75 suite**, fail 0; 계획서 예측 333/74 대비 +1/+1은 테스트 분할 입도, 계획서가 "구현 후 재계측" 명시) · `verify:fsd:final` EXIT 0. 테스트 파일 28→29.
+4. **백로그 제거**: FEAT-25 블록 소멸(`-4줄`). 잔존 언급 2건은 FEAT-26 항목의 "(FEAT-25 의존)" 참조(`:26`·`:28`) — 정상. 인접 BUG-04·BUG-08·FEAT-01·FEAT-26·27 무결.
+5. **상세 기록 실재**: `docs/agents/admin-dev/FEAT-25.md`(6.8KB). 보드 `결과` 138자.
+
+**읽기 전용 파일 동기화(메인 루프 몫)**: `apps/admin/CLAUDE.md` — 라우트 표 `/login`, 인벤토리 총계 29파일·75suite·334test + `verifier.test.mjs` 행 + `config.test`·`guard.test` 계약 문구, 「인가: 세 겹 방어선」에 검증기 문단(세 층 통과 방식·쓰기 4곳·1h·`JWT` 미증강 사유), env 절 `VERIFIER_SECRET`. 루트 `.env.example` `# Auth`에 `VERIFIER_SECRET=""`. 인벤토리 표 29행 = 실제 29파일(`find` 계수) 일치.
+
+「범위 밖 의존」: 새 백로그 후보 없음 — 소비 루틴은 이미 FEAT-26으로 등재, 비밀값 주입은 사용자 몫(원장 선행 조건으로 기재).
+「못 덮는 범위」: `docs/release-checks.md`에 FEAT-25 절 4줄 등재(배포 대기). `timingSafeEqual` 상수시간 성질은 배포 실물로도 관측 불가라 등재하지 않았다(코드 대조로 갈음 — 구현 시점 종결).

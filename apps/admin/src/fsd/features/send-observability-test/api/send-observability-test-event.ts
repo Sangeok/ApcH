@@ -24,7 +24,7 @@ import { requireAdmin } from "~/server/auth/guard";
  */
 export async function sendObservabilityTestEvent(): Promise<ActionResult<void>> {
   // 목적지 인가. 레이아웃 가드에 기대지 않는다.
-  const admin = await requireAdmin();
+  const admin = await requireAdmin({ write: true });
 
   return withIsolatedReportScope(async () => {
     try {
