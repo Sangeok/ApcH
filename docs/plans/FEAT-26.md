@@ -6,13 +6,13 @@ agent: main-loop
 
 **원장과 마감.** `docs/release-checks.md`는 완료 항목의 「못 덮는 범위」를 모으는 상태 문서다(`docs/release-checks.md:8-20` 규칙). 마감은 세 증거뿐이고(`:13-16` — `확인(날짜, 근거)`·`대체(항목ID)`·`이관(항목ID)`), 확인 활동의 상세는 `docs/agents/main-loop/`에 쓴다(`:17-18`). 열린 줄은 2026-08-28 현재 **51줄/26절**(`grep -c '^- \[ \]'`). 닫힌 줄은 전부 사용자가 세션에서 지시했을 때 메인 루프가 스윕한 것이다(`:20` 스윕 이력 3회, 상세 `docs/agents/main-loop/FEAT-19.md:52-110`) — 배포·실사용 뒤 원장을 다시 보는 트리거가 런북에 없다. 2026-08-28 FEAT-25 배포 뒤에도 메인 루프가 curl·Playwright로 손수 3줄을 닫았다(`docs/agents/main-loop/FEAT-25.md` 「배포 확인 스윕」 두 절).
 
-**로봇이 얻을 수 있는 세션(FEAT-25, 배포·실측 완료).** `apps/admin/src/server/auth/verifier.ts:84-92`의 Credentials provider(id `verifier`)가 `VERIFIER_SECRET` 설정 시에만 등록되고(`config.ts:24`), `guard.ts:19-30`이 verifier를 읽기 허용·`{ write: true }` 거부·1h 만료로 다룬다. 공개 계약은 `docs/plans/FEAT-25.md` 「공개 계약」: `GET /api/auth/csrf`(`__Host-authjs.csrf-token` 쿠키) → `POST /api/auth/callback/verifier`(urlencoded `csrfToken`+`secret`) → 302 + `__Secure-authjs.session-token`; 실패도 302(`/login?error=CredentialsSignin&code=credentials`, 쿠키 없음)라 **세션 쿠키 존재로 성공을 판정**한다. 2026-08-28 12:28·23:40 KST 프로덕션 실측: 로그인 302 `/` + 세션 쿠키, `/pipeline`·`/analytics`·`/observability`·`/pipeline/agents/admin-dev`·`/pipeline/docs/plans/FEAT-25` 전부 200, 본문에 「검증기 (읽기 전용)」, 무세션 `/pipeline` 307. JWT 쿠키 수명은 전역 8h(`config.edge.ts:11`)라 03:29Z 발급 세션이 14:38Z에는 `/api/auth/session` null·`/pipeline` 307이었다(정상).
+**로봇이 얻을 수 있는 세션(FEAT-25, 배포·실측 완료).** `apps/admin/src/server/auth/verifier.ts:34-42`의 Credentials provider(id `verifier`)가 `VERIFIER_SECRET` 설정 시에만 등록되고(`config.ts:24`), `guard.ts:19-30`이 verifier를 읽기 허용·`{ write: true }` 거부·1h 만료로 다룬다. 공개 계약은 `docs/plans/FEAT-25.md` 「공개 계약」: `GET /api/auth/csrf`(`__Host-authjs.csrf-token` 쿠키) → `POST /api/auth/callback/verifier`(urlencoded `csrfToken`+`secret`) → 302 + `__Secure-authjs.session-token`; 실패도 302(`/login?error=CredentialsSignin&code=credentials`, 쿠키 없음)라 **세션 쿠키 존재로 성공을 판정**한다. 2026-08-28 12:28·23:40 KST 프로덕션 실측: 로그인 302 `/` + 세션 쿠키, `/pipeline`·`/analytics`·`/observability`·`/pipeline/agents/admin-dev`·`/pipeline/docs/plans/FEAT-25` 전부 200, 본문에 「검증기 (읽기 전용)」, 무세션 `/pipeline` 307. JWT 쿠키 수명은 전역 8h(`config.edge.ts:11`)라 03:29Z 발급 세션이 14:38Z에는 `/api/auth/session` null·`/pipeline` 307이었다(정상).
 
 **프로덕션 HTML·CSS에서 텍스트로 판정할 수 있는 것(2026-08-28 23:40 KST 실측).** verifier 세션으로 받은 `/pipeline` HTML(378,623B)에 스테퍼 캡션 낱말 "지금 "·"· 다음 "(`apps/admin/src/fsd/pages/pipeline/ui/_component/journey-stepper.tsx:69·81`), 검증 칩 "검증 통과"·"검증 전"(`apps/admin/src/fsd/pages/pipeline/ui/index.tsx:71·80`, `title={validation}` `:68`), 실행 버튼 "진행할 작업 없음"(`apps/admin/src/fsd/features/run-pipeline-command/model/run-plan.ts:42`)이 실제로 들어 있고, 게이트대기 설명 "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."(`run-plan.ts:44`)는 보드에 `승인대기`/`검토대기`가 있을 때만 렌더된다(`run-plan.ts:12` `GATE_WAITING`·`:43-45` 분기). 대기 낱말은 다섯 개다(`apps/admin/src/fsd/pages/pipeline/model/journey.ts:41-47` — 선정 중·당신 차례·작업 중·검증 중·인수 중). HTML의 `<link rel="stylesheet" href="/_next/static/css/<hash>.css">` 하나를 받으면(37,685B) Tailwind v4가 방출한 유틸이 **이스케이프된 선택자**로 들어 있다 — `.bg-silence`·`.bg-active`·`.border-stamp`·`.border-active\/50`·`.border-stamp\/50`·`.pl-\[30\.3\%\]`·`.hover\:text-stamp`·`.motion-reduce\:transition-none`·`.sm\:block`·`.size-2\.5` 전부 1건 이상(이스케이프 없이 grep하면 0건으로 오판한다). 보드 원문은 무인증 `https://raw.githubusercontent.com/Sangeok/ApcH/dev/PROJECT_BOARD.md`가 200·64,904B로 준다.
 
 **루틴 인프라(기존 `pipeline-command`).** 계약은 `docs/proposals/active/remote-agent-pipeline-generalization.md:105-116`(B. claude.ai 쪽 — 환경은 네트워크 정책/환경변수/setup 스크립트 셋뿐, 시크릿 금고 없음, 루틴은 관리 API로 생성 가능·`created_via: http_api`)과 `:126-166`(지침 템플릿). 2026-08-28 `RemoteTrigger get`(로컬 `/schedule` 스킬) 실측: 루틴 `trig_013BviNQtefJEXiXyPhkHCff`는 환경 `env_011CUnJuhjWSp8mBmjRv8n4o`(계정의 유일한 환경 "Default"), 모델 `claude-sonnet-5`, 도구 `Bash·Read·Write·Edit·Glob·Grep·WebFetch·WebSearch`, 소스 `https://github.com/Sangeok/ApcH`, 알림 push. API가 지원하는 동작은 `list·get·create·update·run·create_webhook_trigger·list_runs·get_run_log`이며 스케줄은 `cron_expression`(최소 1시간) 또는 `run_once_at`, GitHub 이벤트는 `create_webhook_trigger`(`POST /v1/code/webhook-triggers` — 소스·저장소·이벤트·필터·`routine_trigger_id`)로 배선한다. **환경 설정(허용 도메인·환경변수·setup 스크립트)은 이 API 밖**이다. 최근 실행 로그(`cse_01Fe8Yd9rDkGF5ikSeK8fEPW`, 2026-08-26) 실측: cwd `/home/user/ApcH`, `node_modules` 1.5G 존재, `git commit`·`git push origin dev` 성공, 디스크 28G 여유, GitHub MCP(`mcp__github__add_issue_comment`)·`PushNotification` 사용 가능, 로컬 사용자 스킬(`reconciling-proposals-with-codebase`)은 **없음**(저장소 안 `.claude/skills/`는 현재 비어 있고 디렉터리 자체가 없다 — `ls .claude` = `agents/ settings.local.json`).
 
-**루트 스크립트·문서 지도.** 루트 `package.json:5-14`의 scripts는 `dev·dev:admin·build·check·test·db:*`뿐이고 루트 `scripts/` 디렉터리는 없다(FEAT-27도 `scripts/verify-plan` 신설을 전제). 루트 `CLAUDE.md:7-18` 문서 지도에 `.claude/skills/`·`scripts/` 행이 없다. `.gitignore`는 `.claude`·`scripts`·`.mcp.json`을 무시하지 않는다.
+**루트 스크립트·문서 지도.** 루트 `package.json:5-14`의 scripts는 `dev·dev:admin·build·check·test·db:*`뿐이고 루트 `scripts/` 디렉터리는 없다(FEAT-27도 `scripts/verify-plan` 신설을 전제). 루트 `CLAUDE.md:7-16` 문서 지도에 `.claude/skills/`·`scripts/` 행이 없다. `.gitignore`는 `.claude`·`scripts`·`.mcp.json`을 무시하지 않는다.
 
 ## 문제
 
@@ -281,8 +281,8 @@ const REPORT = opt("--report", null);
 const BOARD_URL = process.env.BOARD_RAW_URL ?? "https://raw.githubusercontent.com/Sangeok/ApcH/dev/PROJECT_BOARD.md";
 
 const markdown = readFileSync(LEDGER, "utf8");
-const { checks } = parseLedger(markdown.replace(/\r\n/g, "\n"));
-const report = { base: BASE, ledger: LEDGER, stamp: kstStamp(new Date()), login: null, results: [] };
+const report = { base: BASE, ledger: LEDGER, stamp: kstStamp(new Date()), login: null, parse: null, results: [] };
+let checks = [];
 
 const finish = (code) => {
   if (REPORT) writeFileSync(REPORT, JSON.stringify(report, null, 2) + "\n");
@@ -292,6 +292,16 @@ const finish = (code) => {
   for (const r of report.results) console.log(`  [${r.outcome}] ${r.section} — ${r.line.slice(6, 60)}… ${r.outcome === "pass" ? r.evidence : r.reason}`);
   process.exit(code);
 };
+
+// 태그 문법 오류는 원장 편집 실수다 — 스택 대신 사유를 보고서에 남기고 2로 끝낸다(원장 무변경).
+try {
+  checks = parseLedger(markdown.replace(/\r\n/g, "\n")).checks;
+} catch (error) {
+  report.parse = { ok: false, reason: error instanceof Error ? error.message : String(error) };
+  console.log(`release-verify: 원장 태그 파싱 실패 — ${report.parse.reason}`);
+  finish(2);
+}
+report.parse = { ok: true, checks: checks.length };
 
 if (checks.length === 0) { report.login = { ok: true, skipped: "no checks" }; finish(0); }
 
@@ -462,14 +472,14 @@ after:
     "db:migrate": "npm run db:migrate -w @repo/db",
     "db:studio": "npm run db:studio -w @repo/db",
     "release-verify": "node --env-file=.env scripts/release-verify/run.mjs",
-    "test:release-verify": "node --test scripts/release-verify/"
+    "test:release-verify": "node --test \"scripts/release-verify/*.test.mjs\""
 ```
 
-`node --env-file`은 Node 20.6+(로컬 22.13 실측). 루틴은 환경변수가 이미 있으므로 `node scripts/release-verify/run.mjs`를 직접 부른다(SKILL.md 3단계).
+`node --env-file`은 Node 20.6+(로컬 22.13 실측). 루틴은 환경변수가 이미 있으므로 `node scripts/release-verify/run.mjs`를 직접 부른다(SKILL.md 3단계). 테스트 인자는 **glob**이어야 한다 — `node --test scripts/release-verify/`(디렉터리)는 로컬 Node 22.13에서 `Cannot find module …/scripts/release-verify`로 실패했다(검증 조립 실측). Node가 glob을 스스로 펼치므로(v21+) 따옴표로 셸 확장을 막는다.
 
 ### 8) 루트 `CLAUDE.md` — 문서 지도 두 행 + 런북 8단계 한 문장
 
-before(`CLAUDE.md:16-17`):
+before(`CLAUDE.md:15-16`):
 
 ```md
 | `.claude/agents/*.md` | 에이전트 정의 (역할·도구·제약) |
@@ -531,9 +541,10 @@ after:
   - `parseLedger`: 열린 줄의 태그만 수집(`[x]` 줄·태그 없는 줄 제외), 절 제목 귀속, 미닫힘 태그 throw, CRLF 입력 무관(실행기가 LF로 정규화).
   - `stylesheetHrefs`: `rel="stylesheet"`만·순서·중복 제거·`preload` 제외.
   - `preconditionsMet`/`evaluateCheck`: when 미충족→skip, when-any 하나 충족→진행, when-board 보드 없음→skip·정규식 불일치→skip·일치→진행; status 불일치·text 누락·notext 존재·css 미방출 각각 fail 사유 문자열; 전부 충족→pass와 근거 문자열 형식(`GET /pipeline 200 · text 2/2 · css 5/5`).
-  - `applyResults`: pass가 `- [x]`·태그 제거·`— 확인(stamp, 자동 — 근거)` 부착, fail이 바로 아래 `  - 자동 불합격(stamp): 사유` 삽입, 같은 사유 재실행 시 중복 없음(멱등), 다른 사유는 추가, skip 무변경, 여러 결과의 인덱스 안정(아래→위 적용), 다른 줄 바이트 불변.
+  - `applyResults`: pass가 `- [x]`·태그 제거·`— 확인(stamp, 자동 — 근거)` 부착, fail이 바로 아래 `  - 자동 불합격(stamp): 사유` 삽입, 같은 사유 재실행 시 중복 없음(멱등), 다른 사유는 추가, skip 무변경, 다른 줄 바이트 불변. **인덱스 안정은 "fail이 줄을 삽입한 직후 줄에 pass"로 잠근다** — 결과 `{6: fail}`·`{7: pass}`를 함께 적용하면 7번 줄(원래 텍스트)이 닫히고 그 위에 불합격 메모가 있어야 한다. 위→아래로 적용하면 메모가 7번을 밀어 메모 줄에 `[x]`가 붙는다(검증 조립의 돌연변이 M14가 이 케이스 없이는 살아남았다).
   - `kstStamp`: UTC 2026-08-28T15:00Z → `2026-08-29 00:00 KST`(날짜 넘김).
-- **실측 조립(검증 라운드)**: 위 4태그를 붙인 원장으로 `node --env-file=.env scripts/release-verify/run.mjs --report <scratch>`(apply 없음)를 프로덕션에 실행 — 로그인 ok, 4줄의 pass/skip이 보드 상태와 일치하는지(2026-08-28 밤 보드 = FEAT-26 계획지시·FEAT-25 완료 → 유틸 방출 pass, 캡션 pass(작업 중… 아님: main-loop 항목의 대기 낱말 실측), 게이트대기 문구 skip(보드에 승인대기/검토대기 없음), 검증 칩 skip).
+- **실측 조립(검증 라운드, 2026-08-28 23:51 KST)**: 위 4태그를 붙인 원장 **사본**으로 `node --env-file=.env scripts/release-verify/run.mjs --ledger <사본> --apply --report <scratch>`를 프로덕션에 실행 — 로그인 ok, **pass 3·skip 1**: 유틸 방출 pass(css 5/5), 캡션 pass(text 2/2·css 1/1), 게이트대기 문구 pass(text 1/1·notext 1/1 — 그 시각 보드에 FEAT-26 `검토대기`가 있어 `hasGateWaiting`이 참), 검증 칩 skip(`when-board` 미충족 — 검토대기 항목에 `검증:` 줄이 아직 없음). 사본은 pass 3줄만 `[x]`+`확인(…, 자동 — …)`로 바뀌고 태그가 지워졌으며 나머지 줄은 바이트 불변. 판정은 **보드 상태에 따라 달라진다** — 같은 태그가 FEAT-26이 `계획지시`였던 23:40에는 게이트대기 문구가 HTML에 없었다(`run-plan.ts:43-45` 분기 그대로).
+- **전제 조건이 하는 일(음성 시험)**: FEAT-13 태그에서 `when-board`만 지우고 돌리면 skip이 **fail**(`text 없음: "클린 패스 ("`)로 바뀐다 — 페이지에 "검증 통과" 낱말은 다른 카드에 있어도 `title="클린 패스 (…"`는 검토대기+검증 카드에만 있으므로, 전제 없이는 거짓 불합격 메모가 원장에 남는다. `VERIFIER_SECRET` 부재 → 종료코드 2(`login.step = "env"`), 오답 → 종료코드 2(`step = "callback"`, status 302), 미지 키 → 파싱 실패로 종료코드 2·원장 무변경.
 - **못 덮는 범위** (배포 후 수동 → 원장에 등재)
   - 클라우드 환경에서의 실제 실행: 네트워크 허용(`admin.a-pch.com`·raw)·`VERIFIER_SECRET` 존재·Node 버전·`git push` — 첫 `action: run`의 로그로만 확인.
   - `create_webhook_trigger` 본문 형태와 PR 머지 발화 — 서버 응답으로 확인.

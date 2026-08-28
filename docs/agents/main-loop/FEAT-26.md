@@ -30,3 +30,33 @@ FEAT-25(검증기 인증 경로)가 같은 날 구현·배포·실측까지 끝�
 - **환경**: Ubuntu setup script(`npx playwright install --with-deps chromium`), 네트워크 allowlist에 `admin.a-pch.com`
   (없으면 403 `host_not_allowed`), `.mcp.json`의 Playwright MCP(headless). 스냅샷 캐시 ~7일.
 - **범위 밖**: web 원장 줄(사용자 몫 유지), FEAT-27(하니스)과의 접점 없음.
+
+## 계획서 작성 (2026-08-28, 메인 루프)
+
+main-loop 담당 항목이라 메인 루프가 `docs/plans/FEAT-26.md`를 썼다(A단계 상당, 코드 무수정). 설계 결정 둘은 백로그와 다르다 — ① HTTP 층(verifier 세션·본문 문구·CSS 방출)만으로 판정하는 결정적 스크립트를 본체로 하고 브라우저 층은 후속 후보로 분리(`.mcp.json` 미생성), ② 루틴 생성·트리거는 `RemoteTrigger`로 메인 루프가(FEAT-24 실측), 사용자 몫은 환경 설정 둘(허용 도메인·`VERIFIER_SECRET`). 사전 실측: `RemoteTrigger get`으로 기존 루틴 설정, `list_runs`/`get_run_log`로 클라우드 환경 능력(git push·node_modules·GitHub MCP·사용자 스킬 없음), verifier 세션으로 `/pipeline` HTML 문구·CSS 청크(Tailwind 이스케이프 선택자)·raw 보드 200. 03:29Z 발급 세션이 14:38Z에 307로 거부된 것은 8h JWT 만료(정상) — 1h 가드 관측 창을 놓쳐 14:40Z 세션을 새로 보관.
+
+## 필수 검증 경로 확정 (카탈로그)
+
+| # | 경로 | 이 항목에서의 구체 검사 |
+| --- | --- | --- |
+| 1 | 인용 전수 대조 | 원장·FEAT-19/25 기록·admin 코드(verifier/config/guard/run-plan/journey/index.tsx)·제안서·package.json·CLAUDE.md 인용 전부 |
+| 2 | 스케치 추출·실행 | 신규 4파일(모듈 3·SKILL) 조립 → `npm run test:release-verify` → `run.mjs` 실행 |
+| 3 | before/after 기계 적용 | 기존 4파일 10블록 바이트 일치·1회 매치, 신규 4파일 충돌 없음 |
+| 4 | 전칭 여집합 열거 | "열린 51줄/26절", "자동 판정 가능한 줄은 이 넷", "루트 scripts/·.claude/skills 없음", package.json scripts 목록 |
+| 5 | 돌연변이 검사 | `ledger.mjs` 순수 함수 전부(파서·판정·되쓰기·이스케이프·시각) |
+| 6 | 실제 사건 재생 | 태그 4줄을 붙인 원장 사본으로 프로덕션 admin에 드라이런(`--ledger 사본 --apply`) — 실제 HTML·CSS·보드 |
+| 7 | 음성 시험 | 전제 조건(`when-board`) 제거 시 skip→fail, 미지 키·비밀값 부재·오답 시 종료코드 2·원장 무변경 |
+| 8 | 실물 렌더 | 트리거 없음 — 화면 변경 없음 |
+| 9 | 구조적 아티팩트 | `package.json` JSON 파싱·`SKILL.md` frontmatter·`when-board` 정규식 컴파일 |
+
+## 검증 1라운드 (2026-08-28, 메인 루프 — 편집 라운드)
+
+하니스는 스크래치패드 `feat26/`(펜스 길이 인식 추출·적용 스크립트, 명세→테스트, 돌연변이 러너, 인용 덤프). 트리에 적용 → 검사 → `git checkout`/삭제 복원. 경로 3 14/14. 경로 6: **로그인 ok, pass 3·skip 1** — 보드 상태(FEAT-26 검토대기)와 정확히 일치, 사본 되쓰기 정확. 경로 7: 비밀값 부재/오답 → 2, `when-board` 제거 → FEAT-13 줄이 거짓 불합격(전제가 load-bearing). 경로 4: 51/26 일치.
+
+**결함 5건**(전부 계획서 수정): ① `test:release-verify`의 디렉터리 인자가 로컬 Node 22.13에서 `Cannot find module`로 실패 → glob으로(경로 2 실측). ② `run.mjs`가 태그 문법 오류에 스택으로 종료코드 1 → try/catch로 종료코드 2·보고서 `parse`·원장 무변경(경로 7). ③ `verifier.ts:84-92` 인용이 FEAT-25 계획서 줄번호를 소스 줄로 옮긴 오기(파일 42줄) → `:34-42`; `CLAUDE.md:7-18`→`:7-16`, before `:16-17`→`:15-16`(경로 1, 적용 전 원본 트리 재대조). ④ 돌연변이 M14(applyResults 위→아래 적용) **생존** = 명세 구멍 — "fail 삽입 직후 줄 pass" 케이스 추가(경로 5). ⑤ 「테스트」 실측 기대치가 보드 상태 의존임을 안 적음 → 실측값과 상태 의존 명시. 중첩 코드 펜스(제안서 after 블록) 바깥을 4중 백틱으로.
+
+## 검증 2라운드 — 무편집 최종 패스 (2026-08-28, 메인 루프)
+
+최신 저장본 재독 후 원본 트리에서 재실행: 경로 1 인용 17(명명)+8(bare) 전부 내용 일치 · 경로 3 14/14 · 경로 2 `npm run test:release-verify` **18/18** · 경로 5 **16/16 사멸**(M14 포함) · 경로 6 프로덕션 드라이런 로그인 ok·pass 3·skip 1 · 경로 7 미지 키 → 종료코드 2·원장 무변경 · 경로 9 package.json 파싱·스크립트 인식·frontmatter 키 · 복원 후 트리 청결. **결함 0건.** 비-결함 위험: (1) 클라우드 환경 네트워크·환경변수는 첫 실행 로그로만 확인(계획서 「못 덮는 범위」), (2) FEAT-13 태그의 "검증 통과" 낱말은 다른 카드에도 있어 `title="클린 패스 ("`+`when-board`가 판정의 실체(계획서에 기록).
+
+**판정**: 메인 루프 라운드 무소득 → `plan-verifier` 디스패치 자격. 메인 루프가 쓴 계획서라 독립 패스가 특히 중요하다. 브리핑 중립.
