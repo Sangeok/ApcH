@@ -22,3 +22,11 @@ backend-dev에 디스패치한다. 메인 루프가 코드를 읽고 잡은 핵�
 하니스: 스크래치패드 `bugs/`(python 펜스의 `# before`/`# after` 분리 적용기, 명세→unittest, 돌연변이, 인용 덤프, AST 검사). 결과 — 인용 17+4 전부 내용 일치 · before 5쌍 + 신규 1 = 6/6 · 단독 적용 `unittest` **47 OK**(40+7)·`py_compile` OK·순수 모듈 torch 없이 import OK · AST: try 본문 마지막 = `succeeded = True`, `finally`가 `should_cleanup_temp_dir(succeeded, keep_temp_on_failure)` 호출 · 돌연변이 5/5 사멸(truthy `on` 제거·strip 제거·isinstance 가드 제거·실패 정책 반전·성공 시 보존) · **BUG-08과 합본 적용**(`:73` 앵커를 두 모듈 포함으로 합침) `unittest` 47 OK·`py_compile` OK·AST 양쪽 조건 동시 만족 — 두 계획이 공존한다(계획서의 "나중 구현 시 재독" 주석대로). 트리 복원 확인.
 
 **결함 0건.** 판정: 메인 루프 라운드 무소득 → `plan-verifier` 디스패치 자격.
+
+## 검증 2라운드 — `plan-verifier` 독립 패스 1사이클 (2026-08-29)
+
+중립 브리핑(항목ID·계획서 경로·필수 경로 1·2·3·4·5·7·9, 6·8 트리거 없음). 검증자는 worktree add가 처음에 실패해(main 워크트리가 `dev`를 이미 체크아웃) 스크래치패드 하니스로 조립했고 저장소 무변경.
+
+**결함 1건(문서 위생)**: 「테스트 › 덮는 것」 머리글 "약 12개 단언"이 열거 집합(truthy 6·falsy 5·비문자열 3 = 14, `should_cleanup_temp_dir` 4 → **18**)과 다름. 구현 지장 없음(구현자는 불릿을 따른다). → "18개 단언(14+4)"로 정정. 나머지 경로 무소득: 인용 전부 일치(HEAD 전진 `4c640dc→ba64e07`가 대상 파일 무변경임을 diff로 확인) · 순수 모듈 1429B 추출·명세 6메서드 OK·기존 40 OK·`py_compile` OK·import 0건 · before 5/5(CRLF 정규화 후) · 여집합 5건(uuid 재사용 경로 없음, `timeout=30)` 3곳 중 앵커 1곳, 순수 import 둘뿐, 재시도 새 uuid, keep=False 관측 불변) · 돌연변이 **8/8** · 음성 진리표 · AST 4조건.
+
+정정 후 2사이클 재디스패치(브리핑 동일, 결함 정보 없음).

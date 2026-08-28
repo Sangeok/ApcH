@@ -184,7 +184,7 @@ Modal 1.x는 사이드 로컬 Python 모듈을 자동 포함하지 않는다. �
 
 `apps/backend/test_temp_cleanup_policy.py` — `temp_cleanup_policy`만 import(stdlib-only, torch·boto3 불필요). `main.py`는 import하지 않는다.
 
-**덮는 것** (약 12개 단언):
+**덮는 것** (18개 단언 — `parse_keep_on_failure` 14 + `should_cleanup_temp_dir` 4):
 
 - `parse_keep_on_failure`:
   - truthy 값 → True: `"1"`, `"true"`, `"yes"`, `"on"`, 대문자 `"TRUE"`, 앞뒤 공백 `" true "`
