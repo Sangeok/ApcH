@@ -116,3 +116,11 @@ INV-4 상태표: 초기(무세션) → 성공(csrf GET → callback POST → 302
 Minimal Replay Anchor(응답 내 기록; 완전성 증명 아님): HEAD `0980119` · 계획서 blob `28c9ac353211` · 범위 `apps/admin/src/{server/auth,env.js,fsd/widgets/admin-header,fsd/features/{run-pipeline-command,transition-pipeline-gate,send-observability-test}/api}` + `scripts/verify-fsd-boundaries.mjs` + `node_modules/{next-auth,@auth/core}` · 레시피 `feat25/apply-plan.mjs --check`(safe) · `cite-check.mjs`(safe) · `round2.sh`(mutating: 트리 적용 후 복원) · 최종 패스 무편집: 예.
 
 **판정**: 메인 루프 라운드 무소득 → `plan-verifier` 디스패치 자격 충족(보드 정지 규칙: 독립 무편집 무소득 패스 1회가 판정). 브리핑은 중립 — 위 결함·판정 정보를 싣지 않는다.
+
+## 검증 3라운드 — `plan-verifier` 독립 무편집 패스 (2026-08-28, 1사이클째)
+
+중립 브리핑(항목ID·계획서 경로·필수 경로 9개만) 디스패치. 검증자가 "브리핑에 사전 판단 없음"을 명시. 워크트리를 스크래치패드에 만들어(루트 `node_modules` 정션) 조립했고, 라운드 뒤 메인 루프가 `git status --untracked-files=all`·`git worktree list`로 직접 검산 — 저장소 무변경, worktree 잔존 없음.
+
+**결함 0건.** 경로별 증거: ① 인용 전부 내용 일치(admin 코드·경계 스크립트 bare 인용 8곳·`@auth/core`/`next-auth` 실물·CLAUDE.md·`.env.example`) ② 조립 `npm test` 334/75/0(검증자 저술 테스트가 1개 더 — 계획서가 "구현 후 재계측"이라 못박은 편차; 파일 28→29 일치), `verify:fsd:test`·`verify:fsd`·`final`·`tsc`·`next lint` 0(워크트리에 `.env`가 없어 lint의 env 검증만 `SKIP_ENV_VALIDATION`) ③ before 전부 바이트 일치·1회 매치, 신규 3파일 충돌 없음 ④ 호출처 11·반환값 사용 2·fetch owner 6 여집합 확증 ⑤ 돌연변이 12종 전부 사멸(원복 후 0 fail) ⑥ Edge `authorized` 실행: verifier `/pipeline`→true, `/login`→`/analytics`, anon→false/true ⑦ R5 프로브 종료코드 1→제거 시 0, `final` 통과 = owner 6개 불변 ⑧ `AdminHeader` 실렌더 두 상태 정확 ⑨ `tsc` 0 + **`next-auth.d.ts` 역실측**(제거 시 `guard.ts` 2건 에러·복원 시 0 — 증강이 load-bearing) + `createEnv` 실파싱(`VERIFIER_SECRET` optional). 비-결함 관찰 1: `next-auth/index.d.ts:78` 인용의 괄호 안 문구가 실제 줄의 축약(명명 재수출이라는 실질은 참).
+
+**판정**: 독립 무편집 클린 패스 1회 달성 → 보드 정지 규칙 충족. `검증:` 줄 기록. **게이트②(구현승인) 대기 — 사용자만 연다.** 병렬 미결 없음.
