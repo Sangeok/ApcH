@@ -204,7 +204,7 @@ Modal 1.x는 사이드 로컬 Python 모듈을 자동 포함하지 않는다. �
 
 ## 범위 밖 의존
 
-- **`README.md:349-352` "Known Issues & Limitations" 항목 정리**: `README.md`는 루트 파일이라 backend-dev 쓰기 범위 밖이다(FEAT-19 전례 = 루트 문서는 메인 루프 handoff). 이 계획 구현 후 "Temporary directory cleanup regardless of success"(`README.md:352`)는 더 이상 무조건이 아니므로(로컬 디버그에서 `KEEP_TEMP_ON_FAILURE`로 보존 가능), 메인 루프가 이 줄을 갱신하거나 제거해야 한다. 구현 단계에서 이 파일에 닿지 않는다.
+- **"성공/실패 무관 정리"를 주장하는 문서 표면 셋 — 전부 backend-dev 쓰기 범위 밖(메인 루프 handoff)**: 저장소 전수 열거(`grep -rniE "cleanup regardless|cleaned up regardless|regardless of (processing )?success|무관하게 임시" --include=*.md --include=*.py`, 계획·보드·기록 제외) 결과 정확히 셋이다 — ① `README.md:352` "Temporary directory cleanup regardless of success"(`:349` "Known Issues & Limitations" 절), ② `README.ko.md:345` "성공/실패와 무관하게 임시 디렉토리 정리가 수행됨"(`:342` "알려진 이슈 & 제한사항" 절), ③ `apps/backend/CLAUDE.md:217` "Temporary directories cleaned up regardless of processing success"(`:214` "Current Known Issues" 절). 이 계획 구현 후 셋 다 더 이상 무조건이 아니므로(로컬 디버그에서 `KEEP_TEMP_ON_FAILURE`로 보존 가능) 메인 루프가 인수 시 세 줄을 함께 갱신하거나 제거한다. 루트 두 파일은 루트 문서(FEAT-19 전례), `apps/backend/CLAUDE.md`는 backend-dev 정의(`.claude/agents/backend-dev.md:33`)가 "직접 고치지 말고 `비고:`로 보고"라 정한 읽기 전용 파일이다. 구현 단계에서 이 세 파일에 닿지 않는다.
 - **`modal deploy`·`modal run` 검증**: 배포와 실제 실행(보존 동작 확인 포함)은 사용자만 한다. 구현은 stdlib `unittest` + `py_compile`까지만 자체 검증하고, 실패 시 보존 동작·warm 컨테이너 누적 방지는 `modal run`으로 사용자가 확인한다.
 
 ## 대안
