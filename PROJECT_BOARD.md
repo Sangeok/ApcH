@@ -38,7 +38,7 @@
 - [ ] FEAT-25: admin 검증기 인증 경로 — 비밀값 로그인으로 읽기 전용 verifier 세션 발급 (FEAT-26 선행)
   agent: admin-dev
   area: apps/admin/src/server/auth
-  status: 계획지시
+  status: 검토대기
   근거: 소유자가 이 세션에서 다음 착수 대상으로 지목. FEAT-26 자동 검증 루틴의 선행 항목이라 먼저 처리한다. 미결 0건이라 선정 가능.
 
 ## 2026-08-27
