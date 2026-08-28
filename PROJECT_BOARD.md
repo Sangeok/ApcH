@@ -45,6 +45,7 @@
   area: apps/backend + apps/web/src/inngest
   status: 검토대기
   근거: 에러 콜백의 clips:[] 하드코딩으로 이미 S3에 오른 앞쪽 클립이 리포트에서 유실. 원 결함은 backend 콜백이라 backend-dev, 웹 inngest 계약 변경은 경계 판단으로 계획 단계에 맡긴다.
+  검증: 클린 패스 (2026-08-29, 독립 무편집 1라운드 — plan-verifier 1사이클째)
 
 ## 2026-08-28
 - [x] FEAT-26: release-verifier 루틴 — 배포 확인 원장의 화면 판정 가능 줄을 매일·배포 직후 자동 확인·마감

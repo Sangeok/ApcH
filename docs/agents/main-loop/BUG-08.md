@@ -27,3 +27,11 @@ backend-dev에 디스패치한다. 메인 루프가 양쪽 코드를 읽고 잡�
 ## 검증 2라운드 — 무편집 최종 패스 (2026-08-29, 메인 루프)
 
 최신 저장본 재독 후 원본 트리에서 재실행: 인용 32(명명)+19(bare) 전부 일치 · before 4/4 · `unittest` 47 OK · `py_compile`·import OK · AST 세 조건 · 돌연변이 **7/7**(순서 뒤집기 추가) · 복원 청결. **결함 0건.** 판정: 메인 루프 라운드 무소득 → `plan-verifier` 디스패치 자격.
+
+## 검증 3라운드 — `plan-verifier` 독립 무편집 패스 (2026-08-29, 1사이클째)
+
+중립 브리핑. 검증자가 detached worktree(`ba64e07`)로 조립하고 제거 — 메인 루프 검산: 저장소 무변경·worktree 잔존 없음. 투명성 노트: 커밋 제목이 노출됐으나 판단 정보로 쓰지 않았다고 명시.
+
+**결함 0건.** 경로별: ① 인용 전부 내용 일치(main.py 8곳·route.ts 6곳·functions.ts 10곳·clip api·outcome.ts·BUG-03:279) ② 조립 `unittest` **49 OK**(40+9)·`py_compile`·순수 import에 torch/boto3/modal 미로드 ③ before 3/3 정확 1회(성공 콜백 블록과 비충돌) ④ 여집합: Clip 행 생성은 `createClipsBulk`(`clip.createMany`) 호출처 `functions.ts:249` 단 하나, `updateMany`는 구조적으로 행 생성 불가, 원소 모양 동일(`main.py:855-866`+`1182-1184`), `normalizeBody`의 clips 정규화가 status 분기 밖 ⑤ 돌연변이 6/6 ⑥ 재생: `process_clip` 키 집합 ⊂ `RawModalWebhookClip`, `index` 통과, `isSuccessfulModalStatus`(`functions.ts:99-106`)가 "error"를 거짓으로 → early return → 행 부재 시점 `updateMany` 0건 — 계획서 「순서」 진술 구조적 성립 ⑨ AST: 순수 함수 1회 호출·`clip_results=clip_results`·`raise` 유지·`{"clips": []}` 0건·`add_local_python_source` 포함.
+
+**판정**: 독립 무편집 클린 패스 1회 → 보드 정지 규칙 충족. `검증:` 줄 기록. **게이트②(구현승인) 대기.** 구현 순서 주의: BUG-04와 `main.py:73`을 공유 — 먼저 구현되는 쪽이 줄을 바꾸고 나중 쪽은 재독해 맞춘다(두 계획서 모두 명시, 합본 공존은 메인 루프가 실측).
