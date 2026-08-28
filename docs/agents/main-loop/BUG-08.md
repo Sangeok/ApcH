@@ -15,3 +15,15 @@ backend-dev에 디스패치한다. 메인 루프가 양쪽 코드를 읽고 잡�
 - **"S3 고아 객체"**: 관측의 절반. 정리(삭제)까지 이 항목이 맡을지, 웹이 부분 클립을 소비하면 고아가 아니게 되는지 — 범위를 계획서가 정한다(삭제는 파괴적이라 기본은 안 함).
 - **web 절반은 별도 항목**: BUG-02 → FEAT-21 전례처럼 「범위 밖 의존」에 "web inngest가 `status: error` 페이로드의 `clips`를 소비해 부분 전달·크레딧 정산" 후보를 적어 두면 인수 시 메인 루프가 백로그 후보로 올린다.
 - **테스트·검증**: stdlib `unittest`, `main.py` import 금지. `modal deploy`·실주행은 사용자 몫. 실제 콜백 왕복은 「못 덮는 범위」.
+
+## 필수 검증 경로 확정 · 검증 1라운드 (2026-08-29, 메인 루프 — 편집 라운드)
+
+경로: 1 인용 전수 · 2 스케치 추출·실행 · 3 before/after · 4 여집합(앵커 유일성·"끝까지 성공한 클립만 append"·"경로 A는 status 무관"·"성공 콜백과 같은 객체 모양") · 5 돌연변이 · 6 실제 사건 재생(외부 신호 = 웹훅 소비 계약 — 실제 `process_clip` 반환 dict·`normalizeClip`·`updateMany`·inngest 순서를 코드로 재생) · 9 구조(AST). 7·8 트리거 없음.
+
+하니스 `bugs/`(BUG-04와 공용). 인용 44건 일치 · before 3쌍+신규 1 · 단독 적용 `unittest` 47 OK·`py_compile`·import OK · AST: except가 `build_error_callback_payload(…clip_results=clip_results)` 호출·`"clips": []` 소멸·`raise` 유지 · 합본(BUG-04와 `:73` 앵커 합침) 공존 확인 · 돌연변이 6/6.
+
+**결함 1건(구현 오류 유발급 — 거짓 동작 주장)**: 계획서는 "backend 한 줄 변경으로 웹 변경 없이 경로 A가 부분 클립 메타데이터를 반영한다"를 핵심 가치로 세웠다. 경로 6에서 inngest 순서를 재생하니 **실패 흐름에서 Clip 행은 루프가 `failed`로 끊긴 뒤 `persist-generated-clips`(`functions.ts:629-641`)에서만 생성**되고, 에러 웹훅의 인라인 경로 A(`route.ts:269-275`)는 그보다 먼저 돌아 `updateMany`(where uploadedFileId+processingAttempt+s3Key, 행 미생성) **0건**이 된다 — 경로 A는 "S3 완료 감지 후 늦게 오는 메타데이터"(`:550-566` 유예)용 장치다. 즉 backend 절반만으로는 사용자 가시 효과가 없고, web 절반(inngest가 error에서도 `clips` 소비 → persist가 메타데이터 행 생성)이 **필수 후속**이다. 부수 확인: `process_clip` 반환(`main.py:855-863`)에 `index`가 있어 `normalizeClip`(`route.ts:133-157`)이 걸러내지 않는다(호환 주장은 참). 계획서 정정: 「현재 동작 › 순서」 절 추가, 「문제」의 가치 서술을 "계약 준비·원천 제거·순수 함수 잠금 + 필수 후속"으로, 「테스트 › 못 덮는 범위」·「범위 밖 의존」·「대안」 정합. backend 변경 자체(부분 `clip_results`를 실음)는 그대로 — 여전히 옳은 전제 절반이다. 내 편집의 인용 2건(빈 줄 시작 `:628`·`:204`)을 `:629-641`·`:203-219`로 정정.
+
+## 검증 2라운드 — 무편집 최종 패스 (2026-08-29, 메인 루프)
+
+최신 저장본 재독 후 원본 트리에서 재실행: 인용 32(명명)+19(bare) 전부 일치 · before 4/4 · `unittest` 47 OK · `py_compile`·import OK · AST 세 조건 · 돌연변이 **7/7**(순서 뒤집기 추가) · 복원 청결. **결함 0건.** 판정: 메인 루프 라운드 무소득 → `plan-verifier` 디스패치 자격.
