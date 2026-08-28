@@ -152,3 +152,7 @@ PR #107 머지(12:07 KST) 직후 첫 실측은 `providers = [google]`·callback 
 - 페이지: `/pipeline`·`/analytics`·`/observability`·`/pipeline/agents/admin-dev`·`/pipeline/docs/plans/FEAT-25` 전부 200, 본문 「검증기 (읽기 전용)」, 이메일 노출 없음 → Edge가 실제 verifier JWT를 통과시킴(계획서 「못 덮는 범위」 네 번째 항목 실증). `/login` 302 `/analytics`, 무세션 `/pipeline` 307 `/login?callbackUrl=…`.
 - 원장 FEAT-25 절 1·2줄 `확인` 마감. 3줄(쓰기 거부)은 브라우저 실측 대상, 4줄(1h)은 03:29Z 발급 세션을 스크래치패드에 보관해 04:30Z 이후 재확인.
 - 비밀값·토큰 값은 어디에도 기록하지 않았다(로컬 `.env`는 gitignore·미추적 확인).
+
+## 배포 확인 스윕 2 — 쓰기 거부 (2026-08-28, 메인 루프 — Playwright MCP, admin 프로덕션)
+
+세션 토큰을 제 도구 호출 텍스트에 노출하지 않으려고, Playwright 서버 프로세스가 스크래치패드의 curl jar를 `file://`로 읽어 `context.addCookies`로 주입했다(비밀값·토큰은 기록·출력 어디에도 없음). verifier로 `/observability` 렌더(헤더 「검증기 (읽기 전용)」, 버튼 「Send test event」) → 클릭 → 서버 액션 POST 응답 **HTTP 404** `text/x-component`, 페이지가 Next의 not-found 경계("404: This page could not be found.")로 전환 — `send-observability-test-event.ts:27`의 `requireAdmin({ write: true })`가 설계대로 `notFound()`. 명령 POST·게이트 승인/반려는 같은 호출(단위 테스트 6분기)이고 결재함이 비어 게이트 버튼은 실물 대상이 없었다. 원장 3줄을 「verifier 거부(확인)」와 「Google admin 회귀 없음(사용자 다음 도장 때)」로 분리 마감. 남은 줄: 1h 만료(04:30Z 이후), Google 회귀.
