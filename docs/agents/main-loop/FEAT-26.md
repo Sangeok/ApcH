@@ -72,3 +72,16 @@ main-loop 담당 항목이라 메인 루프가 `docs/plans/FEAT-26.md`를 썼다
 ## 게이트② 개방 (2026-08-29)
 
 사용자가 세션에서 "구현 승인"으로 개방. 계획서는 클린 패스 시점(`66d9994`) 그대로 — 사용자 편집 없음. 메인 루프가 직접 구현한다(B단계 상당): 계획서 블록 기계 적용 → 「테스트」 명세 테스트 → `npm run test:release-verify` → 프로덕션 드라이런(원장 되쓰기는 루틴 첫 실행에 맡긴다) → 커밋·푸시 → `RemoteTrigger`로 루틴 생성·즉시 실행 → 실행 로그로 클라우드 전제 확인 → 인수·원장 등재·PR.
+
+## 구현 (2026-08-29, 메인 루프)
+
+계획서 블록을 스크래치패드 하니스로 기계 적용(14/14 — 검증 라운드와 같은 스크립트), 「테스트」 명세 테스트 `ledger.test.mjs`(18 케이스) 투입. `npm run test:release-verify` **18/18**. 프로덕션 드라이런(원장 무변경): login ok, pass 1(유틸 방출)·skip 3 — 보드가 `구현승인`이라 캡션·게이트대기·검증 칩 전제 미충족(상태 의존이 설계대로). 커밋 `37ec918`.
+
+**루틴 생성(RemoteTrigger)**: `release-verify` = `trig_01LNKaB5VF59MLuSZRM7E8HR`, cron `0 0 * * *`(다음 예약 2026-08-29 00:01Z = 09:01 KST), 모델 sonnet-5, 도구 `Bash·Read·Edit·Glob·Grep`, 소스 ApcH. 서버가 기본 부착한 MCP 연결(Notion·Claude_Code_Remote)은 `clear_mcp_connections`로 제거(최소 권한). **webhook 트리거**: `create_webhook_trigger`에 `filter.action`(closed)·`filter.base_branch`(main) 둘 다 "Extra inputs are not permitted"(req_011CeVPgkMsBoncFpUmhDkJ4·req_011CeVPi5CEUEysEM8y1Nr63) — 필터 스키마 미공개라 미배선, cron이 본체(계획서 best effort 그대로). 원장에 사용자 결정으로 등재.
+
+**첫 실행(`action: run`, `cse_012JpnKvc33bPw1T9PWDHfn4`, 15:35Z, 27초)**: sandbox 할당 → 저장소 fetch → `git checkout -B dev origin/dev`(37ec918) → SKILL.md 읽음 → `pull --ff-only` → `test -n "$VERIFIER_SECRET"` **UNSET** → 2단계 중단, `git status` clean, 파일·커밋·#87 무변경, 푸시 알림 발송("VERIFIER_SECRET 미설정 — 환경변수 필요"). 지침·스킬을 글자대로 따랐고 실패 모드가 무해함이 실측됐다. 네트워크 허용·`git push`는 그 앞에서 멈춰 미검증(원장 등재).
+
+## 구현 인수 (2026-08-29, 메인 루프)
+
+**인수 다섯 조건**(자기 항목이라 더 엄격히): 1. 변경 파일 = 계획서 「고칠 파일」 9개(신규 4 + 수정 4 + 테스트 1) 정확히 — `git show --stat 37ec918`. 2. diff ↔ 스케치: 하니스가 블록을 바이트 그대로 썼다(손 편집 0). 3. 검증 재실행: `npm run test:release-verify` 18/18, 드라이런 login ok. 4. 백로그 FEAT-26 블록 제거(잔존 언급 0). 5. 상세 기록 = 이 파일. 보드 `결과` 150자 이내.
+「범위 밖 의존」: 사용자 환경 설정(원장 선행 조건), 브라우저 층 후속 후보(백로그 미등재 — 사용자 결정 대기), webhook(원장 줄). 「못 덮는 범위」 → 원장 FEAT-26 절 5줄.

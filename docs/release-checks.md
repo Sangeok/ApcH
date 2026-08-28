@@ -22,6 +22,17 @@
 
 ---
 
+## FEAT-26 — release-verify 루틴(원장 자동 마감) (main-loop, 구현 2026-08-29)
+
+원천: `docs/agents/main-loop/FEAT-26.md` 「구현 인수」·계획서 「못 덮는 범위」. **배포 대기** — `dev`에만 있음(루틴은 `dev`를 pull하므로 저장소 쪽은 이미 유효, `main` 합류는 문서 동기 목적).
+선행(사용자, claude.ai 환경 `Default`): 환경변수 `VERIFIER_SECRET`(Vercel admin과 같은 값) + 허용 도메인 `admin.a-pch.com`·`raw.githubusercontent.com`. 첫 실행(2026-08-29 00:35 KST, `cse_012JpnKvc33bPw1T9PWDHfn4`)은 비밀값 부재로 SKILL 2단계에서 무변경 종료 — 설계된 실패 모드.
+
+- [ ] 클라우드에서 끝까지 실행 — 비밀값·도메인 허용 뒤 `action: run` 또는 09:00 KST 예약 실행이 SKILL 3~7단계를 통과(로그인 ok, `docs/release-checks.md`만 커밋·푸시, 종료 보고에 pass/fail/skip 줄 단위)
+- [ ] 첫 자동 마감 — 원장의 `〔auto …〕` 줄이 루틴 커밋으로 `[x] … 확인(날짜, 자동 — 근거)`가 됨(전제 조건이 맞는 시점: 검토대기·검증 줄이 있는 보드 등)
+- [ ] 메인 루프 편집과의 커밋 왕복 — 같은 날 사람이 원장을 고친 뒤 루틴 푸시가 `pull --rebase` 재시도로 붙는지
+- [ ] PR 머지 트리거 — API `create_webhook_trigger` 필터 스키마 불일치(`filter.action`·`filter.base_branch` 거부)로 미배선. 웹 UI에서 배선하거나 cron만 유지(사용자 결정)
+- [ ] 네트워크 허용 — 첫 실행이 2단계에서 멈춰 `admin.a-pch.com`·raw 접근은 미검증(호스트 차단이면 `login.step = csrf`로 종료코드 2)
+
 ## FEAT-25 — admin 검증기 인증 경로(읽기 전용 verifier 세션) (admin, 구현 2026-08-28)
 
 원천: `docs/agents/admin-dev/FEAT-25.md` 「테스트로 못 덮은 범위」. **배포 완료(2026-08-28 12:07 KST, PR #107 머지).**
