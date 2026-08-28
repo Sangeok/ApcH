@@ -69,3 +69,50 @@ admin-dev를 계획서 작성에 디스패치한다. 메인 루프가 인가 코
   「인가: 세 겹 방어선」(`:96-106`), env 절(`:124` — `VERIFIER_SECRET` optional), 테스트 인벤토리.
 - **범위 밖 의존(계획서 「범위 밖 의존」에 그대로)**: 비밀값을 Vercel env와 claude.ai 환경에 두는 것은
   사용자 몫. 루틴 자체는 FEAT-26. web 앱은 대상 아님.
+
+## 필수 검증 경로 확정 (2026-08-28, 카탈로그 `docs/plans/verification-paths.md`)
+
+| # | 경로 | 트리거 근거 | 이 항목에서의 구체 검사 |
+| --- | --- | --- | --- |
+| 1 | 인용 전수 대조 | 모든 항목 | 계획서의 `파일:줄` 인용 전부(admin 코드·경계 스크립트·CLAUDE.md·`@auth/core`/`next-auth` 실물)를 내용까지 대조 |
+| 2 | 스케치 추출·실행 | 스케치에 코드 24블록 | 블록을 바이트 그대로 조립해 `npm run check`(fsd test·fsd·lint·tsc)·`npm test`·`verify:fsd:final` |
+| 3 | before/after 기계 적용 | 기존 파일 9개 수정 | before 11블록이 현재 트리와 바이트 일치·정확히 1회 매치, 신규 2파일 충돌 없음 |
+| 4 | 전칭 여집합 열거 | "호출처 정확히 11곳", "반환값 쓰는 곳 …뿐", "fetch owner N개", "`providers: [Google]`" | `requireAdmin` 호출처·`admin.` 사용처·`FSD_EFFECT_OWNERS.fetch` 항목을 열거 |
+| 5 | 돌연변이 검사 | 순수 함수(`verifyVerifierSecret`·`authorizeVerifier`·`buildVerifierProvider`)·콜백 3·`requireAdmin` 분기 신설 | 「테스트」 명세를 실제 테스트로 옮겨 구현에 오류를 심고 전부 사멸하는지 |
+| 6 | 실제 사건 재생(변형) | 외부 신호 = NextAuth 라이브러리 동작(credentials 콜백·CSRF·쿠키·실패 응답·Edge 세션 구성) | 가상 예제가 아니라 설치된 `@auth/core@0.41.1` 소스를 직접 읽고, Edge `authorized`에 라이브러리가 만드는 형태의 세션을 넣어 실행 |
+| 7 | 음성 시험 | 경계 규칙(R5/R7/R11/R13)에 기대고 쓰기 거부·화이트리스트 불변을 주장 | client 모듈이 `verifier.ts`를 import하면 R5가 실제로 실패하는지; 거부·불변은 5의 돌연변이로 |
+| 8 | 실물 렌더 | `AdminHeader` prop·문구 변경 | `renderToStaticMarkup`으로 `email` / `null` 두 상태 렌더 |
+| 9 | 구조적 아티팩트 검사 | `env.js`(config)·`next-auth.d.ts`(타입 증강) 변경 | 텍스트가 아니라 `tsc`(checkJs 포함)가 구조로 검사 — 2에 포함 |
+
+## 검증 1라운드 (2026-08-28, 메인 루프 — `reconciling-proposals-with-codebase`, High-Risk 프로파일: 인가 변경)
+
+하니스는 스크래치패드 `feat25/`(계획서 코드 블록 추출·적용 스크립트, 명세→테스트 3파일, 돌연변이 러너, 렌더·Edge 스니펫). 트리에 적용 → 검사 → `git checkout`/삭제로 복원, 라운드 끝 `git status`로 청결 확인.
+
+경로 3: before 11블록 전부 정확히 1회 바이트 일치, 신규 2파일 충돌 없음(13/13). 경로 6·1: 라이브러리 실물이 계획서 주장과 일치 — `User extends DefaultUser`(`types.d.ts:222`), `JWT extends Record<string, unknown>, DefaultJWT`, credentials 분기가 `account{providerAccountId,type,provider}`를 만들고 `sub: user.id`(`callback/index.js:239-251`), CSRF는 credentials callback POST에만(`lib/index.js:52-55`), 쿠키명(`cookie.js:45-69`), urlencoded 파싱(`web.js:6-13`), Edge 세션 user는 `{name,email,image}`(`session.js:38`). 경로 4: `requireAdmin` 호출처 grep = 11(읽기 7·쓰기 4) 일치, `admin.` 사용처 = layout:15·send-obs:31 둘뿐 일치.
+
+**결함 8건** (전부 계획서 수정으로 해소):
+
+1. **테스트 명세가 존재하지 않는 표면을 본다** — `Credentials()`는 `{ id: "credentials", …, authorize: () => null, options: config }`를 돌려주고(`@auth/core/providers/credentials.js`) `id`·`authorize`는 init 시 `options`에서 병합된다(`lib/utils/providers.js:12-17`). 명세의 `provider.id === "verifier"`·`provider.authorize(...)`는 그대로 쓰면 실패. → `.options.*`로 정정, §1에 팩토리 모양 절 추가.
+2. **fetch owner 수 오기** — "정확히 4개"는 옛 값. `FSD_EFFECT_OWNERS.fetch`(`:30-39`)는 **6개**(agent-report·repo-doc queries 추가). 인용 `:79-91`은 `NETWORK_MODULES`였다. → 「현재 동작」·「범위 밖 의존」 정정, R5 인용(`:361-380`) 추가.
+3. **`.env.example` 목적지 누락** — 루트 `.env.example` `# Auth`(`:1-6`)가 admin 인증 변수를 열거하는데 `VERIFIER_SECRET` 줄이 어디에도 없었다(스킬의 secret provenance 층). → handoff에 추가(루트 파일이라 메인 루프 몫).
+4. **공개 계약 불완전** — 실패 응답도 302(`/login?error=CredentialsSignin&code=credentials`, 세션 쿠키 없음, `@auth/core/index.js:120-140`)라 FEAT-26이 상태코드로 판정하면 오판. → "세션 쿠키 존재로 판정" + CSRF 적용 범위 + 본문 파싱 명시.
+5. **`JWT` 증강이 병합되지 않는다(경로 2·9 실측)** — 스케치 그대로 조립하니 lint·fsd는 통과했지만 `tsc`가 `token.role`을 `unknown`으로 보고 TS2322 2건(`config.ts:44`·`index.ts:8`). `next-auth/jwt`가 `export *` 재수출이라 `declare module "next-auth/jwt"`가 `JWT`에 닿지 않고, `@auth/core/jwt` 직접 증강도 동일했다(실측 (a)). `User` 증강은 명명 재수출이라 병합됨(에러 메시지의 `string | undefined`가 증거). → (b) JWT 증강 삭제 + session 콜백 `typeof` 좁히기: `tsc` 0 실측. §2·§3·「고칠 파일」·「대안」 정정.
+6. **테스트 명세 시점 모호** — `authConfig`는 모듈 로드 시 1회 평가라 `VERIFIER_SECRET`을 `beforeEach`에 넣으면 provider 미등록. → "`await import` 전에" 명시.
+7. handoff 수치 미확정 → 조립 실측 28→29파일·68→74suite·307→333test 기입(구현 후 재계측 조건).
+8. 내 편집의 R5 인용 `:369-377`이 `"R5"` 줄(378)을 못 담음 → `:361-380`; `.env.example` 열거에 `AUTH_URL` 누락 → 보완. (같은 편집 라운드 안에서 정정)
+
+(b) 상태 실측: `npm run check` 0(verify:fsd:test·verify:fsd·ESLint 0·tsc 0) · `npm test` **333 pass/74 suite/0 fail**(307/68에서 +26/+6, 파일 28→29) · `verify:fsd:final` 0 · 경로 8 렌더 6/6(`<p class="font-medium">검증기 (읽기 전용)</p>`, email 상태 회귀 없음) · 경로 6 Edge `authorized`: 라이브러리 형태 verifier 세션으로 `/pipeline`→`true`, `/login`→`/analytics` 리다이렉트, 무세션→`false` · 경로 7: `"use client"` 파일이 `~/server/auth/verifier`를 import하니 `[R5] client module imports server runtime` 종료코드 1, 제거 후 0 · 경로 5: 돌연변이 **16/16 사멸**(M01 길이검사 제거·M02 빈 expected 허용·M03 무비밀 등록·M04 신원 id 오기·M05 signIn 분기 제거·M06 role 미설정·M07 발급시각 미설정·M08 session 미전달·M09 provider 미등록·M10 signIn 전체 허용·M11 쓰기 거부 제거·M12 만료 제거·M13 클레임 부재 허용·M14 email ""·M15 역할 무시·M16 write가 admin도 차단).
+
+통합 편집 1회(계획서 9곳 + 정정 2곳). 편집 라운드이므로 판정 아님 → 무편집 패스로.
+
+## 검증 2라운드 — 무편집 최종 패스 (2026-08-28, 메인 루프)
+
+최신 저장본을 다시 읽고(회상 아님) 같은 하니스를 원본 트리에서 재실행: 경로 1 인용 **48건(명명) + 17건(bare)** 전부 해석·내용 일치(스크립트 덤프를 줄별로 대조) · 경로 3 13/13 · 조립된 `config.ts`·`next-auth.d.ts`가 1라운드 (b) 실측본과 바이트 동일 · `check` 0 · `test` 333/74/0 · `final` 0 · 렌더 6/6 · 돌연변이 16/16 · 복원 후 `git status`에 계획서와 사용자 로컬 설정만.
+
+INV-4 상태표: 초기(무세션) → 성공(csrf GET → callback POST → 302+세션 쿠키) → 실패(302, 쿠키 없음) → 종결(verifier 1h 뒤 `notFound`; 복구는 재로그인 = 루틴 매 실행) → 정리(JWT 8h 자체 만료, 서버 상태 없음). 상태 변이 표면 신설 없음(로그인은 반복 안전, 공유 집계 없음). 인가 목적지: 쓰기 4곳 `write: true`로 verifier 거부, 읽기 7곳 허용은 설계. 세 층: 버전(`next-auth@5.0.0-beta.25`/`@auth/core@0.41.1` 실물 확인)·픽스처(액션 테스트 4곳 mock이 인자 미단언, `commit-gate:26`·`send-obs:13`·`post-command:14`·`get-progress:18`)·관측(없음).
+
+**결함 0건. 비-결함 위험**(구현·인수 시 확인): (1) 비밀값 무차별 대입에 속도 제한 없음 — 긴 난수 + 읽기 전용으로 감수(백로그 명시), (2) `/login`이 `error=CredentialsSignin`에 안내 문구 없음 — 로봇 전용 경로라 무해, (3) `token.email` 없는 세션이 `/api/auth/session`에 노출 — 열람 이상 아님.
+
+Minimal Replay Anchor(응답 내 기록; 완전성 증명 아님): HEAD `0980119` · 계획서 blob `28c9ac353211` · 범위 `apps/admin/src/{server/auth,env.js,fsd/widgets/admin-header,fsd/features/{run-pipeline-command,transition-pipeline-gate,send-observability-test}/api}` + `scripts/verify-fsd-boundaries.mjs` + `node_modules/{next-auth,@auth/core}` · 레시피 `feat25/apply-plan.mjs --check`(safe) · `cite-check.mjs`(safe) · `round2.sh`(mutating: 트리 적용 후 복원) · 최종 패스 무편집: 예.
+
+**판정**: 메인 루프 라운드 무소득 → `plan-verifier` 디스패치 자격 충족(보드 정지 규칙: 독립 무편집 무소득 패스 1회가 판정). 브리핑은 중립 — 위 결함·판정 정보를 싣지 않는다.

@@ -18,7 +18,7 @@ admin 로그인은 Google 단일 provider다. `config.ts:16`이 `providers: [Goo
 
 환경변수는 `env.js`에 정의되며 `ADMIN_EMAILS`는 production 필수(`env.js:30-33`), verifier용 비밀값 변수는 없다. Credentials provider의 전제인 JWT 세션 전략은 이미 충족돼 있고(`config.edge.ts:8`), `next-auth@5.0.0-beta.25`에 `next-auth/providers/credentials`가 존재한다.
 
-경계 검사(`scripts/verify-fsd-boundaries.mjs`)는 `config.edge.ts`가 Node 모듈(`server-only`·`~/env`·google provider)을 import하면 R7로 막고(`:399-412`), `src/server/auth/index.ts`가 `config.edge`를 재수출하면 R11로 막으며(`:471-482`), production fetch owner를 정확히 4개로 강제한다(`:79-91`·`:498-504`·`:677-678`; 현재 owner는 pipeline queries·post-command·get-progress·commit-transition).
+경계 검사(`scripts/verify-fsd-boundaries.mjs`)는 `config.edge.ts`가 Node 모듈(`server-only`·`~/env`·google provider)을 import하면 R7로 막고(`:399-412`), `src/server/auth/index.ts`가 `config.edge`를 재수출하면 R11로 막으며(`:471-482`), `"use client"` 모듈이 `src/server/auth/**`를 import하면 R5로 막고(`:361-380`), production fetch owner를 `FSD_EFFECT_OWNERS.fetch`(`:30-39`) **6개**로 강제한다(R13 `:593`, 최종 집합 대조 `:671-678`; 현재 owner는 pipeline queries·post-command·get-progress·commit-transition·agent-report queries·repo-doc queries). `NETWORK_MODULES`(`:79-91`)는 production에서 금지되는 네트워크 클라이언트 목록이다(`:498-504`).
 
 ## 문제
 
@@ -29,7 +29,7 @@ admin 로그인은 Google 단일 provider다. `config.ts:16`이 `providers: [Goo
 | 파일 | 변경 |
 | --- | --- |
 | `src/server/auth/verifier.ts` `(신규)` | verifier 상수(provider id·role·1h 수명), timing-safe 비밀값 비교, authorize, 조건부 provider 빌더를 순수 모듈로 분리 |
-| `src/server/auth/next-auth.d.ts` `(신규)` | `User`·`JWT` 인터페이스에 `role`·`verifierIssuedAt` 클레임 타입 증강 |
+| `src/server/auth/next-auth.d.ts` `(신규)` | `next-auth`의 `User` 인터페이스에 `role`·`verifierIssuedAt` 타입 증강 (`JWT`는 증강하지 않는다 — §2) |
 | `src/server/auth/config.ts` | Credentials provider 조건부 등록, `signIn` provider 분기, `jwt` 콜백 신설(클레임 심기), `session` 콜백 클레임 왕복 |
 | `src/server/auth/guard.ts` | `requireAdmin`에 verifier 분기(읽기 허용·1h 만료 fail-closed)와 `{ write }` 옵션(verifier 쓰기 거부), 반환 `email: string \| null` |
 | `src/env.js` | `VERIFIER_SECRET: z.string().optional()` 추가(server 스키마 + runtimeEnv) |
@@ -92,24 +92,19 @@ export function buildVerifierProvider(secret: string | undefined) {
 }
 ```
 
-`authorize`가 돌려주는 `{ id, role }`의 `id`가 NextAuth에서 `token.sub`가 되어 `session.user.id === "verifier"`가 된다.
+`authorize`가 돌려주는 `{ id, role }`의 `id`가 NextAuth에서 `token.sub`가 되어 `session.user.id === "verifier"`가 된다(`@auth/core/lib/actions/callback/index.js:239-251` — credentials 분기가 `account = { providerAccountId: user.id, type: "credentials", provider: provider.id }`를 만들어 `signIn`에 넘기고 `defaultToken.sub = user.id`로 `jwt`를 부른다).
+
+**`Credentials()` 팩토리의 모양**: 사용자 설정을 그대로 돌려주지 않고 `{ id: "credentials", name: "Credentials", type: "credentials", credentials: {}, authorize: () => null, options: config }`를 돌려준다(`@auth/core/providers/credentials.js`). `id`·`authorize`는 NextAuth init 때 `options`에서 병합되고 callback 경로도 `options.id`로 만들어진다(`@auth/core/lib/utils/providers.js:12-17` — `id = userOptions?.id ?? defaults.id`, `callbackUrl: ${url}/callback/${id}`). 따라서 런타임은 `/api/auth/callback/verifier`가 맞지만, **반환 객체를 직접 검사하는 테스트는 `provider.options.id`·`provider.options.authorize`를 봐야 한다** — top-level `id`는 `"credentials"`, `authorize`는 기본 `() => null`이다.
 
 ### 2) `src/server/auth/next-auth.d.ts` (신규 · 전체)
 
-빈 인터페이스 `User`·`JWT`를 증강한다(둘 다 next-auth가 증강용으로 비워 둔 인터페이스다 — `User extends DefaultUser {}`, `JWT extends Record<string, unknown>, DefaultJWT`). `export {};`로 이 파일을 모듈로 만들어야 `declare module`이 ambient 재선언이 아니라 증강이 된다.
+`next-auth`의 `User`만 증강한다. `User`는 `@auth/core/types`의 빈 확장 인터페이스(`User extends DefaultUser {}`, `types.d.ts:222`)를 `next-auth/index.d.ts:78`이 **명명 재수출**(`export type { User } from "@auth/core/types"`)하므로 `declare module "next-auth"` 증강이 병합된다. 반면 `next-auth/jwt`는 `export * from "@auth/core/jwt"`(`next-auth/jwt.d.ts`)라 `declare module "next-auth/jwt"` 증강이 `JWT`에 **병합되지 않는다** — 실측(2026-08-28 조립): 증강을 넣어도 `tsc`가 `token.role`을 `unknown`으로 보고 session 콜백 반환이 `DefaultSession`에 대입 불가(TS2322)였고, `@auth/core/jwt`를 직접 증강해도 같았다. 그래서 `JWT`는 건드리지 않고 `Record<string, unknown>` 인덱스 시그니처를 그대로 쓴다: `jwt` 콜백의 `token.role = ...` 대입은 인덱스 시그니처로 통과하고, `session` 콜백이 `typeof`로 좁혀 `session.user`(= 증강된 `User`)에 담는다(§3). `export {};`로 이 파일을 모듈로 만들어야 `declare module`이 ambient 재선언이 아니라 증강이 된다.
 
 ```ts
 export {};
 
 declare module "next-auth" {
   interface User {
-    role?: string;
-    verifierIssuedAt?: number;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
     role?: string;
     verifierIssuedAt?: number;
   }
@@ -204,15 +199,18 @@ export const authConfig = {
       user: {
         ...session.user,
         id: token.sub,
-        role: token.role,
-        verifierIssuedAt: token.verifierIssuedAt,
+        role: typeof token.role === "string" ? token.role : undefined,
+        verifierIssuedAt:
+          typeof token.verifierIssuedAt === "number"
+            ? token.verifierIssuedAt
+            : undefined,
       },
     }),
   },
 } satisfies NextAuthConfig;
 ```
 
-증강 덕분에 `token.role`은 `string | undefined`, `token.verifierIssuedAt`은 `number | undefined`로 좁혀져 `session.user`(= `User`)에 추가 속성 오류 없이 대입된다. Google 경로는 `account?.provider`가 `"google"`(또는 콜백 테스트처럼 미지정)이라 세 콜백 모두 화이트리스트 검사·무클레임으로 흘러 회귀가 없다.
+`token.role`·`token.verifierIssuedAt`은 `JWT`의 인덱스 시그니처로 `unknown`이다(§2 — `JWT` 증강은 병합되지 않는다). `jwt` 콜백의 대입은 `unknown`에 문자열·숫자를 넣는 것이라 통과하고, `session` 콜백은 `typeof`로 좁혀 `session.user`(= 증강된 `User`의 `role?: string`·`verifierIssuedAt?: number`)에 대입한다 — 이 형태로 `tsc --noEmit` 0을 실측했다. Google 경로는 `account?.provider`가 `"google"`(또는 콜백 테스트처럼 미지정)이라 세 콜백 모두 화이트리스트 검사·무클레임으로 흘러 회귀가 없다.
 
 ### 4) `src/server/auth/guard.ts` (전체 교체)
 
@@ -413,21 +411,22 @@ admin 신원은 `write: true`여도 통과하므로(옵션은 verifier 분기 �
 로그인 화면은 커스텀 페이지(`config.edge.ts:13` `pages.signIn = "/login"`)라 NextAuth 기본 signin UI가 뜨지 않고, `src/app/login/page.tsx`는 건드리지 않는다. verifier 진입은 오직 POST다:
 
 1. `GET /api/auth/csrf` → `{ csrfToken }` 수신 + CSRF 쿠키 설정(https 프로덕션에서는 `__Host-authjs.csrf-token`, 로컬 http에서는 `authjs.csrf-token`; double-submit).
-2. `POST /api/auth/callback/verifier` — `Content-Type: application/x-www-form-urlencoded`, body `csrfToken=<토큰>&secret=<VERIFIER_SECRET>`, 1의 CSRF 쿠키 동봉. 성공 시 302 + 세션 쿠키 설정(https는 `__Secure-authjs.session-token`, http는 `authjs.session-token`).
-3. 이후 protected 경로 GET에 세션 쿠키를 실으면 미들웨어 `authorized`가 통과(`config.edge.ts:19-33`, verifier도 로그인 상태) → 페이지 렌더. 쓰기 액션은 `requireAdmin({ write: true })`가 `notFound()`로 막는다.
+2. `POST /api/auth/callback/verifier` — `Content-Type: application/x-www-form-urlencoded`, body `csrfToken=<토큰>&secret=<VERIFIER_SECRET>`, 1의 CSRF 쿠키 동봉. 성공 시 302 + 세션 쿠키 설정(https는 `__Secure-authjs.session-token`, http는 `authjs.session-token`; 이름은 `@auth/core/lib/utils/cookie.js:45-69`). **실패도 302다** — 비밀값 불일치(`authorize`가 `null` → `CredentialsSignin`)든 provider 미등록이든 `/login?error=CredentialsSignin&code=credentials`(또는 `?error=...`)로 보내고 **세션 쿠키를 설정하지 않는다**(`@auth/core/index.js:120-140`). 따라서 소비자는 상태코드가 아니라 **응답의 세션 쿠키 존재**로 성공을 판정한다. CSRF 검증은 credentials callback POST에만 적용된다(`@auth/core/lib/index.js:52-55`) — 1을 건너뛰면 `MissingCSRF`로 같은 실패 경로다. 본문은 urlencoded·JSON 둘 다 파싱된다(`lib/utils/web.js:6-13`).
+3. 이후 protected 경로 GET에 세션 쿠키를 실으면 미들웨어 `authorized`가 통과(`config.edge.ts:19-33`; Edge의 `auth.user`는 토큰에서 `{ name, email, image }`로 만들어져 verifier도 객체가 존재한다 — `@auth/core/lib/actions/session.js:38`, 실측 `authorized(...)`가 `/pipeline`에 `true`·`/login`에 `/analytics` 리다이렉트) → 페이지 렌더. 쓰기 액션은 `requireAdmin({ write: true })`가 `notFound()`로 막는다.
 
 provider id가 `verifier`이므로 callback 경로는 `/api/auth/callback/verifier`로 고정된다. 세션 쿠키 자체 수명은 전역 8h지만 verifier의 유효 열람은 1h(발급시각 클레임 기준)이며, 루틴은 매 실행마다 1~3을 새로 밟아 항상 1h 이내 토큰을 얻는다.
 
 ### 구현 후 handoff(읽기 전용 `apps/admin/CLAUDE.md` → 메인 루프 비고)
 
-구현 단계 `결과:` 비고로 보고할 동기화(직접 편집 금지): 테스트 인벤토리(`CLAUDE.md:35-37`) 28→29 파일(+`verifier.test.mjs`)과 suite/test 수, 라우트 표 `/login`(`:12`)에 verifier POST 진입·비노출, 「인가: 세 겹 방어선」(`:96-106`)에 verifier 별도 신원·읽기 전용·1h·`requireAdmin` write 옵션, env 절(`:124`)에 `VERIFIER_SECRET` optional.
+구현 단계 `결과:` 비고로 보고할 동기화(직접 편집 금지): 테스트 인벤토리(`CLAUDE.md:35-37`) 28→29 파일(+`verifier.test.mjs`)·68→74 suite·307→333 test(2026-08-28 검증 조립 실측 — 구현 후 재계측해 보고), 라우트 표 `/login`(`:12`)에 verifier POST 진입·비노출, 「인가: 세 겹 방어선」(`:96-106`)에 verifier 별도 신원·읽기 전용·1h·`requireAdmin` write 옵션, env 절(`:124`)에 `VERIFIER_SECRET` optional. 저장소 루트 `.env.example`의 `# Auth` 블록(`:1-6`, `AUTH_SECRET`·`AUTH_GOOGLE_*`·`AUTH_URL`·`ADMIN_EMAILS`를 열거)에 `VERIFIER_SECRET=""` 한 줄(선택, 검증기 로그인용 긴 난수) — 루트 파일이라 admin-dev 쓰기 범위 밖, 메인 루프가 인수 시 CLAUDE.md와 함께 반영.
 
 ## 테스트
 
 - **덮는 것**
-  - `verifier.test.mjs` (신규): `verifyVerifierSecret`(expected `undefined`→false·빈 문자열→false·provided 비문자열→false·길이 불일치→false·정확 일치→true), `authorizeVerifier`(expected 부재→null·불일치→null·일치→`{ id: "verifier", role: "verifier" }`), `buildVerifierProvider`(secret `undefined`/빈 문자열→null·설정 시 `id === "verifier"`·`authorize`가 함수·`authorize({ secret: 정답 })`→신원·`authorize({ secret: 오답 })`→null·`authorize(undefined)`→null). `mock.module("server-only", { namedExports: {} })` 선행.
-  - `config.test.mjs` (수정): 기존 Google 회귀 유지(`signIn({ user })` account 미지정 → 이메일 분기: allow/deny/missing). 추가 — provider 조건 등록(mock env에 `VERIFIER_SECRET` 설정 → `authConfig.providers` 길이 2·`id === "verifier"` 포함), `signIn` verifier 분기(`account.provider === "verifier"`·이메일 없음→true), `signIn` google account 화이트리스트 유지(`account.provider === "google"`·outsider→false), `jwt`(verifier account→`token.role === "verifier"`·`typeof token.verifierIssuedAt === "number"` / google account→무클레임 / account `null`→기존 토큰 무변경), `session`(token의 sub·role·verifierIssuedAt를 `session.user`로 왕복).
-  - `guard.test.mjs` (수정): 기존 3건 유지(미인증 redirect·삭제된 admin notFound·정상 admin 신원). 추가 — verifier 읽기 허용(role=verifier·`verifierIssuedAt=Date.now()` → `{ userId: "verifier", email: null }`), verifier 쓰기 거부(`requireAdmin({ write: true })` → NOT_FOUND), verifier 1h 만료(`verifierIssuedAt = Date.now() - (VERIFIER_MAX_AGE_MS + 1000)` → NOT_FOUND), verifier 클레임 부재(`verifierIssuedAt` undefined → NOT_FOUND), admin 쓰기 허용(`requireAdmin({ write: true })`가 관리자 신원 반환 — write 옵션이 admin을 막지 않음). guard는 `./verifier`의 상수만 import하므로 `./verifier` mock은 불필요하고, 기존 `./index`·`next/navigation`·`server-only` mock으로 충분하다.
+  - `verifier.test.mjs` (신규): `verifyVerifierSecret`(expected `undefined`→false·빈 문자열→false·provided 비문자열→false·길이 불일치→false(throw 없이)·같은 길이 불일치→false·정확 일치→true), `authorizeVerifier`(expected 부재→null·불일치→null·일치→`{ id: "verifier", role: "verifier" }`), `buildVerifierProvider`(secret `undefined`/빈 문자열→null·설정 시 `provider.type === "credentials"`·**`provider.options.id === "verifier"`**·`typeof provider.options.authorize === "function"`·`await provider.options.authorize({ secret: 정답 })`→신원·`{ secret: 오답 }`→null·`authorize(undefined)`→null — top-level `id`/`authorize`가 아니라 `.options`를 보는 이유는 §1 「`Credentials()` 팩토리의 모양」). `mock.module("server-only", { namedExports: {} })` 선행.
+  - `config.test.mjs` (수정): 기존 Google 회귀 유지(`signIn({ user })` account 미지정 → 이메일 분기: allow/deny/missing). **`fakeEnv`에 `VERIFIER_SECRET`을 `await import("./config.ts")` 전에 넣는다** — `authConfig`는 모듈 로드 시 한 번 평가되므로 `beforeEach`에서 넣으면 provider가 등록되지 않는다. 추가 — provider 조건 등록(`authConfig.providers` 길이 2·`providers[1].type === "credentials"`·`providers[1].options.id === "verifier"`), `signIn` verifier 분기(`account.provider === "verifier"`·이메일 없음→true), `signIn` google account 화이트리스트 유지(`account.provider === "google"`·outsider→false·admin→true), `jwt`(verifier account→`token.role === "verifier"`·`typeof token.verifierIssuedAt === "number"` / google account→무클레임(deepEqual 원본) / account `null`→기존 토큰 무변경), `session`(token의 sub·role·verifierIssuedAt를 `session.user`로 왕복).
+  - `guard.test.mjs` (수정): 기존 3건 유지(미인증 redirect·삭제된 admin notFound·정상 admin 신원). 추가 — verifier 읽기 허용(role=verifier·`verifierIssuedAt=Date.now()` → `{ userId: "verifier", email: null }`), verifier 쓰기 거부(`requireAdmin({ write: true })` → NOT_FOUND), verifier 1h 만료(`verifierIssuedAt = Date.now() - (VERIFIER_MAX_AGE_MS + 1000)` → NOT_FOUND), verifier 클레임 부재(`verifierIssuedAt` undefined → NOT_FOUND), verifier는 화이트리스트를 보지 않음(`getAdminEmailSet`이 빈 집합이어도 통과), admin 쓰기 허용(`requireAdmin({ write: true })`가 관리자 신원 반환 — write 옵션이 admin을 막지 않음). guard는 `./verifier`의 상수만 import하므로 `./verifier` mock은 불필요하고, 기존 `./index`·`next/navigation`·`server-only` mock으로 충분하다(`VERIFIER_MAX_AGE_MS`는 `./verifier.ts`에서 실제 import).
+  - 검증 조립 실측(2026-08-28, 메인 루프): 위 명세대로 쓴 세 파일 + 스케치 그대로 조립해 `check`·`test`(333/74)·`verify:fsd:final` 전부 0, 구현 돌연변이 16종(길이 검사 제거·빈 비밀값 허용·무비밀 등록·신원 오기·signIn 분기 제거/전체 허용·jwt 클레임 둘 미설정·session 미전달·provider 미등록·쓰기 거부 제거·만료 제거·클레임 부재 허용·email 빈 문자열·역할 무시·write가 admin도 차단) 전부 사멸.
 
 - **못 덮는 범위** (Node 러너·live I/O·DOM 없음 → 배포 후 수동/FEAT-26)
   - 실제 NextAuth 핸드셰이크(`GET /api/auth/csrf` → `POST /api/auth/callback/verifier` → 세션 쿠키): HTTP·서명된 JWT·쿠키 발급이라 module mock으로 못 덮는다. FEAT-26의 소비 경로에서 배포 후 실증.
@@ -437,7 +436,7 @@ provider id가 `verifier`이므로 callback 경로는 `/api/auth/callback/verifi
 
 ## 범위 밖 의존
 
-**구현을 막는 범위 밖 의존은 없다.** 코드 변경은 전부 `apps/admin/src/**`(App shell·`server/auth`·FSD·env)와 admin 테스트 안이며 `packages/db`·`apps/web`·`apps/backend`를 한 줄도 건드리지 않는다. `scripts/verify-fsd-boundaries.mjs`도 고치지 않는다 — 새 fetch/DB/Sentry owner도, public boundary 변경도 없기 때문이다(verifier는 네트워크 호출이 없어 fetch owner는 4개 그대로).
+**구현을 막는 범위 밖 의존은 없다.** 코드 변경은 전부 `apps/admin/src/**`(App shell·`server/auth`·FSD·env)와 admin 테스트 안이며 `packages/db`·`apps/web`·`apps/backend`를 한 줄도 건드리지 않는다. `scripts/verify-fsd-boundaries.mjs`도 고치지 않는다 — 새 fetch/DB/Sentry owner도, public boundary 변경도 없기 때문이다(verifier는 네트워크 호출이 없어 fetch owner는 6개 그대로; 신규 `verifier.ts`·`next-auth.d.ts`는 FSD 밖·비-public-entry라 R5/R7/R11 어느 규칙에도 걸리지 않음을 `verify:fsd:final` 0으로 실측했고, `"use client"` 모듈이 `~/server/auth/verifier`를 import하면 R5 종료코드 1이 나는 것도 확인했다).
 
 다음 둘은 **구현을 막지 않는** 외부 선행/후속이다(기능은 값 주입 전까지 휴면하되 코드는 완성된다):
 
@@ -447,6 +446,6 @@ provider id가 `verifier`이므로 callback 경로는 `/api/auth/callback/verifi
 ## 대안
 
 - **`requireAdmin({ write })` 옵션 vs `requireOperator` 분리** → 옵션 채택. 쓰기 액션 4곳의 테스트가 `~/server/auth/guard`의 `requireAdmin`만 mock하므로(`commit-gate-transition.test.mjs:26`·`send-observability-test-event.test.mjs:13`·`post-pipeline-command.test.mjs:14`), 분리하면 그 mock 4곳과 import를 전부 고쳐야 하고 "auth-first, try 밖 최상단" 계약 표면이 넓어진다. 옵션은 mock이 추가 인자를 무시하고 그대로 통과하므로 액션 테스트 무변경이다.
-- **타입 표면: `declare module` 증강 vs 로컬 캐스트** → 증강 채택. `User`·`JWT`는 next-auth가 증강용으로 비워 둔 인터페이스라 `role`·`verifierIssuedAt` 추가가 충돌 없이 되고, 세션 콜백과 `requireAdmin` 양쪽에서 캐스트가 흩어지지 않는다. `Session.user`를 직접 재선언하는 방식은 optional 수식자·`DefaultSession["user"]` 교집합 충돌 위험이 있어 피한다.
+- **타입 표면: `declare module` 증강 vs 로컬 캐스트** → `User`는 증강, `JWT`는 `typeof` 좁히기. `User`는 next-auth가 명명 재수출하는 빈 확장 인터페이스라 `role`·`verifierIssuedAt` 추가가 병합되고 `requireAdmin`·session 콜백 양쪽에서 캐스트가 흩어지지 않는다. `JWT` 증강은 `next-auth/jwt`가 `export *` 재수출이라 병합되지 않음을 실측했고(§2), `@auth/core/jwt`를 직접 증강하는 것도 같은 결과인 데다 admin이 선언하지 않은 전이 의존 패키지명을 소스에 박게 되어 피한다 — `JWT`의 인덱스 시그니처(`unknown`)를 `typeof`로 좁히는 두 줄이 가장 작고 결정적이다. `Session.user`를 직접 재선언하는 방식은 optional 수식자·`DefaultSession["user"]` 교집합 충돌 위험이 있어 피한다.
 - **1h 수명: Edge `authorized`에서도 자르기 vs `requireAdmin`만** → `requireAdmin`만. `config.edge`는 Node 클레임을 읽지 않는 것이 계약(R7)이고, 목적지 재검사(3층)가 모든 protected 경로에서 이미 돌아 만료 verifier를 `notFound`로 막는다(삭제된 admin JWT를 maxAge까지 두되 guard가 막는 것과 동일 모델). Edge 추가는 `config.edge` 테스트 범위만 늘린다.
 - **실패한 비밀값 시도 로깅** → 무로깅. `authorize`는 `null`만 반환해 순수·테스트 가능성을 유지하고, NextAuth 기본 `CredentialsSignin` 처리로 충분하다. 매 시도를 console에 남기면 로그 플러딩과 순수성 훼손을 부른다.
