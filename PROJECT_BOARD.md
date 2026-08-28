@@ -38,7 +38,7 @@
 - [ ] FEAT-26: release-verifier 루틴 — 배포 확인 원장의 화면 판정 가능 줄을 매일·배포 직후 자동 확인·마감
   agent: main-loop
   area: .mcp.json + .claude/skills/release-verify (신설) + docs/release-checks.md
-  status: 검토대기
+  status: 구현승인
   근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-25 배포·실측으로 선행 의존 해소 — 오늘 손으로 한 스윕을 루틴화해 원장을 자동 마감. main-loop 담당이라 pm 표 밖.
   검증: 클린 패스 (2026-08-29, 독립 무편집 1라운드 — plan-verifier 1사이클째)
 - [x] FEAT-25: admin 검증기 인증 경로 — 비밀값 로그인으로 읽기 전용 verifier 세션 발급 (FEAT-26 선행)
