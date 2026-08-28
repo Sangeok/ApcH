@@ -31,6 +31,10 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string().min(1)
         : z.string().optional(),
+    // 검증기(FEAT-25) 로그인용 비밀값. 설정된 경우에만 Credentials provider가
+    // 등록되고 고정 신원 `verifier`의 읽기 전용 세션을 발급한다. 미설정이면
+    // 기능 자체가 꺼진다(provider 미등록). 로그인 화면엔 노출하지 않는다.
+    VERIFIER_SECRET: z.string().optional(),
     // 관측 (web과 동일 값)
     SENTRY_DSN: z.string().optional(),
     SENTRY_AUTH_TOKEN: z.string().optional(),
@@ -57,6 +61,7 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
     ADMIN_EMAILS: process.env.ADMIN_EMAILS,
+    VERIFIER_SECRET: process.env.VERIFIER_SECRET,
     SENTRY_DSN: process.env.SENTRY_DSN,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     GITHUB_PIPELINE_TOKEN: process.env.GITHUB_PIPELINE_TOKEN,

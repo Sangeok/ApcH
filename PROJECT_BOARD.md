@@ -34,6 +34,15 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-28
+- [x] FEAT-25: admin 검증기 인증 경로 — 비밀값 로그인으로 읽기 전용 verifier 세션 발급 (FEAT-26 선행)
+  agent: admin-dev
+  area: apps/admin/src/server/auth
+  status: 완료
+  근거: 소유자가 이 세션에서 다음 착수 대상으로 지목. FEAT-26 자동 검증 루틴의 선행 항목이라 먼저 처리한다. 미결 0건이라 선정 가능.
+  결과: verifier.ts·next-auth.d.ts·verifier.test 신규3 + config/guard/env/header·쓰기3·테스트2 수정9. check·test 334/75·fsd:final 다 0. 상세 admin-dev/FEAT-25
+  검증: 클린 패스 (2026-08-28, 독립 무편집 1라운드 — plan-verifier 1사이클째)
+
 ## 2026-08-27
 - [x] FEAT-24: 원격 실행의 진행 과정을 대시보드에서 본다 — 루틴의 진행 코멘트 기반 실행 로그 + 대기 중 실행 버튼 잠금
   agent: admin-dev

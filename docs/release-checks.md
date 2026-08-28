@@ -21,9 +21,23 @@
 
 ---
 
+## FEAT-25 — admin 검증기 인증 경로(읽기 전용 verifier 세션) (admin, 구현 2026-08-28)
+
+원천: `docs/agents/admin-dev/FEAT-25.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에만 있음, PR 머지 후 확인 가능.
+선행: Vercel admin 프로젝트 env에 `VERIFIER_SECRET`(긴 난수) 주입 — 미주입이면 provider가 등록되지 않아 아래
+첫 줄이 "callback 실패"로 보이는 것이 정상이다(기능 휴면). 아래 줄들은 FEAT-26 루틴이 처음 성공적으로 돌면
+`대체(FEAT-26)`로 닫힌다.
+
+- [ ] 실제 핸드셰이크 — `GET /api/auth/csrf`(`__Host-authjs.csrf-token` 쿠키) → `POST /api/auth/callback/verifier`(urlencoded `csrfToken`+`secret`) → **302 + `__Secure-authjs.session-token` 설정**. 오답이면 302 `/login?error=CredentialsSignin&code=credentials` + 세션 쿠키 없음
+- [ ] verifier 세션으로 protected 페이지 GET(`/pipeline`·`/analytics`·`/observability`·`/pipeline/docs/…`·`/pipeline/agents/…`)이 렌더되고(Edge가 실제 verifier JWT를 통과), 헤더에 「검증기 (읽기 전용)」 폴백, `/login`은 `/analytics`로 리다이렉트
+- [ ] 쓰기 거부 — verifier 세션으로 게이트 도장·반려·실행 버튼·observability 테스트 전송이 404(`notFound`)로 막힘. Google admin은 도장·실행 그대로 동작(회귀 없음)
+- [ ] 1h 만료 — 발급 1h 뒤 같은 세션 쿠키로 protected 페이지 → 404, 재로그인으로 복구
+
 ## FEAT-23 — 항목 카드 파이프라인 여정 스테퍼 (admin, 구현 2026-08-27)
 
-원천: `docs/agents/admin-dev/FEAT-23.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
+원천: `docs/agents/admin-dev/FEAT-23.md` 「못 덮는 범위」. **배포 완료(2026-08-27 14:23 KST, PR #106 머지).**
+주의: 스테퍼는 **결재함 카드에만** 뜬다 — 미결 0건이면 결재함이 비어 관측 자체가 불가하다. 다음 pm
+선정이나 게이트 항목이 생길 때 확인한다.
 
 - [ ] 노드 색/형태 — done 흑연 채움 · **현재·사용자 게이트 = 호박 빈 링**(`border-2 border-stamp`) · **현재·팀 = 남색 채움**(`bg-active`) · upcoming 옅은 빈 링. 현재 노드 크기 강조(size-2.5 vs 1.5)와 연결선 색
 - [ ] 단계 라벨 반응형 — 데스크톱(sm↑) 7 라벨 노출, 폰에서 숨김(`hidden sm:block`)이되 노드 레일은 유지
@@ -33,10 +47,10 @@
 
 ## FEAT-24 — 원격 실행 진행 로그·버튼 잠금 (admin, 구현 2026-08-27)
 
-원천: `docs/agents/admin-dev/FEAT-24.md` 「못 덮는 범위」. **⚠ 배포 전 — dev→main 합류 후.**
-**선행 의존(사용자 몫)**: claude.ai 루틴 지침을 새 문안(계획서 「범위 밖 의존」 (1))으로 교체해야
-`[claude][진행]` 코멘트가 생기고 `running`이 보인다. 미교체 시 아래 running 줄은 관측 불가(퇴행은
-아님 — 진행 코멘트 0건이면 기존 awaiting/silent 동작, 실 #87 재생으로 회귀 0 확인).
+원천: `docs/agents/admin-dev/FEAT-24.md` 「못 덮는 범위」. **배포 완료(2026-08-27 14:23 KST, PR #106 머지).**
+**선행 의존 — 해소됨**: claude.ai 루틴 지침을 새 문안으로 교체 완료(2026-08-27 05:04Z, 메인 루프가
+`RemoteTrigger update`로 실행). 다음 원격 실행부터 `[claude][진행]` 코멘트가 쌓이므로 아래 running
+줄들이 관측 가능해졌다 — **실행 버튼을 한 번 누르면 대부분 함께 닫힌다.**
 
 - [ ] `running` pill 실표시 — 파랑 점 + `animate-pulse` + "진행 중 · N분째"(N=0이면 "진행 중"). `motion-reduce` 정지
 - [ ] 실행 로그(`ProgressLog`) 실화면 — 단계 줄이 pill 아래로 누적, 마지막 단계만 `text-foreground` 대비, `items-end` 우측 정렬, `<ol>` 스크린리더 순서
