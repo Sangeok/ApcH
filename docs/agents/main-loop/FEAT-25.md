@@ -124,3 +124,7 @@ Minimal Replay Anchor(응답 내 기록; 완전성 증명 아님): HEAD `0980119
 **결함 0건.** 경로별 증거: ① 인용 전부 내용 일치(admin 코드·경계 스크립트 bare 인용 8곳·`@auth/core`/`next-auth` 실물·CLAUDE.md·`.env.example`) ② 조립 `npm test` 334/75/0(검증자 저술 테스트가 1개 더 — 계획서가 "구현 후 재계측"이라 못박은 편차; 파일 28→29 일치), `verify:fsd:test`·`verify:fsd`·`final`·`tsc`·`next lint` 0(워크트리에 `.env`가 없어 lint의 env 검증만 `SKIP_ENV_VALIDATION`) ③ before 전부 바이트 일치·1회 매치, 신규 3파일 충돌 없음 ④ 호출처 11·반환값 사용 2·fetch owner 6 여집합 확증 ⑤ 돌연변이 12종 전부 사멸(원복 후 0 fail) ⑥ Edge `authorized` 실행: verifier `/pipeline`→true, `/login`→`/analytics`, anon→false/true ⑦ R5 프로브 종료코드 1→제거 시 0, `final` 통과 = owner 6개 불변 ⑧ `AdminHeader` 실렌더 두 상태 정확 ⑨ `tsc` 0 + **`next-auth.d.ts` 역실측**(제거 시 `guard.ts` 2건 에러·복원 시 0 — 증강이 load-bearing) + `createEnv` 실파싱(`VERIFIER_SECRET` optional). 비-결함 관찰 1: `next-auth/index.d.ts:78` 인용의 괄호 안 문구가 실제 줄의 축약(명명 재수출이라는 실질은 참).
 
 **판정**: 독립 무편집 클린 패스 1회 달성 → 보드 정지 규칙 충족. `검증:` 줄 기록. **게이트②(구현승인) 대기 — 사용자만 연다.** 병렬 미결 없음.
+
+## 게이트② 개방 (2026-08-28)
+
+사용자가 세션에서 "구현 승인"으로 개방. 메인 루프가 보드를 `구현승인`으로 편집했고 결정은 사용자의 것이다. 계획서는 클린 패스 시점(`82b9495`) 그대로 — 사용자 편집 없음. 병렬 미결 없음. admin-dev를 B단계(구현)에 디스패치한다 — B-1 계획서 파일 재독, B-3 「현재 동작」↔코드 대조, B-4 「고칠 파일」 12개 밖 무접촉, B-5 세 명령 통과가 조건이며, 읽기 전용 파일(`apps/admin/CLAUDE.md`·루트 `.env.example`) 동기화는 `비고:`로 받아 메인 루프가 인수 시 처리한다.
