@@ -189,6 +189,22 @@ ApcH 현역 루틴의 지침을 파라미터화한 것. `{{ }}`만 치환한다.
 | 계정 단위 저장소 접근 | 클라우드 세션이 연결 계정의 전 저장소 접근 | 1인 계정에선 수용. 타인 프로젝트는 Agent SDK로 |
 | 구독 한도 공유 | 원격 실행이 로컬 세션과 경합 | sonnet 사용, 루틴 캡 모니터링 |
 
+## 두 번째 루틴 — release-verify (FEAT-26, 2026-08-28)
+
+명령 채널이 아니라 **스케줄 구동**인 루틴. 매일 00:00 UTC(09:00 KST) + `main` 대상 PR 머지 이벤트(best effort)로 깨어나, 저장소의 `.claude/skills/release-verify/SKILL.md` 절차대로 `scripts/release-verify/run.mjs`를 돌려 `docs/release-checks.md`의 `〔auto …〕` 줄을 프로덕션 admin 응답으로 판정하고 그 파일만 `dev`에 커밋한다. 인증은 FEAT-25 verifier 세션(읽기 전용·1h)이며 환경변수 `VERIFIER_SECRET`이 Vercel admin과 같은 값으로 이 루틴의 환경에 있어야 한다. 허용 도메인 `admin.a-pch.com`·`raw.githubusercontent.com` 필요.
+
+루틴 지침(claude.ai에 저장된 원문 — 저장소 밖이라 여기 사본을 둔다):
+
+```
+저장소 Sangeok/ApcH의 dev 브랜치에서 배포 확인 원장(docs/release-checks.md)의 자동 판정 줄을 확인해 마감한다.
+절차는 저장소의 .claude/skills/release-verify/SKILL.md에 있다 — 그 파일을 먼저 읽고 그대로 따른다.
+작업은 네가 직접 한다(서브에이전트 금지). 고치는 파일은 docs/release-checks.md 하나뿐이다.
+VERIFIER_SECRET 환경변수 값과 세션 쿠키 값은 어떤 출력·커밋·코멘트에도 적지 않는다.
+닫을 줄이 없으면 아무것도 커밋하지 않고 종료한다. 이슈 #87에는 아무것도 쓰지 않는다.
+```
+
+알려진 약점: (1) 브라우저가 없어 hover·뷰포트·스크린샷 판정 줄은 못 닫는다(후속). (2) 머지 직후 실행은 Vercel 빌드(1~2분) 전의 옛 배포를 볼 수 있다 — 불합격은 체크하지 않으므로 무해하고 다음 날 실행이 보정한다. (3) `when-board`는 raw CDN(`max-age=300`)을 읽어 최대 5분 낡을 수 있다 — 전제 조건이 늦게 맞아 `skip`이 될 뿐 거짓 `pass`는 없다.
+
 ## 확장 경로 — 언제 이 구조를 떠나는가
 
 이슈·루틴은 "인프라를 만들지 않는다"는 전제의 산물이다. 전환 신호와 대응:

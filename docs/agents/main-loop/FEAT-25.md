@@ -142,3 +142,21 @@ Minimal Replay Anchor(응답 내 기록; 완전성 증명 아님): HEAD `0980119
 
 「범위 밖 의존」: 새 백로그 후보 없음 — 소비 루틴은 이미 FEAT-26으로 등재, 비밀값 주입은 사용자 몫(원장 선행 조건으로 기재).
 「못 덮는 범위」: `docs/release-checks.md`에 FEAT-25 절 4줄 등재(배포 대기). `timingSafeEqual` 상수시간 성질은 배포 실물로도 관측 불가라 등재하지 않았다(코드 대조로 갈음 — 구현 시점 종결).
+
+## 배포 확인 스윕 (2026-08-28, 메인 루프 — curl, admin 프로덕션)
+
+PR #107 머지(12:07 KST) 직후 첫 실측은 `providers = [google]`·callback `error=Configuration` — `VERIFIER_SECRET` 저장만으로는 안 실리고 Redeploy가 필요했다(GitHub 배포 기록엔 대시보드 Redeploy가 새 항목으로 남지 않았으나 12:28 KST 실측에서 `verifier` 등록 확인). 사용자 Redeploy 뒤:
+
+- 핸드셰이크: csrf → 정답 POST **302 `/`** + `__Secure-authjs.session-token` / 오답 302 `/login?error=CredentialsSignin&code=credentials` 쿠키 없음 / CSRF 누락 302 `/login?error=MissingCSRF` — 계획서 「공개 계약」의 세 응답과 정확히 일치.
+- 세션: `/api/auth/session` → `{id: "verifier", role: "verifier", email: null, verifierIssuedAt: <number>}`.
+- 페이지: `/pipeline`·`/analytics`·`/observability`·`/pipeline/agents/admin-dev`·`/pipeline/docs/plans/FEAT-25` 전부 200, 본문 「검증기 (읽기 전용)」, 이메일 노출 없음 → Edge가 실제 verifier JWT를 통과시킴(계획서 「못 덮는 범위」 네 번째 항목 실증). `/login` 302 `/analytics`, 무세션 `/pipeline` 307 `/login?callbackUrl=…`.
+- 원장 FEAT-25 절 1·2줄 `확인` 마감. 3줄(쓰기 거부)은 브라우저 실측 대상, 4줄(1h)은 03:29Z 발급 세션을 스크래치패드에 보관해 04:30Z 이후 재확인.
+- 비밀값·토큰 값은 어디에도 기록하지 않았다(로컬 `.env`는 gitignore·미추적 확인).
+
+## 배포 확인 스윕 2 — 쓰기 거부 (2026-08-28, 메인 루프 — Playwright MCP, admin 프로덕션)
+
+세션 토큰을 제 도구 호출 텍스트에 노출하지 않으려고, Playwright 서버 프로세스가 스크래치패드의 curl jar를 `file://`로 읽어 `context.addCookies`로 주입했다(비밀값·토큰은 기록·출력 어디에도 없음). verifier로 `/observability` 렌더(헤더 「검증기 (읽기 전용)」, 버튼 「Send test event」) → 클릭 → 서버 액션 POST 응답 **HTTP 404** `text/x-component`, 페이지가 Next의 not-found 경계("404: This page could not be found.")로 전환 — `send-observability-test-event.ts:27`의 `requireAdmin({ write: true })`가 설계대로 `notFound()`. 명령 POST·게이트 승인/반려는 같은 호출(단위 테스트 6분기)이고 결재함이 비어 게이트 버튼은 실물 대상이 없었다. 원장 3줄을 「verifier 거부(확인)」와 「Google admin 회귀 없음(사용자 다음 도장 때)」로 분리 마감. 남은 줄: 1h 만료(04:30Z 이후), Google 회귀.
+
+## 배포 확인 스윕 3 — 1h 만료 (2026-08-29 00:47 KST, 메인 루프 — curl)
+
+23:40 KST 발급 세션을 67분 뒤 재사용: `/api/auth/session`은 JWT가 유효해 `{id: verifier, role: verifier}`를 그대로 주지만 `/pipeline`·`/analytics`·`/observability`는 **404** — `guard.ts`의 `Date.now() - verifierIssuedAt > 1h` 분기가 프로덕션에서 작동. 재로그인 302 → `/pipeline` 200으로 복구. 앞서 12:29 KST 세션을 11시간 뒤 봤을 때의 `session null`·307은 8h 쿠키 만료(정상)라 가드 관측이 아니었다. 원장 FEAT-25 절은 이제 Google admin 회귀 1줄(사용자 다음 도장 때)만 남는다.

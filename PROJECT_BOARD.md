@@ -34,7 +34,30 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-08-29
+- [x] BUG-04: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
+  agent: backend-dev
+  area: apps/backend
+  status: 완료
+  근거: 성공/실패와 무관하게 임시 디렉토리 정리가 항상 실행되는 backend 신뢰성 결함. area가 apps/backend 단일이라 담당 명확. 미결 0건이라 선정 가능.
+  결과: temp_cleanup_policy 순수모듈+테스트18 신설, main.py에 succeeded 플래그·KEEP_TEMP_ON_FAILURE opt-in 배선(기본값=현 동작). unittest 46·py_compile 0. 상세 backend-dev/BUG-04
+  검증: 클린 패스 (2026-08-29, 독립 무편집 1라운드 — plan-verifier 3사이클째)
+- [x] BUG-08: 에러 콜백이 `clips: []`를 하드코딩해 부분 성공을 유실함
+  agent: backend-dev
+  area: apps/backend + apps/web/src/inngest
+  status: 완료
+  근거: 에러 콜백의 clips:[] 하드코딩으로 이미 S3에 오른 앞쪽 클립이 리포트에서 유실. 원 결함은 backend 콜백이라 backend-dev, 웹 inngest 계약 변경은 경계 판단으로 계획 단계에 맡긴다.
+  결과: error_callback 순수모듈+테스트9 신설, 에러 콜백을 순수함수 조립으로 교체(clips:[]→부분 clip_results)·import·이미지체인. unittest 55·py_compile 0. 상세 backend-dev/BUG-08
+  검증: 클린 패스 (2026-08-29, 독립 무편집 1라운드 — plan-verifier 1사이클째)
+
 ## 2026-08-28
+- [x] FEAT-26: release-verifier 루틴 — 배포 확인 원장의 화면 판정 가능 줄을 매일·배포 직후 자동 확인·마감
+  agent: main-loop
+  area: .mcp.json + .claude/skills/release-verify (신설) + docs/release-checks.md
+  status: 완료
+  근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-25 배포·실측으로 선행 의존 해소 — 오늘 손으로 한 스윕을 루틴화해 원장을 자동 마감. main-loop 담당이라 pm 표 밖.
+  결과: scripts/release-verify 3모듈+테스트18·루틴 스킬·원장 태그4·계약 사본·package.json·CLAUDE.md. 루틴 생성·즉시 실행: env 부재로 2단계 중단(설계대로, 무변경). 상세 main-loop/FEAT-26
+  검증: 클린 패스 (2026-08-29, 독립 무편집 1라운드 — plan-verifier 1사이클째)
 - [x] FEAT-25: admin 검증기 인증 경로 — 비밀값 로그인으로 읽기 전용 verifier 세션 발급 (FEAT-26 선행)
   agent: admin-dev
   area: apps/admin/src/server/auth

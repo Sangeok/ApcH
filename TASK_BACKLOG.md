@@ -7,14 +7,6 @@
 
 ## Backend / Pipeline
 
-- [ ] **BUG-04**: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
-  - area: apps/backend
-  - source: README Known Issues
-
-- [ ] **BUG-08**: 에러 콜백이 `clips: []`를 하드코딩해 부분 성공을 유실함
-  - area: apps/backend + apps/web/src/inngest
-  - source: BUG-03 계획서 「범위 밖 의존」(2026-08-25, `docs/plans/BUG-03.md`). **관측**: 여러 클립 중 뒤쪽 업로드가 실패하면 `_do_process_video`의 포괄 except가 에러 콜백의 `clips`를 하드코딩 `[]`로 보내, 이미 S3에 올라간 앞쪽 클립들이 리포트에서 사라진다(S3에 고아 객체만 남음). **진단(추정)**: 에러 콜백에 부분 `clip_results`를 실어야 하는데 이는 웹 inngest 소비 계약 변경이라 양 워크스페이스 경계 — 계획 단계에서 경계 판단이 관건.
-
 ## Credit / Billing
 
 - [ ] **FEAT-01**: Credit System 마무리 (현재 개발 중 상태)
@@ -22,10 +14,6 @@
   - source: README "Currently in Development"
 
 ## Admin / Dashboard
-
-- [ ] **FEAT-26**: release-verifier 루틴 — 배포 확인 원장의 화면 판정 가능 줄을 매일·배포 직후 자동 확인·마감 (FEAT-25 의존)
-  - area: .mcp.json + .claude/skills/release-verify (신설) + docs/release-checks.md
-  - source: 사용자 결정(2026-08-27 세션) "체크리스트가 자동으로 검증됐으면". **관측**: 원장 열린 36건 중 화면만 열면 판정되는 줄이 약 7건(문구·렌더·hover·대비), 나머지는 실제 도장·업로드(Modal 과금)·실기기·web 로그인이 있어야 보이는 줄. 닫힌 줄은 전부 사용자 지시 스윕이었고, 배포·실사용 뒤 원장을 다시 보는 트리거가 런북에 없어 FEAT-08 도장 실사용처럼 실제로 여러 번 일어났는데도 열린 채 남은 줄이 있다(`FEAT-19.md:41-43`). FEAT-19가 "확장형(release-verifier 에이전트) 미결정"으로 남겼던 것(`FEAT-19.md:45-48`). **진단(문서 확정, 2026-08-27 조사)**: 로스터 에이전트는 메인 루프가 디스패치해야 돌고 메인 루프는 사용자 세션이 있어야 돌므로 "자동"이 안 된다 — 세션 밖에서 깨어나는 claude.ai 루틴(기존 `pipeline-command`와 같은 부류)이어야 한다. 루틴 문서(https://code.claude.com/docs/en/routines): 트리거는 schedule(최소 1h, daily 프리셋)·API·GitHub(**PR·Release 이벤트만, push 없음**; 필터 base branch·merged 가능), 계정당 일일 실행 상한. 환경 문서(https://code.claude.com/docs/en/cloud-environments): setup script가 Ubuntu 24.04 root로 돌아 `apt install` 가능·결과 스냅샷 캐시(약 7일) → Playwright Chromium 설치 가능; 기본 네트워크는 allowlist라 admin 프로덕션 도메인을 Allowed domains에 추가해야 함(아니면 403 `host_not_allowed`); 루틴은 저장소에 커밋된 스킬과 `.mcp.json`을 쓴다. **설계**: 트리거 = 매일 1회 + GitHub `pull_request.closed`(base `main`, merged=true — 배포 직후). 하는 일 = ① 원장의 `- [ ]` 줄 수집 → ② 화면 판정 가능한 줄만 분류(실제 도장·반려·명령·업로드·실기기·web 로그인 필요 줄은 제외) → ③ FEAT-25 세션으로 프로덕션 admin을 Playwright로 열어 판정 → ④ 통과 줄만 `확인(날짜, 근거 — 스크린샷/실측값)`으로 체크, 불합격은 체크하지 않고 어긋난 내용만 기록(백로그 이관은 사람) → ⑤ `docs/release-checks.md`만 `dev`에 커밋·푸시. 새 줄 없으면 즉시 종료(`pipeline-command`의 "처리할 명령 없으면 종료"와 동일). "도장→즉시 반영"류는 보드 푸시 트리거가 미보장이라 제외 — 다음 실제 도장 때 사용자 몫. **저장소 쪽 산출물**: `.mcp.json`에 Playwright MCP(headless), 루틴 절차 스킬 `.claude/skills/release-verify/SKILL.md`(위 ①~⑤ + 판정 가능/불가 분류 기준 + 증거 형식), 루틴 지침 계약 사본을 `docs/proposals/active/remote-agent-pipeline-generalization.md`에(FEAT-24 관례), 원장 머리말에 자동 확인의 증거 형식 한 줄. **claude.ai 쪽(저장소 밖, 사용자가 `/schedule`로)**: 루틴 생성·트리거 2종·환경(admin 도메인 allowlist, setup script `npx playwright install --with-deps chromium`, `VERIFIER_SECRET`). **담당**: `.claude/`·루트 문서는 dev 로스터의 쓰기 범위 밖이라 FEAT-19 전례대로 main-loop가 계획·구현. **비용**: Modal 0(admin에 호출 경로 없음, 업로드 안 함), Neon은 `/analytics` 열 때 읽기만, 나머지는 구독 사용량·일일 실행 상한. **기각한 대안**: GitHub Actions + Claude(종량 API 경로를 안 만든 원칙과 충돌), 로스터 에이전트 추가(자동 아님 + 대시보드 8책상 재동기화 비용).
 
 ## Pipeline 운영 / 검증 하니스
 

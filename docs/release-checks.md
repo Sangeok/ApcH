@@ -11,27 +11,58 @@
   원천은 구현 보고(`docs/agents/<행위자>/<항목ID>.md`)이고, 없으면 보드 `결과`·계획서다.
   구현 시점에 이미 닫히는 선언(예: BUG-06의 카피↔로직 사람 대조)은 등재하지 않는다.
 - **마감**: 체크는 증거로만 한다 — 세 종류뿐이다.
-  - `확인(날짜, 근거)` — 사용자가 배포 화면에서 실물을 관측했거나, 실측 기록(Playwright 스윕 포함)이 있다.
+  - `확인(날짜, 근거)` — 사용자가 배포 화면에서 실물을 관측했거나, 실측 기록(Playwright 스윕 포함)이 있다. `확인(날짜, 자동 — 근거)`는 release-verify 루틴(FEAT-26)이 프로덕션 응답으로 닫은 것이다.
   - `대체(항목ID)` — 후속 항목이 그 화면을 교체하거나 같은 확인을 재선언해 옛 줄이 무의미해졌다.
   - `이관(항목ID)` — 확인에서 결함이 나와 `TASK_BACKLOG.md` 항목이 됐다.
 - **이 문서는 상태 문서다** — `PROJECT_BOARD.md`처럼 갱신하며 `docs/agents/`의 append-only
   규약을 따르지 않는다. 확인 활동의 상세는 `docs/agents/main-loop/`에 쓴다.
 - 절은 항목별·최신순(보드 섹션 순서). 전부 닫힌 절도 지우지 않는다 — 닫혔다는 사실이 기록이다.
+- **자동 판정 태그**: 응답 상태·본문 문구·CSS 방출만으로 판정되는 열린 줄에는 등재 시 메인 루프가 줄 끝에 `〔auto GET <경로> [status=] [text=""]… [notext=""]… [css="a,b"] [when=""]… [when-any="a|b"] [when-board="<regex>"]〕`를 붙인다(문법·판정은 `scripts/release-verify/ledger.mjs`). 루틴은 `pass`면 태그를 지우고 `[x]` + `확인(…, 자동 — …)`로 닫고, `fail`이면 줄 아래에 `  - 자동 불합격(날짜): 사유`만 남기며(이관은 사람), `when*` 전제가 안 맞으면 건드리지 않는다.
 - 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조) · 3차(PR #101 합류 직후 재스윕 — FEAT-17·18 마감, 실보드 파생 상태 라이브 관측). 상세는 `docs/agents/main-loop/FEAT-19.md`.
 
 ---
 
+## BUG-08 — 에러 콜백에 부분 clip_results 싣기 (backend, 구현 2026-08-29)
+
+원천: `docs/agents/backend-dev/BUG-08.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-04와 묶어 1회). 주의: 이 항목만으로는 사용자 가시 변화가 없다 — web inngest가 `status: error` 페이로드의 `clips`를 소비하는 후속(백로그 후보)이 있어야 메타데이터가 행에 실린다. 아래 줄은 그 전제 절반만 확인한다.
+
+- [ ] `modal deploy` — 이미지 번들에 `error_callback` 포함(배포 출력 mount에 `error_callback`), 컨테이너 import 성공
+- [ ] 에러 콜백 본문 — 클립 루프 중간 실패를 유도한 `modal run`에서 웹훅이 받은 `status: error` 페이로드의 `clips`에 그때까지 완성된 클립(성공 콜백과 같은 원소 모양, `index`·`s3Key` 포함)이 실려 옴(웹훅 로그 또는 `modal/video.processed` 이벤트 payload). 루프 진입 전 실패는 `clips: []`(기존과 동일)
+- [ ] 웹 무회귀 — 그 페이로드로 웹훅이 200을 돌려주고(`normalizeBody` 통과), inngest는 기존대로 실패 처리(행은 맨행) — 경로 A `updateMany`는 행 부재로 0건이 정상
+- [ ] 성공 경로 불변 — 정상 실행의 성공 콜백·클립 메타데이터 반영이 이전과 동일
+
+## BUG-04 — 임시 디렉토리 정리 정책(KEEP_TEMP_ON_FAILURE opt-in) (backend, 구현 2026-08-29)
+
+원천: `docs/agents/backend-dev/BUG-04.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-08과 묶어 1회 권장). 기본값에서 프로덕션 동작은 바이트 동일이라 배포 자체의 위험은 없다.
+
+- [ ] `modal deploy` — 이미지 번들에 `temp_cleanup_policy` 포함(배포 출력 `Created mount PythonPackage:…temp_cleanup_policy`), 컨테이너에서 import 성공(첫 실행 로그에 `ModuleNotFoundError` 없음)
+- [ ] 기본값 동작 불변 — 프로덕션 실행(성공·실패)에서 기존 `Cleaning up temp dir after …` 로그만 나오고 `Preserving temp dir` 로그는 없음
+- [ ] 로컬 `modal run` + `KEEP_TEMP_ON_FAILURE=1` — 실패 유도 시 `Preserving temp dir for debugging after failure: …` 로그와 `/tmp/<run_id>` 잔존, 성공 시에는 정리
+- [ ] `succeeded` 제어흐름 — 예외 경로에서 False 유지(실패 실행에서 보존 스위치가 켜졌을 때만 보존되는 것으로 간접 확인)
+
+## FEAT-26 — release-verify 루틴(원장 자동 마감) (main-loop, 구현 2026-08-29)
+
+원천: `docs/agents/main-loop/FEAT-26.md` 「구현 인수」·계획서 「못 덮는 범위」. **배포 대기** — `dev`에만 있음(루틴은 `dev`를 pull하므로 저장소 쪽은 이미 유효, `main` 합류는 문서 동기 목적).
+선행(사용자, claude.ai 환경 `Default`): 환경변수 `VERIFIER_SECRET`(Vercel admin과 같은 값) + 허용 도메인 `admin.a-pch.com`·`raw.githubusercontent.com`. 첫 실행(2026-08-29 00:35 KST, `cse_012JpnKvc33bPw1T9PWDHfn4`)은 비밀값 부재로 SKILL 2단계에서 무변경 종료 — 설계된 실패 모드.
+
+- [ ] 클라우드에서 끝까지 실행 — 비밀값·도메인 허용 뒤 `action: run` 또는 09:00 KST 예약 실행이 SKILL 3~7단계를 통과(로그인 ok, `docs/release-checks.md`만 커밋·푸시, 종료 보고에 pass/fail/skip 줄 단위)
+- [ ] 첫 자동 마감 — 원장의 `〔auto …〕` 줄이 루틴 커밋으로 `[x] … 확인(날짜, 자동 — 근거)`가 됨(전제 조건이 맞는 시점: 검토대기·검증 줄이 있는 보드 등)
+- [ ] 메인 루프 편집과의 커밋 왕복 — 같은 날 사람이 원장을 고친 뒤 루틴 푸시가 `pull --rebase` 재시도로 붙는지
+- [ ] PR 머지 트리거 — API `create_webhook_trigger` 필터 스키마 불일치(`filter.action`·`filter.base_branch` 거부)로 미배선. 웹 UI에서 배선하거나 cron만 유지(사용자 결정)
+- [ ] 네트워크 허용 — 첫 실행이 2단계에서 멈춰 `admin.a-pch.com`·raw 접근은 미검증(호스트 차단이면 `login.step = csrf`로 종료코드 2)
+
 ## FEAT-25 — admin 검증기 인증 경로(읽기 전용 verifier 세션) (admin, 구현 2026-08-28)
 
-원천: `docs/agents/admin-dev/FEAT-25.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에만 있음, PR 머지 후 확인 가능.
+원천: `docs/agents/admin-dev/FEAT-25.md` 「테스트로 못 덮은 범위」. **배포 완료(2026-08-28 12:07 KST, PR #107 머지).**
 선행: Vercel admin 프로젝트 env에 `VERIFIER_SECRET`(긴 난수) 주입 — 미주입이면 provider가 등록되지 않아 아래
 첫 줄이 "callback 실패"로 보이는 것이 정상이다(기능 휴면). 아래 줄들은 FEAT-26 루틴이 처음 성공적으로 돌면
 `대체(FEAT-26)`로 닫힌다.
 
-- [ ] 실제 핸드셰이크 — `GET /api/auth/csrf`(`__Host-authjs.csrf-token` 쿠키) → `POST /api/auth/callback/verifier`(urlencoded `csrfToken`+`secret`) → **302 + `__Secure-authjs.session-token` 설정**. 오답이면 302 `/login?error=CredentialsSignin&code=credentials` + 세션 쿠키 없음
-- [ ] verifier 세션으로 protected 페이지 GET(`/pipeline`·`/analytics`·`/observability`·`/pipeline/docs/…`·`/pipeline/agents/…`)이 렌더되고(Edge가 실제 verifier JWT를 통과), 헤더에 「검증기 (읽기 전용)」 폴백, `/login`은 `/analytics`로 리다이렉트
-- [ ] 쓰기 거부 — verifier 세션으로 게이트 도장·반려·실행 버튼·observability 테스트 전송이 404(`notFound`)로 막힘. Google admin은 도장·실행 그대로 동작(회귀 없음)
-- [ ] 1h 만료 — 발급 1h 뒤 같은 세션 쿠키로 protected 페이지 → 404, 재로그인으로 복구
+- [x] 실제 핸드셰이크 — `GET /api/auth/csrf`(`__Host-authjs.csrf-token` 쿠키) → `POST /api/auth/callback/verifier`(urlencoded `csrfToken`+`secret`) → **302 + `__Secure-authjs.session-token` 설정**. 오답이면 302 `/login?error=CredentialsSignin&code=credentials` + 세션 쿠키 없음 — 확인(2026-08-28 12:28 KST, curl 실측: csrf 쿠키 2개 발급 → 정답 POST 302 `/` + `__Secure-authjs.session-token`; 오답 302 `/login?error=CredentialsSignin&code=credentials` 세션 쿠키 없음; CSRF 누락 302 `/login?error=MissingCSRF`; `/api/auth/session` = `{id: verifier, role: verifier, email: null, verifierIssuedAt: number}`. `VERIFIER_SECRET` 주입 전엔 `providers`가 `google`뿐·callback `error=Configuration`이었고 Redeploy 뒤 `verifier` 등록)
+- [x] verifier 세션으로 protected 페이지 GET(`/pipeline`·`/analytics`·`/observability`·`/pipeline/docs/…`·`/pipeline/agents/…`)이 렌더되고(Edge가 실제 verifier JWT를 통과), 헤더에 「검증기 (읽기 전용)」 폴백, `/login`은 `/analytics`로 리다이렉트 — 확인(2026-08-28 12:28 KST, curl 실측: 다섯 경로 전부 200·본문에 「검증기 (읽기 전용)」·이메일 없음; `/login` 302 `Location: /analytics`; 무세션 `/pipeline` 307 `/login?callbackUrl=…`)
+- [x] 쓰기 거부 — verifier 세션으로 쓰기 액션이 404(`notFound`)로 막힘 — 확인(2026-08-28 12:32 KST, Playwright 실측: verifier 세션 쿠키로 `/observability` 렌더(헤더 「검증기 (읽기 전용)」) 후 「Send test event」 클릭 → 서버 액션 POST **HTTP 404** `text/x-component`, 화면 "404: This page could not be found." 나머지 3곳(명령 POST·게이트 승인·반려)은 같은 `requireAdmin({ write: true })` 호출이며 단위 테스트가 덮는다 — 게이트 버튼은 결재함이 비어 실물 클릭 대상이 없었음)
+- [ ] Google admin 회귀 없음 — 관리자 계정으로 도장·실행 버튼이 그대로 동작 (사용자의 다음 실제 도장·실행 때 확인)
+- [x] 1h 만료 — 발급 1h 뒤 같은 세션 쿠키로 protected 페이지 → 404, 재로그인으로 복구 — 확인(2026-08-29 00:47 KST, curl 실측: 23:40 KST 발급 세션(JWT 8h 유효, `/api/auth/session`에 verifier 신원 그대로)으로 67분 뒤 `/pipeline`·`/analytics`·`/observability` 전부 **404**(guard의 1h 가드), 재로그인 302 → `/pipeline` 200. 참고: 12:29 KST 세션은 8h JWT 만료 뒤 확인해 `session null`·307이었음 — 가드가 아니라 쿠키 만료라 관측 창을 다시 잡았다)
 
 ## FEAT-23 — 항목 카드 파이프라인 여정 스테퍼 (admin, 구현 2026-08-27)
 
@@ -41,9 +72,9 @@
 
 - [ ] 노드 색/형태 — done 흑연 채움 · **현재·사용자 게이트 = 호박 빈 링**(`border-2 border-stamp`) · **현재·팀 = 남색 채움**(`bg-active`) · upcoming 옅은 빈 링. 현재 노드 크기 강조(size-2.5 vs 1.5)와 연결선 색
 - [ ] 단계 라벨 반응형 — 데스크톱(sm↑) 7 라벨 노출, 폰에서 숨김(`hidden sm:block`)이되 노드 레일은 유지
-- [ ] 캡션 항상 표시 — "지금 <현재> · [대기 낱말] · 다음 <다음>", 호박/남색 색 일치, `flex-wrap` 폰 줄바꿈
+- [ ] 캡션 항상 표시 — "지금 <현재> · [대기 낱말] · 다음 <다음>", 호박/남색 색 일치, `flex-wrap` 폰 줄바꿈 〔auto GET /pipeline text="지금 " text="· 다음 " css="flex-wrap" when-any="선정 중|당신 차례|작업 중|검증 중|인수 중"〕
 - [ ] `InboxCard` 통합 — 발화↔레일↔게이트 순서, `GateCardLock` 밖 배치, `ValidationMark` 칩과 시각 일관(검증 줄 있으면 칩=통과·레일=게이트②)
-- [ ] 신규 Tailwind 유틸 조합 방출 — `bg-silence`·`bg-active`·`border-stamp`·`border-active/50`·`border-stamp/50`가 실빌드에서 나오는지
+- [ ] 신규 Tailwind 유틸 조합 방출 — `bg-silence`·`bg-active`·`border-stamp`·`border-active/50`·`border-stamp/50`가 실빌드에서 나오는지 〔auto GET /pipeline css="bg-silence,bg-active,border-stamp,border-active/50,border-stamp/50"〕
 
 ## FEAT-24 — 원격 실행 진행 로그·버튼 잠금 (admin, 구현 2026-08-27)
 
@@ -75,7 +106,7 @@
 
 - [ ] 도장 → 즉시 반영 — 게이트 도장 후 새로고침/refresh 시 실행 콘솔이 5분 대기 없이 새 status를 반영 (토큰 설정 배포, 데스크톱)
 - [ ] 잠금 칩 새 문구 렌더 — 도장 후 "도장 찍음"(· 보드 반영 대기 없이), 반려 후 액션 낱말만
-- [ ] 게이트대기 설명 새 문구 — "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."(최대 5분 문장 없음)
+- [ ] 게이트대기 설명 새 문구 — "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."(최대 5분 문장 없음) 〔auto GET /pipeline text="결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다." notext="최대 5분" when="진행할 작업 없음" when-board="status: (승인대기|검토대기)"〕
 - [ ] 토큰 부재 폴백의 5분 잔상 재발 성질 — 프로덕션 미경유(토큰 필수)라 확인 불요, 성질만 기록
 
 ## FEAT-21 — 번역 폴백 안내의 웹 절반 (web, 구현 2026-08-26)
@@ -167,7 +198,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 원천: `docs/agents/admin-dev/FEAT-13.md`
 
 - [x] `ValidationMark` 점선 「검증 전」 칩 + 검토대기 조건부 — 확인(2026-08-24, 실보드: BUG-03 검토대기 카드에 점선 칩 실렌더, 승인대기 BUG-02 카드엔 없음 — 조건부 양·음성 동시 관측)
-- [ ] `ValidationMark` 실선 「검증 통과」 칩·`title` 툴팁 — BUG-03 검증 클린 패스 후 보드에 `검증:` 줄이 생기면 자연 확인
+- [ ] `ValidationMark` 실선 「검증 통과」 칩·`title` 툴팁 — BUG-03 검증 클린 패스 후 보드에 `검증:` 줄이 생기면 자연 확인 〔auto GET /pipeline text="검증 통과" text="클린 패스 (" when-board="status: 검토대기[^\n]*\n(?:[^\n]*\n){0,2}\s*검증: 클린 패스"〕
 
 ## FEAT-12 — 보드 감압·행위자 보고서 표시 (admin+루트 문서, 보드 2026-08-18 절)
 

@@ -349,7 +349,7 @@ apps/backend/
 ## Known Issues & Limitations
 
 - Korean translation may fallback to English on API errors
-- Temporary directory cleanup regardless of success
+- Temporary directories are always cleaned up in production (also after a failure — intended, containers are reused); on a local `modal run`, set `KEEP_TEMP_ON_FAILURE=1` to keep them after a failure for debugging
 
 ## License
 
