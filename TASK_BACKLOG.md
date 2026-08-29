@@ -7,6 +7,10 @@
 
 ## Backend / Pipeline
 
+- [ ] **FEAT-28**: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
+  - area: apps/web/src/inngest + apps/web/src/fsd/entities/clip
+  - source: BUG-08 계획서 「범위 밖 의존」 + 인수 기록(`docs/agents/main-loop/BUG-08.md`, 2026-08-29). 메인 루프 등재. **관측**: BUG-08 배포(2026-08-29)로 백엔드 에러 콜백이 실패 시점까지 완성된 `clip_results`(제목·대본·hook·payoff·subtitleStatus 포함)를 실어 보내지만, 사용자 리포트의 그 클립들은 여전히 메타데이터가 빈 채로 남는다. **진단(코드 확정)**: 실패 흐름에서 Clip 행은 S3 폴링(BUG-05, `apps/web/src/inngest/functions.ts:241`)이 만든 맨행뿐이고, 그 행을 채우는 유일 경로인 웹훅 경로 A(`route.ts`의 `updateClipMetadataFromBackendClips`=`updateMany`)는 행 생성보다 먼저 돌아 0건 갱신이 된다. inngest `applyModalPayload`(`functions.ts:471-487`)가 `!isSuccessfulModalStatus`면 `backendFailureMessage`만 세우고 `clips`를 읽지 않은 채 early return(`:479-483`)하기 때문. `persistGeneratedClips`(`:183-277`)는 `backendClips`가 있으면 `createDataByS3Key`에 메타데이터를 담아 행을 만들고(`:215`), 없으면 맨행(`:241`)을 만든다. **수정 방향(추정 — 계획 단계 확정)**: `applyModalPayload`가 `status: error`에서도 `clips`를 `normalizeBackendClips`로 받아 `backendClips`를 채우되 실패 판정(`backendFailureMessage`)은 그대로 유지한다(실패는 실패로, 부분 데이터만 살림). 그러면 `persistGeneratedClips`가 맨행 대신 메타데이터 붙은 행을 생성 시점에 만든다. **범위 밖 의존(추정)**: 부분 성공분의 크레딧 정산(차감/환불)과 부분 전달 안내 UX가 딸려오면 billing·entities/user 계약에 닿아 FEAT-01과 겹칠 수 있다 — 그 경계는 계획 단계가 정한다. BUG-05의 `clipsFound` 계산·`resolveModalPollAction`과의 상호작용도 확인. 전례: BUG-02(backend가 `subtitleStatus` 송신) → FEAT-21(web 소비)과 같은 두 절반 구조의 두 번째 절반.
+
 ## Credit / Billing
 
 - [ ] **FEAT-01**: Credit System 마무리 (현재 개발 중 상태)

@@ -49,3 +49,7 @@ backend-dev에 디스패치한다. 메인 루프가 양쪽 코드를 읽고 잡�
 ## 배포 (2026-08-29 11:25 KST, 메인 루프 — 사용자 승인 "modal deploy해")
 
 `cd apps/backend && PYTHONUTF8=1 modal deploy main.py`(venv `C:\Users\hamso\venvs\apch-backend`, modal 1.2.1) → `App deployed in 6.437s`, mount `PythonPackage:s3_upload_policy, translation_fallback, temp_cleanup_policy, error_callback`, web function `process_video` 재등록(`https://sangeok--ai-podcast-clipper-process-video.modal.run`). BUG-04·BUG-08 묶어 1회. 원장 절 머리말 "배포 완료", 번들 줄에 실측 기재 — 컨테이너 import·실동작은 다음 실사용 실행에서(BUG-03 전례).
+
+## 후속 백로그 등재 (2026-08-29, 메인 루프)
+
+BUG-08 인수 시 「범위 밖 의존」으로 남긴 web 절반을 **FEAT-28**로 `TASK_BACKLOG.md`에 등재(관측/진단(코드 확정)/수정 방향(추정)/범위 밖 의존 분리). area `apps/web/src/inngest + apps/web/src/fsd/entities/clip`, source에 인수 기록 참조. 이로써 BUG-08의 backend 절반이 "clip_results를 보내지만 아무도 안 쓰는" 상태로 증발하지 않는다(BUG-02 웹 절반이 등재 누락으로 한때 그랬던 실측 사례의 반복 방지).
