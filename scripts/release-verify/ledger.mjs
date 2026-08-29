@@ -59,11 +59,17 @@ export function parseLedger(markdown) {
     const line = lines[i];
     if (line.startsWith("## ")) section = line.slice(3).trim();
     if (!line.startsWith("- [ ] ")) continue;
-    const start = line.indexOf(TAG_OPEN);
+    // 태그는 줄 끝에만 붙는다(원장 머리말 규칙). 줄 중간의 `〔auto …〕` 언급은 산문이라 태그가 아니다 —
+    // 실제로 FEAT-26 절의 설명 줄이 첫 루틴 실행을 `unsupported method: …`로 죽였다(2026-08-29).
+    const trimmed = line.replace(/\s+$/, "");
+    if (!trimmed.endsWith(TAG_CLOSE)) {
+      if (trimmed.includes(TAG_OPEN) && /〔auto GET /.test(trimmed)) throw new Error(`tag must end the line at line ${i + 1}`);
+      continue;
+    }
+    const start = trimmed.lastIndexOf(TAG_OPEN);
     if (start < 0) continue;
-    const end = line.indexOf(TAG_CLOSE, start);
-    if (end < 0) throw new Error(`unterminated tag at line ${i + 1}`);
-    const body = line.slice(start + TAG_OPEN.length, end).trim();
+    const end = trimmed.length - TAG_CLOSE.length;
+    const body = trimmed.slice(start + TAG_OPEN.length, end).trim();
     checks.push({ index: i, section, line, tag: parseTag(body) });
   }
   return { lines, checks };
@@ -124,9 +130,9 @@ export function kstStamp(now) {
 }
 
 function stripTag(line) {
-  const start = line.indexOf(TAG_OPEN);
-  const end = line.indexOf(TAG_CLOSE, start) + TAG_CLOSE.length;
-  return (line.slice(0, start) + line.slice(end)).replace(/\s+$/, "");
+  const trimmed = line.replace(/\s+$/, "");
+  const start = trimmed.lastIndexOf(TAG_OPEN);
+  return trimmed.slice(0, start).replace(/\s+$/, "");
 }
 
 export const FAIL_NOTE_PREFIX = "  - 자동 불합격(";
