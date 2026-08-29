@@ -214,7 +214,7 @@ Key packages in requirements.txt:
 ## Current Known Issues
 
 - Gemini responses may include markdown code fences that need stripping
-- Temporary directories cleaned up regardless of processing success
+- Temporary directories are removed in `finally` regardless of outcome by design (warm containers reuse `/tmp`); set `KEEP_TEMP_ON_FAILURE=1` on a local `modal run` to keep them after a failure. The decision lives in the stdlib-pure `temp_cleanup_policy.py` (`should_cleanup_temp_dir`, BUG-04)
 
 ## CRITICAL: File Editing on Windows
 

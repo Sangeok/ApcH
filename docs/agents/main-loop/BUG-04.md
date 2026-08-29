@@ -48,3 +48,10 @@ backend-dev에 디스패치한다. 메인 루프가 코드를 읽고 잡은 핵�
 ## 게이트② 개방 (2026-08-29)
 
 사용자가 세션에서 "둘 다 구현 승인"으로 개방. 계획서는 클린 패스 시점 그대로 — 사용자 편집 없음. backend-dev 정의 규칙(구현은 한 번에 하나 — `main.py` 공유)대로 두 항목을 순차 구현한다: 먼저 구현되는 쪽이 `main.py:73`(`add_local_python_source`)을 바꾸고, 나중 쪽은 계획서 §3 주석대로 현재 코드를 재독해 두 모듈을 함께 포함한다(합본 공존은 메인 루프가 검증 라운드에서 실측). `modal deploy`는 사용자 몫.
+
+## 구현 인수 (2026-08-29, 메인 루프)
+
+**인수 다섯 조건 — 직접 재현**(스크래치패드 `bugs/accept.sh`): 1. 변경 파일 = 신규 2(`temp_cleanup_policy.py`·`test_temp_cleanup_policy.py`) + `main.py` + 보드·백로그·보고서 **정확히 일치**. 2. after 블록 5개 전부 `main.py`에 포함(import 블록은 before를 접두로 포함하는 형태라 "before 잔존" 표시는 오탐), `:77` `add_local_python_source(…, "temp_cleanup_policy")`. 3. `unittest` **46 OK**(40+6 메서드/18 단언)·`py_compile` 0·순수 모듈 stdlib import. 4. 백로그 `-4줄`만, 인접(BUG-08·FEAT-01·FEAT-27·절 제목·비고) 전부 잔존 — 줄 단위 열거로 확인(FEAT-26 인수 때의 과삭제 교훈). 5. `docs/agents/backend-dev/BUG-04.md` 4.5KB 실재. 보드 `결과`가 166자로 예산 초과 → 메인 루프가 147자로 축약(내용 보존).
+
+**handoff 처리(메인 루프 몫)**: "성공/실패 무관 정리" 문서 3곳(`README.md:352`·`README.ko.md:345`·`apps/backend/CLAUDE.md:217`)을 "프로덕션 정리는 의도된 동작, 로컬 `modal run`에서 `KEEP_TEMP_ON_FAILURE=1`로 보존" 문구로 갱신(절 구조 유지).
+「범위 밖 의존」: 새 백로그 후보 없음. 「못 덮는 범위」 → 원장 BUG-04 절 4줄(배포 대기 — `modal deploy` 사용자 몫).

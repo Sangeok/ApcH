@@ -22,6 +22,15 @@
 
 ---
 
+## BUG-04 — 임시 디렉토리 정리 정책(KEEP_TEMP_ON_FAILURE opt-in) (backend, 구현 2026-08-29)
+
+원천: `docs/agents/backend-dev/BUG-04.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-08과 묶어 1회 권장). 기본값에서 프로덕션 동작은 바이트 동일이라 배포 자체의 위험은 없다.
+
+- [ ] `modal deploy` — 이미지 번들에 `temp_cleanup_policy` 포함(배포 출력 `Created mount PythonPackage:…temp_cleanup_policy`), 컨테이너에서 import 성공(첫 실행 로그에 `ModuleNotFoundError` 없음)
+- [ ] 기본값 동작 불변 — 프로덕션 실행(성공·실패)에서 기존 `Cleaning up temp dir after …` 로그만 나오고 `Preserving temp dir` 로그는 없음
+- [ ] 로컬 `modal run` + `KEEP_TEMP_ON_FAILURE=1` — 실패 유도 시 `Preserving temp dir for debugging after failure: …` 로그와 `/tmp/<run_id>` 잔존, 성공 시에는 정리
+- [ ] `succeeded` 제어흐름 — 예외 경로에서 False 유지(실패 실행에서 보존 스위치가 켜졌을 때만 보존되는 것으로 간접 확인)
+
 ## FEAT-26 — release-verify 루틴(원장 자동 마감) (main-loop, 구현 2026-08-29)
 
 원천: `docs/agents/main-loop/FEAT-26.md` 「구현 인수」·계획서 「못 덮는 범위」. **배포 대기** — `dev`에만 있음(루틴은 `dev`를 pull하므로 저장소 쪽은 이미 유효, `main` 합류는 문서 동기 목적).

@@ -7,10 +7,6 @@
 
 ## Backend / Pipeline
 
-- [ ] **BUG-04**: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
-  - area: apps/backend
-  - source: README Known Issues
-
 - [ ] **BUG-08**: 에러 콜백이 `clips: []`를 하드코딩해 부분 성공을 유실함
   - area: apps/backend + apps/web/src/inngest
   - source: BUG-03 계획서 「범위 밖 의존」(2026-08-25, `docs/plans/BUG-03.md`). **관측**: 여러 클립 중 뒤쪽 업로드가 실패하면 `_do_process_video`의 포괄 except가 에러 콜백의 `clips`를 하드코딩 `[]`로 보내, 이미 S3에 올라간 앞쪽 클립들이 리포트에서 사라진다(S3에 고아 객체만 남음). **진단(추정)**: 에러 콜백에 부분 `clip_results`를 실어야 하는데 이는 웹 inngest 소비 계약 변경이라 양 워크스페이스 경계 — 계획 단계에서 경계 판단이 관건.

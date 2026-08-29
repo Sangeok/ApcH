@@ -35,11 +35,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-08-29
-- [ ] BUG-04: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
+- [x] BUG-04: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
   agent: backend-dev
   area: apps/backend
-  status: 구현승인
+  status: 완료
   근거: 성공/실패와 무관하게 임시 디렉토리 정리가 항상 실행되는 backend 신뢰성 결함. area가 apps/backend 단일이라 담당 명확. 미결 0건이라 선정 가능.
+  결과: temp_cleanup_policy 순수모듈+테스트18 신설, main.py에 succeeded 플래그·KEEP_TEMP_ON_FAILURE opt-in 배선(기본값=현 동작). unittest 46·py_compile 0. 상세 backend-dev/BUG-04
   검증: 클린 패스 (2026-08-29, 독립 무편집 1라운드 — plan-verifier 3사이클째)
 - [ ] BUG-08: 에러 콜백이 `clips: []`를 하드코딩해 부분 성공을 유실함
   agent: backend-dev
