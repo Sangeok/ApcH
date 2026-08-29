@@ -24,18 +24,18 @@
 
 ## BUG-08 — 에러 콜백에 부분 clip_results 싣기 (backend, 구현 2026-08-29)
 
-원천: `docs/agents/backend-dev/BUG-08.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-04와 묶어 1회). 주의: 이 항목만으로는 사용자 가시 변화가 없다 — web inngest가 `status: error` 페이로드의 `clips`를 소비하는 후속(백로그 후보)이 있어야 메타데이터가 행에 실린다. 아래 줄은 그 전제 절반만 확인한다.
+원천: `docs/agents/backend-dev/BUG-08.md` 「못 덮은 범위」. **배포 완료(2026-08-29 11:25 KST, BUG-04와 묶어 `modal deploy` — 사용자 승인 하에 메인 루프 실행).** 주의: 이 항목만으로는 사용자 가시 변화가 없다 — web inngest가 `status: error` 페이로드의 `clips`를 소비하는 후속(백로그 후보)이 있어야 메타데이터가 행에 실린다. 아래 줄은 그 전제 절반만 확인한다.
 
-- [ ] `modal deploy` — 이미지 번들에 `error_callback` 포함(배포 출력 mount에 `error_callback`), 컨테이너 import 성공
+- [ ] `modal deploy` — 이미지 번들에 `error_callback` 포함 — **번들은 배포 출력으로 실측**(2026-08-29 11:25 KST: mount에 `PythonPackage:error_callback`), 컨테이너 import는 다음 실사용 실행에서
 - [ ] 에러 콜백 본문 — 클립 루프 중간 실패를 유도한 `modal run`에서 웹훅이 받은 `status: error` 페이로드의 `clips`에 그때까지 완성된 클립(성공 콜백과 같은 원소 모양, `index`·`s3Key` 포함)이 실려 옴(웹훅 로그 또는 `modal/video.processed` 이벤트 payload). 루프 진입 전 실패는 `clips: []`(기존과 동일)
 - [ ] 웹 무회귀 — 그 페이로드로 웹훅이 200을 돌려주고(`normalizeBody` 통과), inngest는 기존대로 실패 처리(행은 맨행) — 경로 A `updateMany`는 행 부재로 0건이 정상
 - [ ] 성공 경로 불변 — 정상 실행의 성공 콜백·클립 메타데이터 반영이 이전과 동일
 
 ## BUG-04 — 임시 디렉토리 정리 정책(KEEP_TEMP_ON_FAILURE opt-in) (backend, 구현 2026-08-29)
 
-원천: `docs/agents/backend-dev/BUG-04.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-08과 묶어 1회 권장). 기본값에서 프로덕션 동작은 바이트 동일이라 배포 자체의 위험은 없다.
+원천: `docs/agents/backend-dev/BUG-04.md` 「못 덮은 범위」. **배포 완료(2026-08-29 11:25 KST, BUG-08과 묶어 `modal deploy` — 사용자 승인 하에 메인 루프 실행, `App deployed in 6.437s`).** 잔여는 다음 실사용 실행에서 닫는다.
 
-- [ ] `modal deploy` — 이미지 번들에 `temp_cleanup_policy` 포함(배포 출력 `Created mount PythonPackage:…temp_cleanup_policy`), 컨테이너에서 import 성공(첫 실행 로그에 `ModuleNotFoundError` 없음)
+- [ ] `modal deploy` — 이미지 번들에 `temp_cleanup_policy` 포함 — **번들은 배포 출력으로 실측**(2026-08-29 11:25 KST: `Created mount PythonPackage:s3_upload_policy, PythonPackage:translation_fallback, PythonPackage:temp_cleanup_policy, PythonPackage:error_callback`), 컨테이너 import는 다음 실사용 실행에서(첫 실행 로그에 `ModuleNotFoundError` 없음)
 - [ ] 기본값 동작 불변 — 프로덕션 실행(성공·실패)에서 기존 `Cleaning up temp dir after …` 로그만 나오고 `Preserving temp dir` 로그는 없음
 - [ ] 로컬 `modal run` + `KEEP_TEMP_ON_FAILURE=1` — 실패 유도 시 `Preserving temp dir for debugging after failure: …` 로그와 `/tmp/<run_id>` 잔존, 성공 시에는 정리
 - [ ] `succeeded` 제어흐름 — 예외 경로에서 False 유지(실패 실행에서 보존 스위치가 켜졌을 때만 보존되는 것으로 간접 확인)
