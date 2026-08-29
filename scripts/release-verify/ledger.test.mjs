@@ -73,8 +73,17 @@ describe("parseLedger", () => {
     const { checks } = parseLedger(LEDGER);
     assert.deepEqual(checks.map((c) => [c.index, c.section]), [[4, "FEAT-23 — 스테퍼"], [6, "FEAT-22 — 문구"], [7, "FEAT-22 — 문구"]]);
   });
-  it("throws on an unterminated tag", () => {
-    assert.throws(() => parseLedger("- [ ] x 〔auto GET /a"), /unterminated/);
+  it("ignores prose that mentions a tag mid-line and reads only a tag ending the line", () => {
+    const prose = "- [ ] 첫 자동 마감 — 원장의 `〔auto …〕` 줄이 루틴 커밋으로 `[x] … 확인(날짜, 자동 — 근거)`가 됨(전제)";
+    assert.deepEqual(parseLedger(prose).checks, []);
+    const tail = '- [ ] 방출 — 설명(`〔auto …〕` 참고) 〔auto GET /pipeline css="bg-active"〕';
+    const { checks } = parseLedger(tail);
+    assert.equal(checks.length, 1);
+    assert.deepEqual(checks[0].tag.css, ["bg-active"]);
+  });
+  it("throws when a real GET tag is not at the end of the line", () => {
+    assert.throws(() => parseLedger('- [ ] x 〔auto GET /a〕 뒤에 산문'), /must end the line/);
+    assert.throws(() => parseLedger("- [ ] x 〔auto GET /a"), /must end the line/);
   });
 });
 
@@ -125,6 +134,11 @@ describe("applyResults", () => {
     const lines = out.split("\n");
     assert.equal(lines[7], "- [x] 방출 — 확인(2026-08-29 09:00 KST, 자동 — GET /pipeline 200 · css 2/2)");
     assert.deepEqual(lines.filter((_, i) => i !== 7), LEDGER.split("\n").filter((_, i) => i !== 7));
+  });
+  it("strips only the trailing tag and keeps a mid-line mention", () => {
+    const md = '- [ ] 방출 — 설명(`〔auto …〕` 참고) 〔auto GET /pipeline css="bg-active"〕';
+    const out = applyResults(md, [{ index: 0, outcome: "pass", evidence: "GET /pipeline 200 · css 1/1", reason: "" }], stamp);
+    assert.equal(out, "- [x] 방출 — 설명(`〔auto …〕` 참고) — 확인(2026-08-29 09:00 KST, 자동 — GET /pipeline 200 · css 1/1)");
   });
   it("adds a fail note once and is idempotent for the same reason", () => {
     const results = [{ index: 6, outcome: "fail", evidence: "", reason: 'text 없음: "결재함 항목에"' }];
