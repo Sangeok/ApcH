@@ -42,8 +42,8 @@
 
 ## FEAT-26 — release-verify 루틴(원장 자동 마감) (main-loop, 구현 2026-08-29)
 
-원천: `docs/agents/main-loop/FEAT-26.md` 「구현 인수」·계획서 「못 덮는 범위」. **배포 대기** — `dev`에만 있음(루틴은 `dev`를 pull하므로 저장소 쪽은 이미 유효, `main` 합류는 문서 동기 목적).
-선행(사용자, claude.ai 환경 `Default`): 환경변수 `VERIFIER_SECRET`(Vercel admin과 같은 값) + 허용 도메인 `admin.a-pch.com`·`raw.githubusercontent.com`. 첫 실행(2026-08-29 00:35 KST, `cse_012JpnKvc33bPw1T9PWDHfn4`)은 비밀값 부재로 SKILL 2단계에서 무변경 종료 — 설계된 실패 모드.
+원천: `docs/agents/main-loop/FEAT-26.md` 「구현 인수」·계획서 「못 덮는 범위」. **배포 완료(2026-08-29 11:23 KST, PR #108 머지 — 루틴은 `dev`를 pull하므로 저장소 쪽은 그 전부터 유효).**
+선행(사용자, claude.ai 환경 `Default`): 환경변수 `VERIFIER_SECRET`(Vercel admin과 같은 값) + 허용 도메인 `admin.a-pch.com`·`raw.githubusercontent.com` — **아직 미설정**. 실행 이력: 즉시 실행(00:35 KST, `cse_012JpnKvc33bPw1T9PWDHfn4`)·첫 예약 실행(09:02 KST, `cse_01Cnivmce2ajszFwQcjNK7ev`) 둘 다 비밀값 부재로 SKILL 2단계에서 무변경 종료 + 푸시 알림 — 설계된 실패 모드가 cron에서도 재현됨(스케줄 발화·저장소 pull·스킬 준수 확인).
 
 - [ ] 클라우드에서 끝까지 실행 — 비밀값·도메인 허용 뒤 `action: run` 또는 09:00 KST 예약 실행이 SKILL 3~7단계를 통과(로그인 ok, `docs/release-checks.md`만 커밋·푸시, 종료 보고에 pass/fail/skip 줄 단위)
 - [ ] 첫 자동 마감 — 원장의 `〔auto …〕` 줄이 루틴 커밋으로 `[x] … 확인(날짜, 자동 — 근거)`가 됨(전제 조건이 맞는 시점: 검토대기·검증 줄이 있는 보드 등)
