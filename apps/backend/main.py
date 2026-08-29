@@ -40,6 +40,7 @@ from temp_cleanup_policy import (
     parse_keep_on_failure,
     should_cleanup_temp_dir,
 )
+from error_callback import build_error_callback_payload
 
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
@@ -74,7 +75,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True)
-    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy"))
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -1208,14 +1209,13 @@ Transcript:
             # 실패 시에도 콜백 발송 (phase를 포함해 프론트가 분석/렌더 실패를 구분)
             if callback_url and uploaded_file_id:
                 try:
-                    req.post(callback_url, json={
-                        "uploadedFileId": uploaded_file_id,
-                        "attempt": attempt,
-                        "status": "error",
-                        "phase": mode,
-                        "error": str(e),
-                        "clips": [],
-                    }, headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
+                    req.post(callback_url, json=build_error_callback_payload(
+                        uploaded_file_id=uploaded_file_id,
+                        attempt=attempt,
+                        mode=mode,
+                        error=str(e),
+                        clip_results=clip_results,
+                    ), headers={"Authorization": f"Bearer {os.environ.get('MODAL_WEBHOOK_SECRET', '')}"}, timeout=30)
                 except Exception as cb_err:
                     print(f"Failed to send error callback: {cb_err}")
             raise

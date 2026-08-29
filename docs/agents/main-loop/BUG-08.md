@@ -39,3 +39,9 @@ backend-dev에 디스패치한다. 메인 루프가 양쪽 코드를 읽고 잡�
 ## 게이트② 개방 (2026-08-29)
 
 사용자가 세션에서 "둘 다 구현 승인"으로 개방. 계획서는 클린 패스 시점 그대로 — 사용자 편집 없음. backend-dev 정의 규칙(구현은 한 번에 하나 — `main.py` 공유)대로 두 항목을 순차 구현한다: 먼저 구현되는 쪽이 `main.py:73`(`add_local_python_source`)을 바꾸고, 나중 쪽은 계획서 §3 주석대로 현재 코드를 재독해 두 모듈을 함께 포함한다(합본 공존은 메인 루프가 검증 라운드에서 실측). `modal deploy`는 사용자 몫.
+
+## 구현 인수 (2026-08-29, 메인 루프)
+
+**인수 다섯 조건 — 직접 재현**(`bugs/accept.sh`): 1. 변경 파일 = 신규 2(`error_callback.py`·`test_error_callback.py`) + `main.py` + 보드·백로그·보고서 **정확히 일치**. 2. 에러 콜백 after 블록 `main.py`에 포함·`"clips": []` 소멸; import·이미지 체인은 계획서 §3 주석이 예고한 합본 차이(import는 `temp_cleanup_policy` 블록 뒤, `:78` `add_local_python_source(…, "temp_cleanup_policy", "error_callback")`) — `from error_callback import build_error_callback_payload` 실재 확인. 3. `unittest` **55 OK**(46+9)·`py_compile` 0·순수 모듈 stdlib import. 4. 백로그 `-4줄`만, 인접(FEAT-01·FEAT-27·절 제목·비고) 잔존 열거 확인. 5. `docs/agents/backend-dev/BUG-08.md` 5.6KB 실재, 보드 `결과` 136자. 추가: 합본 AST — try 마지막 `succeeded = True`·except가 `build_error_callback_payload(clip_results=clip_results)`·`raise` 유지·`finally`가 정책 호출 — BUG-04·BUG-08 공존.
+
+「범위 밖 의존」 → **백로그 후보 1건(사용자 제시)**: web inngest `applyModalPayload`(`functions.ts:479-486`)가 `status: error`에서도 `clips`를 읽어 `persistGeneratedClips`가 메타데이터 붙은 행을 만들게 하는 것 — BUG-02→FEAT-21 전례. 등재 안 되면 BUG-08의 backend 절반은 사용자 가시 효과 없이 남는다. 「못 덮는 범위」 → 원장 BUG-08 절 4줄(배포 대기).

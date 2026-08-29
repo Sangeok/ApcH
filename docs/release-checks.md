@@ -22,6 +22,15 @@
 
 ---
 
+## BUG-08 — 에러 콜백에 부분 clip_results 싣기 (backend, 구현 2026-08-29)
+
+원천: `docs/agents/backend-dev/BUG-08.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-04와 묶어 1회). 주의: 이 항목만으로는 사용자 가시 변화가 없다 — web inngest가 `status: error` 페이로드의 `clips`를 소비하는 후속(백로그 후보)이 있어야 메타데이터가 행에 실린다. 아래 줄은 그 전제 절반만 확인한다.
+
+- [ ] `modal deploy` — 이미지 번들에 `error_callback` 포함(배포 출력 mount에 `error_callback`), 컨테이너 import 성공
+- [ ] 에러 콜백 본문 — 클립 루프 중간 실패를 유도한 `modal run`에서 웹훅이 받은 `status: error` 페이로드의 `clips`에 그때까지 완성된 클립(성공 콜백과 같은 원소 모양, `index`·`s3Key` 포함)이 실려 옴(웹훅 로그 또는 `modal/video.processed` 이벤트 payload). 루프 진입 전 실패는 `clips: []`(기존과 동일)
+- [ ] 웹 무회귀 — 그 페이로드로 웹훅이 200을 돌려주고(`normalizeBody` 통과), inngest는 기존대로 실패 처리(행은 맨행) — 경로 A `updateMany`는 행 부재로 0건이 정상
+- [ ] 성공 경로 불변 — 정상 실행의 성공 콜백·클립 메타데이터 반영이 이전과 동일
+
 ## BUG-04 — 임시 디렉토리 정리 정책(KEEP_TEMP_ON_FAILURE opt-in) (backend, 구현 2026-08-29)
 
 원천: `docs/agents/backend-dev/BUG-04.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-08과 묶어 1회 권장). 기본값에서 프로덕션 동작은 바이트 동일이라 배포 자체의 위험은 없다.
