@@ -50,7 +50,7 @@ const runAction = ({
     const result = await action();
 
     if (!result.success) {
-      toast.error(result.error ?? "Request failed");
+      toast.error(result.error);
       return;
     }
 

@@ -1,3 +1,5 @@
+import { env } from "~/env";
+
 export { PLAN_TIERS, type PlanTier } from "./plan-tiers";
 
 export type ProductIds =
@@ -14,7 +16,12 @@ export const POLAR_PRODUCT_IDS = {
   },
 } as const;
 
-export function getProductIds() {
-  const server = (process.env.POLAR_SERVER ?? "sandbox") as keyof typeof POLAR_PRODUCT_IDS;
-  return POLAR_PRODUCT_IDS[server];
+/**
+ * 서버에서만 호출한다. `POLAR_SERVER`는 server-only 변수라, 클라이언트에서 부르면
+ * `~/env`가 시끄럽게 던진다 — 프로덕션에서 sandbox 상품 id로 조용히 폴백하지 않는다.
+ * `shared/api/polar.ts`의 `POLAR_SERVER`를 재사용하지 않는 이유: 그 모듈은
+ * `@polar-sh/sdk`를 끌고 오는데 이 파일은 `PlanCard`(client)가 임포트한다.
+ */
+export function getProductIds(): ProductIds {
+  return POLAR_PRODUCT_IDS[env.POLAR_SERVER ?? "sandbox"];
 }

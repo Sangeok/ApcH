@@ -36,7 +36,7 @@ export async function getUserPolarCustomerId(userId: string) {
     select: { polarCustomerId: true },
   });
 
-  return user?.polarCustomerId ?? "";
+  return user?.polarCustomerId ?? null;
 }
 
 export async function findUserIdByEmail(email: string) {

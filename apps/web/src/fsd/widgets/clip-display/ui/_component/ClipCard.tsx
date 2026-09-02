@@ -13,7 +13,7 @@ import {
   hasClipRationale,
 } from "~/fsd/widgets/clip-display/model/clip-rationale";
 import { subtitleFallbackNotice } from "~/fsd/widgets/clip-display/model/subtitle-status";
-import { parseJsonArray } from "~/fsd/shared/lib/utils";
+import { isNonEmptyString, parseJsonArray } from "~/fsd/shared/lib/utils";
 import { ClipActions } from "./ClipActions";
 import { ClipVideoPlayer } from "./ClipVideoPlayer";
 import { ScriptModal } from "./ScriptModal";
@@ -22,14 +22,12 @@ import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface ClipCardProps {
   clip: Clip;
-  allowDelete: boolean;
   onDelete: (clipId: string) => Promise<ActionResult<void>>;
   onDeleteSuccess: (clipId: string) => void;
 }
 
 export default function ClipCard({
   clip,
-  allowDelete,
   onDelete,
   onDeleteSuccess,
 }: ClipCardProps) {
@@ -42,13 +40,14 @@ export default function ClipCard({
   const hasScript = scriptText.length > 0;
 
   const youtubeHashtags = useMemo(
-    () => parseJsonArray<string>(clip.youtubeHashtags),
+    () => parseJsonArray(clip.youtubeHashtags, isNonEmptyString),
     [clip.youtubeHashtags],
   );
 
-  const hasMetadata = Boolean(
-    clip.youtubeTitle ?? clip.youtubeDescription ?? youtubeHashtags.length > 0,
-  );
+  const hasMetadata =
+    Boolean(clip.youtubeTitle) ||
+    Boolean(clip.youtubeDescription) ||
+    youtubeHashtags.length > 0;
 
   const typeLabel = clipTypeLabel(clip.clipType);
   const hook = clip.hook?.trim() ?? "";
@@ -128,7 +127,6 @@ export default function ClipCard({
         onOpenScript={() => setIsScriptOpen(true)}
         onOpenMetadata={() => setIsMetadataOpen(true)}
         onCopyScript={handleCopyScript}
-        allowDelete={allowDelete}
         onDelete={onDelete}
         onDeleteSuccess={onDeleteSuccess}
       />

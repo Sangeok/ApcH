@@ -130,7 +130,36 @@ function toStrictPositiveInteger(value: unknown): number | null {
   return parsed !== null && parsed > 0 ? parsed : null;
 }
 
-function normalizeClip(rawClip: RawModalWebhookClip): ModalWebhookClip | null {
+// 이 라우트는 백엔드 clip 메타데이터의 유일한 ingress다. 선언된 타입이
+// 실제로 참이 되도록 필드별로 좁힌다 — 좁히지 않으면 문자열 startSeconds나
+// 객체 해시태그가 그대로 Clip 행에 기록된다.
+function toNullableNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function toNullableString(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function toNullableStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const items: unknown[] = value;
+  return items.every((item): item is string => typeof item === "string")
+    ? items
+    : null;
+}
+
+function normalizeClip(clip: unknown): ModalWebhookClip | null {
+  // 워커 쪽 동명 함수(inngest/functions.ts)와 같은 가드. 없으면 `["oops"]`가
+  // 구조적으로 유효한 ModalWebhookClip이 되어 DB에 기록된다.
+  if (!clip || typeof clip !== "object") {
+    return null;
+  }
+
+  const rawClip = clip as RawModalWebhookClip;
   const index = toStrictNonNegativeInteger(rawClip.index);
 
   if (index === null) {
@@ -139,26 +168,31 @@ function normalizeClip(rawClip: RawModalWebhookClip): ModalWebhookClip | null {
 
   return {
     index,
-    startSeconds: rawClip.startSeconds ?? rawClip.start_seconds ?? null,
-    endSeconds: rawClip.endSeconds ?? rawClip.end_seconds ?? null,
-    s3Key: rawClip.s3Key ?? rawClip.s3_key ?? null,
-    scriptText: rawClip.scriptText ?? rawClip.script_text ?? null,
-    language: rawClip.language ?? null,
-    youtubeTitle: rawClip.youtubeTitle ?? rawClip.youtube_title ?? null,
-    youtubeDescription:
-      rawClip.youtubeDescription ?? rawClip.youtube_description ?? null,
-    youtubeHashtags:
-      rawClip.youtubeHashtags ?? rawClip.youtube_hashtags ?? null,
-    clipType: rawClip.clipType ?? rawClip.clip_type ?? null,
-    hook: rawClip.hook ?? null,
-    payoff: rawClip.payoff ?? null,
-    subtitleStatus: rawClip.subtitleStatus ?? null,
+    startSeconds: toNullableNumber(rawClip.startSeconds ?? rawClip.start_seconds),
+    endSeconds: toNullableNumber(rawClip.endSeconds ?? rawClip.end_seconds),
+    s3Key: toNullableString(rawClip.s3Key ?? rawClip.s3_key),
+    scriptText: toNullableString(rawClip.scriptText ?? rawClip.script_text),
+    language: toNullableString(rawClip.language),
+    youtubeTitle: toNullableString(rawClip.youtubeTitle ?? rawClip.youtube_title),
+    youtubeDescription: toNullableString(
+      rawClip.youtubeDescription ?? rawClip.youtube_description,
+    ),
+    youtubeHashtags: toNullableStringArray(
+      rawClip.youtubeHashtags ?? rawClip.youtube_hashtags,
+    ),
+    clipType: toNullableString(rawClip.clipType ?? rawClip.clip_type),
+    hook: toNullableString(rawClip.hook),
+    payoff: toNullableString(rawClip.payoff),
+    subtitleStatus: toNullableString(rawClip.subtitleStatus),
   };
 }
 
-function normalizeAnalyzedMoment(
-  raw: RawAnalyzedMoment,
-): AnalyzedMoment | null {
+function normalizeAnalyzedMoment(moment: unknown): AnalyzedMoment | null {
+  if (!moment || typeof moment !== "object") {
+    return null;
+  }
+
+  const raw = moment as RawAnalyzedMoment;
   const index = toStrictNonNegativeInteger(raw.index);
   const startSeconds = raw.startSeconds ?? raw.start_seconds;
   const endSeconds = raw.endSeconds ?? raw.end_seconds;
@@ -175,9 +209,9 @@ function normalizeAnalyzedMoment(
     index,
     startSeconds,
     endSeconds,
-    clipType: raw.clipType ?? raw.clip_type ?? null,
-    hook: raw.hook ?? null,
-    payoff: raw.payoff ?? null,
+    clipType: toNullableString(raw.clipType ?? raw.clip_type),
+    hook: toNullableString(raw.hook),
+    payoff: toNullableString(raw.payoff),
   };
 }
 
@@ -225,8 +259,15 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const rawBody = (await req.json()) as RawModalWebhookBody;
-  const body = normalizeBody(rawBody);
+  // 잘못된 JSON에 500(+Sentry)이 아니라 400을 준다.
+  let rawBody: unknown;
+  try {
+    rawBody = await req.json();
+  } catch {
+    return new Response("Bad Request", { status: 400 });
+  }
+
+  const body = normalizeBody(rawBody as RawModalWebhookBody);
 
   if (!body) {
     return new Response("Bad Request", { status: 400 });

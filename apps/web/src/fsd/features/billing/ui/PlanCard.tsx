@@ -84,9 +84,7 @@ export function PlanCard({
             <Button
               className="w-full"
               disabled={isCurrentPlan || isPending}
-              onClick={() =>
-                productIds && handleSubscribe(productIds.pro_monthly, "month")
-              }
+              onClick={() => handleSubscribe(productIds.pro_monthly, "month")}
             >
               {isPending
                 ? "Redirecting..."
@@ -99,9 +97,7 @@ export function PlanCard({
                 variant="outline"
                 className="w-full"
                 disabled={isPending}
-                onClick={() =>
-                  productIds && handleSubscribe(productIds.pro_yearly, "year")
-                }
+                onClick={() => handleSubscribe(productIds.pro_yearly, "year")}
               >
                 {isPending ? "Redirecting..." : `Subscribe Yearly (${plan.yearlyPrice})`}
               </Button>

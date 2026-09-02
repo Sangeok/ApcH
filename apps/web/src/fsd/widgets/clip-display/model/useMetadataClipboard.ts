@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { Clip } from "@repo/db";
-import { parseJsonArray } from "~/fsd/shared/lib/utils";
+import { isNonEmptyString, parseJsonArray } from "~/fsd/shared/lib/utils";
 import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
 import { formatAllMetadataForCopy } from "~/fsd/widgets/clip-display/lib/format-metadata";
 
@@ -15,7 +15,7 @@ export function useMetadataClipboard(clip: Clip) {
   const [copiedField, setCopiedField] = useState<CopiedField | null>(null);
 
   const hashtags = useMemo(
-    () => parseJsonArray<string>(clip.youtubeHashtags),
+    () => parseJsonArray(clip.youtubeHashtags, isNonEmptyString),
     [clip.youtubeHashtags],
   );
 

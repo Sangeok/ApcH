@@ -487,6 +487,16 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
     throw new Error("Unauthorized");
   }
 
+  // reconcile은 행이 있을 때만 의미가 있고, 없으면 throw한다.
+  // 존재를 먼저 확인해야 라우트가 notFound()로 갈 수 있다.
+  const existing = await getUploadedFileDetailsById(
+    uploadedFileId,
+    session.user.id,
+  );
+  if (!existing) {
+    return null;
+  }
+
   await reconcileStaleUploadedFileForUser(uploadedFileId, session.user.id);
 
   return getUploadedFileDetailsById(uploadedFileId, session.user.id);

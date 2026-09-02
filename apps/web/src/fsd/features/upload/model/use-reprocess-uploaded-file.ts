@@ -12,7 +12,7 @@ export function useReprocessUploadedFile(uploadedFileId: string) {
       const result = await reprocessUploadedFile(uploadedFileId);
 
       if (!result.success) {
-        throw new Error(result.error ?? "Failed to reprocess file");
+        throw new Error(result.error);
       }
     },
     onSuccess: async () => {

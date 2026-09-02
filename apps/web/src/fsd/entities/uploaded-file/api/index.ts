@@ -377,7 +377,9 @@ export async function getUploadedFileDetailsById(
   uploadedFileId: string,
   userId: string,
 ): Promise<UploadedFileDetail | null> {
-  const file = await db.uploadedFile.findFirstOrThrow({
+  // 선언된 `| null`이 참이어야 라우트의 notFound()가 도달한다.
+  // findFirstOrThrow였을 때는 삭제된/타인의 id가 404가 아니라 에러 경계로 떨어졌다.
+  const file = await db.uploadedFile.findFirst({
     where: { id: uploadedFileId, userId },
     select: {
       id: true,
@@ -403,6 +405,10 @@ export async function getUploadedFileDetailsById(
       },
     },
   });
+
+  if (!file) {
+    return null;
+  }
 
   if (file.status === "upload_pending") {
     return null;

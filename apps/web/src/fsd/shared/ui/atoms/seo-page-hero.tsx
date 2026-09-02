@@ -36,7 +36,7 @@ export function SeoPageHero({
         </h1>
         <p className="text-muted-foreground max-w-2xl text-lg">{description}</p>
       </div>
-      {primaryCta ?? secondaryCta ? (
+      {primaryCta || secondaryCta ? (
         <div className="flex flex-wrap gap-3">
           {primaryCta ? (
             <Button asChild size="lg" className="gap-2">

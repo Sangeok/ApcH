@@ -4,6 +4,7 @@ import { env } from "~/env";
 import { findSubscriptionByUserId, updateSubscriptionByPolarId } from "~/fsd/entities/subscription";
 import { getBillingUserSnapshot } from "~/fsd/entities/user";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
+import { reportError } from "~/fsd/shared/observability";
 import { success, failure } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";
 import type { PlanTier } from "../config";
@@ -81,7 +82,8 @@ export async function cancelSubscription(): Promise<ActionResult<void>> {
         cancelAtPeriodEnd: true,
       },
     });
-  } catch {
+  } catch (error) {
+    reportError(error, { origin: "billing.cancelSubscription", userId });
     return failure("Failed to cancel subscription. Please try again.");
   }
 

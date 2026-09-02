@@ -45,7 +45,7 @@ export default function RecoverableUploadDrafts({
       const result = await scheduleUploadedFileProcessing(uploadedFileId);
 
       if (!result.success) {
-        toast.error(result.error ?? "Failed to resume processing");
+        toast.error(result.error);
         return;
       }
 
@@ -62,7 +62,7 @@ export default function RecoverableUploadDrafts({
       const result = await deleteUploadedFile(uploadedFileId);
 
       if (!result.success) {
-        toast.error(result.error ?? "Failed to discard upload");
+        toast.error(result.error);
         return;
       }
 

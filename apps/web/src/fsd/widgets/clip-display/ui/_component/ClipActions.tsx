@@ -8,7 +8,6 @@ import {
   FileText,
   Hash,
   Loader2,
-  Lock,
   MoreHorizontal,
   Trash,
 } from "lucide-react";
@@ -33,7 +32,6 @@ interface ClipActionsProps {
   isLoading: boolean;
   hasScript: boolean;
   hasMetadata: boolean;
-  allowDelete: boolean;
   onOpenScript: () => void;
   onOpenMetadata: () => void;
   onCopyScript: () => void | Promise<void>;
@@ -47,7 +45,6 @@ export function ClipActions({
   isLoading,
   hasScript,
   hasMetadata,
-  allowDelete,
   onOpenScript,
   onOpenMetadata,
   onCopyScript,
@@ -63,11 +60,6 @@ export function ClipActions({
   };
 
   const handleDelete = () => {
-    if (!allowDelete) {
-      toast.error("Visible clips cannot be deleted");
-      return;
-    }
-
     startDeleting(async () => {
       const result = await onDelete(clip.id);
 
@@ -102,7 +94,7 @@ export function ClipActions({
 
         toast.success("Clip deleted");
       } else {
-        toast.error(result.error ?? "Failed to delete clip");
+        toast.error(result.error);
       }
     });
   };
@@ -161,18 +153,16 @@ export function ClipActions({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleDelete}
-              disabled={isDeleting || !allowDelete}
+              disabled={isDeleting}
               variant="destructive"
               className="cursor-pointer"
             >
               {isDeleting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : allowDelete ? (
-                <Trash className="mr-2 h-4 w-4" />
               ) : (
-                <Lock className="mr-2 h-4 w-4" />
+                <Trash className="mr-2 h-4 w-4" />
               )}
-              {allowDelete ? "Delete" : "Delete disabled"}
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
