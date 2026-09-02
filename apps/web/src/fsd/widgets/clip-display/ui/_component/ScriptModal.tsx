@@ -2,8 +2,8 @@
 
 import type { Clip } from "@repo/db";
 import { Copy, X } from "lucide-react";
-import { toast } from "sonner";
-import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
+import { formatSecondsAsClock } from "~/fsd/shared/lib/format-duration";
+import { useScriptClipboard } from "~/fsd/widgets/clip-display/model/use-script-clipboard";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Sheet,
@@ -19,30 +19,13 @@ interface ScriptModalProps {
 }
 
 export function ScriptModal({ clip, isOpen, onClose }: ScriptModalProps) {
-  const scriptText = clip.scriptText?.trim() ?? "";
-  const hasScript = scriptText.length > 0;
+  const { scriptText, hasScript, copyScript } = useScriptClipboard(clip);
 
-  const handleCopyScript = async () => {
-    if (!hasScript) {
-      toast.error("Script is not available yet.");
-      return;
-    }
-    const result = await copyToClipboard(scriptText);
-    if (result.success) {
-      toast.success("Copied script.");
-    } else {
-      toast.error(`Failed to copy script: ${result.error}`);
-    }
-  };
-
-  const formatTimestamp = (seconds: number | null | undefined) => {
-    if (seconds === null || seconds === undefined) return null;
-    if (!Number.isFinite(seconds)) return null;
-    const total = Math.max(0, Math.floor(seconds));
-    const m = Math.floor(total / 60);
-    const s = total % 60;
-    return `${m}:${String(s).padStart(2, "0")}`;
-  };
+  // "값이 없다"를 여기서만 정한다 — 공유 포매터는 숫자만 받는다.
+  const formatTimestamp = (seconds: number | null | undefined) =>
+    seconds === null || seconds === undefined || !Number.isFinite(seconds)
+      ? null
+      : formatSecondsAsClock(seconds);
 
   const startLabel = formatTimestamp(clip.startSeconds);
   const endLabel = formatTimestamp(clip.endSeconds);
@@ -87,7 +70,7 @@ export function ScriptModal({ clip, isOpen, onClose }: ScriptModalProps) {
             <Button
               variant="secondary"
               size="sm"
-              onClick={handleCopyScript}
+              onClick={copyScript}
               disabled={!hasScript}
             >
               <Copy className="mr-2 h-4 w-4" />

@@ -15,11 +15,15 @@ import {
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 
 import Dropzone, { type DropzoneState } from "react-dropzone";
+import { formatSecondsAsClock } from "~/fsd/shared/lib/format-duration";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import { Loader2, UploadCloud } from "lucide-react";
 import { useRef, useState } from "react";
-import { useUploadPodcast } from "~/fsd/pages/dashboard/model/useUploadPodcast";
+import {
+  toFileSizeMb,
+  useUploadPodcast,
+} from "~/fsd/pages/dashboard/model/useUploadPodcast";
 import { getMaxFeasibleClipCount } from "~/fsd/pages/dashboard/model/clip-count-budget";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
@@ -49,12 +53,12 @@ function readVideoDurationSeconds(file: File): Promise<number | null> {
   });
 }
 
-function formatSourceLength(totalSeconds: number): string {
-  const rounded = Math.round(totalSeconds);
-  const minutes = Math.floor(rounded / 60);
-  const seconds = rounded % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
+/** 옵션 변경 계측의 페이로드 모양. 바뀐 필드만 override로 넘긴다. */
+type UploadOptionsPayload = {
+  language: string;
+  clipCount: number;
+  reviewBeforeGenerate: boolean;
+};
 
 interface UploadPodcastProps {
   onOptimisticAdd: (file: UploadedFileSummary) => void;
@@ -83,7 +87,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
     if (file) {
       void trackAnalyticsEvent("upload_file_selected", {
         fileType: file.type,
-        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
+        fileSizeMb: toFileSizeMb(file),
         language,
         clipCount,
       });
@@ -110,54 +114,40 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
     upload({ file, language, clipCount, reviewBeforeGenerate });
   };
 
-  const handleLanguageChange = (nextLanguage: string) => {
-    setLanguage(nextLanguage);
-
+  // 세 핸들러가 바뀐 옵션 하나만 다른 같은 15줄 블록을 들고 있었다.
+  // 페이로드 모양이 한 곳에 있어야 필드를 추가할 때 셋 중 하나를 빠뜨리지 않는다.
+  const trackOptionsChanged = (overrides: Partial<UploadOptionsPayload>) => {
     const file = files[0];
 
-    if (file) {
-      void trackAnalyticsEvent("upload_options_changed", {
-        fileType: file.type,
-        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
-        language: nextLanguage,
-        clipCount,
-        reviewBeforeGenerate,
-      });
+    if (!file) {
+      return;
     }
+
+    void trackAnalyticsEvent("upload_options_changed", {
+      fileType: file.type,
+      fileSizeMb: toFileSizeMb(file),
+      language,
+      clipCount,
+      reviewBeforeGenerate,
+      ...overrides,
+    });
+  };
+
+  const handleLanguageChange = (nextLanguage: string) => {
+    setLanguage(nextLanguage);
+    trackOptionsChanged({ language: nextLanguage });
   };
 
   const handleClipCountChange = (nextClipCount: number) => {
     setClipCount(nextClipCount);
-
-    const file = files[0];
-
-    if (file) {
-      void trackAnalyticsEvent("upload_options_changed", {
-        fileType: file.type,
-        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
-        language,
-        clipCount: nextClipCount,
-        reviewBeforeGenerate,
-      });
-    }
+    trackOptionsChanged({ clipCount: nextClipCount });
   };
 
   // 형제 핸들러(언어·개수)와 동일한 형태. 이 토글만 계측이 빠져 있었는데,
   // 검토 단계를 켜는 비율이 clip_review_* 퍼널의 분모라 함께 기록한다.
   const handleReviewModeChange = (nextReviewBeforeGenerate: boolean) => {
     setReviewBeforeGenerate(nextReviewBeforeGenerate);
-
-    const file = files[0];
-
-    if (file) {
-      void trackAnalyticsEvent("upload_options_changed", {
-        fileType: file.type,
-        fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
-        language,
-        clipCount,
-        reviewBeforeGenerate: nextReviewBeforeGenerate,
-      });
-    }
+    trackOptionsChanged({ reviewBeforeGenerate: nextReviewBeforeGenerate });
   };
 
   const maxFeasibleClips = getMaxFeasibleClipCount(durationSeconds);
@@ -252,13 +242,16 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       {CLIP_COUNT_OPTIONS.map((option) => {
-                        const disabled =
-                          maxFeasibleClips >= 1 &&
-                          option.value > maxFeasibleClips;
+                        // 0 = 길이 미상이거나 소스가 너무 짧음 —
+                        // 상한을 모르므로 아무 옵션도 막지 않는다
+                        // (clip-count-budget.ts).
+                        const hasClipCountCap = maxFeasibleClips >= 1;
+                        const isOptionUnreachable =
+                          hasClipCountCap && option.value > maxFeasibleClips;
                         return (
                           <DropdownMenuItem
                             key={option.value}
-                            disabled={disabled}
+                            disabled={isOptionUnreachable}
                             onClick={() => handleClipCountChange(option.value)}
                             className="cursor-pointer"
                           >
@@ -298,7 +291,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
                 <p className="text-muted-foreground text-xs">
                   {maxFeasibleClips === 0
                     ? `Source is shorter than ${CLIP_DURATION_LIMITS.MIN_SECONDS}s — too short to generate a clip. Try a longer video.`
-                    : `Source length ${formatSourceLength(durationSeconds)}. This fits up to ${maxFeasibleClips} ${maxFeasibleClips === 1 ? "clip" : "clips"}; the AI may return fewer.`}
+                    : `Source length ${formatSecondsAsClock(durationSeconds)}. This fits up to ${maxFeasibleClips} ${maxFeasibleClips === 1 ? "clip" : "clips"}; the AI may return fewer.`}
                 </p>
               )}
             </div>

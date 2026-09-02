@@ -41,6 +41,11 @@ async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
  * 시뮬레이션해야 했고, `createdFileId = null`을 빠뜨린 early return을 하나
  * 추가하면 사용자가 방금 "Resume 하라"고 안내받은 드래프트가 조용히 삭제됐다.
  */
+/** 분석 페이로드의 파일 크기 필드. 소수 첫째 자리까지의 MB. */
+export function toFileSizeMb(file: File): number {
+  return Math.round((file.size / 1024 / 1024) * 10) / 10;
+}
+
 type DraftDisposition =
   /** 아직 드래프트를 만들지 않았거나, 처리 파이프라인에 넘겼다 */
   | "none"
@@ -59,7 +64,7 @@ interface UploadPodcastInput {
   reviewBeforeGenerate: boolean;
 }
 
-function getSafeUploadMetadata({
+export function toUploadAnalyticsMetadata({
   file,
   language,
   clipCount,
@@ -67,7 +72,7 @@ function getSafeUploadMetadata({
 }: UploadPodcastInput) {
   return {
     fileType: file.type,
-    fileSizeMb: Math.round((file.size / 1024 / 1024) * 10) / 10,
+    fileSizeMb: toFileSizeMb(file),
     language,
     clipCount,
     reviewBeforeGenerate,
@@ -124,7 +129,7 @@ export function useUploadPodcast({
       // disposition과는 다른 사실이다 — 드래프트를 넘긴 뒤("none")에도
       // S3 객체는 남아 있다. 사용자에게 무엇을 안내할지가 여기에 달려 있다.
       let hasUploadedSourceObject = false;
-      const uploadMetadata = getSafeUploadMetadata({
+      const uploadMetadata = toUploadAnalyticsMetadata({
         file,
         language,
         clipCount,

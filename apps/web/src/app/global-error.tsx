@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useReportBoundaryError } from "~/fsd/shared/observability/use-report-boundary-error";
 
 export default function GlobalError({
   error,
@@ -9,9 +9,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Global error boundary caught:", error);
-  }, [error]);
+  useReportBoundaryError(error, "Global");
 
   return (
     <html>

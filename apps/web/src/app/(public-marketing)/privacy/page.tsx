@@ -1,25 +1,15 @@
 import { type Metadata } from "next";
-import Link from "next/link";
-import SiteFooter from "~/fsd/widgets/site-footer/ui";
+import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "AI Podcast Clipper Privacy Policy",
-  alternates: { canonical: "/privacy" },
+  alternates: { canonical: absoluteSiteUrl("/privacy") },
 };
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <header className="mb-12">
-        <Link
-          href="/"
-          className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
-        >
-          &larr; AI Podcast Clipper
-        </Link>
-      </header>
-
+    <div className="mx-auto max-w-3xl py-16">
       <div className="space-y-10">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
@@ -415,8 +405,6 @@ export default function PrivacyPage() {
           </ul>
         </section>
       </div>
-
-      <SiteFooter />
     </div>
   );
 }

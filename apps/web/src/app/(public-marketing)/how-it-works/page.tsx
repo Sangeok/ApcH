@@ -1,6 +1,6 @@
 import { type Metadata } from "next";
-import { howItWorksFaq, howItWorksSteps } from "~/fsd/pages/resources/config";
-import { HowItWorksPage } from "~/fsd/pages/resources/ui";
+import { howItWorksFaq, howItWorksSteps } from "~/fsd/pages/how-it-works/config";
+import { HowItWorksPage } from "~/fsd/pages/how-it-works/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
 import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";

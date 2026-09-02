@@ -3,11 +3,10 @@
 import type { Clip } from "@repo/db";
 import { AlertTriangle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 import { getClipPlayUrl } from "~/fsd/features/clip";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
-import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
+import { useScriptClipboard } from "../../model/use-script-clipboard";
 import {
   clipTypeLabel,
   hasClipRationale,
@@ -30,8 +29,7 @@ export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
   const trackedPlayRef = useRef(false);
 
-  const scriptText = clip.scriptText?.trim() ?? "";
-  const hasScript = scriptText.length > 0;
+  const { hasScript, copyScript } = useScriptClipboard(clip);
 
   const youtubeHashtags = useMemo(
     () => parseJsonArray(clip.youtubeHashtags, isNonEmptyString),
@@ -48,19 +46,6 @@ export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
   const payoff = clip.payoff?.trim() ?? "";
   const showRationale = hasClipRationale(clip);
   const fallbackNotice = subtitleFallbackNotice(clip.subtitleStatus);
-
-  const handleCopyScript = async () => {
-    if (!hasScript) {
-      toast.error("Script is not available yet.");
-      return;
-    }
-    const result = await copyToClipboard(scriptText);
-    if (result.success) {
-      toast.success("Copied script.");
-    } else {
-      toast.error(`Failed to copy script: ${result.error}`);
-    }
-  };
 
   const handlePlay = () => {
     if (trackedPlayRef.current) {
@@ -114,7 +99,7 @@ export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
         hasMetadata={hasMetadata}
         onOpenScript={() => setIsScriptOpen(true)}
         onOpenMetadata={() => setIsMetadataOpen(true)}
-        onCopyScript={handleCopyScript}
+        onCopyScript={copyScript}
         onOptimisticRemove={onOptimisticRemove}
       />
       <ScriptModal

@@ -32,6 +32,7 @@ export default function AiPodcastClipperPage() {
         <ul className="text-muted-foreground list-disc space-y-2 pl-5">
           <li>Reads a long-form podcast .mp4 and transcribes it word-by-word.</li>
           <li>
+            {/* 마케팅 목표값이다. 실제 상한은 CLIP_DURATION_LIMITS(30~90초). */}
             Scores conversational segments and picks 1-4 clips between 40 and 60
             seconds each.
           </li>

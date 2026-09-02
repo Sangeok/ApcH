@@ -1,5 +1,5 @@
 import { type Metadata } from "next";
-import { AboutPage } from "~/fsd/pages/resources/ui";
+import { AboutPage } from "~/fsd/pages/about/ui";
 import { SITE_NAME, absoluteSiteUrl } from "~/fsd/shared/lib/site";
 import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 

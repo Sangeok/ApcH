@@ -37,6 +37,17 @@ const POSITION_LABELS: Record<
   bottom: "Bottom",
 };
 
+// 위와 같은 3값 축이다. 중첩 삼항으로 두면 "middle"이 폴백에 암시돼
+// POSITIONS에 값을 추가해도 조용히 middle 스타일을 받는다.
+const POSITION_JUSTIFY_CLASS: Record<
+  (typeof CAPTION_STYLE_OPTIONS.POSITIONS)[number],
+  string
+> = {
+  top: "justify-start pt-6",
+  middle: "justify-center",
+  bottom: "justify-end pb-6",
+};
+
 function languageDefaultFontSize(language: string): number {
   return language === "Korean"
     ? CAPTION_STYLE_OPTIONS.DEFAULT_FONT_SIZE.Korean
@@ -103,12 +114,7 @@ export default function CaptionStyleEditor({
   // 그려진다. 같은 두께로 보이려면 2배가 필요하다 (근사값).
   const previewStrokePx = effectiveOutlineWidth * previewScale * 2;
 
-  const justifyClass =
-    effectivePosition === "top"
-      ? "justify-start pt-6"
-      : effectivePosition === "bottom"
-        ? "justify-end pb-6"
-        : "justify-center";
+  const justifyClass = POSITION_JUSTIFY_CLASS[effectivePosition];
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

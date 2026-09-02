@@ -1,6 +1,6 @@
 import { type Metadata } from "next";
-import { changelogEntries } from "~/fsd/pages/resources/config";
-import { ChangelogPage } from "~/fsd/pages/resources/ui";
+import { changelogEntries } from "~/fsd/pages/changelog/config";
+import { ChangelogPage } from "~/fsd/pages/changelog/ui";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
 import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 

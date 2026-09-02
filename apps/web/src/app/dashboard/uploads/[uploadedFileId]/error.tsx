@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useReportBoundaryError } from "~/fsd/shared/observability/use-report-boundary-error";
 import { ErrorDisplay } from "~/fsd/shared/ui/error-display";
 
 export default function UploadDetailError({
@@ -10,9 +10,7 @@ export default function UploadDetailError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Upload detail error boundary caught:", error);
-  }, [error]);
+  useReportBoundaryError(error, "Upload detail");
 
   return (
     <ErrorDisplay

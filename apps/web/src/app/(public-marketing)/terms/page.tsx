@@ -1,25 +1,15 @@
 import { type Metadata } from "next";
-import Link from "next/link";
-import SiteFooter from "~/fsd/widgets/site-footer/ui";
+import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "AI Podcast Clipper Terms of Service",
-  alternates: { canonical: "/terms" },
+  alternates: { canonical: absoluteSiteUrl("/terms") },
 };
 
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <header className="mb-12">
-        <Link
-          href="/"
-          className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
-        >
-          &larr; AI Podcast Clipper
-        </Link>
-      </header>
-
+    <div className="mx-auto max-w-3xl py-16">
       <div className="space-y-10">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
@@ -38,7 +28,7 @@ export default function TermsPage() {
             AI Podcast Clipper (the &quot;Service&quot;) is a cloud-based SaaS
             product that analyzes podcast videos uploaded by users and
             automatically generates short-form clips, typically between 30 and
-            60 seconds. The Service may use AI and media-processing
+            90 seconds. The Service may use AI and media-processing
             technologies including:
           </p>
           <ul className="text-muted-foreground list-disc space-y-1 pl-6">
@@ -292,8 +282,6 @@ export default function TermsPage() {
           </p>
         </section>
       </div>
-
-      <SiteFooter />
     </div>
   );
 }

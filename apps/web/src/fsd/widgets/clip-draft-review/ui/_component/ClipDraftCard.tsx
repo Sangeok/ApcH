@@ -9,7 +9,9 @@ import {
   CAPTION_STYLE_OPTIONS,
   CLIP_DURATION_LIMITS,
   type CaptionStyle,
+  isClipDurationWithinLimits,
 } from "~/fsd/shared/config/constants";
+import { formatSecondsAsClock } from "~/fsd/shared/lib/format-duration";
 import type {
   ClipRange,
   SaveDraftInput,
@@ -57,13 +59,6 @@ function roundTenth(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-function formatTime(seconds: number): string {
-  const safe = Math.max(0, seconds);
-  const minutes = Math.floor(safe / 60);
-  const rest = safe - minutes * 60;
-  return `${minutes}:${rest.toFixed(1).padStart(4, "0")}`;
-}
-
 function nearestBoundary(value: number, boundaries: number[]): number {
   if (boundaries.length === 0) {
     return value;
@@ -103,15 +98,18 @@ export default function ClipDraftCard({
   // 캡션 스타일은 로컬 state로 두지 않는다. 편집은 다이얼로그의 작업본에서만
   // 일어나고 Apply가 곧바로 저장하므로, 구간 자동 저장은 스타일을 건드리지 않는다
   // (captionStyle: undefined = 변경 없음).
-  const [styleOpen, setStyleOpen] = useState<boolean>(false);
+  const [isStyleDialogOpen, setIsStyleDialogOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const skipInitialAutoSaveRef = useRef(true);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 표시용으로만 쓴다. 판정은 아래 공유 술어가 한다 — 여기서 반올림한 값으로
+  // 다시 유도하면 커스텀 클립 패널의 판정과 0.05초 어긋난다.
   const duration = roundTenth(endSeconds - startSeconds);
-  const withinLimits =
-    duration >= CLIP_DURATION_LIMITS.MIN_SECONDS &&
-    duration <= CLIP_DURATION_LIMITS.MAX_SECONDS;
+  const isDurationWithinLimits = isClipDurationWithinLimits(
+    startSeconds,
+    endSeconds,
+  );
 
   const wordsInRange = useMemo(
     () =>
@@ -170,7 +168,7 @@ export default function ClipDraftCard({
       skipInitialAutoSaveRef.current = false;
       return;
     }
-    if (!withinLimits) return;
+    if (!isDurationWithinLimits) return;
 
     clearPendingAutoSave();
     autoSaveTimerRef.current = setTimeout(() => {
@@ -191,7 +189,7 @@ export default function ClipDraftCard({
     // - draft.selected: handleSelectedChange가 타이머를 취소하고 즉시 저장하는
     //   별도 경로다. 여기 포함하면 토글마다 디바운스 저장이 중복 발화하고,
     //   Select all/Deselect all이 모든 카드에서 중복 저장을 유발한다.
-    // - withinLimits/runSave/clearPendingAutoSave: 렌더마다 재생성되는 파생값/
+    // - isDurationWithinLimits/runSave/clearPendingAutoSave: 렌더마다 재생성되는 파생값/
     //   함수로, 타이머는 이펙트 생성 시점 렌더의 최신 값을 캡처하면 충분하다.
     // 이 배열에 값을 추가하는 "lint 경고 수정"은 stale-타이머 경합을 되살린다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -205,8 +203,8 @@ export default function ClipDraftCard({
     clearPendingAutoSave();
     void runSave({
       clipDraftId: draft.id,
-      startSeconds: withinLimits ? startSeconds : draft.startSeconds,
-      endSeconds: withinLimits ? endSeconds : draft.endSeconds,
+      startSeconds: isDurationWithinLimits ? startSeconds : draft.startSeconds,
+      endSeconds: isDurationWithinLimits ? endSeconds : draft.endSeconds,
       selected: nextSelected,
       captionStyle: undefined,
     });
@@ -218,8 +216,8 @@ export default function ClipDraftCard({
     clearPendingAutoSave();
     void runSave({
       clipDraftId: draft.id,
-      startSeconds: withinLimits ? startSeconds : draft.startSeconds,
-      endSeconds: withinLimits ? endSeconds : draft.endSeconds,
+      startSeconds: isDurationWithinLimits ? startSeconds : draft.startSeconds,
+      endSeconds: isDurationWithinLimits ? endSeconds : draft.endSeconds,
       selected: draft.selected,
       captionStyle: style,
     });
@@ -284,14 +282,15 @@ export default function ClipDraftCard({
                 <span>{clipTypeLabel(draft.clipType)}</span>
               )}
               <span className="tabular-nums">
-                {formatTime(startSeconds)}–{formatTime(endSeconds)}
+                {formatSecondsAsClock(startSeconds, { decimals: 1 })}–
+                {formatSecondsAsClock(endSeconds, { decimals: 1 })}
               </span>
               {/* 길이는 이 한 곳에서만 표시한다. 제한 위반은 색으로 알리고,
                   위반의 결과("저장되지 않음")만 아래에서 문장으로 말한다. */}
               <span
                 className={cn(
                   "tabular-nums",
-                  !withinLimits && "text-destructive font-medium",
+                  !isDurationWithinLimits && "text-destructive font-medium",
                 )}
               >
                 {duration.toFixed(1)}s
@@ -423,7 +422,7 @@ export default function ClipDraftCard({
 
       {/* Before는 길이를 배지와 여기 두 곳에 렌더했다. 값은 배지가 갖고,
           여기서는 위반했을 때 그 결과만 말한다 — 정상 상태에서 이 줄은 없다. */}
-      {!withinLimits && (
+      {!isDurationWithinLimits && (
         <p className="text-destructive mt-2 text-xs">
           Not saved — length must be {CLIP_DURATION_LIMITS.MIN_SECONDS}–
           {CLIP_DURATION_LIMITS.MAX_SECONDS}s.
@@ -469,17 +468,17 @@ export default function ClipDraftCard({
           type="button"
           size="sm"
           variant="ghost"
-          disabled={!withinLimits}
+          disabled={!isDurationWithinLimits}
           className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
-          onClick={() => setStyleOpen(true)}
+          onClick={() => setIsStyleDialogOpen(true)}
         >
           Caption style
         </Button>
       </div>
 
       <CaptionStyleDialog
-        open={styleOpen}
-        onOpenChange={setStyleOpen}
+        open={isStyleDialogOpen}
+        onOpenChange={setIsStyleDialogOpen}
         language={language}
         initialValue={toCaptionStyle(draft.captionStyle)}
         previewWords={wordsInRange.map((word) => word.word)}

@@ -5,6 +5,7 @@ import { generateWebApplicationJsonLd } from "~/fsd/shared/lib/seo";
 import { SITE_NAME, absoluteSiteUrl } from "~/fsd/shared/lib/site";
 import { auth } from "~/server/auth";
 import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
+import PublicHeader from "~/fsd/widgets/site-header/ui/public-header";
 
 export const metadata: Metadata = {
   title: "AI Podcast Clipper for YouTube Shorts",
@@ -44,7 +45,11 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <HomePage isLoggedIn={isLoggedIn} email={email} image={image} />
+      <HomePage
+        header={
+          <PublicHeader isLoggedIn={isLoggedIn} email={email} image={image} />
+        }
+      />
     </>
   );
 }

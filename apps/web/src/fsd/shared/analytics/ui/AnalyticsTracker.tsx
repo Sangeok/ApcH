@@ -50,14 +50,14 @@ export function AnalyticsTracker() {
   useEffect(() => {
     const normalizedPath = normalizeAnalyticsPath(pathname);
     const startedAt = Date.now();
-    let sent = false;
+    let hasSentExitEvent = false;
 
     const emitExit = () => {
-      if (sent) {
+      if (hasSentExitEvent) {
         return;
       }
 
-      sent = true;
+      hasSentExitEvent = true;
       void trackAnalyticsEvent(
         "page_exited",
         {
@@ -66,7 +66,7 @@ export function AnalyticsTracker() {
         {
           path: normalizedPath,
           // dedupeKey를 두지 않는다 — startedAt이 들어가 매 내비게이션마다
-          // 다시는 매칭되지 않을 키가 쌓이기만 했다. 위의 `sent` 플래그가
+          // 다시는 매칭되지 않을 키가 쌓이기만 했다. 위의 `hasSentExitEvent` 플래그가
           // 이 effect당 1회를 이미 보장한다.
           useBeacon: true,
         },

@@ -1,6 +1,6 @@
 import { type Metadata } from "next";
-import { securityFaq } from "~/fsd/pages/resources/config";
-import { SecurityPage } from "~/fsd/pages/resources/ui";
+import { securityFaq } from "~/fsd/pages/security/config";
+import { SecurityPage } from "~/fsd/pages/security/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
 import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
