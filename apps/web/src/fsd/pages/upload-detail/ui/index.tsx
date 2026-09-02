@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   isPartialClipResultCode,
   PARTIAL_CLIPS_INSUFFICIENT,
@@ -178,19 +178,13 @@ export default function UploadDetailPage({
             </div>
           </div>
           <div className="px-6 py-6">
-            <Suspense
-              fallback={
-                <p className="text-muted-foreground">Loading clips...</p>
-              }
-            >
-              {clips.length > 0 ? (
-                <ClipDisplay clips={clips} />
-              ) : (
-                <p className="text-muted-foreground text-center">
-                  No clips generated yet
-                </p>
-              )}
-            </Suspense>
+            {clips.length > 0 ? (
+              <ClipDisplay clips={clips} />
+            ) : (
+              <p className="text-muted-foreground text-center">
+                No clips generated yet
+              </p>
+            )}
           </div>
         </section>
       )}

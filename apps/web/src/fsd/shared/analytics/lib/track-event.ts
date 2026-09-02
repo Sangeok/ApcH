@@ -47,10 +47,6 @@ export async function trackAnalyticsEvent(
 
   const path = normalizeAnalyticsPath(options.path ?? getCurrentPath());
 
-  if (path.startsWith("/admin")) {
-    return;
-  }
-
   const payload = {
     name,
     anonymousId: ids.anonymousId,

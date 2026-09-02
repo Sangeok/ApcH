@@ -7,5 +7,6 @@ export {
   getUserPolarCustomerId,
   incrementUserCredits,
   incrementUserCreditsAndSetPolarCustomerId,
+  resolvePolarCustomerUserId,
   updateUserPolarCustomerId,
 } from "./api";

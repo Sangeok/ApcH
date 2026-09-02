@@ -1,5 +1,7 @@
 import { createOrder, findOrderByPolarId } from "~/fsd/entities/order";
-import { findUserIdByEmail } from "~/fsd/entities/user";
+import { resolvePolarCustomerUserId } from "~/fsd/entities/user";
+import { failure, success } from "~/fsd/shared/api/result";
+import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface HandleOrderCreatedInput {
   orderId: string;
@@ -11,28 +13,18 @@ interface HandleOrderCreatedInput {
   metadataUserId?: string;
 }
 
-async function resolveUserId(input: HandleOrderCreatedInput) {
-  if (input.metadataUserId) {
-    return input.metadataUserId;
-  }
-
-  if (!input.customerEmail) {
-    return null;
-  }
-
-  return findUserIdByEmail(input.customerEmail);
-}
-
-export async function handleOrderCreated(input: HandleOrderCreatedInput) {
-  const userId = await resolveUserId(input);
+export async function handleOrderCreated(
+  input: HandleOrderCreatedInput,
+): Promise<ActionResult<{ userId: string; skipped: boolean }>> {
+  const userId = await resolvePolarCustomerUserId(input);
 
   if (!userId) {
-    return { ok: false as const, reason: "missing-user" };
+    return failure("missing-user");
   }
 
   const existingOrder = await findOrderByPolarId(input.orderId);
   if (existingOrder) {
-    return { ok: true as const, userId, skipped: true as const };
+    return success({ userId, skipped: true });
   }
 
   await createOrder({
@@ -44,5 +36,5 @@ export async function handleOrderCreated(input: HandleOrderCreatedInput) {
     status: input.status,
   });
 
-  return { ok: true as const, userId, skipped: false as const };
+  return success({ userId, skipped: false });
 }

@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { createOptimisticUploadId } from "~/fsd/entities/uploaded-file/model/optimistic-id";
 import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
 import { toast } from "sonner";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
@@ -76,7 +77,7 @@ export function useUploadPodcast({
   ) => {
     startUploading(async () => {
       const optimisticFile: UploadedFileSummary = {
-        id: `optimistic-${Date.now()}`,
+        id: createOptimisticUploadId(),
         fileName: file.name,
         status: "pending_enqueue",
         createdAt: new Date(),

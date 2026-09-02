@@ -479,7 +479,9 @@ export const processVideo = inngest.createFunction(
       let generatedClipCount = 0;
       const shouldWaitForCallback = modalResponse.status === "accepted";
 
-      function applyModalPayload(args: {
+      // 이름이 말하는 대로 "적용"만 하지 않고 바깥 루프 변수 셋을 다시 쓴다.
+      // 그 값들이 resolveModalPollAction과 종료 분기를 결정하므로 이름에 드러낸다.
+      function recordModalPayloadIntoAttemptState(args: {
         status: unknown;
         error?: unknown;
         clips?: unknown;
@@ -488,7 +490,7 @@ export const processVideo = inngest.createFunction(
         modalCallbackReceived = true;
 
         // 성공·실패와 무관하게 부분 완성된 클립 메타데이터를 살린다.
-        // applyModalPayload는 콜백당 1회만 호출되므로(backendClips 초기값 undefined)
+        // 이 함수는 콜백당 1회만 호출되므로(backendClips 초기값 undefined)
         // 성공 경로 동작은 이전과 동일하고, 실패 상태에서만 backendClips가 새로 채워진다.
         // 실패 판정은 아래 backendFailureMessage로 그대로 유지된다.
         backendClips = normalizeBackendClips(args.clips);
@@ -497,7 +499,6 @@ export const processVideo = inngest.createFunction(
           backendFailureMessage = `Modal ${args.source} reported status "${String(args.status)}": ${toErrorMessage(
             args.error ?? "Unknown modal processing error",
           )}`;
-          return;
         }
       }
 
@@ -508,7 +509,7 @@ export const processVideo = inngest.createFunction(
       }
 
       if (!shouldWaitForCallback) {
-        applyModalPayload({
+        recordModalPayloadIntoAttemptState({
           status: modalResponse.status,
           error: modalResponse.error,
           clips: modalResponse.clips,
@@ -534,7 +535,7 @@ export const processVideo = inngest.createFunction(
           });
 
           if (modalResult) {
-            applyModalPayload({
+            recordModalPayloadIntoAttemptState({
               status: modalResult.data.status,
               error: modalResult.data.error,
               clips: modalResult.data.clips,
@@ -573,7 +574,7 @@ export const processVideo = inngest.createFunction(
             );
 
             if (metadataResult) {
-              applyModalPayload({
+              recordModalPayloadIntoAttemptState({
                 status: metadataResult.data.status,
                 error: metadataResult.data.error,
                 clips: metadataResult.data.clips,

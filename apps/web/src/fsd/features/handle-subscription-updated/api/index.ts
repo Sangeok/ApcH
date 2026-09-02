@@ -3,6 +3,8 @@ import {
   updateSubscriptionByPolarId,
 } from "~/fsd/entities/subscription";
 import { incrementUserCredits } from "~/fsd/entities/user";
+import { failure, success } from "~/fsd/shared/api/result";
+import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface HandleSubscriptionUpdatedInput {
   subscriptionId: string;
@@ -19,11 +21,11 @@ interface HandleSubscriptionUpdatedInput {
 
 export async function handleSubscriptionUpdated(
   input: HandleSubscriptionUpdatedInput,
-) {
+): Promise<ActionResult<void>> {
   const subscription = await findSubscriptionByPolarId(input.subscriptionId);
 
   if (!subscription) {
-    return { ok: false as const, reason: "missing-subscription" };
+    return failure("missing-subscription");
   }
 
   const periodChanged =
@@ -45,5 +47,5 @@ export async function handleSubscriptionUpdated(
     canceledAt: input.canceledAt,
   });
 
-  return { ok: true as const };
+  return success();
 }

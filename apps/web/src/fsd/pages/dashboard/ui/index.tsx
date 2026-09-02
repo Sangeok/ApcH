@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useOptimistic, useRef } from "react";
 import { env } from "~/env";
+import { isOptimisticUploadId } from "~/fsd/entities/uploaded-file/model/optimistic-id";
 import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
 import type {
   ActiveUploadedFileQueueState,
@@ -73,7 +74,7 @@ export default function DashboardView({
     (state, newFile: UploadedFileSummary) => [newFile, ...state],
   );
   const optimisticQueueFiles = useMemo(
-    () => optimisticFiles.filter((file) => file.id.startsWith("optimistic-")),
+    () => optimisticFiles.filter((file) => isOptimisticUploadId(file.id)),
     [optimisticFiles],
   );
   const queueStatusFiles = useMemo(

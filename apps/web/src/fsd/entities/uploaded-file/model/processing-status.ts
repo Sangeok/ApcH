@@ -19,12 +19,17 @@ export const ACTIVE_PROCESSING_STATUSES = [
   "processing",
 ] as const satisfies ProcessingStatus[];
 
+export type ActiveProcessingStatus =
+  (typeof ACTIVE_PROCESSING_STATUSES)[number];
+
 const ACTIVE_PROCESSING_STATUS_SET = new Set<string>(ACTIVE_PROCESSING_STATUSES);
 
 export function isProcessingStatus(status: string): status is ProcessingStatus {
   return PROCESSING_STATUS_SET.has(status);
 }
 
-export function isActiveProcessingStatus(status: string): boolean {
+export function isActiveProcessingStatus(
+  status: string,
+): status is ActiveProcessingStatus {
   return ACTIVE_PROCESSING_STATUS_SET.has(status);
 }

@@ -6,7 +6,6 @@ export {
   ensureUploadedFileQueuedForDispatch,
   findUploadedFileSourceState,
   findUploadedFileForDeletion,
-  findUploadedFileForProcessRequest,
   findCurrentProcessingAttemptContext,
   findUploadedFileS3Key,
   getUploadedFileDetailsById,
@@ -20,15 +19,15 @@ export {
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptProcessed,
   markUploadedFileAttemptReviewPending,
-  markUploadedFileQueuedFromDispatch,
   reconcileStaleUploadedFileForUser,
   reconcileStaleUploadedFilesForUser,
   reconcileUploadDraftsForUser,
-  setUploadedFileUploaded,
   startUploadedFileProcessingAttempt,
-  updateUploadedFileLanguage,
-  updateUploadedFileStatus,
 } from "./api";
+export {
+  createOptimisticUploadId,
+  isOptimisticUploadId,
+} from "./model/optimistic-id";
 export {
   getAttemptOutputPrefix,
   getProcessingMatchKey,
@@ -39,7 +38,10 @@ export {
   isActiveProcessingStatus,
   isProcessingStatus,
 } from "./model/processing-status";
-export type { ProcessingStatus } from "./model/processing-status";
+export type {
+  ActiveProcessingStatus,
+  ProcessingStatus,
+} from "./model/processing-status";
 export type {
   ActiveUploadedFileQueueState,
   RecoverableUploadDraftSummary,

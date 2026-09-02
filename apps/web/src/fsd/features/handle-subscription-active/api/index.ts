@@ -5,10 +5,12 @@ import {
   upsertSubscription,
 } from "~/fsd/entities/subscription";
 import {
-  findUserIdByEmail,
   incrementUserCreditsAndSetPolarCustomerId,
+  resolvePolarCustomerUserId,
   updateUserPolarCustomerId,
 } from "~/fsd/entities/user";
+import { failure, success } from "~/fsd/shared/api/result";
+import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface HandleSubscriptionActiveInput {
   subscriptionId: string;
@@ -23,24 +25,12 @@ interface HandleSubscriptionActiveInput {
   recurringInterval?: string;
 }
 
-async function resolveUserId(input: HandleSubscriptionActiveInput) {
-  if (input.metadataUserId) {
-    return input.metadataUserId;
-  }
-
-  if (!input.customerEmail) {
-    return null;
-  }
-
-  return findUserIdByEmail(input.customerEmail);
-}
-
 export async function handleSubscriptionActive(
   input: HandleSubscriptionActiveInput,
-) {
-  const userId = await resolveUserId(input);
+): Promise<ActionResult<{ userId: string; isNewSubscription: boolean }>> {
+  const userId = await resolvePolarCustomerUserId(input);
   if (!userId) {
-    return { ok: false as const, reason: "missing-user" };
+    return failure("missing-user");
   }
 
   const existingByPolarId = await findSubscriptionByPolarId(input.subscriptionId);
@@ -75,5 +65,5 @@ export async function handleSubscriptionActive(
     await updateUserPolarCustomerId(userId, input.customerId);
   }
 
-  return { ok: true as const, userId, isNewSubscription };
+  return success({ userId, isNewSubscription });
 }

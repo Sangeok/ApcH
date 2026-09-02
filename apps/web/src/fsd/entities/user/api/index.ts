@@ -39,6 +39,26 @@ export async function getUserPolarCustomerId(userId: string) {
   return user?.polarCustomerId ?? null;
 }
 
+/**
+ * Polar 웹훅이 사용자를 찾는 단일 규칙: metadata의 userId가 있으면 그것,
+ * 없으면 고객 이메일로 조회. 주문과 구독이 서로 다른 사용자로 귀속되지 않도록
+ * 두 피처가 이 함수를 공유한다.
+ */
+export async function resolvePolarCustomerUserId(input: {
+  metadataUserId?: string;
+  customerEmail?: string;
+}): Promise<string | null> {
+  if (input.metadataUserId) {
+    return input.metadataUserId;
+  }
+
+  if (!input.customerEmail) {
+    return null;
+  }
+
+  return findUserIdByEmail(input.customerEmail);
+}
+
 export async function findUserIdByEmail(email: string) {
   const user = await db.user.findUnique({
     where: { email },

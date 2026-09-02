@@ -7,10 +7,6 @@ import { normalizeAnalyticsPath } from "../lib/normalize-path";
 import { trackAnalyticsEvent } from "../lib/track-event";
 
 function getRouteEventName(pathname: string): AnalyticsEventName | null {
-  if (pathname.startsWith("/admin")) {
-    return null;
-  }
-
   if (pathname === "/") {
     return "landing_view";
   }
@@ -25,10 +21,6 @@ function getRouteEventName(pathname: string): AnalyticsEventName | null {
 
   if (pathname === "/dashboard/billing") {
     return "billing_viewed";
-  }
-
-  if (pathname.startsWith("/dashboard/uploads/")) {
-    return null;
   }
 
   if (pathname.startsWith("/dashboard")) {
@@ -56,10 +48,6 @@ export function AnalyticsTracker() {
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname.startsWith("/admin")) {
-      return;
-    }
-
     const normalizedPath = normalizeAnalyticsPath(pathname);
     const startedAt = Date.now();
     let sent = false;

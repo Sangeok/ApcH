@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { isOptimisticUploadId } from "~/fsd/entities/uploaded-file/model/optimistic-id";
 import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -57,7 +58,7 @@ export default function QueueStatus({
           <TableBody>
             {uploadedFiles.map((file) => {
               // Optimistic rows use temporary IDs until the server returns a real file ID.
-              const isOptimistic = file.id.startsWith("optimistic-");
+              const isOptimistic = isOptimisticUploadId(file.id);
 
               return (
                 <TableRow className="hover:!bg-transparent" key={file.id}>

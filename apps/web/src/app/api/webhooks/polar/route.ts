@@ -65,7 +65,7 @@ const webhooksHandler = Webhooks({
         recurringInterval: data.recurringInterval ?? "month",
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error(
           "[polar:subscription.active] userId resolution failed",
           JSON.stringify(data.metadata),
@@ -76,7 +76,7 @@ const webhooksHandler = Webhooks({
 
       console.log(
         "[polar:subscription.active] success",
-        result.userId,
+        result.data.userId,
         tier,
         monthlyCredits,
       );
@@ -106,7 +106,7 @@ const webhooksHandler = Webhooks({
         canceledAt: data.canceledAt ? new Date(data.canceledAt) : null,
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error("[polar:subscription.updated] subscription not found:", data.id);
         return;
       }
@@ -128,7 +128,7 @@ const webhooksHandler = Webhooks({
         canceledAt: data.canceledAt ? new Date(data.canceledAt) : null,
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error("[polar:subscription.canceled] subscription not found:", data.id);
         return;
       }
@@ -162,7 +162,7 @@ const webhooksHandler = Webhooks({
         metadataUserId: asOptionalString(data.metadata?.userId),
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error(
           "[polar:order.created] userId resolution failed",
           JSON.stringify(data.metadata),
@@ -171,7 +171,7 @@ const webhooksHandler = Webhooks({
         return;
       }
 
-      console.log("[polar:order.created] success:", result.userId, data.id);
+      console.log("[polar:order.created] success:", result.data.userId, data.id);
     } catch (error) {
       console.error("[polar:order.created] error:", error);
       throw error;

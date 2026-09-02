@@ -8,6 +8,7 @@ import { deleteS3Object, objectExists } from "~/fsd/shared/api/s3";
 import { getProcessingMatchKey } from "../model/attempt-prefix";
 import {
   ACTIVE_PROCESSING_STATUSES,
+  isActiveProcessingStatus,
   isProcessingStatus,
   type ProcessingStatus,
 } from "../model/processing-status";
@@ -110,14 +111,6 @@ function toProcessingStatus(status: string): ProcessingStatus {
 
 function isOlderThan(date: Date | null, threshold: Date): boolean {
   return date !== null && date < threshold;
-}
-
-function isActiveProcessingStatusValue(
-  status: ProcessingStatus,
-): status is (typeof ACTIVE_PROCESSING_STATUSES)[number] {
-  return (ACTIVE_PROCESSING_STATUSES as readonly ProcessingStatus[]).includes(
-    status,
-  );
 }
 
 function getStaleFailureCode(
@@ -474,26 +467,6 @@ export async function findUploadedFileForDeletion(
   });
 }
 
-// Loads the current user's uploaded file state needed before scheduling processing.
-export async function findUploadedFileForProcessRequest(
-  uploadedFileId: string,
-  userId: string,
-) {
-  return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      id: true,
-      userId: true,
-      s3Key: true,
-      status: true,
-      uploaded: true,
-      currentAttempt: true,
-      targetClipCount: true,
-      language: true,
-    },
-  });
-}
-
 // Loads the DB-backed context for a processing worker, only for the current attempt.
 export async function findCurrentProcessingAttemptContext(
   uploadedFileId: string,
@@ -582,28 +555,6 @@ export async function confirmUploadedFileSourceIfObjectExists(
     status: "confirmed",
     state: confirmedState,
   };
-}
-
-// Marks a processing attempt as queued after its dispatch row has successfully
-// sent the Inngest processing event.
-export async function markUploadedFileQueuedFromDispatch(
-  uploadedFileId: string,
-  attempt: number,
-  options?: { tx?: Prisma.TransactionClient; now?: Date },
-) {
-  const now = options?.now ?? new Date();
-
-  return getClient(options?.tx).uploadedFile.updateMany({
-    where: {
-      id: uploadedFileId,
-      currentAttempt: attempt,
-      status: "pending_enqueue",
-    },
-    data: {
-      status: "queued",
-      queuedAt: now,
-    },
-  });
 }
 
 export async function ensureUploadedFileQueuedForDispatch(
@@ -889,65 +840,6 @@ export async function markUploadedFileAttemptNoCredits(
   });
 }
 
-// ⚠️ 이 함수로 status를 "processing"으로 쓰지 말 것. 정체 감시는
-//    processVideo·analyzeVideo가 claim 직후 보내는 "processing/attempt.claimed"
-//    이벤트로만 예약된다(watchProcessingAttempt, src/inngest/functions.ts).
-//    이벤트 없이 processing 행을 만들면 감시자가 없어 정체 알림이 유실된다.
-//    꼭 필요하면 같은 이벤트를 함께 보내고, 그 경로를 여기 적을 것.
-export async function updateUploadedFileStatus(
-  uploadedFileId: string,
-  status: ProcessingStatus,
-  options?: {
-    tx?: Prisma.TransactionClient;
-    processingStartedAt?: Date | null;
-    queuedAt?: Date | null;
-    terminalStatusAt?: Date | null;
-    failureCode?: string | null;
-  },
-) {
-  return getClient(options?.tx).uploadedFile.update({
-    where: { id: uploadedFileId },
-    data: {
-      status,
-      ...(options?.processingStartedAt !== undefined
-        ? { processingStartedAt: options.processingStartedAt }
-        : {}),
-      ...(options?.queuedAt !== undefined
-        ? { queuedAt: options.queuedAt }
-        : {}),
-      ...(options?.terminalStatusAt !== undefined
-        ? { terminalStatusAt: options.terminalStatusAt }
-        : {}),
-      ...(options?.failureCode !== undefined
-        ? { failureCode: options.failureCode }
-        : {}),
-    },
-  });
-}
-
-export async function updateUploadedFileLanguage(
-  uploadedFileId: string,
-  userId: string,
-  language: string,
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.update({
-    where: { id: uploadedFileId },
-    data: { language },
-  });
-}
-
-export async function setUploadedFileUploaded(
-  uploadedFileId: string,
-  uploaded: boolean,
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.update({
-    where: { id: uploadedFileId },
-    data: { uploaded },
-  });
-}
-
 export async function hasProcessingUploadForUser(
   userId: string,
   options?: { tx?: Prisma.TransactionClient },
@@ -992,7 +884,7 @@ export async function reconcileStaleUploadedFileForUser(
 
   const status = toProcessingStatus(file.status);
 
-  if (!isActiveProcessingStatusValue(status)) {
+  if (!isActiveProcessingStatus(status)) {
     return {
       changed: false,
       status,

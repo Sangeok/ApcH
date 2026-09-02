@@ -14,6 +14,7 @@ import {
 } from "~/fsd/entities/uploaded-file/model/attempt-prefix";
 import { getSelectedRenderMomentsForAttempt } from "~/fsd/entities/clip-draft";
 import { reportPipelineFailure } from "~/fsd/shared/observability";
+import type { ProcessingDispatchStatus } from "../model/types";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 type PendingProcessingDispatch = Awaited<
@@ -46,16 +47,25 @@ export async function createProcessingDispatch(
   return getClient(options?.tx).processingDispatch.create({
     data: {
       ...data,
-      status: "pending",
+      status: DISPATCH_STATUS.pending,
     },
   });
 }
+
+// DB status 리터럴을 union에 묶는다. 이 상수를 거치지 않으면 `"dead-letter"` 같은
+// 오타가 컴파일을 통과하고, findPendingProcessingDispatchById가 회수할 수 없는 행이 남는다.
+const DISPATCH_STATUS = {
+  pending: "pending",
+  sending: "sending",
+  sent: "sent",
+  deadLetter: "dead_letter",
+} as const satisfies Record<string, ProcessingDispatchStatus>;
 
 async function findPendingProcessingDispatchById(dispatchId: string) {
   return db.processingDispatch.findFirst({
     where: {
       id: dispatchId,
-      status: "pending",
+      status: DISPATCH_STATUS.pending,
     },
     select: {
       id: true,
@@ -85,10 +95,10 @@ async function claimPendingProcessingDispatch(
   const claimed = await db.processingDispatch.updateMany({
     where: {
       id: dispatchId,
-      status: "pending",
+      status: DISPATCH_STATUS.pending,
     },
     data: {
-      status: "sending",
+      status: DISPATCH_STATUS.sending,
       lockedAt: now,
       dispatchCount: {
         increment: 1,
@@ -108,7 +118,7 @@ export async function markProcessingDispatchSent(
   return getClient(options?.tx).processingDispatch.update({
     where: { id: dispatchId },
     data: {
-      status: "sent",
+      status: DISPATCH_STATUS.sent,
       dispatchedAt: now,
       lockedAt: null,
       lastError: null,
@@ -124,7 +134,7 @@ export async function markProcessingDispatchDeadLetter(
   return getClient(options?.tx).processingDispatch.update({
     where: { id: dispatchId },
     data: {
-      status: "dead_letter",
+      status: DISPATCH_STATUS.deadLetter,
       lastError: errorMessage,
       lockedAt: null,
       dispatchedAt: null,
