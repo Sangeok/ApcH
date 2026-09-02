@@ -3,7 +3,7 @@ import { inngest } from "../../../inngest/client";
 import {
   analyzeVideo,
   cleanupAnalyticsEvents,
-  monitorPipelineHealth,
+  watchProcessingAttempt,
   processVideo,
 } from "~/inngest/functions";
 
@@ -15,6 +15,6 @@ export const { GET, POST, PUT } = serve({
     processVideo,
     analyzeVideo,
     cleanupAnalyticsEvents,
-    monitorPipelineHealth,
+    watchProcessingAttempt,
   ],
 });

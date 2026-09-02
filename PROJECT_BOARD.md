@@ -35,16 +35,19 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-02
-- [ ] FEAT-29: 정체 감시를 15분 cron에서 처리 건별 이벤트 감시자로 전환 — Neon 유휴 compute 깨움 제거
+- [x] FEAT-29: 정체 감시를 15분 cron에서 처리 건별 이벤트 감시자로 전환 — Neon 유휴 compute 깨움 제거
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/fsd/entities/uploaded-file
-  status: 승인대기
+  status: 완료
   근거: 사용자가 이 세션에서 직접 등재·즉시 진행 지시(Neon 비용 절감, 진단·수정 방향 코드 확정 수준). 미결 0건.
-- [ ] FEAT-28: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
+  결과: 15분 cron 스캔 제거, claim별 감시자(processing/attempt.claimed→watchProcessingAttempt)로 전환. stuck-alert 순수모듈+테스트7. check EXIT0·test 67/0. 상세 web-dev/FEAT-29
+- [x] FEAT-28: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/fsd/entities/clip
-  status: 계획지시
+  status: 완료
   근거: BUG-08 계획서가 남긴 범위 밖 의존 후속. 코드 확정 수준 진단(원인 지점·수정 방향 명시)이라 계획 착수가 바로 가능하다.
+  결과: applyModalPayload에서 backendClips 대입을 실패 early return 위로 이동(실패도 부분 메타데이터 보존, 판정 유지) + 폴링 불변식 테스트 2개. check EXIT0·test 60/0(58→60). 상세 web-dev/FEAT-28
+  검증: 클린 패스 (2026-09-02, 독립 무편집 1라운드 — plan-verifier 1사이클째)
 
 ## 2026-08-29
 - [x] BUG-04: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨

@@ -15,9 +15,4 @@ export const PROCESSING_STALE_POLICY = {
   // 함수가 살아 있으면 늦어도 ~62m에 스스로 종료하고 상태를 쓴다.
   // ⚠️ 위 Modal 상수를 바꾸면 이 값도 함께 재검토할 것.
   stuckAlertMs: 90 * 60 * 1000,
-  // 알림 재발송 상한. 24h가 지나면 멈춘다(≈96회).
-  // 좁게 잡으면 cron 2회 누락 시 영구 미탐지가 생기므로 넉넉히 둔다.
-  // ⚠️ 이 "누락 허용" 논리는 monitorPipelineHealth의 cron 주기(현재 15분,
-  //    src/inngest/functions.ts)를 전제로 한다. 주기를 늘리면 함께 재검토할 것.
-  stuckAlertMaxAgeMs: 24 * 60 * 60 * 1000,
 } as const;

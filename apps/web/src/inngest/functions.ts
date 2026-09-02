@@ -9,7 +9,6 @@ import {
   completeUploadedFileProcessingAttempt,
   findCurrentProcessingAttemptContext,
   isUploadedFileAttemptStillProcessing,
-  listStuckProcessingUploadedFiles,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptReviewPending,
@@ -19,6 +18,8 @@ import {
   resolveModalPollAction,
   resolvePartialClipNoteCode,
 } from "~/fsd/entities/uploaded-file/model/clip-generation-outcome";
+import { PROCESSING_STALE_POLICY } from "~/fsd/entities/uploaded-file/model/stale-policy";
+import { stuckAlertElapsedMinutes } from "~/fsd/entities/uploaded-file/model/stuck-alert";
 import { createClipDraftsBulk } from "~/fsd/entities/clip-draft";
 import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
@@ -420,6 +421,16 @@ export const processVideo = inngest.createFunction(
       return { skipped: true };
     }
 
+    await step.sendEvent("schedule-stuck-watch", {
+      name: "processing/attempt.claimed",
+      data: {
+        uploadedFileId,
+        attempt,
+        matchKey: event.data.matchKey,
+        claimedAt: new Date().toISOString(),
+      },
+    });
+
     try {
       const callbackUrl = env.NEXT_PUBLIC_SITE_URL
         ? `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/modal`
@@ -476,14 +487,18 @@ export const processVideo = inngest.createFunction(
       }) {
         modalCallbackReceived = true;
 
+        // 성공·실패와 무관하게 부분 완성된 클립 메타데이터를 살린다.
+        // applyModalPayload는 콜백당 1회만 호출되므로(backendClips 초기값 undefined)
+        // 성공 경로 동작은 이전과 동일하고, 실패 상태에서만 backendClips가 새로 채워진다.
+        // 실패 판정은 아래 backendFailureMessage로 그대로 유지된다.
+        backendClips = normalizeBackendClips(args.clips);
+
         if (!isSuccessfulModalStatus(args.status)) {
           backendFailureMessage = `Modal ${args.source} reported status "${String(args.status)}": ${toErrorMessage(
             args.error ?? "Unknown modal processing error",
           )}`;
           return;
         }
-
-        backendClips = normalizeBackendClips(args.clips);
       }
 
       if (shouldWaitForCallback && !callbackUrl) {
@@ -850,6 +865,16 @@ export const analyzeVideo = inngest.createFunction(
       };
     }
 
+    await step.sendEvent("schedule-stuck-watch", {
+      name: "processing/attempt.claimed",
+      data: {
+        uploadedFileId,
+        attempt,
+        matchKey: event.data.matchKey,
+        claimedAt: new Date().toISOString(),
+      },
+    });
+
     try {
       const callbackUrl = env.NEXT_PUBLIC_SITE_URL
         ? `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/modal`
@@ -1046,65 +1071,58 @@ export const cleanupAnalyticsEvents = inngest.createFunction(
   },
 );
 
-// 조회 상한. stuck.length가 이 값과 같으면 더 있을 수 있다는 뜻이라
-// 잘림 여부를 반환값에 드러낸다.
-const STUCK_SCAN_LIMIT = 50;
+export const watchProcessingAttempt = inngest.createFunction(
+  {
+    id: "watch-processing-attempt",
+    retries: 1,
+    // reconcile이 정체를 강제 실패시키며 보내는 취소 이벤트로 자는 감시자도 함께 끝낸다.
+    // processVideo·analyzeVideo와 동일한 matchKey 매칭이라 계약이 일치한다.
+    cancelOn: [
+      {
+        event: "process-video-events/cancel",
+        match: "data.matchKey",
+      },
+    ],
+  },
+  // ⚠️ concurrency를 두지 않는다. processVideo·analyzeVideo는 account/userId 스코프
+  //    limit 1을 갖는데(functions.ts:298·:762), 자는 감시자가 그 슬롯을 점유하면
+  //    유저의 다음 처리 런이 최대 stuckAlertMs 동안 막힌다.
+  { event: "processing/attempt.claimed" },
+  async ({ event, step }) => {
+    const { uploadedFileId, attempt, claimedAt } = event.data;
 
-export const monitorPipelineHealth = inngest.createFunction(
-  {
-    id: "monitor-pipeline-health",
-  },
-  {
-    // ⚠️ 이 주기는 stale-policy.ts의 stuckAlertMaxAgeMs(24h) 산정 전제다
-    //    ("cron 2회 누락까지 견딘다"). 주기를 바꾸면 그쪽도 재검토할 것.
-    cron: "*/15 * * * *",
-  },
-  async ({ step }) => {
-    // step 경계는 JSON 직렬화를 거친다. Date를 그대로 반환하면
-    // 재개 시 문자열로 되살아나 타입이 거짓말을 하므로,
+    await step.sleep(
+      "wait-for-stuck-threshold",
+      PROCESSING_STALE_POLICY.stuckAlertMs,
+    );
+
+    // step 경계는 JSON 직렬화를 거치므로 Date를 그대로 반환하지 않는다.
     // 경과 계산까지 step 안에서 끝내고 원시 값만 넘긴다.
-    const stuck = await step.run("list-stuck-processing", async () => {
-      const rows = await listStuckProcessingUploadedFiles({
-        limit: STUCK_SCAN_LIMIT,
-      });
-      const now = Date.now();
-
-      // processingStartedAt은 쿼리의 범위 필터가 non-null을 보장하지만
-      // Prisma 타입이 Date | null이라 좁힘용 가드가 필요하다.
-      // 즉 아래 `: []` 분기는 런타임에 도달하지 않는다.
-      return rows.flatMap((row) =>
-        row.processingStartedAt
-          ? [
-              {
-                uploadedFileId: row.id,
-                processingStartedAt: row.processingStartedAt.toISOString(),
-                elapsedMinutes: Math.round(
-                  (now - row.processingStartedAt.getTime()) / 60_000,
-                ),
-              },
-            ]
-          : [],
+    // still-processing이면 처리 함수가 stuckAlertMs가 지나도록 상태를 못 바꿨다는 뜻이다.
+    const check = await step.run("check-attempt-still-processing", async () => {
+      const stillProcessing = await isUploadedFileAttemptStillProcessing(
+        uploadedFileId,
+        attempt,
       );
+      return {
+        stillProcessing,
+        elapsedMinutes: stuckAlertElapsedMinutes(claimedAt, new Date()),
+      };
     });
 
-    for (const row of stuck) {
-      reportPipelineFailure({
-        kind: "stuck-processing",
-        uploadedFileId: row.uploadedFileId,
-        processingStartedAt: row.processingStartedAt,
-        elapsedMinutes: row.elapsedMinutes,
-      });
+    if (!check.stillProcessing) {
+      return { alerted: false };
     }
 
-    // 이벤트마다 flush하면 route.ts의 maxDuration=10 예산을 넘길 수 있다.
-    // 루프가 끝난 뒤 한 번만, 기본 예산으로 호출한다(배경 작업이라 여유가 있다).
+    reportPipelineFailure({
+      kind: "stuck-processing",
+      uploadedFileId,
+      processingStartedAt: claimedAt,
+      elapsedMinutes: check.elapsedMinutes,
+    });
+
     await flushReports();
 
-    // truncated=true면 stuckCount는 실제 정체 건수가 아니라 상한이다.
-    // 대량 정체 시 이 값을 총량으로 읽으면 안 된다.
-    return {
-      stuckCount: stuck.length,
-      truncated: stuck.length === STUCK_SCAN_LIMIT,
-    };
+    return { alerted: true };
   },
 );

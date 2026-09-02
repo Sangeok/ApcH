@@ -76,6 +76,15 @@ type Events = {
       matchKey: string;
     };
   };
+  "processing/attempt.claimed": {
+    data: {
+      uploadedFileId: string;
+      attempt: number;
+      matchKey: string;
+      // claim 직후 ISO. stuck 리포트의 processingStartedAt·elapsedMinutes 산정에 쓴다.
+      claimedAt: string;
+    };
+  };
   "modal/video.processed": {
     data: {
       uploadedFileId: string;
