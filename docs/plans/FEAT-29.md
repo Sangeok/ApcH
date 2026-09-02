@@ -190,12 +190,13 @@ export const watchProcessingAttempt = inngest.createFunction(
 
 - `api/index.ts`: `StuckProcessingUploadedFile` 타입(`:1295-1302`)과 `listStuckProcessingUploadedFiles`(`:1304-1343`) 삭제. 둘 다 다른 사용처가 없다(web `src` 전수 확인).
 - `index.ts`: `listStuckProcessingUploadedFiles`(`:18`)와 `export type { StuckProcessingUploadedFile }`(`:44`) 제거.
-- `stale-policy.ts`: `:18-22`(주석 3줄 + `stuckAlertMaxAgeMs`) 삭제. `stuckAlertMs`(`:17`)는 감시자가 소비하므로 유지. 삭제 후 객체는 `stuckAlertMs: 90 * 60 * 1000,` 뒤 `} as const;`로 끝난다.
+- `stale-policy.ts`: `:18-22`(주석 4줄 + `stuckAlertMaxAgeMs`) 삭제. `stuckAlertMs`(`:17`)는 감시자가 소비하므로 유지. 삭제 후 객체는 `stuckAlertMs: 90 * 60 * 1000,` 뒤 `} as const;`로 끝난다.
 
 ## 테스트
 
 - **덮는 것**: `stuck-alert.test.mjs`가 `stuckAlertElapsedMinutes`를 덮는다 — 90분 전 → 90, 반올림 경계(89.6m→90·89.4m→89), 정확히 now → 0, 미래 시각(음수) → 0, parse 불가 문자열 → 0, `""`/공백 → 0.
 - **못 덮는 범위**: `npm test`(Node 내장 러너, `tsx`)는 DOM·React·DB·Inngest 하니스가 없다. 따라서 다음은 이 러너로 못 덮는다 — `step.sendEvent`의 이벤트 발송과 idempotency, `step.sleep` 후 재개, `cancelOn` 매칭, `watchProcessingAttempt`의 배선, `isUploadedFileAttemptStillProcessing`의 DB 조회, `reportPipelineFailure`/`flushReports` 부수효과, concurrency 미설정의 슬롯 비점유. 이들은 배포 후 Inngest 대시보드에서 `processing/attempt.claimed` 발송·`watch-processing-attempt` 런의 sleep→check 흐름과 취소를 실물로 확인해야 한다(배포 확인 대상).
+- **전환 구간 공백(배포 시점 1회)**: 배포 순간 이미 `processing`인 attempt는 `processing/attempt.claimed`를 받은 적이 없어 감시자가 없고, 그것을 잡던 cron은 이 변경으로 사라진다 — 그 attempt가 정체되면 알림이 나가지 않는다. 코드로 메우지 않는다(과거 attempt를 위한 일회성 백필은 이 항목의 범위를 넘고, 남길 코드도 아니다). 완화: 처리 중 업로드가 없을 때 배포한다. 잔여 영향은 Sentry 알림 1회 유실뿐이며 사용자 가시 영향은 없다 — 그 업로드는 조회 시점 `reconcileStaleUploadedFileForUser`(`api/index.ts:954`)가 여전히 강제 실패시킨다. 배포 확인 원장에 등재해 닫는다.
 
 ## 범위 밖 의존
 
