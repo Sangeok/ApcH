@@ -476,14 +476,18 @@ export const processVideo = inngest.createFunction(
       }) {
         modalCallbackReceived = true;
 
+        // 성공·실패와 무관하게 부분 완성된 클립 메타데이터를 살린다.
+        // applyModalPayload는 콜백당 1회만 호출되므로(backendClips 초기값 undefined)
+        // 성공 경로 동작은 이전과 동일하고, 실패 상태에서만 backendClips가 새로 채워진다.
+        // 실패 판정은 아래 backendFailureMessage로 그대로 유지된다.
+        backendClips = normalizeBackendClips(args.clips);
+
         if (!isSuccessfulModalStatus(args.status)) {
           backendFailureMessage = `Modal ${args.source} reported status "${String(args.status)}": ${toErrorMessage(
             args.error ?? "Unknown modal processing error",
           )}`;
           return;
         }
-
-        backendClips = normalizeBackendClips(args.clips);
       }
 
       if (shouldWaitForCallback && !callbackUrl) {

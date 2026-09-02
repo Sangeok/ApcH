@@ -40,11 +40,12 @@
   area: apps/web/src/inngest + apps/web/src/fsd/entities/uploaded-file
   status: 승인대기
   근거: 사용자가 이 세션에서 직접 등재·즉시 진행 지시(Neon 비용 절감, 진단·수정 방향 코드 확정 수준). 미결 0건.
-- [ ] FEAT-28: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
+- [x] FEAT-28: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/fsd/entities/clip
-  status: 구현승인
+  status: 완료
   근거: BUG-08 계획서가 남긴 범위 밖 의존 후속. 코드 확정 수준 진단(원인 지점·수정 방향 명시)이라 계획 착수가 바로 가능하다.
+  결과: applyModalPayload에서 backendClips 대입을 실패 early return 위로 이동(실패도 부분 메타데이터 보존, 판정 유지) + 폴링 불변식 테스트 2개. check EXIT0·test 60/0(58→60). 상세 web-dev/FEAT-28
   검증: 클린 패스 (2026-09-02, 독립 무편집 1라운드 — plan-verifier 1사이클째)
 
 ## 2026-08-29

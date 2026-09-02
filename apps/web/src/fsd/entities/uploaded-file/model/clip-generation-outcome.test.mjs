@@ -181,4 +181,33 @@ describe("resolveModalPollAction", () => {
       "continue",
     );
   });
+
+  it("keeps failing when a failure callback also carries partial clips", () => {
+    // FEAT-28: 실패 상태에서도 backendClips를 채우면 backendClipCount가 비-null이 된다.
+    // hasBackendFailure=true면 settle 분기(!hasBackendFailure)를 타지 않고 여전히 failed여야 한다.
+    assert.equal(
+      resolveModalPollAction({
+        generatedClipCount: 1,
+        clipCount: 3,
+        modalCallbackReceived: true,
+        hasBackendFailure: true,
+        backendClipCount: 2,
+      }),
+      "failed",
+    );
+  });
+
+  it("still detects a full S3 set on a failure callback with partial clips", () => {
+    // 실패 콜백이라도 S3에 전량이 이미 있으면 detected가 우선한다(backendClipCount 무관).
+    assert.equal(
+      resolveModalPollAction({
+        generatedClipCount: 3,
+        clipCount: 3,
+        modalCallbackReceived: true,
+        hasBackendFailure: true,
+        backendClipCount: 2,
+      }),
+      "detected",
+    );
+  });
 });

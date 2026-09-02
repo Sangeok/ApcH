@@ -22,13 +22,25 @@
 
 ---
 
+## FEAT-28 — 실패 콜백의 부분 클립 메타데이터 소비 (web, 구현 2026-09-02)
+
+원천: `docs/agents/web-dev/FEAT-28.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에 커밋, `main` 합류 전.
+BUG-08(backend 절반, 2026-08-29 배포)의 두 번째 절반이라, 이 절이 닫혀야 그 항목의 사용자 가시 효과가 처음 확인된다.
+`applyModalPayload`는 `processVideo` 안의 클로저라 현재 러너(`tsx --test`)로 종단 구동이 불가능하다 — 아래는 전부 실제 부분-실패 실행에서만 닫힌다.
+
+- [ ] **핵심 — 부분 성공 클립의 메타데이터 표시**: 클립 루프 중간 실패를 유도한 실제 실행에서, 이미 S3에 오른 앞쪽 클립의 카드에 제목·대본·근거(clipType 라벨·hook·payoff)와 자막 폴백 안내가 뜬다. 수정 전에는 같은 상황에서 이 값들이 전부 빈 맨행이었다
+- [ ] **실패 판정 유지**: 위와 같은 실행에서 업로드 자체는 여전히 실패/부분으로 남는다 — `failureCode`가 `PARTIAL_CLIPS_AFTER_BACKEND_ERROR`이고 성공으로 뒤집히지 않는다(수정이 `backendFailureMessage`를 건드리지 않았다는 것의 실물 확인)
+- [ ] **크레딧 차감 불변**: 같은 실행에서 차감량이 전달된 클립 수(`clipsFound`)와 일치하고, 메타데이터가 붙었다고 달라지지 않는다
+- [ ] **성공 경로 무회귀**: 정상 실행의 클립 메타데이터 반영·폴링 조기 탈출(settle/detected)이 이전과 동일
+- [ ] **웹훅 무회귀**(BUG-08에서 이관): 실패 페이로드로 웹훅이 200을 돌려주고 `normalizeBody`를 통과한다. 단 inngest 결과는 이제 **맨행이 아니라 메타데이터 행**이며, 경로 A `updateMany` 0건은 그대로 정상이다(행 생성 시점에 메타데이터가 담기므로)
+
 ## BUG-08 — 에러 콜백에 부분 clip_results 싣기 (backend, 구현 2026-08-29)
 
 원천: `docs/agents/backend-dev/BUG-08.md` 「못 덮은 범위」. **배포 완료(2026-08-29 11:25 KST, BUG-04와 묶어 `modal deploy` — 사용자 승인 하에 메인 루프 실행).** 주의: 이 항목만으로는 사용자 가시 변화가 없다 — web inngest가 `status: error` 페이로드의 `clips`를 소비하는 후속(백로그 후보)이 있어야 메타데이터가 행에 실린다. 아래 줄은 그 전제 절반만 확인한다.
 
 - [ ] `modal deploy` — 이미지 번들에 `error_callback` 포함 — **번들은 배포 출력으로 실측**(2026-08-29 11:25 KST: mount에 `PythonPackage:error_callback`), 컨테이너 import는 다음 실사용 실행에서
 - [ ] 에러 콜백 본문 — 클립 루프 중간 실패를 유도한 `modal run`에서 웹훅이 받은 `status: error` 페이로드의 `clips`에 그때까지 완성된 클립(성공 콜백과 같은 원소 모양, `index`·`s3Key` 포함)이 실려 옴(웹훅 로그 또는 `modal/video.processed` 이벤트 payload). 루프 진입 전 실패는 `clips: []`(기존과 동일)
-- [ ] 웹 무회귀 — 그 페이로드로 웹훅이 200을 돌려주고(`normalizeBody` 통과), inngest는 기존대로 실패 처리(행은 맨행) — 경로 A `updateMany`는 행 부재로 0건이 정상
+- [x] 웹 무회귀 — 그 페이로드로 웹훅이 200을 돌려주고(`normalizeBody` 통과), inngest는 기존대로 실패 처리(행은 맨행) — 경로 A `updateMany`는 행 부재로 0건이 정상 — 대체(FEAT-28). "행은 맨행"은 FEAT-28 구현(2026-09-02)으로 더 이상 참이 아니다 — 이 줄을 그대로 두면 확인자가 회귀(메타데이터 유실)를 정상으로 판정한다. 200·`normalizeBody` 통과 확인은 FEAT-28 절의 「웹훅 무회귀」 줄이 이어받는다
 - [ ] 성공 경로 불변 — 정상 실행의 성공 콜백·클립 메타데이터 반영이 이전과 동일
 
 ## BUG-04 — 임시 디렉토리 정리 정책(KEEP_TEMP_ON_FAILURE opt-in) (backend, 구현 2026-08-29)

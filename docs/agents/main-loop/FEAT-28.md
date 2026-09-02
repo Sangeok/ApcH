@@ -81,3 +81,21 @@ pm이 미결 0건 상태에서 FEAT-29와 함께 선정(`c36f48c`). 사용자가
 ## 게이트② 개방 (2026-09-02)
 
 사용자가 세션에서 "구현 승인"으로 게이트② 개방 — 메인 루프가 보드를 `구현승인`으로 편집했고 결정은 사용자의 것이다. 미결은 FEAT-28 하나(FEAT-29는 `승인대기` 유지). `web-dev`에 디스패치한다.
+
+## 구현 인수 (2026-09-02, 메인 루프)
+
+보드 안내 블록의 인수 조건 **다섯을 전부 직접 재현**했다(에이전트 보고를 근거로 쓰지 않음).
+
+1. **변경 파일 ↔ 「고칠 파일」** — `git status --porcelain`의 코드 변경은 `apps/web/src/inngest/functions.ts`·`apps/web/src/fsd/entities/uploaded-file/model/clip-generation-outcome.test.mjs` **정확히 둘**. 계획서 표와 일치하고 범위 밖 파일 없음. `apps/web/.claude/settings.local.json`·`nul`은 세션 시작 시점부터 있던 것.
+2. **diff ↔ 「구현 스케치」** — `git diff`가 after 블록과 바이트 일치(주석 4줄 + 대입 한 줄 이동, `-` 쪽은 옛 위치의 빈 줄과 대입). 테스트 2건도 이름·주석·리터럴(`generatedClipCount`·`clipCount`·`backendClipCount`·기대값)까지 스케치 그대로. 분기 순서·조건·리터럴·사용자 문구 어느 것도 달라지지 않음.
+3. **검증 명령 직접 재실행** — `npm run check -w apps/web` **EXIT 0**(`✔ No ESLint warnings or errors` + `tsc --noEmit`), `npm test -w apps/web` **EXIT 0**(tests 60 / pass 60 / fail 0). 검증 라운드에서 스케치로 얻은 수치와 동일.
+4. **백로그 제거** — `grep FEAT-28 TASK_BACKLOG.md` 무매치. 잔여 3항목(FEAT-29·FEAT-01·FEAT-27)은 온전.
+5. **`결과`가 가리키는 상세 기록 실재** — `docs/agents/web-dev/FEAT-28.md` 40줄 실재. B-3 배경 대조·고친 파일 전수·스케치 대비 차이(없음)·검증 출력·못 덮은 범위·CLAUDE.md 표 판단까지 규약대로 담겨 있다.
+
+「범위 밖 의존」은 계획서가 "없음"이고 구현에서도 발생하지 않아 백로그 후보 없음.
+
+## 배포 확인 등재 (2026-09-02) — BUG-08 낡은 줄 1건 정정
+
+`docs/release-checks.md`에 FEAT-28 절을 등재(5줄, 자동 태그 없음 — 실제 부분-실패 파이프라인 실행이 필요해 응답 상태·문구·CSS만으로 판정 불가).
+
+등재하며 **기존 줄의 부패를 하나 잡았다.** BUG-08 절의 「웹 무회귀」 줄이 `inngest는 기존대로 실패 처리(행은 맨행)`를 정상 기대로 못 박고 있었는데, 이번 구현이 바로 그 동작을 바꿨다. 그대로 두면 확인자가 **회귀(메타데이터 유실)를 정상으로 판정**하게 된다. 원장 마감 규칙의 `대체(항목ID)`("후속 항목이 같은 확인을 재선언해 옛 줄이 무의미해졌다")에 해당해 `[x] … 대체(FEAT-28)`로 닫고, 아직 유효한 절반(200 응답·`normalizeBody` 통과)은 FEAT-28 절의 「웹훅 무회귀」 줄이 이어받게 했다.
