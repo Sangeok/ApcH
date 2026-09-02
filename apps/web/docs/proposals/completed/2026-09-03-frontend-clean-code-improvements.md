@@ -1,13 +1,12 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
 proposal-size: "standard"
 created-at: "2026-09-02"
-approved-by: null
-approved-at: null
-approval-scope: null
-completed-at: null
-verification-summary: null
+approved-by: "HamSangEok"
+approved-at: "2026-09-02"
+approval-scope: "전체 (Phase 0~5)"
+completed-at: "2026-09-03"
+verification-summary: "Phase 0~5 각 종료마다 typecheck·lint·test·build 통과. 최종 70/70, lint 0, build 성공, 라우트 static/dynamic 표기 기준선과 동일"
 closed-at: null
 closed-by: null
 closed-reason: null
@@ -1153,7 +1152,18 @@ npm ls react-dropzone -w apps/web    # 직접 의존으로 잡혀야 함
 | `npm ls react-dropzone shadcn-dropzone -w apps/web` | `shadcn-dropzone@0.2.1 └── react-dropzone@14.3.8` | C-65 확인 |
 | SWC 바이너리 grep `"Only async functions are allowed to be exported in a \"use server\" file"` | 1건 | C-01 빌드 함정 확인 |
 | Next `get-page-static-info.js` `extractExportedConstValue(ast, 'config')` / `UnsupportedValueError` | 존재 | C-39 matcher 리터럴 제약 확인 |
-| 변경 후 검증 | Not run yet | 구현 시 Phase마다 실행 |
+| `npm run typecheck -w apps/web` (Phase 0~5 각 종료 시) | 통과 | |
+| `npm run lint -w apps/web` (Phase 0~5 각 종료 시) | 경고·오류 0 | |
+| `npm test -w apps/web` (최종) | 70/70 통과 | 12개 파일. C-39가 `middleware.test.mjs`(+3), C-22가 `clip-type-label.test.mjs`를 추가 |
+| `npm run build -w apps/web` (Phase 0~5 각 종료 시) | 성공 | `server-only`·`"use server"` 규칙과 라우트 그룹 이동을 이 게이트가 잡는다 |
+| 빌드 출력 static/dynamic 라우트 표기 대조 (Phase 3·4) | 기준선과 동일 | C-45·C-72·C-73이 마케팅 15 라우트를 dynamic으로 바꾸지 않았음을 확인 |
+| `grep -rn 'from "~/fsd/entities/' apps/web/src/fsd/entities` | 0건 | CPL-2 |
+| `grep -rn '~/inngest' apps/web/src/fsd/entities` | 0건 | CPL-3 |
+| `grep -n '"use server"' apps/web/src/fsd/features/upload/api/*.ts` | `index.ts:1`만 매치 | C-75·C-76의 server-only 형제 모듈이 액션이 되지 않았음 |
+| `grep -rn 'db\.uploadedFile' apps/web/src --exclude entities/uploaded-file/api` | 0건 | C-40. features에 남은 `db` 사용은 `$transaction` 셋뿐 |
+| `grep -rn 'confirm('` (blocking) | 0건 | C-71 |
+| C-37 방어선 실증 | 컴파일 오류 재현 | 푸터 href에 `"/securityy"` 주입 → `TS2820`, 되돌림 |
+| C-33 방어선 실증 | 컴파일 검사 확인 | `markUploadedFileAttemptFailed` 호출 13곳의 리터럴이 union에 묶임 |
 
 ## Risks and Rollback
 
@@ -1175,15 +1185,17 @@ npm ls react-dropzone -w apps/web    # 직접 의존으로 잡혀야 함
 
 ## Completion or Closure Notes
 
-완료 또는 닫힘 처리 후 `completed/`로 이동할 때 작성한다.
+완료 기록:
 
-완료 기록(`status: "completed"`일 때 작성):
-
-- completed-at: TBD
-- verification-summary: TBD
-- implementation PR/commit: TBD
-- changed files summary: TBD
-- remaining follow-up: TBD
+- completed-at: 2026-09-03
+- verification-summary: Phase 0~5 각 종료마다 typecheck·lint·test·build 4종 통과. 최종 테스트 70/70(기준선 67 + C-39 3건), lint 경고 0, build 성공. 빌드 출력의 static/dynamic 라우트 표기는 기준선과 동일하다 — C-45·C-72·C-73이 마케팅 15 라우트를 dynamic으로 바꾸지 않았다.
+- implementation commits: `9dd6dfb`(Phase 0, 14건) · `8c06cfe`(Phase 1, 12건) · `3744025`(Phase 2-1) · `82031ee`(Phase 2-2) · `8789f26`(Phase 2-3) · `143157d`(Phase 3, 19건) · `4ad3cd1`(Phase 4, 13건). 기준선 `98ba430`부터 159 파일 변경(+4787 / -2760).
+- changed files summary: 신규 파일 — `entities/uploaded-file/model/{failure-code,optimistic-id}.ts`, `entities/{uploaded-file,clip,clip-draft}/server.ts`, `entities/clip/lib/clip-type-label.ts`, `features/upload/api/{complete-processing-attempt,dispatch-processing,reconcile-stale-processing}.ts`, `features/upload/model/{use-delete-uploaded-file,use-resume-upload-draft}.ts`, `features/clip/model/use-delete-clip.ts`, `inngest/modal-contract.ts`, `shared/config/{public-routes,product-copy}.ts`, `shared/lib/format-duration.ts`, `shared/observability/use-report-boundary-error.ts`, `shared/ui/atoms/{json-ld,resource-card-grid}.tsx`, `widgets/clip-display/model/use-script-clipboard.ts`, `widgets/site-header/ui/_component/HeaderAuthMenu.tsx`, `middleware.test.mjs`. 삭제 — `pages/resources/**`, `widgets/site-header/ui/index.tsx`, `features/clip/model/schemas.ts`, `entities/*/model/types.ts` 패스스루 셋. 이동 — `app/{privacy,terms}` → `app/(public-marketing)/{privacy,terms}`.
+- remaining follow-up:
+  - **C-73 분석 연속성(§판단 9)** — 합쳐진 "Log in" 버튼의 `location`을 트래픽이 큰 쪽인 `"public_header"`로 **골랐다**. 홈(`/`)의 `"site_header"` 시계열은 여기로 합류한다. 분석 소유자가 다른 값을 원하면 `widgets/site-header/ui/public-header.tsx` 한 단어를 바꾼다.
+  - **미실행 수동 확인** — §Verification Plan의 수동 표(프로덕션 Polar 포털, 404 화면, 빈 `youtubeTitle`, 마지막 클립 삭제, 웹훅 400, 자동재생 재개, 업로드 1건 실제 처리)는 배포 실물에서만 닫힌다. `docs/release-checks.md` 등재 대상.
+  - **§판단 1·4·6·7·8** — 미결로 남는다. 각각 두 `report-error.ts` 동일성 관례(현재는 보존), `outlineWidth` 정수/소수 권위, 마케팅 라우트 인증 인지 여부, 클라이언트 Sentry 초기화, `.mjs` 테스트 타입체크 편입.
+  - **후속 항목(계획서가 "보류"로 기록한 것)** — TSC-26(`useUploadPodcast`의 중복 복구 블록 추출), COH-7(billing을 `billingKeys` + `queryOptions`로), COH-13(`PRODUCT_LIMITS_COPY` 보간), C-74 후속(클라이언트 Sentry 도달 확인 후 `captureException`).
 
 닫힘 기록(`status: "closed"`일 때 작성):
 
@@ -1197,9 +1209,9 @@ npm ls react-dropzone -w apps/web    # 직접 의존으로 잡혀야 함
 
 - [x] 모든 `{placeholder}`를 처리했고, pending 문서의 완료/닫힘 전용 `TBD` 외에는 현재 상태에 맞게 갱신했다.
 - [x] `status`는 `pending`, `completed`, `closed`만 사용했다.
-- [x] 문서 위치와 `status`가 일치한다(`active/` · `pending`).
-- [x] `stage`는 pending 문서에서만 사용했다.
-- [x] `stage: "approved"`가 아니므로 승인 필드는 null이다.
+- [x] 문서 위치와 `status`가 일치한다(`completed/` · `completed`).
+- [x] `stage`는 pending 문서에서만 사용했다 — 완료 시 제거했다.
+- [x] 승인 필드는 사용자의 전체 범위 구현 지시(2026-09-02)를 기록한다.
 - [x] `proposal-size`는 `standard`이며 강제 조건(삭제·라우팅·결제·barrel·5개 이상 파일)에 해당한다.
 - [x] 승인 기록은 front matter를 단일 기준으로 사용했다.
 - [x] 변경 범위와 제외 범위가 명확하다.
@@ -1208,8 +1220,9 @@ npm ls react-dropzone -w apps/web    # 직접 의존으로 잡혀야 함
 - [x] 검증 명령과 성공 기준이 적혀 있다.
 - [x] 검증 실패가 있다면 기존 실패와 신규 실패를 구분한다(기준선에 실패 없음).
 - [x] 잔여 리스크를 명시했다.
-- [ ] 완료 문서 항목 — 해당 없음(pending).
-- [ ] 닫힌 문서 항목 — 해당 없음(pending).
+- [x] 완료 문서 항목 — completed-at·verification-summary·구현 커밋·변경 파일 요약·잔여 후속을 채웠다.
+- [ ] 닫힌 문서 항목 — 해당 없음(완료).
+- [x] 정규 77건을 모두 처리했다. 계획서가 조건부·대안으로 둔 곳은 선택한 쪽과 이유를 코드 주석 또는 위 잔여 후속에 남겼다.
 
 ## Needs human judgment
 
