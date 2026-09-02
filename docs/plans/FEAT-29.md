@@ -13,7 +13,7 @@ agent: web-dev
 
 정체를 낳는 상태 쓰기(`status: "processing"`)와 그 트리거는 코드상 단일 경로다.
 
-- `uploadedFile.status`를 `"processing"`으로 **쓰는** 곳은 `startUploadedFileProcessingAttempt`의 `updateMany.data`(`api/index.ts:697-700`) **한 곳뿐**이다. 파일 내 `status: "processing"` 나머지 5곳(`api/index.ts:736`·`761`·`781`·`947`·`1326`)은 전부 `where` 필터, `:846`은 `where.status.in` 배열 원소, `:1072`는 인메모리 비교, `:1086`은 필터 인자다. `createUploadDraft`의 최초 status는 `"upload_pending"`(`api/index.ts:200`)이고 동적 status 쓰기 경로는 없다(web `src` 전수: `status:"processing"`/`'processing'` 및 `status: <변수>` 검색 결과 위 목록이 전부).
+- `uploadedFile.status`를 `"processing"`으로 **쓰는** 곳은 `startUploadedFileProcessingAttempt`의 `updateMany.data`(`api/index.ts:697-700`) **한 곳뿐**이다. 파일 내 `status: "processing"` 나머지 5곳(`api/index.ts:736`·`761`·`781`·`947`·`1326`)은 전부 `where` 필터, `:846`은 `where.status.in` 배열 원소, `:1072`는 인메모리 비교, `:1086`은 필터 인자다. `createUploadDraft`의 최초 status는 `"upload_pending"`(`api/index.ts:200`)이다. **동적 status 쓰기 경로는 하나 있다** — `updateUploadedFileStatus`(`api/index.ts:886-915`)가 `status: ProcessingStatus`를 받아 `data: { status }`(`:899-900`)로 그대로 쓰고, `processingStartedAt`도 옵션으로 받는다(`:891`·`:901-903`). 다만 **호출부가 0이다**(저장소 전수: 정의 `api/index.ts:886`과 배럴 재수출 `index.ts:31` 둘뿐). 따라서 "정체 후보 행은 `startUploadedFileProcessingAttempt` 단일 쓰기로만 태어난다"는 오늘 시점의 사실이며, 그 근거는 "동적 경로가 없다"가 아니라 "동적 경로가 있으나 아무도 부르지 않는다"이다.
 - `startUploadedFileProcessingAttempt` 호출부는 `processVideo`의 `claim-processing-attempt` 스텝(`functions.ts:395-404`)과 `analyzeVideo`의 동일 스텝(`functions.ts:836-845`) **둘뿐**이다(web `src` 전수). 두 함수 모두 `event.data`에 `uploadedFileId`·`attempt`·`matchKey`를 갖는다(`client.ts:47-71`). claim 성공은 `claimResult.status === "started"`(`functions.ts:419`, `:847`).
 - 단건 확인 함수 `isUploadedFileAttemptStillProcessing(uploadedFileId, attempt)`(`api/index.ts:773-787`, boolean)이 이미 있고 `processVideo`가 `check-attempt-still-processing` 스텝에서 쓴다(`functions.ts:622-627`).
 - 취소 이벤트 `process-video-events/cancel`은 `sendProcessingCancelEventBestEffort`(`api/index.ts:165-185`)가 `matchKey: getProcessingMatchKey(uploadedFileId, attempt)`(`api/index.ts:175`)를 실어 보낸다. `getProcessingMatchKey`는 `` `${uploadedFileId}:${attempt}` ``(`model/attempt-prefix.ts:9-11`) — 이벤트 디스패치가 `event.data.matchKey`에 넣는 값과 동일한 출처다(`entities/processing-dispatch/api/index.ts:205-208`). `processVideo`·`analyzeVideo`는 이미 `cancelOn: [{ event: "process-video-events/cancel", match: "data.matchKey" }]`(`functions.ts:287-292`, `:750-755`)로 이 취소를 받는다.
@@ -34,7 +34,7 @@ agent: web-dev
 | `src/inngest/client.ts` | `Events`에 `processing/attempt.claimed` 이벤트 스키마 추가(`uploadedFileId`·`attempt`·`matchKey`·`claimedAt`) |
 | `src/inngest/functions.ts` | ① import에서 `listStuckProcessingUploadedFiles` 제거, `PROCESSING_STALE_POLICY`(stale-policy)·`stuckAlertElapsedMinutes`(신규 stuck-alert) 추가 ② `processVideo`·`analyzeVideo`의 claim "started" 직후 `step.sendEvent`로 `processing/attempt.claimed` 발송 ③ `STUCK_SCAN_LIMIT`·`monitorPipelineHealth` 삭제 ④ `watchProcessingAttempt` 함수 신설 |
 | `src/app/api/inngest/route.ts` | 등록 목록·import에서 `monitorPipelineHealth`를 `watchProcessingAttempt`로 교체 |
-| `src/fsd/entities/uploaded-file/api/index.ts` | `StuckProcessingUploadedFile` 타입(`:1295-1302`)과 `listStuckProcessingUploadedFiles` 함수(`:1304-1343`) 삭제 |
+| `src/fsd/entities/uploaded-file/api/index.ts` | ① `StuckProcessingUploadedFile` 타입(`:1295-1302`)과 `listStuckProcessingUploadedFiles` 함수(`:1304-1343`) 삭제 ② `updateUploadedFileStatus`(`:886`)에 ⚠️ 불변식 주석 추가 — 이 함수로 `"processing"`을 쓰면 감시자가 예약되지 않아 정체 알림이 유실된다 |
 | `src/fsd/entities/uploaded-file/index.ts` | 재수출 제거: `listStuckProcessingUploadedFiles`(`:18`), `type StuckProcessingUploadedFile`(`:44`) |
 | `src/fsd/entities/uploaded-file/model/stale-policy.ts` | `stuckAlertMaxAgeMs`와 cron 전제 주석(`:18-22`) 삭제. `stuckAlertMs`(`:17`)와 그 근거 주석(`:8-16`)은 감시자가 계속 소비하므로 유지 |
 | `src/fsd/entities/uploaded-file/model/stuck-alert.ts` `(신규)` | 순수 함수 `stuckAlertElapsedMinutes(claimedAtIso, now)` |
@@ -120,7 +120,7 @@ import { stuckAlertElapsedMinutes } from "~/fsd/entities/uploaded-file/model/stu
 
 ### 6) `functions.ts` — `monitorPipelineHealth`·`STUCK_SCAN_LIMIT` 삭제, `watchProcessingAttempt` 신설
 
-`functions.ts:1053-1114`(주석 `:1053-1055` + `STUCK_SCAN_LIMIT` + `monitorPipelineHealth`)를 통째로 삭제하고 그 자리에:
+`functions.ts:1053-1114`(주석 `:1053-1054` + `STUCK_SCAN_LIMIT` `:1055` + `monitorPipelineHealth` `:1057-1114`)를 통째로 삭제하고 그 자리에:
 
 ```ts
 export const watchProcessingAttempt = inngest.createFunction(
@@ -148,9 +148,9 @@ export const watchProcessingAttempt = inngest.createFunction(
       PROCESSING_STALE_POLICY.stuckAlertMs,
     );
 
-    // 경과 계산까지 step 안에서 끝내고 원시 값만 넘긴다(monitorPipelineHealth의
-    // Date-경계 규율과 동일). still-processing이면 처리 함수가 stuckAlertMs가 지나도록
-    // 상태를 못 바꿨다는 뜻이다.
+    // step 경계는 JSON 직렬화를 거치므로 Date를 그대로 반환하지 않는다.
+    // 경과 계산까지 step 안에서 끝내고 원시 값만 넘긴다.
+    // still-processing이면 처리 함수가 stuckAlertMs가 지나도록 상태를 못 바꿨다는 뜻이다.
     const check = await step.run("check-attempt-still-processing", async () => {
       const stillProcessing = await isUploadedFileAttemptStillProcessing(
         uploadedFileId,
@@ -189,6 +189,16 @@ export const watchProcessingAttempt = inngest.createFunction(
 ### 8) `api/index.ts`·`index.ts`·`stale-policy.ts` — 삭제
 
 - `api/index.ts`: `StuckProcessingUploadedFile` 타입(`:1295-1302`)과 `listStuckProcessingUploadedFiles`(`:1304-1343`) 삭제. 둘 다 다른 사용처가 없다(web `src` 전수 확인).
+- `api/index.ts`: `updateUploadedFileStatus`(`:886`) 바로 위에 불변식 주석을 붙인다. 이 함수는 지금 호출부가 0이지만 배럴로 공개돼 있어(`index.ts:31`), 누군가 이것으로 `"processing"`을 쓰면 `processing/attempt.claimed`가 발송되지 않아 감시자 없는 정체 행이 생긴다 — 전수 스캔 cron이 없어진 뒤로는 그 행의 알림이 조용히 유실된다. 이 저장소가 `stale-policy.ts`↔`functions.ts`에서 쓰는 ⚠️ 상호 참조 주석과 같은 장치다.
+
+```ts
+// ⚠️ 이 함수로 status를 "processing"으로 쓰지 말 것. 정체 감시는
+//    processVideo·analyzeVideo가 claim 직후 보내는 "processing/attempt.claimed"
+//    이벤트로만 예약된다(watchProcessingAttempt, src/inngest/functions.ts).
+//    이벤트 없이 processing 행을 만들면 감시자가 없어 정체 알림이 유실된다.
+//    꼭 필요하면 같은 이벤트를 함께 보내고, 그 경로를 여기 적을 것.
+export async function updateUploadedFileStatus(
+```
 - `index.ts`: `listStuckProcessingUploadedFiles`(`:18`)와 `export type { StuckProcessingUploadedFile }`(`:44`) 제거.
 - `stale-policy.ts`: `:18-22`(주석 4줄 + `stuckAlertMaxAgeMs`) 삭제. `stuckAlertMs`(`:17`)는 감시자가 소비하므로 유지. 삭제 후 객체는 `stuckAlertMs: 90 * 60 * 1000,` 뒤 `} as const;`로 끝난다.
 
