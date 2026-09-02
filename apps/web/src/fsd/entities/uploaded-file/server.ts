@@ -9,12 +9,15 @@ import "server-only";
  * 런타임 기준으로 나눠서 양쪽 모두 슬라이스 루트를 쓸 수 있게 한다.
  */
 export {
+  claimNextProcessingAttempt,
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
   deleteUploadedFileRecord,
   ensureUploadedFileQueuedForDispatch,
   findStaleProcessingCandidate,
   findUploadedFileFailureState,
+  findUploadedFileForScheduling,
+  findUploadedFileReviewState,
   findUploadedFileSourceState,
   findUploadedFileForDeletion,
   findCurrentProcessingAttemptContext,

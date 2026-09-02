@@ -3,6 +3,7 @@ import { podcastToShortsFaq } from "~/fsd/pages/podcast-to-shorts/config";
 import PodcastToShortsPage from "~/fsd/pages/podcast-to-shorts/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "Turn Podcasts Into Shorts With AI",
@@ -24,10 +25,7 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={faqJsonLd} />
       <PodcastToShortsPage />
     </>
   );

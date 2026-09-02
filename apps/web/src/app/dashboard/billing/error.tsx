@@ -20,11 +20,8 @@ export default function BillingError({
       description="Something went wrong while loading the billing page. Please try again later."
       digest={error.digest}
       variant="section"
-      showRetry
-      onRetry={reset}
-      showBack
-      backHref="/dashboard"
-      backLabel="Back to dashboard"
+      retry={{ onRetry: reset }}
+      back={{ href: "/dashboard", label: "Back to dashboard" }}
     />
   );
 }

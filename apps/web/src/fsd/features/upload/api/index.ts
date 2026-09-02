@@ -27,7 +27,11 @@ import {
   getUploadedFileDetailsById,
   listActiveUploadedFileQueueStateByUserId,
   listUploadedFileSummariesByUserId,
+  claimNextProcessingAttempt,
+  findUploadedFileForScheduling,
+  findUploadedFileReviewState,
   markUploadedFileAttemptFailed,
+  reconcileUploadDraftsForUser,
 } from "~/fsd/entities/uploaded-file/server";
 import {
   reconcileStaleUploadedFileForUser,
@@ -89,23 +93,11 @@ async function scheduleProcessingAttempt(
       async (
         tx,
       ): Promise<ActionResult<{ dispatchId: string; attempt: number }>> => {
-        const uploadedFile = await tx.uploadedFile.findFirst({
-          where: { id: uploadedFileId, userId },
-          select: {
-            id: true,
-            userId: true,
-            status: true,
-            uploaded: true,
-            currentAttempt: true,
-            targetClipCount: true,
-            reviewBeforeGenerate: true,
-            user: {
-              select: {
-                credits: true,
-              },
-            },
-          },
-        });
+        const uploadedFile = await findUploadedFileForScheduling(
+          uploadedFileId,
+          userId,
+          { tx },
+        );
 
         if (!uploadedFile) {
           return failure("Uploaded file not found");
@@ -138,29 +130,16 @@ async function scheduleProcessingAttempt(
           return failure("Add credits before retrying this upload.");
         }
 
-        const nextAttempt = uploadedFile.currentAttempt + 1;
-        const claimed = await tx.uploadedFile.updateMany({
-          where: {
-            id: uploadedFileId,
+        const { claimed, attempt: nextAttempt } =
+          await claimNextProcessingAttempt(
+            uploadedFileId,
             userId,
-            uploaded: true,
-            status: {
-              in: [...allowedStatuses],
-            },
-            currentAttempt: uploadedFile.currentAttempt,
-          },
-          data: {
-            status: "pending_enqueue",
-            enqueueRequestedAt: now,
-            queuedAt: null,
-            processingStartedAt: null,
-            terminalStatusAt: null,
-            failureCode: null,
-            currentAttempt: nextAttempt,
-          },
-        });
+            allowedStatuses,
+            uploadedFile.currentAttempt,
+            { tx, now },
+          );
 
-        if (claimed.count !== 1) {
+        if (!claimed) {
           return failure("Processing has already been requested");
         }
 
@@ -412,19 +391,10 @@ export async function confirmClipDraftsAndGenerate(
   }
 
   try {
-    const file = await db.uploadedFile.findFirst({
-      where: {
-        id: validated.data.uploadedFileId,
-        userId: authResult.data.userId,
-      },
-      select: {
-        id: true,
-        status: true,
-        reviewAttempt: true,
-        targetClipCount: true,
-        user: { select: { credits: true } },
-      },
-    });
+    const file = await findUploadedFileReviewState(
+      validated.data.uploadedFileId,
+      authResult.data.userId,
+    );
 
     if (!file) {
       return failure("Uploaded file not found");
@@ -527,7 +497,11 @@ export async function reconcileAndListCurrentUserUploadedFileSummaries(): Promis
     throw new Error(authResult.error);
   }
 
+  // 하드 내비게이션 경로(app/dashboard/page.tsx)와 **같은 두 reconcile**을 돈다.
+  // 드래프트 reconcile이 여기 없던 동안에는 클라이언트 refetch 뒤에도
+  // 승격/만료가 반영되지 않아, 이미 승격된 드래프트가 복구 목록에 남았다.
   await reconcileStaleUploadedFilesForUser(authResult.data.userId);
+  await reconcileUploadDraftsForUser(authResult.data.userId);
 
   return listUploadedFileSummariesByUserId(authResult.data.userId);
 }

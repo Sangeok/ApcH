@@ -3,6 +3,7 @@ import { productTourFaq } from "~/fsd/pages/product-tour/config";
 import ProductTourPage from "~/fsd/pages/product-tour/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "Product Tour",
@@ -24,10 +25,7 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={faqJsonLd} />
       <ProductTourPage />
     </>
   );

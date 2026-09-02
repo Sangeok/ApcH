@@ -1,4 +1,5 @@
 import type { Clip, ClipDraft } from "@repo/db";
+import type { UploadedFileOutcome } from "./failure-code";
 import type { ProcessingStatus } from "./processing-status";
 
 export interface ActiveUploadedFileQueueState {
@@ -30,7 +31,8 @@ export interface UploadedFileDetail {
   status: Exclude<ProcessingStatus, "upload_pending">;
   language: string;
   targetClipCount: number;
-  failureCode: string | null;
+  /** raw `failureCode` 컬럼을 뜻으로 판별한 값. 컬럼 자체는 DTO에 싣지 않는다 */
+  outcome: UploadedFileOutcome;
   enqueueRequestedAt: Date | null;
   queuedAt: Date | null;
   processingStartedAt: Date | null;

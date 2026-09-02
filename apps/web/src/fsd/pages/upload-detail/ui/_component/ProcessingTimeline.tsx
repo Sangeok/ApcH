@@ -1,7 +1,11 @@
 "use client";
 
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
-import { type ProcessingStatus } from "~/fsd/entities/uploaded-file";
+import {
+  UPLOADED_FILE_FAILURE_LABELS,
+  type ProcessingStatus,
+  type UploadedFileOutcome,
+} from "~/fsd/entities/uploaded-file";
 import { cn } from "~/fsd/shared/lib/utils";
 
 type TimelineEventKey =
@@ -22,7 +26,7 @@ interface ProcessingTimelineProps {
   processingStartedAt: Date | null;
   terminalStatusAt: Date | null;
   reviewReadyAt: Date | null;
-  failureCode: string | null;
+  outcome: UploadedFileOutcome;
 }
 
 const EVENT_LABELS: Record<TimelineEventKey, string> = {
@@ -91,39 +95,6 @@ function getEventTimestamp(
   }
 }
 
-function getFailureLabel(failureCode: string | null): string | null {
-  switch (failureCode) {
-    case "dispatch_failed":
-      return "Processing could not start";
-    case "dispatch_timeout":
-      return "Processing request timed out";
-    case "dispatch_dead_letter":
-      return "Dispatch retries exhausted";
-    case "callback_timeout":
-      return "Processing result timed out";
-    case "missing_source_object":
-      return "Original upload is missing";
-    case "worker_timeout":
-      return "Worker timed out";
-    case "queued_worker_not_started":
-      return "Worker did not start";
-    case "backend_failed":
-      return "Backend processing failed";
-    case "analysis_failed":
-      return "Analysis failed";
-    case "analysis_timeout":
-      return "Analysis timed out";
-    case "no_moments_found":
-      return "No suitable moments were found";
-    case "no_clips_generated":
-      return "No clips were generated";
-    case "incomplete_clips_generated":
-      return "Only some requested clips were generated";
-    default:
-      return null;
-  }
-}
-
 function getVisualState(
   event: TimelineEventKey,
   index: number,
@@ -154,8 +125,12 @@ export default function ProcessingTimeline(props: ProcessingTimelineProps) {
       {events.map((event, index) => {
         const visualState = getVisualState(event, index, events);
         const timestamp = getEventTimestamp(event, props);
+        // `outcome`이 이미 판별돼 있으므로 라벨 조회는 전부 함수다 —
+        // 이전의 switch처럼 생산자 없는 case가 끼어들 자리가 없다.
         const failureLabel =
-          event === "failed" ? getFailureLabel(props.failureCode) : null;
+          event === "failed" && props.outcome.kind === "failure"
+            ? UPLOADED_FILE_FAILURE_LABELS[props.outcome.failureCode]
+            : null;
 
         return (
           <li key={event} className="flex items-start gap-3">

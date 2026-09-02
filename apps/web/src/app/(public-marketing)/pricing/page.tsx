@@ -3,6 +3,7 @@ import { pricingFaq } from "~/fsd/pages/pricing/config";
 import PricingPage from "~/fsd/pages/pricing/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -24,10 +25,7 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={faqJsonLd} />
       <PricingPage />
     </>
   );

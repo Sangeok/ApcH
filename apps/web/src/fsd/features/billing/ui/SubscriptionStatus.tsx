@@ -3,6 +3,17 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/fsd/shared/ui/atoms/alert-dialog";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -35,9 +46,9 @@ export function SubscriptionStatus({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  // blocking window.confirm 대신 앱의 AlertDialog를 쓴다 — jsdom에서 테스트
+  // 불가능한 호출이 사라지고, 확인 문구가 실제 결과(기간 말 해지)를 말한다.
   function handleCancel() {
-    if (!confirm("Are you sure you want to cancel your subscription?")) return;
-
     startTransition(async () => {
       const result = await cancelSubscription();
       if (result.success) {
@@ -95,15 +106,43 @@ export function SubscriptionStatus({
                 Manage Subscription
               </Button>
               {!subscription.cancelAtPeriodEnd && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1"
-                  disabled={isPending}
-                  onClick={handleCancel}
-                >
-                  {isPending ? "Canceling..." : "Cancel Subscription"}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="flex-1"
+                      disabled={isPending}
+                    >
+                      {isPending ? "Canceling..." : "Cancel Subscription"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Cancel your subscription?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Your plan stays active until{" "}
+                        {new Date(
+                          subscription.currentPeriodEnd,
+                        ).toLocaleDateString()}
+                        , then it will not renew. Credits you already have are
+                        kept.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel asChild>
+                        <Button variant="outline">Keep subscription</Button>
+                      </AlertDialogCancel>
+                      <AlertDialogAction asChild>
+                        <Button variant="destructive" onClick={handleCancel}>
+                          Cancel subscription
+                        </Button>
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </>

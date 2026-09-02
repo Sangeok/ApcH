@@ -14,6 +14,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { useDeleteClip } from "~/fsd/features/clip";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
+import type { PlayUrlState } from "~/fsd/shared/lib/use-play-url";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -25,8 +26,7 @@ import {
 
 interface ClipActionsProps {
   clip: Clip;
-  playUrl: string | null;
-  isLoading: boolean;
+  playUrlState: PlayUrlState;
   hasScript: boolean;
   hasMetadata: boolean;
   onOpenScript: () => void;
@@ -38,8 +38,7 @@ interface ClipActionsProps {
 
 export function ClipActions({
   clip,
-  playUrl,
-  isLoading,
+  playUrlState,
   hasScript,
   hasMetadata,
   onOpenScript,
@@ -51,8 +50,8 @@ export function ClipActions({
   const [isDeleting, startDeleting] = useTransition();
 
   const handleDownload = () => {
-    if (!playUrl) return;
-    triggerDownload(playUrl);
+    if (playUrlState.status !== "ready") return;
+    triggerDownload(playUrlState.url);
   };
 
   const handleDelete = () => {
@@ -81,10 +80,10 @@ export function ClipActions({
           variant="outline"
           size="sm"
           className="flex-1"
-          disabled={!playUrl || isLoading}
-          aria-busy={isLoading}
+          disabled={playUrlState.status !== "ready"}
+          aria-busy={playUrlState.status === "loading"}
         >
-          {isLoading ? (
+          {playUrlState.status === "loading" ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
           ) : (
             <Download className="mr-1.5 h-4 w-4" />

@@ -3,6 +3,7 @@ import { manualEditingComparison } from "~/fsd/pages/compare/config";
 import { ManualEditingComparisonPage } from "~/fsd/pages/compare/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "Manual Editing vs AI Podcast Clipping",
@@ -45,15 +46,10 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+      <JsonLd data={{
             "@context": "https://schema.org",
             "@graph": [breadcrumbJsonLd, faqJsonLd],
-          }),
-        }}
-      />
+          }} />
       <ManualEditingComparisonPage />
     </>
   );

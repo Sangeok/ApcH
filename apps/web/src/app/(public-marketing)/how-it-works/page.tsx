@@ -3,6 +3,7 @@ import { howItWorksFaq, howItWorksSteps } from "~/fsd/pages/resources/config";
 import { HowItWorksPage } from "~/fsd/pages/resources/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "How It Works",
@@ -36,15 +37,10 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+      <JsonLd data={{
             "@context": "https://schema.org",
             "@graph": [howToJsonLd, faqJsonLd],
-          }),
-        }}
-      />
+          }} />
       <HowItWorksPage />
     </>
   );

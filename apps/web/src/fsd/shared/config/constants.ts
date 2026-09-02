@@ -60,6 +60,10 @@ export const CAPTION_STYLE_OPTIONS = {
   OUTLINE_WIDTH_RANGE: { MIN: 0, MAX: 6 },
   // 백엔드 resolve_caption_style의 default_outline과 동기 (EN 1.1 / KR 1.3).
   // 소수라서 스테퍼는 Math.round 후 증감한다 (CaptionStyleEditor).
+  //
+  // ⚠️ 이 소수는 **표시 전용**이다. 직렬화되지 않는다 — 사용자가 손대지 않은
+  // outlineWidth는 null로 저장되고 백엔드가 같은 기본값으로 해석한다.
+  // 저장되는 값은 captionStyleSchema의 .int()가 정수로 강제한다.
   DEFAULT_OUTLINE_WIDTH: { English: 1.1, Korean: 1.3 },
 } as const;
 
@@ -88,6 +92,8 @@ export type CaptionStyle = {
   color: string | null;
   maxWordsPerLine: number | null;
   outlineColor: string | null;
+  // 저장되는 값은 정수다(captionStyleSchema `.int()`). 소수는 언어 기본값
+  // 표시에만 쓰이고 null로 남아 직렬화되지 않는다.
   outlineWidth: number | null;
   uppercase: boolean | null;
 };

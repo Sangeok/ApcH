@@ -25,7 +25,7 @@ interface ClipCardProps {
 }
 
 export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
-  const { playUrl, isLoading, error } = usePlayUrl(clip.id, getClipPlayUrl);
+  const playUrlState = usePlayUrl(clip.id, getClipPlayUrl);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
   const trackedPlayRef = useRef(false);
@@ -83,12 +83,7 @@ export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
 
   return (
     <div className="flex max-w-52 flex-col gap-2">
-      <ClipVideoPlayer
-        src={playUrl}
-        isLoading={isLoading}
-        error={error}
-        onPlay={handlePlay}
-      />
+      <ClipVideoPlayer state={playUrlState} onPlay={handlePlay} />
       {fallbackNotice && (
         <p className="flex items-start gap-1 text-xs leading-snug text-amber-600 dark:text-amber-500">
           <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
@@ -114,8 +109,7 @@ export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
       )}
       <ClipActions
         clip={clip}
-        playUrl={playUrl}
-        isLoading={isLoading}
+        playUrlState={playUrlState}
         hasScript={hasScript}
         hasMetadata={hasMetadata}
         onOpenScript={() => setIsScriptOpen(true)}

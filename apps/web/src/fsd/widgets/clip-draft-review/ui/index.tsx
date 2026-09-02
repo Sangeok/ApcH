@@ -95,7 +95,9 @@ export default function ClipDraftReviewSection({
   language,
 }: ClipDraftReviewSectionProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { playUrl } = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
+  const playUrlState = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
+  const readyPlayUrl =
+    playUrlState.status === "ready" ? playUrlState.url : null;
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   // 프리뷰 종료 시각. ref로 두어 timeupdate 리스너를 재구독 없이 유지한다.
   const previewEndRef = useRef<number | null>(null);
@@ -224,7 +226,7 @@ export default function ClipDraftReviewSection({
 
     video.addEventListener("timeupdate", handleTimeUpdate);
     return () => video.removeEventListener("timeupdate", handleTimeUpdate);
-  }, [playUrl]);
+  }, [readyPlayUrl]);
 
   const clipNoun = selectedCount === 1 ? "clip" : "clips";
   const creditNoun = selectedCount === 1 ? "credit" : "credits";
@@ -388,14 +390,24 @@ export default function ClipDraftReviewSection({
               top-6으로 두면 스크롤 시 플레이어가 헤더 뒤로 들어간다. */}
           <div className="lg:sticky lg:top-20">
             <div className="overflow-hidden rounded-lg bg-black">
-              {playUrl && (
+              {playUrlState.status === "ready" && (
                 <video
                   ref={videoRef}
-                  src={playUrl}
+                  src={playUrlState.url}
                   controls
                   preload="metadata"
                   className="w-full"
                 />
+              )}
+              {/* 이전에는 loading·error를 모두 버려 실패가 빈 상자로 보였다.
+                  구간 미리보기가 이 플레이어에 매여 있으므로 이유를 말한다. */}
+              {playUrlState.status === "error" && (
+                <div className="flex aspect-video items-center justify-center">
+                  <p className="text-xs text-white/70">
+                    Preview unavailable — the original media could not be
+                    loaded.
+                  </p>
+                </div>
               )}
             </div>
             {/* 최종 산출물이 세로 영상이라는 사실은 지금까지 CaptionStyleEditor

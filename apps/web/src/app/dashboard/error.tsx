@@ -20,9 +20,8 @@ export default function DashboardError({
       description="Something went wrong while loading the dashboard. Please try again later."
       digest={error.digest}
       variant="section"
-      showRetry
-      onRetry={reset}
-      showHome
+      retry={{ onRetry: reset }}
+      home
     />
   );
 }

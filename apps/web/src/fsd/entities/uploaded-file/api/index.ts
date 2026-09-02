@@ -4,6 +4,10 @@ import { Prisma } from "@repo/db";
 import { db } from "~/server/db";
 import { deleteS3Object, objectExists } from "~/fsd/shared/api/s3";
 import {
+  toUploadedFileOutcome,
+  type UploadedFileFailureCode,
+} from "../model/failure-code";
+import {
   ACTIVE_PROCESSING_STATUSES,
   isProcessingStatus,
   type ProcessingStatus,
@@ -327,7 +331,7 @@ export async function getUploadedFileDetailsById(
     return null;
   }
 
-  const { user, ...fileData } = file;
+  const { user, failureCode, ...fileData } = file;
 
   const clips =
     file.lastSuccessfulAttempt > 0
@@ -353,9 +357,14 @@ export async function getUploadedFileDetailsById(
         })
       : [];
 
+  const status = toNonHiddenStatus(file.status);
+
   return {
     ...fileData,
-    status: toNonHiddenStatus(file.status),
+    status,
+    // 컬럼의 두 어휘를 여기서 한 번 판별한다. 소비자가 `status`와 raw 코드를
+    // 짝지어 뜻을 재유도하지 않도록 raw 컬럼은 DTO에 싣지 않는다.
+    outcome: toUploadedFileOutcome(status, failureCode),
     currentUserCredits: user.credits,
     clips,
     clipDrafts,
@@ -369,6 +378,104 @@ export async function findUploadedFileS3Key(
   return db.uploadedFile.findFirstOrThrow({
     where: { id: uploadedFileId, userId },
     select: { s3Key: true },
+  });
+}
+
+/** 처리 스케줄 판단에 필요한 상태. claim 트랜잭션 안에서 읽으므로 tx를 받는다. */
+export async function findUploadedFileForScheduling(
+  uploadedFileId: string,
+  userId: string,
+  options?: { tx?: Prisma.TransactionClient },
+) {
+  const client: DbClient = options?.tx ?? db;
+
+  return client.uploadedFile.findFirst({
+    where: { id: uploadedFileId, userId },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      uploaded: true,
+      currentAttempt: true,
+      targetClipCount: true,
+      reviewBeforeGenerate: true,
+      user: {
+        select: {
+          credits: true,
+        },
+      },
+    },
+  });
+}
+
+/**
+ * 다음 처리 시도를 선점한다 — 라이프사이클 컬럼 일곱 개를 한 번에 쓴다.
+ *
+ * 이 조합(상태 리셋 + 타임스탬프 셋 초기화 + failureCode 비우기 + attempt 증가)이
+ * "새 시도가 시작됐다"의 정의다. feature가 손으로 쓰고 있어서, 컬럼이 하나
+ * 늘면 여기와 무관한 곳에서 조용히 빠뜨릴 수 있었다.
+ *
+ * `currentAttempt`를 where에 넣어 낙관적 잠금으로 쓴다 — 두 요청이 동시에
+ * 들어오면 하나만 count 1을 받는다.
+ */
+export async function claimNextProcessingAttempt(
+  uploadedFileId: string,
+  userId: string,
+  allowedStatuses: readonly ProcessingStatus[],
+  currentAttempt: number,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+): Promise<{ claimed: boolean; attempt: number }> {
+  const client: DbClient = options?.tx ?? db;
+  const now = options?.now ?? new Date();
+  const attempt = currentAttempt + 1;
+
+  const result = await client.uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      userId,
+      uploaded: true,
+      status: {
+        in: [...allowedStatuses],
+      },
+      currentAttempt,
+    },
+    data: {
+      status: "pending_enqueue",
+      enqueueRequestedAt: now,
+      queuedAt: null,
+      processingStartedAt: null,
+      terminalStatusAt: null,
+      failureCode: null,
+      currentAttempt: attempt,
+    },
+  });
+
+  return { claimed: result.count === 1, attempt };
+}
+
+/**
+ * 검토 단계 판단에 필요한 상태 하나. clip-review 두 곳과 업로드의 생성 확정이
+ * 각자 `db.uploadedFile.findFirst`를 들고 있어서, 같은 판정(`review_pending` +
+ * `reviewAttempt !== null`)이 세 벌로 흩어져 있었다.
+ */
+export async function findUploadedFileReviewState(
+  uploadedFileId: string,
+  userId: string,
+) {
+  return db.uploadedFile.findFirst({
+    where: { id: uploadedFileId, userId },
+    select: {
+      id: true,
+      status: true,
+      reviewAttempt: true,
+      transcriptS3Key: true,
+      targetClipCount: true,
+      user: {
+        select: {
+          credits: true,
+        },
+      },
+    },
   });
 }
 
@@ -681,7 +788,7 @@ export async function isUploadedFileAttemptCurrent(
 export async function markUploadedFileAttemptFailed(
   uploadedFileId: string,
   attempt: number,
-  failureCode: string,
+  failureCode: UploadedFileFailureCode,
   options?: {
     tx?: Prisma.TransactionClient;
     now?: Date;

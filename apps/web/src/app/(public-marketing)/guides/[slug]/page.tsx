@@ -4,6 +4,7 @@ import { getGuideBySlug, guidePages } from "~/fsd/pages/guides/config";
 import { GuideDetailPage } from "~/fsd/pages/guides/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { SITE_NAME, absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 interface GuidePageProps {
   params: Promise<{ slug: string }>;
@@ -92,15 +93,10 @@ export default async function Page({ params }: GuidePageProps) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+      <JsonLd data={{
             "@context": "https://schema.org",
             "@graph": [articleJsonLd, breadcrumbJsonLd, faqJsonLd],
-          }),
-        }}
-      />
+          }} />
       <GuideDetailPage guide={guide} />
     </>
   );

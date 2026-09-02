@@ -20,9 +20,8 @@ export default function Error({
       description="Something went wrong while loading the page. Please try again later."
       digest={error.digest}
       variant="full-page"
-      showRetry
-      onRetry={reset}
-      showHome
+      retry={{ onRetry: reset }}
+      home
     />
   );
 }

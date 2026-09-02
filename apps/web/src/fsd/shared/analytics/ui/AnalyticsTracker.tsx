@@ -65,7 +65,9 @@ export function AnalyticsTracker() {
         },
         {
           path: normalizedPath,
-          dedupeKey: `exit:${normalizedPath}:${startedAt}`,
+          // dedupeKey를 두지 않는다 — startedAt이 들어가 매 내비게이션마다
+          // 다시는 매칭되지 않을 키가 쌓이기만 했다. 위의 `sent` 플래그가
+          // 이 effect당 1회를 이미 보장한다.
           useBeacon: true,
         },
       );

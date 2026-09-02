@@ -107,7 +107,7 @@ export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
   const handleUpload = () => {
     const file = files[0];
     if (!file) return;
-    upload(file, language, clipCount, reviewBeforeGenerate);
+    upload({ file, language, clipCount, reviewBeforeGenerate });
   };
 
   const handleLanguageChange = (nextLanguage: string) => {

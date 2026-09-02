@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { supportEmail } from "~/fsd/pages/resources/config";
 import { ContactPage } from "~/fsd/pages/resources/ui";
 import { SITE_NAME, absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -34,10 +35,7 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       <ContactPage />
     </>
   );

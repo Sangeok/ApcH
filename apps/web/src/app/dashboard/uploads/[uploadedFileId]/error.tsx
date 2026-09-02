@@ -20,11 +20,8 @@ export default function UploadDetailError({
       description="Something went wrong while loading the file details. The file may have been deleted or you may not have access."
       digest={error.digest}
       variant="section"
-      showRetry
-      onRetry={reset}
-      showBack
-      backHref="/dashboard"
-      backLabel="Back to dashboard"
+      retry={{ onRetry: reset }}
+      back={{ href: "/dashboard", label: "Back to dashboard" }}
     />
   );
 }

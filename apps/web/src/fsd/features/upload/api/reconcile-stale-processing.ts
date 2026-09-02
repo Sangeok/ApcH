@@ -5,6 +5,7 @@ import {
   isActiveProcessingStatus,
   toProcessingStatus,
   type ProcessingStatus,
+  type UploadedFileFailureCode,
 } from "~/fsd/entities/uploaded-file";
 import { PROCESSING_STALE_POLICY } from "~/fsd/entities/uploaded-file/model/stale-policy";
 import {
@@ -59,7 +60,7 @@ function getStaleFailureCode(
   file: StaleProcessingCandidate,
   now: Date,
   hasProcessingUploadForQueuedState: boolean,
-): string | null {
+): UploadedFileFailureCode | null {
   switch (file.status) {
     case "pending_enqueue": {
       const staleBefore = new Date(
@@ -104,6 +105,9 @@ export async function reconcileStaleUploadedFileForUser(
 ): Promise<{
   changed: boolean;
   status: ProcessingStatus;
+  // 이 필드는 컬럼을 **읽어** 돌려주는 값이다. 이미 저장된 행에는 union에
+  // 없는 옛 코드가 들어 있을 수 있으므로 좁히지 않는다. 좁힌 union이 걸리는
+  // 곳은 쓰기 경로(getStaleFailureCode → markUploadedFileAttemptFailed)다.
   failureCode: string | null;
 }> {
   const now = options?.now ?? new Date();

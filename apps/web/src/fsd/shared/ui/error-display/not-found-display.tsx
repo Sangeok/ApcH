@@ -9,22 +9,21 @@ import {
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
 
+// ErrorDisplay와 같은 규칙: 링크는 동반 데이터의 존재로 켠다.
 interface NotFoundDisplayProps {
   title?: string;
   description?: string;
-  showHome?: boolean;
-  showBack?: boolean;
-  backHref?: string;
-  backLabel?: string;
+  /** 있으면 "뒤로 가기" 링크 */
+  back?: { href: string; label?: string };
+  /** 동반 데이터가 없는 고정 링크라 플래그로 남는다 */
+  home?: boolean;
 }
 
 export function NotFoundDisplay({
   title = "Page not found",
   description = "The page you requested does not exist or has been moved.",
-  showHome = true,
-  showBack = false,
-  backHref = "/dashboard",
-  backLabel = "Go back",
+  back,
+  home = true,
 }: NotFoundDisplayProps) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
@@ -39,15 +38,15 @@ export function NotFoundDisplay({
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap justify-center gap-2">
-            {showBack && (
+            {back && (
               <Button variant="outline" asChild>
-                <Link href={backHref}>
+                <Link href={back.href}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {backLabel}
+                  {back.label ?? "Go back"}
                 </Link>
               </Button>
             )}
-            {showHome && (
+            {home && (
               <Button variant="default" asChild>
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />

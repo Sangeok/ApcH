@@ -20,6 +20,15 @@ export type {
   PartialClipResultCode,
 } from "./model/clip-generation-outcome";
 export {
+  UPLOADED_FILE_FAILURE_LABELS,
+  isUploadedFileFailureCode,
+  toUploadedFileOutcome,
+} from "./model/failure-code";
+export type {
+  UploadedFileFailureCode,
+  UploadedFileOutcome,
+} from "./model/failure-code";
+export {
   createOptimisticUploadId,
   isOptimisticUploadId,
 } from "./model/optimistic-id";

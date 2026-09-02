@@ -42,6 +42,37 @@ const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
 const MODAL_METADATA_GRACE_INTERVAL = "2m";
 
+/**
+ * `processVideo`·`analyzeVideo` 핸들러의 반환 형태.
+ *
+ * 이 값들은 Inngest 실행 기록에 그대로 남아 운영 중 무슨 일이 있었는지를
+ * 읽는 유일한 근거다. 이전에는 반환 타입 선언 없이 16가지 객체 리터럴이
+ * 즉석에서 만들어져, 오타 난 status나 빠진 필드를 컴파일러가 잡지 못했다.
+ */
+type ProcessingSkipReason = "already_processing" | "attempt_no_longer_active";
+
+/** 시도가 실제로 진행된 뒤의 종료 상태. */
+type ProcessingRunEndStatus =
+  | "processed"
+  | "review_pending"
+  | "no credits"
+  | "missing_source_object"
+  | "backend_failed"
+  | "callback_timeout"
+  | "no_clips_generated"
+  | "analysis_source_failed"
+  | "analysis_timeout"
+  | "no_moments_found";
+
+type ProcessingRunResult =
+  | { skipped: true; status?: ProcessingSkipReason }
+  | {
+      skipped: false;
+      status: ProcessingRunEndStatus;
+      error?: string;
+      draftCount?: number;
+    };
+
 function toErrorMessage(error: unknown): string {
   return toModalErrorMessage(error, "Unexpected backend failure");
 }
@@ -191,7 +222,7 @@ export const processVideo = inngest.createFunction(
       },
     ],
   },
-  async ({ event, step }) => {
+  async ({ event, step }): Promise<ProcessingRunResult> => {
     const {
       uploadedFileId,
       language,
@@ -666,7 +697,7 @@ export const analyzeVideo = inngest.createFunction(
       },
     ],
   },
-  async ({ event, step }) => {
+  async ({ event, step }): Promise<ProcessingRunResult> => {
     const { uploadedFileId, language, clipCount, attempt, outputPrefix } =
       event.data;
 
@@ -744,13 +775,13 @@ export const analyzeVideo = inngest.createFunction(
     });
 
     if (claimResult.status !== "started") {
-      return {
-        skipped: true,
-        status:
-          claimResult.status === "already_processing"
-            ? "already_processing"
-            : undefined,
-      };
+      // 이전에는 status를 `: undefined`로 접어 두 결과가 한 리터럴에 섞였다.
+      // 실행 기록에서 둘을 구분해 읽을 수 있도록 분기를 드러낸다.
+      if (claimResult.status === "already_processing") {
+        return { skipped: true, status: "already_processing" };
+      }
+
+      return { skipped: true };
     }
 
     await step.sendEvent("schedule-stuck-watch", {

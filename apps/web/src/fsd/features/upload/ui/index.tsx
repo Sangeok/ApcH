@@ -9,10 +9,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   isActiveProcessingStatus,
   type ProcessingStatus,
 } from "~/fsd/entities/uploaded-file";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/fsd/shared/ui/atoms/alert-dialog";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -36,6 +47,10 @@ export default function UploadedFileActions({
   currentUserCredits,
 }: UploadedFileActionsProps) {
   const router = useRouter();
+  // 이 앱에서 가장 파괴적인 액션이라 blocking window.confirm 대신 앱의
+  // AlertDialog를 쓴다. 드롭다운 항목이 트리거라 메뉴가 닫히면서 트리거가
+  // 사라지므로, 트리거를 두지 않고 열림 상태를 직접 들고 있는다.
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const reprocessMutation = useReprocessUploadedFile(uploadedFileId);
   // 캐시 정책은 feature model 훅이 소유한다. 여기서는 사용자 상호작용만 다룬다.
   const deleteMutation = useDeleteUploadedFile({
@@ -62,15 +77,7 @@ export default function UploadedFileActions({
   };
 
   const handleDelete = () => {
-    // TODO(C-71): shared/ui/atoms/alert-dialog로 교체한다.
-    if (
-      !confirm(
-        "Are you sure you want to delete the file and all associated clips?",
-      )
-    ) {
-      return;
-    }
-
+    setIsDeleteDialogOpen(false);
     deleteMutation.mutate(uploadedFileId, {
       onSuccess: () => {
         toast.success("Original file and clips deleted");
@@ -118,7 +125,7 @@ export default function UploadedFileActions({
         <DropdownMenuContent align="end">
           <DropdownMenuItem
             className="text-destructive"
-            onClick={handleDelete}
+            onClick={() => setIsDeleteDialogOpen(true)}
             disabled={isActive}
           >
             <Trash2 className="mr-2 h-4 w-4" />
@@ -126,6 +133,30 @@ export default function UploadedFileActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this upload?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The original file and all clips generated from it are deleted.
+              This cannot be undone, and spent credits are not refunded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant="outline">Cancel</Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button variant="destructive" onClick={handleDelete}>
+                Delete
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
