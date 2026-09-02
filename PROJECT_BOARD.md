@@ -38,7 +38,7 @@
 - [ ] FEAT-29: 정체 감시를 15분 cron에서 처리 건별 이벤트 감시자로 전환 — Neon 유휴 compute 깨움 제거
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/fsd/entities/uploaded-file
-  status: 승인대기
+  status: 계획지시
   근거: 사용자가 이 세션에서 직접 등재·즉시 진행 지시(Neon 비용 절감, 진단·수정 방향 코드 확정 수준). 미결 0건.
 - [x] FEAT-28: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
   agent: web-dev
