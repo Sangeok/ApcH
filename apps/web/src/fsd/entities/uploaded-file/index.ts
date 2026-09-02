@@ -28,6 +28,7 @@ export {
   ACTIVE_PROCESSING_STATUSES,
   isActiveProcessingStatus,
   isProcessingStatus,
+  toProcessingStatus,
 } from "./model/processing-status";
 export type {
   ActiveProcessingStatus,

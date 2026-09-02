@@ -4,10 +4,8 @@ import { Prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import {
-  createProcessingDispatch,
-  dispatchProcessingRequestByIdOrFail,
-} from "~/fsd/entities/processing-dispatch";
+import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch";
+import { dispatchProcessingRequestById } from "./dispatch-processing";
 import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { flushReports } from "~/fsd/shared/observability";
 import {
@@ -29,9 +27,11 @@ import {
   listActiveUploadedFileQueueStateByUserId,
   listUploadedFileSummariesByUserId,
   markUploadedFileAttemptFailed,
+} from "~/fsd/entities/uploaded-file/server";
+import {
   reconcileStaleUploadedFileForUser,
   reconcileStaleUploadedFilesForUser,
-} from "~/fsd/entities/uploaded-file/server";
+} from "./reconcile-stale-processing";
 import {
   deleteS3Object,
   deleteS3Objects,
@@ -196,7 +196,7 @@ async function scheduleProcessingAttempt(
     return failure("Failed to schedule processing");
   }
 
-  const dispatchResult = await dispatchProcessingRequestByIdOrFail(dispatchId);
+  const dispatchResult = await dispatchProcessingRequestById(dispatchId);
 
   if (dispatchResult.status !== "sent") {
     await markUploadedFileAttemptFailed(

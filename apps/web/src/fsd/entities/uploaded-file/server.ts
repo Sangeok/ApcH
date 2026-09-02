@@ -9,11 +9,12 @@ import "server-only";
  * 런타임 기준으로 나눠서 양쪽 모두 슬라이스 루트를 쓸 수 있게 한다.
  */
 export {
-  completeUploadedFileProcessingAttempt,
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
   deleteUploadedFileRecord,
   ensureUploadedFileQueuedForDispatch,
+  findStaleProcessingCandidate,
+  findUploadedFileFailureState,
   findUploadedFileSourceState,
   findUploadedFileForDeletion,
   findCurrentProcessingAttemptContext,
@@ -22,6 +23,7 @@ export {
   hasProcessingUploadForUser,
   isUploadedFileAttemptCurrent,
   isUploadedFileAttemptStillProcessing,
+  listActiveProcessingCandidatesByUserId,
   listActiveUploadedFileQueueStateByUserId,
   listRecoverableUploadDraftsByUserId,
   listUploadedFileSummariesByUserId,
@@ -29,8 +31,7 @@ export {
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptProcessed,
   markUploadedFileAttemptReviewPending,
-  reconcileStaleUploadedFileForUser,
-  reconcileStaleUploadedFilesForUser,
   reconcileUploadDraftsForUser,
   startUploadedFileProcessingAttempt,
 } from "./api";
+export type { StaleProcessingCandidate } from "./api";

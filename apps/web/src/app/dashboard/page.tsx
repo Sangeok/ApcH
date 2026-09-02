@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 import {
   listRecoverableUploadDraftsByUserId,
   listUploadedFileSummariesByUserId,
-  reconcileStaleUploadedFilesForUser,
   reconcileUploadDraftsForUser,
 } from "~/fsd/entities/uploaded-file/server";
+import { reconcileStaleUploadedFilesForUser } from "~/fsd/features/upload/api/reconcile-stale-processing";
 import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
 

@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Polar } from "@polar-sh/sdk";
 import { env } from "~/env";
 

@@ -1,14 +1,10 @@
 import "server-only";
 
 import { Prisma } from "@repo/db";
-import { inngest } from "~/inngest/client";
 import { db } from "~/server/db";
-import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";
 import { deleteS3Object, objectExists } from "~/fsd/shared/api/s3";
-import { getProcessingMatchKey } from "../model/attempt-prefix";
 import {
   ACTIVE_PROCESSING_STATUSES,
-  isActiveProcessingStatus,
   isProcessingStatus,
   type ProcessingStatus,
 } from "../model/processing-status";
@@ -37,7 +33,7 @@ type EnsureUploadedFileQueuedForDispatchResult =
       currentStatus: string;
       uploaded: boolean;
     };
-type StaleProcessingCandidate = {
+export type StaleProcessingCandidate = {
   id: string;
   userId: string;
   status: string;
@@ -99,82 +95,6 @@ function toNonHiddenStatus(
   }
 
   return status;
-}
-
-function toProcessingStatus(status: string): ProcessingStatus {
-  if (!isProcessingStatus(status)) {
-    throw new Error(`Invalid uploaded file status: ${status}`);
-  }
-
-  return status;
-}
-
-function isOlderThan(date: Date | null, threshold: Date): boolean {
-  return date !== null && date < threshold;
-}
-
-function getStaleFailureCode(
-  file: StaleProcessingCandidate,
-  now: Date,
-  hasProcessingUploadForQueuedState: boolean,
-): string | null {
-  switch (file.status) {
-    case "pending_enqueue": {
-      const staleBefore = new Date(
-        now.getTime() - PROCESSING_STALE_POLICY.pendingEnqueueTimeoutMs,
-      );
-
-      return isOlderThan(file.enqueueRequestedAt, staleBefore)
-        ? "dispatch_timeout"
-        : null;
-    }
-    case "queued": {
-      if (hasProcessingUploadForQueuedState) {
-        return null;
-      }
-
-      const staleBefore = new Date(
-        now.getTime() - PROCESSING_STALE_POLICY.queuedWorkerStartTimeoutMs,
-      );
-
-      return isOlderThan(file.queuedAt, staleBefore)
-        ? "queued_worker_not_started"
-        : null;
-    }
-    case "processing": {
-      const staleBefore = new Date(
-        now.getTime() - PROCESSING_STALE_POLICY.processingTimeoutMs,
-      );
-
-      return isOlderThan(file.processingStartedAt, staleBefore)
-        ? "worker_timeout"
-        : null;
-    }
-    default:
-      return null;
-  }
-}
-
-async function sendProcessingCancelEventBestEffort(args: {
-  uploadedFileId: string;
-  attempt: number;
-}) {
-  try {
-    await inngest.send({
-      name: "process-video-events/cancel",
-      data: {
-        uploadedFileId: args.uploadedFileId,
-        attempt: args.attempt,
-        matchKey: getProcessingMatchKey(args.uploadedFileId, args.attempt),
-      },
-    });
-  } catch (error) {
-    console.error("Failed to send processing cancel event", {
-      uploadedFileId: args.uploadedFileId,
-      attempt: args.attempt,
-      error,
-    });
-  }
 }
 
 // Creates a pending upload draft used to track and recover a direct S3 upload.
@@ -758,34 +678,6 @@ export async function isUploadedFileAttemptCurrent(
   return file !== null;
 }
 
-export async function completeUploadedFileProcessingAttempt(args: {
-  uploadedFileId: string;
-  attempt: number;
-  userId: string;
-  clipsFound: number;
-  noteCode?: string | null;
-  now?: Date;
-}): Promise<{ completed: boolean }> {
-  return db.$transaction(async (tx) => {
-    const updated = await markUploadedFileAttemptProcessed(
-      args.uploadedFileId,
-      args.attempt,
-      {
-        tx,
-        now: args.now,
-        noteCode: args.noteCode,
-      },
-    );
-
-    if (updated.count !== 1) {
-      return { completed: false };
-    }
-
-    await decrementUserCreditsFloorZero(args.userId, args.clipsFound, { tx });
-    return { completed: true };
-  });
-}
-
 export async function markUploadedFileAttemptFailed(
   uploadedFileId: string,
   attempt: number,
@@ -852,204 +744,6 @@ export async function hasProcessingUploadForUser(
   });
 
   return count > 0;
-}
-
-export async function reconcileStaleUploadedFileForUser(
-  uploadedFileId: string,
-  userId: string,
-  options?: { now?: Date },
-): Promise<{
-  changed: boolean;
-  status: ProcessingStatus;
-  failureCode: string | null;
-}> {
-  const now = options?.now ?? new Date();
-  const file = await db.uploadedFile.findFirst({
-    where: { id: uploadedFileId, userId },
-    select: {
-      id: true,
-      userId: true,
-      status: true,
-      currentAttempt: true,
-      failureCode: true,
-      enqueueRequestedAt: true,
-      queuedAt: true,
-      processingStartedAt: true,
-    },
-  });
-
-  if (!file) {
-    throw new Error("Uploaded file not found");
-  }
-
-  const status = toProcessingStatus(file.status);
-
-  if (!isActiveProcessingStatus(status)) {
-    return {
-      changed: false,
-      status,
-      failureCode: file.failureCode,
-    };
-  }
-
-  const hasProcessingForQueuedState =
-    status === "queued" ? await hasProcessingUploadForUser(userId) : false;
-  const failureCode = getStaleFailureCode(
-    file,
-    now,
-    hasProcessingForQueuedState,
-  );
-
-  if (!failureCode) {
-    return {
-      changed: false,
-      status,
-      failureCode: file.failureCode,
-    };
-  }
-
-  const updated = await markUploadedFileAttemptFailed(
-    file.id,
-    file.currentAttempt,
-    failureCode,
-    {
-      now,
-      statuses: [status],
-    },
-  );
-
-  if (updated.count === 1 && failureCode === "worker_timeout") {
-    await sendProcessingCancelEventBestEffort({
-      uploadedFileId: file.id,
-      attempt: file.currentAttempt,
-    });
-  }
-
-  const latest = await db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      status: true,
-      failureCode: true,
-    },
-  });
-
-  return {
-    changed: updated.count === 1,
-    status: toProcessingStatus(latest.status),
-    failureCode: latest.failureCode,
-  };
-}
-
-export async function reconcileStaleUploadedFilesForUser(
-  userId: string,
-  options?: { now?: Date; limit?: number },
-): Promise<{ changedCount: number }> {
-  const now = options?.now ?? new Date();
-  const limit = options?.limit ?? 50;
-  const activeFiles = await db.uploadedFile.findMany({
-    where: {
-      userId,
-      status: {
-        in: [...ACTIVE_PROCESSING_STATUSES],
-      },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    take: limit,
-    select: {
-      id: true,
-      userId: true,
-      status: true,
-      currentAttempt: true,
-      failureCode: true,
-      enqueueRequestedAt: true,
-      queuedAt: true,
-      processingStartedAt: true,
-    },
-  });
-
-  let changedCount = 0;
-
-  for (const file of activeFiles.filter(
-    (file) => file.status === "processing",
-  )) {
-    const failureCode = getStaleFailureCode(file, now, false);
-
-    if (failureCode !== "worker_timeout") {
-      continue;
-    }
-
-    const updated = await markUploadedFileAttemptFailed(
-      file.id,
-      file.currentAttempt,
-      failureCode,
-      {
-        now,
-        statuses: ["processing"],
-      },
-    );
-
-    if (updated.count === 1) {
-      changedCount += 1;
-      await sendProcessingCancelEventBestEffort({
-        uploadedFileId: file.id,
-        attempt: file.currentAttempt,
-      });
-    }
-  }
-
-  for (const file of activeFiles.filter(
-    (file) => file.status === "pending_enqueue",
-  )) {
-    const failureCode = getStaleFailureCode(file, now, false);
-
-    if (failureCode !== "dispatch_timeout") {
-      continue;
-    }
-
-    const updated = await markUploadedFileAttemptFailed(
-      file.id,
-      file.currentAttempt,
-      failureCode,
-      {
-        now,
-        statuses: ["pending_enqueue"],
-      },
-    );
-
-    if (updated.count === 1) {
-      changedCount += 1;
-    }
-  }
-
-  const hasProcessing = await hasProcessingUploadForUser(userId);
-
-  if (!hasProcessing) {
-    for (const file of activeFiles.filter((file) => file.status === "queued")) {
-      const failureCode = getStaleFailureCode(file, now, false);
-
-      if (failureCode !== "queued_worker_not_started") {
-        continue;
-      }
-
-      const updated = await markUploadedFileAttemptFailed(
-        file.id,
-        file.currentAttempt,
-        failureCode,
-        {
-          now,
-          statuses: ["queued"],
-        },
-      );
-
-      if (updated.count === 1) {
-        changedCount += 1;
-      }
-    }
-  }
-
-  return { changedCount };
 }
 
 export async function reconcileUploadDraftsForUser(
@@ -1193,4 +887,66 @@ export async function deleteUploadedFileRecord(
   }
 
   return result;
+}
+
+// stale 판정에 필요한 최소 컬럼만 읽는다. 판정 규칙 자체(임계값·실패 코드)는
+// 여러 엔티티와 Inngest 전송을 함께 다루므로 features/upload가 소유한다.
+export async function findStaleProcessingCandidate(
+  uploadedFileId: string,
+  userId: string,
+): Promise<StaleProcessingCandidate | null> {
+  return db.uploadedFile.findFirst({
+    where: { id: uploadedFileId, userId },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      currentAttempt: true,
+      failureCode: true,
+      enqueueRequestedAt: true,
+      queuedAt: true,
+      processingStartedAt: true,
+    },
+  });
+}
+
+export async function findUploadedFileFailureState(
+  uploadedFileId: string,
+  userId: string,
+): Promise<{ status: string; failureCode: string | null }> {
+  return db.uploadedFile.findFirstOrThrow({
+    where: { id: uploadedFileId, userId },
+    select: {
+      status: true,
+      failureCode: true,
+    },
+  });
+}
+
+export async function listActiveProcessingCandidatesByUserId(
+  userId: string,
+  limit: number,
+): Promise<StaleProcessingCandidate[]> {
+  return db.uploadedFile.findMany({
+    where: {
+      userId,
+      status: {
+        in: [...ACTIVE_PROCESSING_STATUSES],
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: limit,
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      currentAttempt: true,
+      failureCode: true,
+      enqueueRequestedAt: true,
+      queuedAt: true,
+      processingStartedAt: true,
+    },
+  });
 }

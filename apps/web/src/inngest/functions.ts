@@ -9,8 +9,8 @@ import {
   resolveModalPollAction,
   resolvePartialClipNoteCode,
 } from "~/fsd/entities/uploaded-file";
+import { completeUploadedFileProcessingAttempt } from "~/fsd/features/upload/api/complete-processing-attempt";
 import {
-  completeUploadedFileProcessingAttempt,
   findCurrentProcessingAttemptContext,
   isUploadedFileAttemptStillProcessing,
   markUploadedFileAttemptFailed,
