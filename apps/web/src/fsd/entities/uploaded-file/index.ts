@@ -15,7 +15,6 @@ export {
   isUploadedFileAttemptStillProcessing,
   listActiveUploadedFileQueueStateByUserId,
   listRecoverableUploadDraftsByUserId,
-  listStuckProcessingUploadedFiles,
   listUploadedFileSummariesByUserId,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
@@ -41,7 +40,6 @@ export {
   isProcessingStatus,
 } from "./model/processing-status";
 export type { ProcessingStatus } from "./model/processing-status";
-export type { StuckProcessingUploadedFile } from "./api";
 export type {
   ActiveUploadedFileQueueState,
   RecoverableUploadDraftSummary,

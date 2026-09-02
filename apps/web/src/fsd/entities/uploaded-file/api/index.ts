@@ -883,6 +883,11 @@ export async function markUploadedFileAttemptNoCredits(
   });
 }
 
+// ⚠️ 이 함수로 status를 "processing"으로 쓰지 말 것. 정체 감시는
+//    processVideo·analyzeVideo가 claim 직후 보내는 "processing/attempt.claimed"
+//    이벤트로만 예약된다(watchProcessingAttempt, src/inngest/functions.ts).
+//    이벤트 없이 processing 행을 만들면 감시자가 없어 정체 알림이 유실된다.
+//    꼭 필요하면 같은 이벤트를 함께 보내고, 그 경로를 여기 적을 것.
 export async function updateUploadedFileStatus(
   uploadedFileId: string,
   status: ProcessingStatus,
@@ -1290,54 +1295,4 @@ export async function deleteUploadedFileRecord(
   }
 
   return result;
-}
-
-/** 정체 행 한 건. `processingStartedAt`이 nullable인 건 Prisma 스키마가 DateTime?이기 때문이며,
- *  아래 쿼리의 범위 필터가 실제로는 non-null만 반환한다. */
-export type StuckProcessingUploadedFile = {
-  id: string;
-  userId: string;
-  currentAttempt: number;
-  processingStartedAt: Date | null;
-};
-
-/**
- * 알림 대상 정체 행. DB 쓰기 없이 조회만 한다.
- * 하한(minAge)과 상한(maxAge)을 둔 윈도우 방식이라 24h가 지나면 자연히 빠진다.
- * @@index([status, processingStartedAt])(prisma/schema.prisma:95)에 그대로 적중한다.
- *
- * ⚠️ 최대 `limit`건(기본 50)만 반환한다. 대량 정체 시 뒷부분은 잘리므로,
- *    정확한 총량이 필요한 호출부는 포화 여부를 직접 판단해야 한다(§8-4 참조).
- */
-export async function listStuckProcessingUploadedFiles(options?: {
-  now?: Date;
-  minAgeMs?: number;
-  maxAgeMs?: number;
-  limit?: number;
-}): Promise<StuckProcessingUploadedFile[]> {
-  const now = options?.now ?? new Date();
-  const minAgeMs = options?.minAgeMs ?? PROCESSING_STALE_POLICY.stuckAlertMs;
-  const maxAgeMs =
-    options?.maxAgeMs ?? PROCESSING_STALE_POLICY.stuckAlertMaxAgeMs;
-  const limit = options?.limit ?? 50;
-
-  return db.uploadedFile.findMany({
-    where: {
-      status: "processing",
-      processingStartedAt: {
-        lt: new Date(now.getTime() - minAgeMs),
-        gte: new Date(now.getTime() - maxAgeMs),
-      },
-    },
-    orderBy: {
-      processingStartedAt: "asc",
-    },
-    take: limit,
-    select: {
-      id: true,
-      userId: true,
-      currentAttempt: true,
-      processingStartedAt: true,
-    },
-  });
 }

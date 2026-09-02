@@ -22,6 +22,20 @@
 
 ---
 
+## FEAT-29 — 정체 감시를 cron에서 건별 이벤트 감시자로 전환 (web, 구현 2026-09-02)
+
+원천: `docs/agents/web-dev/FEAT-29.md` 「테스트로 못 덮은 범위」 + 계획서 「테스트」. **배포 대기** — `dev`에 커밋, `main` 합류 전.
+이 항목은 Inngest 오케스트레이션(이벤트 발송·`step.sleep` 재개·`cancelOn`·concurrency)이 본체인데 현재 러너(`tsx --test`, Inngest·DB 하니스 없음)로는 그 전부를 못 덮는다 — 아래는 배포 후 Inngest 대시보드와 Neon 콘솔에서만 닫힌다.
+남는 정기 깨움: `cleanupAnalyticsEvents`(일 1회 03:00)는 유지 대상이라 정상이다.
+
+- [ ] **배포 전 전제 — 전환 구간 공백**: 배포 순간 이미 `processing`인 attempt는 `processing/attempt.claimed`를 받은 적이 없어 감시자가 없고, 그것을 잡던 cron은 사라진다. **처리 중 업로드가 없을 때 배포**한다. 있는 채로 배포했다면 그 건은 정체돼도 알림이 없다는 것을 알고 넘어간다(사용자 가시 영향 없음 — 조회 시점 `reconcileStaleUploadedFileForUser`가 여전히 강제 실패시킨다)
+- [ ] **이벤트 발송**: 업로드 1건을 처리시키면 Inngest 대시보드에 `processing/attempt.claimed`가 claim 직후 1회 발송되고(analyze·render 각 1회), `watch-processing-attempt` 런이 그 이벤트로 시작된다
+- [ ] **sleep → check 흐름**: 그 감시자 런이 `wait-for-stuck-threshold`에서 90분 잔 뒤 `check-attempt-still-processing`을 1회 실행하고, 정상 종료된 업로드였다면 `{ alerted: false }`로 끝난다(알림 없음)
+- [ ] **슬롯 비점유(중요)**: 자는 감시자가 있는 동안 같은 유저의 다음 업로드가 **즉시** 처리 시작된다. 감시자에 concurrency를 두지 않은 이유가 이것이며, 막히면 유저당 1건 직렬화가 최대 90분 잠긴다 — 회귀 시 영향이 가장 큰 줄이다
+- [ ] **취소 매칭**: 정체된 업로드를 화면에서 열어 `reconcileStaleUploadedFileForUser`가 강제 실패시키면, 그 attempt의 자는 감시자가 `process-video-events/cancel`(같은 `matchKey`)로 취소된다
+- [ ] **정체 알림 실물**: 실제로 90분을 넘겨 `processing`에 머문 건이 생기면 Sentry에 `stuck-processing: <N>m` 이슈가 **1회** 뜬다(옛 cron은 15분마다 최대 96회 재보고했다)
+- [ ] **이 항목의 목적 — Neon 유휴 깨움 소멸**: 배포 며칠 뒤 Neon 콘솔 Billing → Usage에서 compute 시간이 눈에 띄게 떨어진다. 배포 전 하루 ≈96회 깨움(15분 cron × autosuspend 5분)이 유휴 0회가 되어야 한다. 떨어지지 않으면 다른 깨움원(로컬 개발이 프로덕션 엔드포인트 공유 등)이 남은 것이므로 백로그 항목을 만든다
+
 ## FEAT-28 — 실패 콜백의 부분 클립 메타데이터 소비 (web, 구현 2026-09-02)
 
 원천: `docs/agents/web-dev/FEAT-28.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에 커밋, `main` 합류 전.
