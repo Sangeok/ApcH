@@ -43,7 +43,7 @@
 - [ ] FEAT-28: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/fsd/entities/clip
-  status: 계획지시
+  status: 검토대기
   근거: BUG-08 계획서가 남긴 범위 밖 의존 후속. 코드 확정 수준 진단(원인 지점·수정 방향 명시)이라 계획 착수가 바로 가능하다.
 
 ## 2026-08-29
