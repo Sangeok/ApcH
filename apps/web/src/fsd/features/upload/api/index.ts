@@ -8,8 +8,16 @@ import {
   createProcessingDispatch,
   dispatchProcessingRequestByIdOrFail,
 } from "~/fsd/entities/processing-dispatch";
-import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft";
+import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { flushReports } from "~/fsd/shared/observability";
+import {
+  getUploadedFilePrefix,
+  isActiveProcessingStatus,
+  isProcessingStatus,
+  type ActiveUploadedFileQueueState,
+  type ProcessingStatus,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
 import {
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
@@ -18,18 +26,12 @@ import {
   findUploadedFileS3Key,
   findUploadedFileSourceState,
   getUploadedFileDetailsById,
-  getUploadedFilePrefix,
-  isActiveProcessingStatus,
-  isProcessingStatus,
   listActiveUploadedFileQueueStateByUserId,
   listUploadedFileSummariesByUserId,
   markUploadedFileAttemptFailed,
   reconcileStaleUploadedFileForUser,
   reconcileStaleUploadedFilesForUser,
-  type ActiveUploadedFileQueueState,
-  type ProcessingStatus,
-  type UploadedFileSummary,
-} from "~/fsd/entities/uploaded-file";
+} from "~/fsd/entities/uploaded-file/server";
 import {
   deleteS3Object,
   deleteS3Objects,

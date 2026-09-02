@@ -4,15 +4,15 @@ import type { Prisma } from "@repo/db";
 import { inngest } from "~/inngest/client";
 import { db } from "~/server/db";
 import {
-  ensureUploadedFileQueuedForDispatch,
-  markUploadedFileAttemptFailed,
+  getAttemptOutputPrefix,
+  getProcessingMatchKey,
   type ProcessingStatus,
 } from "~/fsd/entities/uploaded-file";
 import {
-  getAttemptOutputPrefix,
-  getProcessingMatchKey,
-} from "~/fsd/entities/uploaded-file/model/attempt-prefix";
-import { getSelectedRenderMomentsForAttempt } from "~/fsd/entities/clip-draft";
+  ensureUploadedFileQueuedForDispatch,
+  markUploadedFileAttemptFailed,
+} from "~/fsd/entities/uploaded-file/server";
+import { getSelectedRenderMomentsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { reportPipelineFailure } from "~/fsd/shared/observability";
 import type { ProcessingDispatchStatus } from "../model/types";
 
@@ -36,6 +36,15 @@ function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown dispatch failure";
 }
 
+// DB status 리터럴을 union에 묶는다. 이 상수를 거치지 않으면 `"dead-letter"` 같은
+// 오타가 컴파일을 통과하고, findPendingProcessingDispatchById가 회수할 수 없는 행이 남는다.
+const DISPATCH_STATUS = {
+  pending: "pending",
+  sending: "sending",
+  sent: "sent",
+  deadLetter: "dead_letter",
+} as const satisfies Record<string, ProcessingDispatchStatus>;
+
 export async function createProcessingDispatch(
   data: {
     uploadedFileId: string;
@@ -51,15 +60,6 @@ export async function createProcessingDispatch(
     },
   });
 }
-
-// DB status 리터럴을 union에 묶는다. 이 상수를 거치지 않으면 `"dead-letter"` 같은
-// 오타가 컴파일을 통과하고, findPendingProcessingDispatchById가 회수할 수 없는 행이 남는다.
-const DISPATCH_STATUS = {
-  pending: "pending",
-  sending: "sending",
-  sent: "sent",
-  deadLetter: "dead_letter",
-} as const satisfies Record<string, ProcessingDispatchStatus>;
 
 async function findPendingProcessingDispatchById(dispatchId: string) {
   return db.processingDispatch.findFirst({

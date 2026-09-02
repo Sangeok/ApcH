@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
+import {
+  type UploadedFileDetail,
+  uploadedFileKeys,
+} from "~/fsd/entities/uploaded-file";
 import type { ActionResult } from "~/fsd/shared/api/result";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Button } from "~/fsd/shared/ui/atoms/button";

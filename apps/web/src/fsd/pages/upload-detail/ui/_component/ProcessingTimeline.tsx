@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
-import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
+import { type ProcessingStatus } from "~/fsd/entities/uploaded-file";
 import { cn } from "~/fsd/shared/lib/utils";
 
 type TimelineEventKey =

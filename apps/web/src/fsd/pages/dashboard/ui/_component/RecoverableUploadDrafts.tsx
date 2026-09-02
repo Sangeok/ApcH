@@ -8,8 +8,10 @@ import {
   deleteUploadedFile,
   scheduleUploadedFileProcessing,
 } from "~/fsd/features/upload/api";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file/model/types";
+import {
+  type RecoverableUploadDraftSummary,
+  uploadedFileKeys,
+} from "~/fsd/entities/uploaded-file";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,

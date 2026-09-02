@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { isOptimisticUploadId } from "~/fsd/entities/uploaded-file/model/optimistic-id";
-import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
+import {
+  isOptimisticUploadId,
+  UploadedFileStatusBadge,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Table,
@@ -13,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "~/fsd/shared/ui/atoms/table";
-import type { UploadedFileSummary } from "../../model/types";
 
 interface QueueStatusProps {
   uploadedFiles: UploadedFileSummary[];

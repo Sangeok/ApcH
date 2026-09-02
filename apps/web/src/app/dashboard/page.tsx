@@ -4,7 +4,7 @@ import {
   listUploadedFileSummariesByUserId,
   reconcileStaleUploadedFilesForUser,
   reconcileUploadDraftsForUser,
-} from "~/fsd/entities/uploaded-file";
+} from "~/fsd/entities/uploaded-file/server";
 import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
 

@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useOptimistic, useRef } from "react";
 import { env } from "~/env";
-import { isOptimisticUploadId } from "~/fsd/entities/uploaded-file/model/optimistic-id";
-import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import type {
-  ActiveUploadedFileQueueState,
-  RecoverableUploadDraftSummary,
-  UploadedFileSummary,
-} from "~/fsd/entities/uploaded-file/model/types";
+import {
+  type ActiveUploadedFileQueueState,
+  isActiveProcessingStatus,
+  isOptimisticUploadId,
+  type RecoverableUploadDraftSummary,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
 import {
   currentUserActiveUploadQueueQueryOptions,
   currentUserUploadedFileListQueryOptions,

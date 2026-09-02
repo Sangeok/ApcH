@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ClipDraft } from "@repo/db";
+import { clipTypeLabel } from "~/fsd/entities/clip";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -18,16 +19,6 @@ import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
 const AUTO_SAVE_DEBOUNCE_MS = 600;
-
-// 백엔드 프롬프트가 열거하는 값은 둘뿐이다
-// (main.py:899 `"type": <"qa" | "insight">`).
-// CSS capitalize로는 qa가 "Qa"가 되어 오히려 틀린 표기가 되므로 매핑한다.
-// 다만 프롬프트의 요청일 뿐 강제 장치가 없어 다른 값이 올 수 있으니,
-// 매핑에 없으면 원본을 그대로 보여준다(빈 칸으로 삼키지 않는다).
-const CLIP_TYPE_LABELS: Record<string, string> = {
-  qa: "Q&A",
-  insight: "Insight",
-};
 
 // draft.captionStyle(Prisma JsonValue) → shared CaptionStyle 강제 변환의 단일 지점.
 // 필드가 늘기 전에 저장된 행에는 신규 키가 없다. 그대로 다이얼로그에 넣으면
@@ -289,10 +280,8 @@ export default function ClipDraftCard({
               <span className="text-foreground bg-muted rounded px-1.5 py-0.5 font-semibold tabular-nums">
                 #{draft.index + 1}
               </span>
-              {draft.clipType && (
-                <span>
-                  {CLIP_TYPE_LABELS[draft.clipType] ?? draft.clipType}
-                </span>
+              {clipTypeLabel(draft.clipType) && (
+                <span>{clipTypeLabel(draft.clipType)}</span>
               )}
               <span className="tabular-nums">
                 {formatTime(startSeconds)}–{formatTime(endSeconds)}

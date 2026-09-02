@@ -1,9 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ACTIVE_UPLOAD_POLLING_INTERVAL_MS } from "~/fsd/entities/uploaded-file/model/polling";
-import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
+import {
+  ACTIVE_UPLOAD_POLLING_INTERVAL_MS,
+  isActiveProcessingStatus,
+  type UploadedFileDetail,
+} from "~/fsd/entities/uploaded-file";
 import { uploadedFileDetailQueryOptions } from "~/fsd/features/upload";
 
 export function useLiveUploadedFileDetail(

@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { Play } from "lucide-react";
 import { useState } from "react";
-import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
+import {
+  UploadedFileStatusBadge,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import {
@@ -12,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
-import type { UploadedFileSummary } from "~/fsd/widgets/uploaded-file-list/model/types";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",

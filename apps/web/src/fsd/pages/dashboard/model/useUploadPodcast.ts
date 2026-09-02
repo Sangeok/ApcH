@@ -3,8 +3,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { createOptimisticUploadId } from "~/fsd/entities/uploaded-file/model/optimistic-id";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
+import {
+  createOptimisticUploadId,
+  uploadedFileKeys,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
 import { toast } from "sonner";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
@@ -15,7 +18,6 @@ import {
   reconcileUploadConfirmation,
   scheduleUploadedFileProcessing,
 } from "~/fsd/features/upload/api";
-import type { UploadedFileSummary } from "~/fsd/pages/dashboard/model/types";
 
 async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
   const response = await fetch(signedUrl, {

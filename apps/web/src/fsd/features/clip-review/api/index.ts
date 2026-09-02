@@ -6,7 +6,7 @@ import {
   createCustomClipDraft,
   findClipDraftWithUpload,
   updateClipDraftEdit,
-} from "~/fsd/entities/clip-draft";
+} from "~/fsd/entities/clip-draft/server";
 import { generatePresignedGetUrl, S3_CONFIG } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";

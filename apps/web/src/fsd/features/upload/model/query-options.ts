@@ -1,10 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
-import { ACTIVE_UPLOAD_POLLING_INTERVAL_MS } from "~/fsd/entities/uploaded-file/model/polling";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import type {
-  ActiveUploadedFileQueueState,
-  UploadedFileSummary,
-} from "~/fsd/entities/uploaded-file/model/types";
+import {
+  ACTIVE_UPLOAD_POLLING_INTERVAL_MS,
+  type ActiveUploadedFileQueueState,
+  uploadedFileKeys,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
 import {
   getUploadedFileDetails,
   listCurrentUserActiveUploadedFileQueueState,

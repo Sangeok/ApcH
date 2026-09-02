@@ -30,7 +30,7 @@ import {
   DEFAULT_CLIP_COUNT,
   CLIP_DURATION_LIMITS,
 } from "~/fsd/shared/config/constants";
-import type { UploadedFileSummary } from "../../model/types";
+import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
 
 function readVideoDurationSeconds(file: File): Promise<number | null> {
   return new Promise((resolve) => {

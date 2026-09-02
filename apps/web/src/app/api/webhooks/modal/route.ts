@@ -1,9 +1,7 @@
 import { env } from "~/env";
-import { updateClipMetadataFromBackendClips } from "~/fsd/entities/clip";
-import {
-  getProcessingMatchKey,
-  isUploadedFileAttemptCurrent,
-} from "~/fsd/entities/uploaded-file";
+import { updateClipMetadataFromBackendClips } from "~/fsd/entities/clip/server";
+import { getProcessingMatchKey } from "~/fsd/entities/uploaded-file";
+import { isUploadedFileAttemptCurrent } from "~/fsd/entities/uploaded-file/server";
 import { inngest } from "~/inngest/client";
 import type { AnalyzedMoment } from "~/inngest/client";
 

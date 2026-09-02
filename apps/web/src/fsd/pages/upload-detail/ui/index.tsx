@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react";
 import {
   isPartialClipResultCode,
   PARTIAL_CLIPS_INSUFFICIENT,
-} from "~/fsd/entities/uploaded-file/model/clip-generation-outcome";
-import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
-import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
+  type UploadedFileDetail,
+  UploadedFileStatusBadge,
+} from "~/fsd/entities/uploaded-file";
 import { UploadedFileActions } from "~/fsd/features/upload";
 import { useLiveUploadedFileDetail } from "~/fsd/pages/upload-detail/model/use-live-uploaded-file-detail";
 import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";

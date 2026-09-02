@@ -4,7 +4,11 @@ import {
   countClipsForAttemptS3Keys,
   createClipsBulk,
   updateClipMetadataFromBackendClips,
-} from "~/fsd/entities/clip";
+} from "~/fsd/entities/clip/server";
+import {
+  resolveModalPollAction,
+  resolvePartialClipNoteCode,
+} from "~/fsd/entities/uploaded-file";
 import {
   completeUploadedFileProcessingAttempt,
   findCurrentProcessingAttemptContext,
@@ -13,14 +17,10 @@ import {
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptReviewPending,
   startUploadedFileProcessingAttempt,
-} from "~/fsd/entities/uploaded-file";
-import {
-  resolveModalPollAction,
-  resolvePartialClipNoteCode,
-} from "~/fsd/entities/uploaded-file/model/clip-generation-outcome";
+} from "~/fsd/entities/uploaded-file/server";
 import { PROCESSING_STALE_POLICY } from "~/fsd/entities/uploaded-file/model/stale-policy";
 import { stuckAlertElapsedMinutes } from "~/fsd/entities/uploaded-file/model/stuck-alert";
-import { createClipDraftsBulk } from "~/fsd/entities/clip-draft";
+import { createClipDraftsBulk } from "~/fsd/entities/clip-draft/server";
 import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
 import {

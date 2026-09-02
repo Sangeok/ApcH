@@ -1,8 +1,10 @@
 "use client";
 
 import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
-import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
+import {
+  type ProcessingStatus,
+  UploadedFileStatusBadge,
+} from "~/fsd/entities/uploaded-file";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Download } from "lucide-react";

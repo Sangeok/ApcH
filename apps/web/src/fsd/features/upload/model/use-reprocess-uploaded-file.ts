@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
+import { uploadedFileKeys } from "~/fsd/entities/uploaded-file";
 import { reprocessUploadedFile } from "../api";
 
 export function useReprocessUploadedFile(uploadedFileId: string) {
