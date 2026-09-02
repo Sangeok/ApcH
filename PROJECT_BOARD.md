@@ -34,6 +34,18 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-02
+- [ ] FEAT-29: 정체 감시를 15분 cron에서 처리 건별 이벤트 감시자로 전환 — Neon 유휴 compute 깨움 제거
+  agent: web-dev
+  area: apps/web/src/inngest + apps/web/src/fsd/entities/uploaded-file
+  status: 승인대기
+  근거: 사용자가 이 세션에서 직접 등재·즉시 진행 지시(Neon 비용 절감, 진단·수정 방향 코드 확정 수준). 미결 0건.
+- [ ] FEAT-28: 부분 성공 클립의 메타데이터를 사용자에게 전달 — web inngest가 `status: error` 콜백의 `clips`를 소비
+  agent: web-dev
+  area: apps/web/src/inngest + apps/web/src/fsd/entities/clip
+  status: 승인대기
+  근거: BUG-08 계획서가 남긴 범위 밖 의존 후속. 코드 확정 수준 진단(원인 지점·수정 방향 명시)이라 계획 착수가 바로 가능하다.
+
 ## 2026-08-29
 - [x] BUG-04: 임시 디렉토리 정리가 파이프라인 성공/실패 여부와 무관하게 항상 실행됨
   agent: backend-dev
