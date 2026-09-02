@@ -55,3 +55,7 @@ backend-dev에 디스패치한다. 메인 루프가 코드를 읽고 잡은 핵�
 
 **handoff 처리(메인 루프 몫)**: "성공/실패 무관 정리" 문서 3곳(`README.md:352`·`README.ko.md:345`·`apps/backend/CLAUDE.md:217`)을 "프로덕션 정리는 의도된 동작, 로컬 `modal run`에서 `KEEP_TEMP_ON_FAILURE=1`로 보존" 문구로 갱신(절 구조 유지).
 「범위 밖 의존」: 새 백로그 후보 없음. 「못 덮는 범위」 → 원장 BUG-04 절 4줄(배포 대기 — `modal deploy` 사용자 몫).
+
+## 배포 (2026-08-29 11:25 KST, 메인 루프 — 사용자 승인 "modal deploy해")
+
+`cd apps/backend && PYTHONUTF8=1 modal deploy main.py`(venv `C:\Users\hamso\venvs\apch-backend`, modal 1.2.1) → `App deployed in 6.437s`, mount `PythonPackage:s3_upload_policy, translation_fallback, temp_cleanup_policy, error_callback`, web function `process_video` 재등록(`https://sangeok--ai-podcast-clipper-process-video.modal.run`). BUG-04·BUG-08 묶어 1회. 원장 절 머리말 "배포 완료", 번들 줄에 실측 기재 — 컨테이너 import·실동작은 다음 실사용 실행에서(BUG-03 전례).

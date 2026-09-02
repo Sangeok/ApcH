@@ -24,26 +24,26 @@
 
 ## BUG-08 — 에러 콜백에 부분 clip_results 싣기 (backend, 구현 2026-08-29)
 
-원천: `docs/agents/backend-dev/BUG-08.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-04와 묶어 1회). 주의: 이 항목만으로는 사용자 가시 변화가 없다 — web inngest가 `status: error` 페이로드의 `clips`를 소비하는 후속(백로그 후보)이 있어야 메타데이터가 행에 실린다. 아래 줄은 그 전제 절반만 확인한다.
+원천: `docs/agents/backend-dev/BUG-08.md` 「못 덮은 범위」. **배포 완료(2026-08-29 11:25 KST, BUG-04와 묶어 `modal deploy` — 사용자 승인 하에 메인 루프 실행).** 주의: 이 항목만으로는 사용자 가시 변화가 없다 — web inngest가 `status: error` 페이로드의 `clips`를 소비하는 후속(백로그 후보)이 있어야 메타데이터가 행에 실린다. 아래 줄은 그 전제 절반만 확인한다.
 
-- [ ] `modal deploy` — 이미지 번들에 `error_callback` 포함(배포 출력 mount에 `error_callback`), 컨테이너 import 성공
+- [ ] `modal deploy` — 이미지 번들에 `error_callback` 포함 — **번들은 배포 출력으로 실측**(2026-08-29 11:25 KST: mount에 `PythonPackage:error_callback`), 컨테이너 import는 다음 실사용 실행에서
 - [ ] 에러 콜백 본문 — 클립 루프 중간 실패를 유도한 `modal run`에서 웹훅이 받은 `status: error` 페이로드의 `clips`에 그때까지 완성된 클립(성공 콜백과 같은 원소 모양, `index`·`s3Key` 포함)이 실려 옴(웹훅 로그 또는 `modal/video.processed` 이벤트 payload). 루프 진입 전 실패는 `clips: []`(기존과 동일)
 - [ ] 웹 무회귀 — 그 페이로드로 웹훅이 200을 돌려주고(`normalizeBody` 통과), inngest는 기존대로 실패 처리(행은 맨행) — 경로 A `updateMany`는 행 부재로 0건이 정상
 - [ ] 성공 경로 불변 — 정상 실행의 성공 콜백·클립 메타데이터 반영이 이전과 동일
 
 ## BUG-04 — 임시 디렉토리 정리 정책(KEEP_TEMP_ON_FAILURE opt-in) (backend, 구현 2026-08-29)
 
-원천: `docs/agents/backend-dev/BUG-04.md` 「못 덮은 범위」. **배포 대기** — `modal deploy`는 사용자 몫(BUG-08과 묶어 1회 권장). 기본값에서 프로덕션 동작은 바이트 동일이라 배포 자체의 위험은 없다.
+원천: `docs/agents/backend-dev/BUG-04.md` 「못 덮은 범위」. **배포 완료(2026-08-29 11:25 KST, BUG-08과 묶어 `modal deploy` — 사용자 승인 하에 메인 루프 실행, `App deployed in 6.437s`).** 잔여는 다음 실사용 실행에서 닫는다.
 
-- [ ] `modal deploy` — 이미지 번들에 `temp_cleanup_policy` 포함(배포 출력 `Created mount PythonPackage:…temp_cleanup_policy`), 컨테이너에서 import 성공(첫 실행 로그에 `ModuleNotFoundError` 없음)
+- [ ] `modal deploy` — 이미지 번들에 `temp_cleanup_policy` 포함 — **번들은 배포 출력으로 실측**(2026-08-29 11:25 KST: `Created mount PythonPackage:s3_upload_policy, PythonPackage:translation_fallback, PythonPackage:temp_cleanup_policy, PythonPackage:error_callback`), 컨테이너 import는 다음 실사용 실행에서(첫 실행 로그에 `ModuleNotFoundError` 없음)
 - [ ] 기본값 동작 불변 — 프로덕션 실행(성공·실패)에서 기존 `Cleaning up temp dir after …` 로그만 나오고 `Preserving temp dir` 로그는 없음
 - [ ] 로컬 `modal run` + `KEEP_TEMP_ON_FAILURE=1` — 실패 유도 시 `Preserving temp dir for debugging after failure: …` 로그와 `/tmp/<run_id>` 잔존, 성공 시에는 정리
 - [ ] `succeeded` 제어흐름 — 예외 경로에서 False 유지(실패 실행에서 보존 스위치가 켜졌을 때만 보존되는 것으로 간접 확인)
 
 ## FEAT-26 — release-verify 루틴(원장 자동 마감) (main-loop, 구현 2026-08-29)
 
-원천: `docs/agents/main-loop/FEAT-26.md` 「구현 인수」·계획서 「못 덮는 범위」. **배포 대기** — `dev`에만 있음(루틴은 `dev`를 pull하므로 저장소 쪽은 이미 유효, `main` 합류는 문서 동기 목적).
-선행(사용자, claude.ai 환경 `Default`): 환경변수 `VERIFIER_SECRET`(Vercel admin과 같은 값) + 허용 도메인 `admin.a-pch.com`·`raw.githubusercontent.com`. 첫 실행(2026-08-29 00:35 KST, `cse_012JpnKvc33bPw1T9PWDHfn4`)은 비밀값 부재로 SKILL 2단계에서 무변경 종료 — 설계된 실패 모드.
+원천: `docs/agents/main-loop/FEAT-26.md` 「구현 인수」·계획서 「못 덮는 범위」. **배포 완료(2026-08-29 11:23 KST, PR #108 머지 — 루틴은 `dev`를 pull하므로 저장소 쪽은 그 전부터 유효).**
+선행(사용자, claude.ai 환경 `Default`): 환경변수 `VERIFIER_SECRET`(Vercel admin과 같은 값) + 허용 도메인 `admin.a-pch.com`·`raw.githubusercontent.com` — **아직 미설정**. 실행 이력: 즉시 실행(00:35 KST, `cse_012JpnKvc33bPw1T9PWDHfn4`)·첫 예약 실행(09:02 KST, `cse_01Cnivmce2ajszFwQcjNK7ev`) 둘 다 비밀값 부재로 SKILL 2단계에서 무변경 종료 + 푸시 알림 — 설계된 실패 모드가 cron에서도 재현됨(스케줄 발화·저장소 pull·스킬 준수 확인).
 
 - [ ] 클라우드에서 끝까지 실행 — 비밀값·도메인 허용 뒤 `action: run` 또는 09:00 KST 예약 실행이 SKILL 3~7단계를 통과(로그인 ok, `docs/release-checks.md`만 커밋·푸시, 종료 보고에 pass/fail/skip 줄 단위)
 - [ ] 첫 자동 마감 — 원장의 `〔auto …〕` 줄이 루틴 커밋으로 `[x] … 확인(날짜, 자동 — 근거)`가 됨(전제 조건이 맞는 시점: 검토대기·검증 줄이 있는 보드 등)
@@ -74,7 +74,7 @@
 - [ ] 단계 라벨 반응형 — 데스크톱(sm↑) 7 라벨 노출, 폰에서 숨김(`hidden sm:block`)이되 노드 레일은 유지
 - [ ] 캡션 항상 표시 — "지금 <현재> · [대기 낱말] · 다음 <다음>", 호박/남색 색 일치, `flex-wrap` 폰 줄바꿈 〔auto GET /pipeline text="지금 " text="· 다음 " css="flex-wrap" when-any="선정 중|당신 차례|작업 중|검증 중|인수 중"〕
 - [ ] `InboxCard` 통합 — 발화↔레일↔게이트 순서, `GateCardLock` 밖 배치, `ValidationMark` 칩과 시각 일관(검증 줄 있으면 칩=통과·레일=게이트②)
-- [ ] 신규 Tailwind 유틸 조합 방출 — `bg-silence`·`bg-active`·`border-stamp`·`border-active/50`·`border-stamp/50`가 실빌드에서 나오는지 〔auto GET /pipeline css="bg-silence,bg-active,border-stamp,border-active/50,border-stamp/50"〕
+- [x] 신규 Tailwind 유틸 조합 방출 — `bg-silence`·`bg-active`·`border-stamp`·`border-active/50`·`border-stamp/50`가 실빌드에서 나오는지 — 확인(2026-08-29 13:41 KST, 자동 — GET /pipeline 200 · css 5/5)
 
 ## FEAT-24 — 원격 실행 진행 로그·버튼 잠금 (admin, 구현 2026-08-27)
 
