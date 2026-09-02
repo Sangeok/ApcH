@@ -1,21 +1,12 @@
 import { EventSchemas, Inngest } from "inngest";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
+// wire 계약의 정본은 ./modal-contract 하나다. 여기서 다시 선언하지 않는다.
+import type {
+  AnalyzedMoment,
+  ProcessVideoBackendClip,
+} from "./modal-contract";
 
-type ProcessVideoBackendClip = {
-  index: number;
-  startSeconds?: number | null;
-  endSeconds?: number | null;
-  s3Key?: string | null;
-  scriptText?: string | null;
-  language?: string | null;
-  youtubeTitle?: string | null;
-  youtubeDescription?: string | null;
-  youtubeHashtags?: string[] | null;
-  clipType?: string | null;
-  hook?: string | null;
-  payoff?: string | null;
-  subtitleStatus?: string | null;
-};
+export type { AnalyzedMoment } from "./modal-contract";
 
 // 캡션 계약의 원천은 shared/config의 CaptionStyle 단일 타입이다.
 // 여기서는 wire 명칭만 별칭으로 유지한다 (스키마-이벤트-디스패처 드리프트 방지).
@@ -30,17 +21,6 @@ type RenderMoment = {
   payoff?: string | null;
   // 백엔드 ProcessVideoRequest.moments[].caption_style와 동일 키 (snake_case 유지)
   caption_style?: RenderCaptionStyle | null;
-};
-
-// 분석 결과 moment의 canonical 형태. 웹훅 정규화 출력(route.ts)과
-// analyzeVideo의 wire 타입(Partial<AnalyzedMoment>)이 모두 이 타입에서 파생된다.
-export type AnalyzedMoment = {
-  index: number;
-  startSeconds: number;
-  endSeconds: number;
-  clipType?: string | null;
-  hook?: string | null;
-  payoff?: string | null;
 };
 
 type Events = {

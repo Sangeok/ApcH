@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   Loader2,
@@ -10,14 +9,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import {
   isActiveProcessingStatus,
   type ProcessingStatus,
-  uploadedFileKeys,
-  type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
-import type { ActionResult } from "~/fsd/shared/api/result";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -26,40 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 import { toast } from "sonner";
-import { deleteUploadedFile } from "../api";
+import { useDeleteUploadedFile } from "../model/use-delete-uploaded-file";
 import { useReprocessUploadedFile } from "../model/use-reprocess-uploaded-file";
-
-type RunOptions = {
-  action: () => Promise<ActionResult<void>>;
-  successMessage: string;
-  confirmationMessage?: string;
-  onSuccess?: () => void | Promise<void>;
-  startTransition: ReturnType<typeof useTransition>[1];
-};
-
-const runAction = ({
-  action,
-  successMessage,
-  confirmationMessage,
-  onSuccess,
-  startTransition,
-}: RunOptions) => {
-  if (confirmationMessage && !confirm(confirmationMessage)) {
-    return;
-  }
-
-  startTransition(async () => {
-    const result = await action();
-
-    if (!result.success) {
-      toast.error(result.error);
-      return;
-    }
-
-    toast.success(successMessage);
-    await onSuccess?.();
-  });
-};
 
 interface UploadedFileActionsProps {
   uploadedFileId: string;
@@ -73,11 +36,14 @@ export default function UploadedFileActions({
   currentUserCredits,
 }: UploadedFileActionsProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const reprocessMutation = useReprocessUploadedFile(uploadedFileId);
-  const [isDeleting, startDeleteTransition] = useTransition();
+  // 캐시 정책은 feature model 훅이 소유한다. 여기서는 사용자 상호작용만 다룬다.
+  const deleteMutation = useDeleteUploadedFile({
+    onDeleted: () => router.push("/dashboard"),
+  });
   const isActive = isActiveProcessingStatus(status);
-  const anyPending = reprocessMutation.isPending || isDeleting;
+  const isAnyActionPending =
+    reprocessMutation.isPending || deleteMutation.isPending;
   const shouldBuyCredits = status === "no credits" && currentUserCredits <= 0;
   const actionLabel =
     status === "failed" || (status === "no credits" && currentUserCredits > 0)
@@ -96,35 +62,29 @@ export default function UploadedFileActions({
   };
 
   const handleDelete = () => {
-    runAction({
-      action: () => deleteUploadedFile(uploadedFileId),
-      successMessage: "Original file and clips deleted",
-      confirmationMessage:
+    // TODO(C-71): shared/ui/atoms/alert-dialog로 교체한다.
+    if (
+      !confirm(
         "Are you sure you want to delete the file and all associated clips?",
-      onSuccess: async () => {
-        queryClient.setQueriesData<UploadedFileSummary[]>(
-          {
-            queryKey: uploadedFileKeys.lists(),
-            predicate: (query) => Array.isArray(query.state.data),
-          },
-          (old) => old?.filter((file) => file.id !== uploadedFileId),
-        );
-        queryClient.removeQueries({
-          queryKey: uploadedFileKeys.detail(uploadedFileId),
-        });
-        await queryClient.invalidateQueries({
-          queryKey: uploadedFileKeys.lists(),
-        });
-        router.push("/dashboard");
+      )
+    ) {
+      return;
+    }
+
+    deleteMutation.mutate(uploadedFileId, {
+      onSuccess: () => {
+        toast.success("Original file and clips deleted");
       },
-      startTransition: startDeleteTransition,
+      onError: (error) => {
+        toast.error(error.message);
+      },
     });
   };
 
   return (
     <div className="flex items-center gap-2">
       {shouldBuyCredits ? (
-        <Button variant="outline" disabled={anyPending} asChild>
+        <Button variant="outline" disabled={isAnyActionPending} asChild>
           <Link href="/dashboard/billing">
             <CreditCard className="mr-2 h-4 w-4" />
             Buy credits
@@ -133,7 +93,7 @@ export default function UploadedFileActions({
       ) : (
         <Button
           variant="outline"
-          disabled={anyPending || isActive}
+          disabled={isAnyActionPending || isActive}
           onClick={handleReprocess}
         >
           {reprocessMutation.isPending ? (
@@ -146,8 +106,8 @@ export default function UploadedFileActions({
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" disabled={anyPending || isActive}>
-            {isDeleting ? (
+          <Button variant="secondary" disabled={isAnyActionPending || isActive}>
+            {deleteMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <MoreHorizontal className="mr-2 h-4 w-4" />

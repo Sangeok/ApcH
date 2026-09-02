@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { ClipDraft } from "@repo/db";
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import { getOriginalPlayUrl } from "~/fsd/features/upload";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { cn } from "~/fsd/shared/lib/utils";
@@ -104,6 +104,7 @@ export default function ClipDraftReviewSection({
   const trackedOpenRef = useRef(false);
   const {
     transcriptWords,
+    transcriptErrorMessage,
     saveDraft,
     applyStyleToAll,
     confirmAndGenerate,
@@ -413,6 +414,7 @@ export default function ClipDraftReviewSection({
         <div className="flex flex-col gap-4">
           <AddCustomClipPanel
             transcriptWords={transcriptWords}
+            transcriptErrorMessage={transcriptErrorMessage}
             onAdd={addCustomClip}
             isAdding={isAddingCustom}
           />

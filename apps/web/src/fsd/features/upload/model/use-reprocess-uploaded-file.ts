@@ -23,6 +23,9 @@ export function useReprocessUploadedFile(uploadedFileId: string) {
         queryClient.invalidateQueries({
           queryKey: uploadedFileKeys.lists(),
         }),
+        queryClient.invalidateQueries({
+          queryKey: uploadedFileKeys.activeQueues(),
+        }),
       ]);
     },
   });

@@ -6,16 +6,17 @@ import {
   type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
 import {
-  getUploadedFileDetails,
-  listCurrentUserActiveUploadedFileQueueState,
-  listCurrentUserUploadedFileSummaries,
+  reconcileAndGetUploadedFileDetails,
+  reconcileAndListCurrentUserActiveUploadedFileQueueState,
+  reconcileAndListCurrentUserUploadedFileSummaries,
 } from "../api";
 
 export const uploadedFileDetailQueryOptions = (uploadedFileId: string) =>
   queryOptions({
     queryKey: uploadedFileKeys.detail(uploadedFileId),
     queryFn: async () => {
-      const uploadedFileData = await getUploadedFileDetails(uploadedFileId);
+      const uploadedFileData =
+        await reconcileAndGetUploadedFileDetails(uploadedFileId);
 
       if (!uploadedFileData) {
         throw new Error("Upload detail not found");
@@ -31,7 +32,7 @@ export const currentUserUploadedFileListQueryOptions = (
 ) =>
   queryOptions({
     queryKey: uploadedFileKeys.currentUserList(userId),
-    queryFn: async () => listCurrentUserUploadedFileSummaries(),
+    queryFn: async () => reconcileAndListCurrentUserUploadedFileSummaries(),
     initialData,
     staleTime: 60_000,
   });
@@ -42,7 +43,8 @@ export const currentUserActiveUploadQueueQueryOptions = (
 ) =>
   queryOptions({
     queryKey: uploadedFileKeys.currentUserActiveQueue(userId),
-    queryFn: async () => listCurrentUserActiveUploadedFileQueueState(),
+    queryFn: async () =>
+      reconcileAndListCurrentUserActiveUploadedFileQueueState(),
     initialData,
     refetchInterval: (query) => {
       const queueState = query.state.data;

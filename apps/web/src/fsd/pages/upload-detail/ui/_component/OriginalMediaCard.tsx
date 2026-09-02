@@ -1,6 +1,6 @@
 "use client";
 
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import { getOriginalPlayUrl } from "~/fsd/features/upload";
 import {
   type ProcessingStatus,
   UploadedFileStatusBadge,

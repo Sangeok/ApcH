@@ -14,6 +14,8 @@ import type {
 
 interface AddCustomClipPanelProps {
   transcriptWords: TranscriptWord[];
+  /** 트랜스크립트를 못 불러온 이유. null이면 정상(빈 전사일 수 있다). */
+  transcriptErrorMessage: string | null;
   onAdd: (range: ClipRange) => Promise<void>;
   isAdding: boolean;
 }
@@ -30,6 +32,7 @@ function getLengthLabel(
 
 export default function AddCustomClipPanel({
   transcriptWords,
+  transcriptErrorMessage,
   onAdd,
   isAdding,
 }: AddCustomClipPanelProps) {
@@ -76,6 +79,19 @@ export default function AddCustomClipPanel({
       // onError가 이미 실패를 사용자에게 알렸다.
     }
   };
+
+  // 실패를 침묵으로 만들지 않는다. 예전에는 전사 로드 실패와 "전사가 비었다"가
+  // 모두 null 렌더라, 사용자에게는 기능이 그냥 사라진 것으로 보였다.
+  if (transcriptErrorMessage !== null) {
+    return (
+      <div className="rounded-lg border p-4">
+        <p className="text-sm font-medium">Add a clip AI missed</p>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Transcript unavailable — custom clips are disabled.
+        </p>
+      </div>
+    );
+  }
 
   if (transcriptWords.length === 0) {
     return null; // 전사 없음 → 폴백(숫자 입력)은 Open Questions

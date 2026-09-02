@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import type { Clip } from "@repo/db";
 import {
   Copy,
@@ -13,11 +12,7 @@ import {
 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import {
-  type UploadedFileDetail,
-  uploadedFileKeys,
-} from "~/fsd/entities/uploaded-file";
-import type { ActionResult } from "~/fsd/shared/api/result";
+import { useDeleteClip } from "~/fsd/features/clip";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -37,8 +32,8 @@ interface ClipActionsProps {
   onOpenScript: () => void;
   onOpenMetadata: () => void;
   onCopyScript: () => void | Promise<void>;
-  onDelete: (clipId: string) => Promise<ActionResult<void>>;
-  onDeleteSuccess: (clipId: string) => void;
+  /** 낙관적 제거. 부모의 useOptimistic 리듀서라 부모가 소유한다. */
+  onOptimisticRemove: (clipId: string) => void;
 }
 
 export function ClipActions({
@@ -50,10 +45,9 @@ export function ClipActions({
   onOpenScript,
   onOpenMetadata,
   onCopyScript,
-  onDelete,
-  onDeleteSuccess,
+  onOptimisticRemove,
 }: ClipActionsProps) {
-  const queryClient = useQueryClient();
+  const deleteMutation = useDeleteClip(clip.uploadedFileId);
   const [isDeleting, startDeleting] = useTransition();
 
   const handleDownload = () => {
@@ -63,40 +57,18 @@ export function ClipActions({
 
   const handleDelete = () => {
     startDeleting(async () => {
-      const result = await onDelete(clip.id);
+      // 서버 응답 **전에** 지운다. 이전에는 확인 뒤에 호출해서 이름과 달리
+      // 낙관적이지 않았고, 삭제한 카드가 왕복이 끝날 때까지 남아 있었다.
+      // transition이 await 동안 열려 있어야 useOptimistic 값이 유지된다.
+      onOptimisticRemove(clip.id);
 
-      if (result.success) {
-        const uploadedFileId = clip.uploadedFileId;
-
-        if (uploadedFileId) {
-          queryClient.setQueryData<UploadedFileDetail>(
-            uploadedFileKeys.detail(uploadedFileId),
-            (old) =>
-              old
-                ? {
-                    ...old,
-                    clips: old.clips.filter((item) => item.id !== clip.id),
-                  }
-                : old,
-          );
-        }
-
-        onDeleteSuccess(clip.id);
-
-        await Promise.all([
-          uploadedFileId
-            ? queryClient.invalidateQueries({
-                queryKey: uploadedFileKeys.detail(uploadedFileId),
-              })
-            : Promise.resolve(),
-          queryClient.invalidateQueries({
-            queryKey: uploadedFileKeys.lists(),
-          }),
-        ]);
-
+      try {
+        await deleteMutation.mutateAsync(clip.id);
         toast.success("Clip deleted");
-      } else {
-        toast.error(result.error);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to delete clip",
+        );
       }
     });
   };

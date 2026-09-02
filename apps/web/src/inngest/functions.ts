@@ -30,6 +30,11 @@ import {
 } from "~/fsd/shared/observability";
 import { inngest } from "./client";
 import type { AnalyzedMoment } from "./client";
+import {
+  normalizeBackendClips,
+  toModalErrorMessage,
+  type ProcessVideoBackendClip,
+} from "./modal-contract";
 
 // ⚠️ 이 세 값의 곱/합(≈62m)이 uploaded-file/model/stale-policy.ts의
 //    stuckAlertMs(90m) 근거다. 바꾸면 그쪽도 함께 재검토할 것.
@@ -37,64 +42,8 @@ const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
 const MODAL_METADATA_GRACE_INTERVAL = "2m";
 
-type ProcessVideoBackendClip = {
-  index: number;
-  startSeconds?: number | null;
-  endSeconds?: number | null;
-  s3Key?: string | null;
-  scriptText?: string | null;
-  language?: string | null;
-  youtubeTitle?: string | null;
-  youtubeDescription?: string | null;
-  youtubeHashtags?: string[] | null;
-  clipType?: string | null;
-  hook?: string | null;
-  payoff?: string | null;
-  subtitleStatus?: string | null;
-};
-
-type RawProcessVideoBackendClip = {
-  index?: number | string;
-  startSeconds?: number | null;
-  start_seconds?: number | null;
-  endSeconds?: number | null;
-  end_seconds?: number | null;
-  s3Key?: string | null;
-  s3_key?: string | null;
-  scriptText?: string | null;
-  script_text?: string | null;
-  language?: string | null;
-  youtubeTitle?: string | null;
-  youtube_title?: string | null;
-  youtubeDescription?: string | null;
-  youtube_description?: string | null;
-  youtubeHashtags?: string[] | null;
-  youtube_hashtags?: string[] | null;
-  clipType?: string | null;
-  clip_type?: string | null;
-  hook?: string | null;
-  payoff?: string | null;
-  subtitleStatus?: string | null;
-};
-
 function toErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  if (typeof error === "string" && error.trim().length > 0) {
-    return error;
-  }
-
-  if (error && typeof error === "object") {
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return "Unexpected backend failure";
-    }
-  }
-
-  return "Unexpected backend failure";
+  return toModalErrorMessage(error, "Unexpected backend failure");
 }
 
 function isSuccessfulModalStatus(status: unknown): boolean {
@@ -105,68 +54,6 @@ function isSuccessfulModalStatus(status: unknown): boolean {
   return ["ok", "success", "completed", "done"].includes(
     status.trim().toLowerCase(),
   );
-}
-
-function toStrictNonNegativeInteger(value: unknown): number | null {
-  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const normalized = value.trim();
-
-    if (!/^\d+$/.test(normalized)) {
-      return null;
-    }
-
-    const parsed = Number(normalized);
-    return Number.isSafeInteger(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function normalizeBackendClip(clip: unknown): ProcessVideoBackendClip | null {
-  if (!clip || typeof clip !== "object") {
-    return null;
-  }
-
-  const rawClip = clip as RawProcessVideoBackendClip;
-  const index = toStrictNonNegativeInteger(rawClip.index);
-
-  if (index === null) {
-    return null;
-  }
-
-  return {
-    index,
-    startSeconds: rawClip.startSeconds ?? rawClip.start_seconds ?? null,
-    endSeconds: rawClip.endSeconds ?? rawClip.end_seconds ?? null,
-    s3Key: rawClip.s3Key ?? rawClip.s3_key ?? null,
-    scriptText: rawClip.scriptText ?? rawClip.script_text ?? null,
-    language: rawClip.language ?? null,
-    youtubeTitle: rawClip.youtubeTitle ?? rawClip.youtube_title ?? null,
-    youtubeDescription:
-      rawClip.youtubeDescription ?? rawClip.youtube_description ?? null,
-    youtubeHashtags:
-      rawClip.youtubeHashtags ?? rawClip.youtube_hashtags ?? null,
-    clipType: rawClip.clipType ?? rawClip.clip_type ?? null,
-    hook: rawClip.hook ?? null,
-    payoff: rawClip.payoff ?? null,
-    subtitleStatus: rawClip.subtitleStatus ?? null,
-  };
-}
-
-function normalizeBackendClips(
-  clips: unknown,
-): ProcessVideoBackendClip[] | undefined {
-  if (!Array.isArray(clips)) {
-    return undefined;
-  }
-
-  return clips
-    .map(normalizeBackendClip)
-    .filter((clip): clip is ProcessVideoBackendClip => clip !== null);
 }
 
 async function findAttemptGeneratedClipKeys(

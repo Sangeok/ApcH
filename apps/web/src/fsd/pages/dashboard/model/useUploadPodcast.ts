@@ -63,6 +63,9 @@ export function useUploadPodcast({
     await queryClient.invalidateQueries({
       queryKey: uploadedFileKeys.lists(),
     });
+    await queryClient.invalidateQueries({
+      queryKey: uploadedFileKeys.activeQueues(),
+    });
     router.refresh();
     onSuccess?.();
   };

@@ -15,6 +15,7 @@ import {
   type ActiveUploadedFileQueueState,
   type ProcessingStatus,
   type UploadedFileSummary,
+  type UploadLifecycleState,
 } from "~/fsd/entities/uploaded-file";
 import {
   confirmUploadedFileSourceIfObjectExists,
@@ -298,7 +299,9 @@ export async function confirmUploadObjectExists(
 }
 
 // Re-checks the upload confirmation state for a draft upload.
-export async function reconcileUploadConfirmation(uploadedFileId: string) {
+export async function reconcileUploadConfirmation(
+  uploadedFileId: string,
+): Promise<ActionResult<UploadLifecycleState>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
@@ -337,7 +340,9 @@ export async function reconcileUploadConfirmation(uploadedFileId: string) {
 
 // Re-checks the processing state without reviving dispatch work.
 // Stale active attempts are closed so the user can start a fresh retry.
-export async function reconcileProcessingRequest(uploadedFileId: string) {
+export async function reconcileProcessingRequest(
+  uploadedFileId: string,
+): Promise<ActionResult<UploadLifecycleState>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
@@ -482,7 +487,16 @@ export async function confirmClipDraftsAndGenerate(
 }
 
 // Fetch the current user's upload details, returning null for hidden upload drafts.
-export async function getUploadedFileDetails(uploadedFileId: string) {
+//
+// ⚠️ 이름 그대로 순수 읽기가 아니다. 반환 전에 stale reconcile을 돌려
+// UploadedFile 상태를 failed로 쓸 수 있고, worker_timeout이면 Inngest
+// 취소 이벤트까지 보낸다. 폴링 queryFn으로 쓰이므로 tick마다 그럴 수 있다.
+//
+// TanStack queryFn 계약: 실패를 ActionResult가 아니라 throw로 알린다
+// (query.error로 이어져야 재시도·에러 경계가 동작한다).
+export async function reconcileAndGetUploadedFileDetails(
+  uploadedFileId: string,
+) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -504,7 +518,8 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
   return getUploadedFileDetailsById(uploadedFileId, session.user.id);
 }
 
-export async function listCurrentUserUploadedFileSummaries(): Promise<
+// ⚠️ 읽기 전에 stale reconcile 쓰기가 돈다(위 주석 참조). queryFn이라 throw한다.
+export async function reconcileAndListCurrentUserUploadedFileSummaries(): Promise<
   UploadedFileSummary[]
 > {
   const authResult = await requireAuth();
@@ -517,7 +532,8 @@ export async function listCurrentUserUploadedFileSummaries(): Promise<
   return listUploadedFileSummariesByUserId(authResult.data.userId);
 }
 
-export async function listCurrentUserActiveUploadedFileQueueState(): Promise<ActiveUploadedFileQueueState> {
+// ⚠️ 읽기 전에 stale reconcile 쓰기가 돈다(위 주석 참조). queryFn이라 throw한다.
+export async function reconcileAndListCurrentUserActiveUploadedFileQueueState(): Promise<ActiveUploadedFileQueueState> {
   const authResult = await requireAuth();
   if (!authResult.success) {
     throw new Error(authResult.error);

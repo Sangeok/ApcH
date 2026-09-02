@@ -2,7 +2,6 @@
 
 import type { Clip } from "@repo/db";
 import { useOptimistic } from "react";
-import { deleteClip } from "~/fsd/features/clip/api";
 import ClipCard from "./_component/ClipCard";
 
 interface ClipDisplayProps {
@@ -27,8 +26,7 @@ export default function ClipDisplay({ clips }: ClipDisplayProps) {
         <ClipCard
           key={clip.id}
           clip={clip}
-          onDelete={deleteClip}
-          onDeleteSuccess={removeClipOptimistic}
+          onOptimisticRemove={removeClipOptimistic}
         />
       ))}
     </div>

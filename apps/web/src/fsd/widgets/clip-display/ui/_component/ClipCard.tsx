@@ -4,7 +4,7 @@ import type { Clip } from "@repo/db";
 import { AlertTriangle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getClipPlayUrl } from "~/fsd/features/clip/api";
+import { getClipPlayUrl } from "~/fsd/features/clip";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
@@ -18,19 +18,13 @@ import { ClipActions } from "./ClipActions";
 import { ClipVideoPlayer } from "./ClipVideoPlayer";
 import { ScriptModal } from "./ScriptModal";
 import { YoutubeMetadataModal } from "./YoutubeMetadataModal";
-import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface ClipCardProps {
   clip: Clip;
-  onDelete: (clipId: string) => Promise<ActionResult<void>>;
-  onDeleteSuccess: (clipId: string) => void;
+  onOptimisticRemove: (clipId: string) => void;
 }
 
-export default function ClipCard({
-  clip,
-  onDelete,
-  onDeleteSuccess,
-}: ClipCardProps) {
+export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
   const { playUrl, isLoading, error } = usePlayUrl(clip.id, getClipPlayUrl);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
@@ -127,8 +121,7 @@ export default function ClipCard({
         onOpenScript={() => setIsScriptOpen(true)}
         onOpenMetadata={() => setIsMetadataOpen(true)}
         onCopyScript={handleCopyScript}
-        onDelete={onDelete}
-        onDeleteSuccess={onDeleteSuccess}
+        onOptimisticRemove={onOptimisticRemove}
       />
       <ScriptModal
         clip={clip}

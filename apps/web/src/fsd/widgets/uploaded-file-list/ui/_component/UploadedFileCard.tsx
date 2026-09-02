@@ -7,7 +7,7 @@ import {
   UploadedFileStatusBadge,
   type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import { getOriginalPlayUrl } from "~/fsd/features/upload";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import {
   Card,
