@@ -1,13 +1,12 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
 proposal-size: "standard"
 created-at: "2026-06-30"
-approved-by: null
-approved-at: null
-approval-scope: null
-completed-at: null
-verification-summary: null
+approved-by: "HamSangEok"
+approved-at: "2026-06-30"
+approval-scope: "전체"
+completed-at: "2026-06-30"
+verification-summary: "구현 커밋 89663c9(제안서와 같은 날). 2026-09-03 origin/main 기준으로 다섯 항목 전부 실재 확인 — partial unique index 마이그레이션, StartProcessingAttemptResult union + P2002 catch, hasProcessingUploadForUser의 tx 인자, 크레딧 게이트 credits < clipCount, pricing 정책 문구 두 줄"
 closed-at: null
 closed-by: null
 closed-reason: null
@@ -341,3 +340,42 @@ HAVING COUNT(*) > 1;
 5. credit reservation은 후속 단계로 분리한다.
 
 이 방향이면 현재 Inngest 기반 구조를 유지하면서도 동시성 보장을 Inngest 설정 하나에만 의존하지 않게 된다.
+
+## Completion Notes
+
+**뒤늦은 완료 처리(2026-09-03).** 이 제안서는 구현이 끝난 뒤에도 `status: "pending"`
+`stage: "draft"`로 `active/`에 남아 있었다. 2026-09-03 `doc-auditor` 감사가 "본문이
+제안으로 기술하는 항목이 전부 이미 구현·배포됐다"고 보고해 처리한다.
+아래 사실은 감사 보고를 그대로 믿지 않고 `origin/main` 기준으로 다시 확인한 것이다.
+
+- completed-at: 2026-06-30 (구현 커밋 `89663c9` — 제안서와 같은 날)
+- 확인 시점: 2026-09-03, `origin/main`
+- implementation commit: `89663c9 feat: harden processing concurrency with DB guard and credit gate`
+
+| 제안 항목 | `origin/main` 실재 |
+| --- | --- |
+| DB partial unique index | `packages/db/prisma/migrations/20260630000000_one_processing_per_user_index/migration.sql:6-8` |
+| `StartProcessingAttemptResult` union (`started`/`already_processing`/`not_claimable`) + P2002 catch | `apps/web/src/fsd/entities/uploaded-file/api/index.ts:666-704` |
+| `hasProcessingUploadForUser(userId, { tx })` | 같은 파일 `:945-948` |
+| 크레딧 게이트 `credits < clipCount` | `apps/web/src/inngest/functions.ts:386` |
+| pricing 정책 문구 두 줄 | `apps/web/src/fsd/pages/pricing/config/index.ts:37-38` |
+
+마이그레이션이 Neon에 **적용**됐는지는 저장소에서 관측할 수 없다. 다만 이후
+마이그레이션 둘(`20260820000000_clip_selection_rationale`,
+`20260826000000_clip_subtitle_status`)의 기능이 프로덕션에서 동작하므로, Prisma가
+순서대로 적용하는 이상 이 인덱스도 적용된 것으로 본다.
+
+### 2026-09-03 클린코드 개선(정규 77건)이 이 문서에 남긴 변화
+
+본문 두 곳이 그 리팩터로 낡아 같은 날 정정했다.
+
+- `:112` — 함께 확인하라던 범용 함수 `updateUploadedFileStatus()`가 C-05로
+  **삭제**됐다(호출부 0). 이 문서가 지키려던 불변식(`processing` 진입 writer는
+  `startUploadedFileProcessingAttempt` 하나)은 FEAT-29가 붙였던 ⚠️ 주석보다
+  강하게 닫혔다.
+- `:183` — `completeUploadedFileProcessingAttempt`가 C-75로
+  `apps/web/src/fsd/features/upload/api/complete-processing-attempt.ts`로 옮겨갔다.
+
+### 잔여
+
+없음. 이 제안서의 항목은 전부 구현·배포됐고, 본문 인용도 현재 코드와 맞춰 뒀다.
