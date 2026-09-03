@@ -4,23 +4,23 @@ import {
   countClipsForAttemptS3Keys,
   createClipsBulk,
   updateClipMetadataFromBackendClips,
-} from "~/fsd/entities/clip";
+} from "~/fsd/entities/clip/server";
 import {
-  completeUploadedFileProcessingAttempt,
+  resolveModalPollAction,
+  resolvePartialClipNoteCode,
+} from "~/fsd/entities/uploaded-file";
+import { completeUploadedFileProcessingAttempt } from "~/fsd/features/upload/api/complete-processing-attempt";
+import {
   findCurrentProcessingAttemptContext,
   isUploadedFileAttemptStillProcessing,
   markUploadedFileAttemptFailed,
   markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptReviewPending,
   startUploadedFileProcessingAttempt,
-} from "~/fsd/entities/uploaded-file";
-import {
-  resolveModalPollAction,
-  resolvePartialClipNoteCode,
-} from "~/fsd/entities/uploaded-file/model/clip-generation-outcome";
+} from "~/fsd/entities/uploaded-file/server";
 import { PROCESSING_STALE_POLICY } from "~/fsd/entities/uploaded-file/model/stale-policy";
 import { stuckAlertElapsedMinutes } from "~/fsd/entities/uploaded-file/model/stuck-alert";
-import { createClipDraftsBulk } from "~/fsd/entities/clip-draft";
+import { createClipDraftsBulk } from "~/fsd/entities/clip-draft/server";
 import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
 import {
@@ -30,6 +30,11 @@ import {
 } from "~/fsd/shared/observability";
 import { inngest } from "./client";
 import type { AnalyzedMoment } from "./client";
+import {
+  normalizeBackendClips,
+  toModalErrorMessage,
+  type ProcessVideoBackendClip,
+} from "./modal-contract";
 
 // ⚠️ 이 세 값의 곱/합(≈62m)이 uploaded-file/model/stale-policy.ts의
 //    stuckAlertMs(90m) 근거다. 바꾸면 그쪽도 함께 재검토할 것.
@@ -37,64 +42,39 @@ const MODAL_RESULT_POLL_INTERVAL = "1m";
 const MODAL_RESULT_MAX_POLLS = 60;
 const MODAL_METADATA_GRACE_INTERVAL = "2m";
 
-type ProcessVideoBackendClip = {
-  index: number;
-  startSeconds?: number | null;
-  endSeconds?: number | null;
-  s3Key?: string | null;
-  scriptText?: string | null;
-  language?: string | null;
-  youtubeTitle?: string | null;
-  youtubeDescription?: string | null;
-  youtubeHashtags?: string[] | null;
-  clipType?: string | null;
-  hook?: string | null;
-  payoff?: string | null;
-  subtitleStatus?: string | null;
-};
+/**
+ * `processVideo`·`analyzeVideo` 핸들러의 반환 형태.
+ *
+ * 이 값들은 Inngest 실행 기록에 그대로 남아 운영 중 무슨 일이 있었는지를
+ * 읽는 유일한 근거다. 이전에는 반환 타입 선언 없이 16가지 객체 리터럴이
+ * 즉석에서 만들어져, 오타 난 status나 빠진 필드를 컴파일러가 잡지 못했다.
+ */
+type ProcessingSkipReason = "already_processing" | "attempt_no_longer_active";
 
-type RawProcessVideoBackendClip = {
-  index?: number | string;
-  startSeconds?: number | null;
-  start_seconds?: number | null;
-  endSeconds?: number | null;
-  end_seconds?: number | null;
-  s3Key?: string | null;
-  s3_key?: string | null;
-  scriptText?: string | null;
-  script_text?: string | null;
-  language?: string | null;
-  youtubeTitle?: string | null;
-  youtube_title?: string | null;
-  youtubeDescription?: string | null;
-  youtube_description?: string | null;
-  youtubeHashtags?: string[] | null;
-  youtube_hashtags?: string[] | null;
-  clipType?: string | null;
-  clip_type?: string | null;
-  hook?: string | null;
-  payoff?: string | null;
-  subtitleStatus?: string | null;
-};
+/** 시도가 실제로 진행된 뒤의 종료 상태. */
+type ProcessingRunEndStatus =
+  | "processed"
+  | "review_pending"
+  | "no credits"
+  | "missing_source_object"
+  | "backend_failed"
+  | "callback_timeout"
+  | "no_clips_generated"
+  | "analysis_source_failed"
+  | "analysis_timeout"
+  | "no_moments_found";
+
+type ProcessingRunResult =
+  | { skipped: true; status?: ProcessingSkipReason }
+  | {
+      skipped: false;
+      status: ProcessingRunEndStatus;
+      error?: string;
+      draftCount?: number;
+    };
 
 function toErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  if (typeof error === "string" && error.trim().length > 0) {
-    return error;
-  }
-
-  if (error && typeof error === "object") {
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return "Unexpected backend failure";
-    }
-  }
-
-  return "Unexpected backend failure";
+  return toModalErrorMessage(error, "Unexpected backend failure");
 }
 
 function isSuccessfulModalStatus(status: unknown): boolean {
@@ -105,68 +85,6 @@ function isSuccessfulModalStatus(status: unknown): boolean {
   return ["ok", "success", "completed", "done"].includes(
     status.trim().toLowerCase(),
   );
-}
-
-function toStrictNonNegativeInteger(value: unknown): number | null {
-  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const normalized = value.trim();
-
-    if (!/^\d+$/.test(normalized)) {
-      return null;
-    }
-
-    const parsed = Number(normalized);
-    return Number.isSafeInteger(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function normalizeBackendClip(clip: unknown): ProcessVideoBackendClip | null {
-  if (!clip || typeof clip !== "object") {
-    return null;
-  }
-
-  const rawClip = clip as RawProcessVideoBackendClip;
-  const index = toStrictNonNegativeInteger(rawClip.index);
-
-  if (index === null) {
-    return null;
-  }
-
-  return {
-    index,
-    startSeconds: rawClip.startSeconds ?? rawClip.start_seconds ?? null,
-    endSeconds: rawClip.endSeconds ?? rawClip.end_seconds ?? null,
-    s3Key: rawClip.s3Key ?? rawClip.s3_key ?? null,
-    scriptText: rawClip.scriptText ?? rawClip.script_text ?? null,
-    language: rawClip.language ?? null,
-    youtubeTitle: rawClip.youtubeTitle ?? rawClip.youtube_title ?? null,
-    youtubeDescription:
-      rawClip.youtubeDescription ?? rawClip.youtube_description ?? null,
-    youtubeHashtags:
-      rawClip.youtubeHashtags ?? rawClip.youtube_hashtags ?? null,
-    clipType: rawClip.clipType ?? rawClip.clip_type ?? null,
-    hook: rawClip.hook ?? null,
-    payoff: rawClip.payoff ?? null,
-    subtitleStatus: rawClip.subtitleStatus ?? null,
-  };
-}
-
-function normalizeBackendClips(
-  clips: unknown,
-): ProcessVideoBackendClip[] | undefined {
-  if (!Array.isArray(clips)) {
-    return undefined;
-  }
-
-  return clips
-    .map(normalizeBackendClip)
-    .filter((clip): clip is ProcessVideoBackendClip => clip !== null);
 }
 
 async function findAttemptGeneratedClipKeys(
@@ -304,7 +222,7 @@ export const processVideo = inngest.createFunction(
       },
     ],
   },
-  async ({ event, step }) => {
+  async ({ event, step }): Promise<ProcessingRunResult> => {
     const {
       uploadedFileId,
       language,
@@ -479,7 +397,9 @@ export const processVideo = inngest.createFunction(
       let generatedClipCount = 0;
       const shouldWaitForCallback = modalResponse.status === "accepted";
 
-      function applyModalPayload(args: {
+      // 이름이 말하는 대로 "적용"만 하지 않고 바깥 루프 변수 셋을 다시 쓴다.
+      // 그 값들이 resolveModalPollAction과 종료 분기를 결정하므로 이름에 드러낸다.
+      function recordModalPayloadIntoAttemptState(args: {
         status: unknown;
         error?: unknown;
         clips?: unknown;
@@ -488,7 +408,7 @@ export const processVideo = inngest.createFunction(
         modalCallbackReceived = true;
 
         // 성공·실패와 무관하게 부분 완성된 클립 메타데이터를 살린다.
-        // applyModalPayload는 콜백당 1회만 호출되므로(backendClips 초기값 undefined)
+        // 이 함수는 콜백당 1회만 호출되므로(backendClips 초기값 undefined)
         // 성공 경로 동작은 이전과 동일하고, 실패 상태에서만 backendClips가 새로 채워진다.
         // 실패 판정은 아래 backendFailureMessage로 그대로 유지된다.
         backendClips = normalizeBackendClips(args.clips);
@@ -497,7 +417,6 @@ export const processVideo = inngest.createFunction(
           backendFailureMessage = `Modal ${args.source} reported status "${String(args.status)}": ${toErrorMessage(
             args.error ?? "Unknown modal processing error",
           )}`;
-          return;
         }
       }
 
@@ -508,7 +427,7 @@ export const processVideo = inngest.createFunction(
       }
 
       if (!shouldWaitForCallback) {
-        applyModalPayload({
+        recordModalPayloadIntoAttemptState({
           status: modalResponse.status,
           error: modalResponse.error,
           clips: modalResponse.clips,
@@ -534,7 +453,7 @@ export const processVideo = inngest.createFunction(
           });
 
           if (modalResult) {
-            applyModalPayload({
+            recordModalPayloadIntoAttemptState({
               status: modalResult.data.status,
               error: modalResult.data.error,
               clips: modalResult.data.clips,
@@ -573,7 +492,7 @@ export const processVideo = inngest.createFunction(
             );
 
             if (metadataResult) {
-              applyModalPayload({
+              recordModalPayloadIntoAttemptState({
                 status: metadataResult.data.status,
                 error: metadataResult.data.error,
                 clips: metadataResult.data.clips,
@@ -778,7 +697,7 @@ export const analyzeVideo = inngest.createFunction(
       },
     ],
   },
-  async ({ event, step }) => {
+  async ({ event, step }): Promise<ProcessingRunResult> => {
     const { uploadedFileId, language, clipCount, attempt, outputPrefix } =
       event.data;
 
@@ -856,13 +775,13 @@ export const analyzeVideo = inngest.createFunction(
     });
 
     if (claimResult.status !== "started") {
-      return {
-        skipped: true,
-        status:
-          claimResult.status === "already_processing"
-            ? "already_processing"
-            : undefined,
-      };
+      // 이전에는 status를 `: undefined`로 접어 두 결과가 한 리터럴에 섞였다.
+      // 실행 기록에서 둘을 구분해 읽을 수 있도록 분기를 드러낸다.
+      if (claimResult.status === "already_processing") {
+        return { skipped: true, status: "already_processing" };
+      }
+
+      return { skipped: true };
     }
 
     await step.sendEvent("schedule-stuck-watch", {

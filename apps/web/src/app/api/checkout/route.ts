@@ -1,21 +1,22 @@
 import { Checkout } from "@polar-sh/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
+import { POLAR_SERVER } from "~/fsd/shared/api/polar";
+import { SITE_URL } from "~/fsd/shared/lib/site";
 import { auth } from "~/server/auth";
 
+// 앱의 다른 모든 절대 URL과 같은 오리진을 쓴다(shared/lib/site.ts).
 const getBaseUrl = () => {
   if (env.NODE_ENV === "development") {
     return "http://localhost:3000";
   }
-  return env.NEXT_PUBLIC_SITE_URL ?? "https://apc-h.vercel.app";
+  return SITE_URL;
 };
-
-const polarServer = env.POLAR_SERVER ?? "sandbox";
 
 const checkoutHandler = Checkout({
   accessToken: env.POLAR_ACCESS_TOKEN,
   successUrl: `${getBaseUrl()}/dashboard/billing?success=true&checkout_id={CHECKOUT_ID}`,
-  server: polarServer,
+  server: POLAR_SERVER,
 });
 
 export async function GET(req: NextRequest) {

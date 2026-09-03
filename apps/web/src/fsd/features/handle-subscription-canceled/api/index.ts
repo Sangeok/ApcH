@@ -2,6 +2,8 @@ import {
   findSubscriptionByPolarId,
   updateSubscriptionByPolarId,
 } from "~/fsd/entities/subscription";
+import { failure, success } from "~/fsd/shared/api/result";
+import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface HandleSubscriptionCanceledInput {
   subscriptionId: string;
@@ -10,11 +12,11 @@ interface HandleSubscriptionCanceledInput {
 
 export async function handleSubscriptionCanceled(
   input: HandleSubscriptionCanceledInput,
-) {
+): Promise<ActionResult<void>> {
   const subscription = await findSubscriptionByPolarId(input.subscriptionId);
 
   if (!subscription) {
-    return { ok: false as const, reason: "missing-subscription" };
+    return failure("missing-subscription");
   }
 
   await updateSubscriptionByPolarId(input.subscriptionId, {
@@ -23,5 +25,5 @@ export async function handleSubscriptionCanceled(
     cancelAtPeriodEnd: true,
   });
 
-  return { ok: true as const };
+  return success();
 }

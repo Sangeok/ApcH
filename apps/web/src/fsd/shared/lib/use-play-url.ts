@@ -7,45 +7,59 @@ interface UsePlayUrlOptions {
   enabled?: boolean;
 }
 
-interface UsePlayUrlReturn {
-  playUrl: string | null;
-  isLoading: boolean;
-  error: string | null;
-}
+/**
+ * presign 요청의 상태. 이전 반환값 `{ playUrl, isLoading, error }`는 세 필드가
+ * 서로 독립이라 `{ url, isLoading: true, error }` 같은 불가능한 조합을 타입이
+ * 허용했고, 소비자 넷이 각자 다른 방식으로 상태를 재유도했다 — 그중 하나는
+ * `error`를 아예 읽지 않아 presign 실패 시 빈 검은 상자를 영원히 그렸다.
+ */
+export type PlayUrlState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; url: string }
+  | { status: "error"; message: string };
 
 export function usePlayUrl(
   id: string,
   fetcher: (id: string) => Promise<ActionResult<{ url: string }>>,
   options?: UsePlayUrlOptions,
-): UsePlayUrlReturn {
+): PlayUrlState {
   const enabled = options?.enabled ?? true;
-  const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(enabled);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<PlayUrlState>(
+    enabled ? { status: "loading" } : { status: "idle" },
+  );
   const fetcherRef = useRef(fetcher);
-  fetcherRef.current = fetcher;
+
+  // 렌더 중에 쓰면 React 19 동시 렌더링에서 불순한 렌더다. 이 effect가 아래
+  // fetch effect보다 먼저 선언돼 있어야 같은 커밋에서 최신 fetcher가 보인다.
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  });
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      setState({ status: "idle" });
+      return;
+    }
 
     let cancelled = false;
-    setIsLoading(true);
-    setError(null);
+    setState({ status: "loading" });
 
     const fetchUrl = async () => {
       try {
         const result = await fetcherRef.current(id);
         if (cancelled) return;
-        if (result.success) {
-          setPlayUrl(result.data.url);
-        } else {
-          setError(result.error);
-        }
+        setState(
+          result.success
+            ? { status: "ready", url: result.data.url }
+            : { status: "error", message: result.error },
+        );
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : String(err));
-      } finally {
-        if (!cancelled) setIsLoading(false);
+        setState({
+          status: "error",
+          message: err instanceof Error ? err.message : String(err),
+        });
       }
     };
 
@@ -56,5 +70,5 @@ export function usePlayUrl(
     };
   }, [id, enabled]);
 
-  return { playUrl, isLoading, error };
+  return state;
 }

@@ -105,6 +105,41 @@ Next.js App Router에서는 서버 컴포넌트, route handler, server action �
    - 인증 세션, 전역 설정, 프레임워크 진입점 수준의 부트스트랩
    - 이 경우에도 도메인 데이터 조회와 섞지 않습니다.
 
+### 슬라이스 공개 API를 런타임 기준으로 나눈다 (`index.ts` / `server.ts`)
+
+`api/` 세그먼트가 `import "server-only"`인 슬라이스에서, 그 세그먼트를 슬라이스
+barrel(`index.ts`)이 재수출하면 **클라이언트가 그 슬라이스의 공개 API를 쓸 수
+없게 됩니다.** 타입 체크는 통과하고 `npm run build`에서만 깨지므로, 실제로는
+클라이언트 모듈들이 barrel을 우회해 `model/*`·`ui/*`를 직접 임포트하게 되고
+공개 API 경계가 사실상 사라집니다.
+
+그래서 서버 전용 접근이 있는 슬라이스는 루트 barrel을 둘로 나눕니다.
+
+- **`index.ts`** — 클라이언트 안전 표면. `model/`·`lib/`·`ui/`만 재수출합니다.
+  여기에 `./api`를 실으면 이 barrel을 임포트하는 모든 클라이언트 모듈의 빌드가
+  깨집니다.
+- **`server.ts`** — 서버 전용 표면. 1행이 `import "server-only"`이고 `./api`를
+  재수출합니다. 서버 컴포넌트·route handler·server action이 이쪽을 씁니다.
+
+```ts
+// entities/uploaded-file/index.ts   (클라이언트도 임포트한다)
+export { uploadedFileKeys } from "./model/query-keys";
+export type { UploadedFileDetail } from "./model/types";
+export { UploadedFileStatusBadge } from "./ui/UploadedFileStatusBadge";
+
+// entities/uploaded-file/server.ts  (서버만)
+import "server-only";
+export { getUploadedFileDetailsById } from "./api";
+```
+
+같은 이유로, `"use server"` 파일 옆에 두는 서버 전용 헬퍼 모듈은 클라이언트가
+임포트하는 barrel에 싣지 않습니다. `shared/observability`처럼 barrel 자체가
+`server-only` 모듈을 재수출하는 경우, 클라이언트에서 쓸 훅은 barrel이 아니라
+파일 경로로 임포트합니다.
+
+검증은 `npm run build`입니다 — `server-only` 위반과 `"use server"` export 규칙은
+타입 체크가 잡지 못합니다.
+
 ### 디렉토리 구조 예시
 
 ```

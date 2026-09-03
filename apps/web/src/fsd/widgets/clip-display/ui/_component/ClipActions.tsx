@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import type { Clip } from "@repo/db";
 import {
   Copy,
@@ -8,16 +7,14 @@ import {
   FileText,
   Hash,
   Loader2,
-  Lock,
   MoreHorizontal,
   Trash,
 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
-import type { ActionResult } from "~/fsd/shared/api/result";
+import { useDeleteClip } from "~/fsd/features/clip";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
+import type { PlayUrlState } from "~/fsd/shared/lib/use-play-url";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -29,80 +26,48 @@ import {
 
 interface ClipActionsProps {
   clip: Clip;
-  playUrl: string | null;
-  isLoading: boolean;
+  playUrlState: PlayUrlState;
   hasScript: boolean;
   hasMetadata: boolean;
-  allowDelete: boolean;
   onOpenScript: () => void;
   onOpenMetadata: () => void;
   onCopyScript: () => void | Promise<void>;
-  onDelete: (clipId: string) => Promise<ActionResult<void>>;
-  onDeleteSuccess: (clipId: string) => void;
+  /** 낙관적 제거. 부모의 useOptimistic 리듀서라 부모가 소유한다. */
+  onOptimisticRemove: (clipId: string) => void;
 }
 
 export function ClipActions({
   clip,
-  playUrl,
-  isLoading,
+  playUrlState,
   hasScript,
   hasMetadata,
-  allowDelete,
   onOpenScript,
   onOpenMetadata,
   onCopyScript,
-  onDelete,
-  onDeleteSuccess,
+  onOptimisticRemove,
 }: ClipActionsProps) {
-  const queryClient = useQueryClient();
+  const deleteMutation = useDeleteClip(clip.uploadedFileId);
   const [isDeleting, startDeleting] = useTransition();
 
   const handleDownload = () => {
-    if (!playUrl) return;
-    triggerDownload(playUrl);
+    if (playUrlState.status !== "ready") return;
+    triggerDownload(playUrlState.url);
   };
 
   const handleDelete = () => {
-    if (!allowDelete) {
-      toast.error("Visible clips cannot be deleted");
-      return;
-    }
-
     startDeleting(async () => {
-      const result = await onDelete(clip.id);
+      // 서버 응답 **전에** 지운다. 이전에는 확인 뒤에 호출해서 이름과 달리
+      // 낙관적이지 않았고, 삭제한 카드가 왕복이 끝날 때까지 남아 있었다.
+      // transition이 await 동안 열려 있어야 useOptimistic 값이 유지된다.
+      onOptimisticRemove(clip.id);
 
-      if (result.success) {
-        const uploadedFileId = clip.uploadedFileId;
-
-        if (uploadedFileId) {
-          queryClient.setQueryData<UploadedFileDetail>(
-            uploadedFileKeys.detail(uploadedFileId),
-            (old) =>
-              old
-                ? {
-                    ...old,
-                    clips: old.clips.filter((item) => item.id !== clip.id),
-                  }
-                : old,
-          );
-        }
-
-        onDeleteSuccess(clip.id);
-
-        await Promise.all([
-          uploadedFileId
-            ? queryClient.invalidateQueries({
-                queryKey: uploadedFileKeys.detail(uploadedFileId),
-              })
-            : Promise.resolve(),
-          queryClient.invalidateQueries({
-            queryKey: uploadedFileKeys.lists(),
-          }),
-        ]);
-
+      try {
+        await deleteMutation.mutateAsync(clip.id);
         toast.success("Clip deleted");
-      } else {
-        toast.error(result.error ?? "Failed to delete clip");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to delete clip",
+        );
       }
     });
   };
@@ -115,10 +80,10 @@ export function ClipActions({
           variant="outline"
           size="sm"
           className="flex-1"
-          disabled={!playUrl || isLoading}
-          aria-busy={isLoading}
+          disabled={playUrlState.status !== "ready"}
+          aria-busy={playUrlState.status === "loading"}
         >
-          {isLoading ? (
+          {playUrlState.status === "loading" ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
           ) : (
             <Download className="mr-1.5 h-4 w-4" />
@@ -161,18 +126,16 @@ export function ClipActions({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleDelete}
-              disabled={isDeleting || !allowDelete}
+              disabled={isDeleting}
               variant="destructive"
               className="cursor-pointer"
             >
               {isDeleting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : allowDelete ? (
-                <Trash className="mr-2 h-4 w-4" />
               ) : (
-                <Lock className="mr-2 h-4 w-4" />
+                <Trash className="mr-2 h-4 w-4" />
               )}
-              {allowDelete ? "Delete" : "Delete disabled"}
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -3,7 +3,7 @@
 import type { AnalyticsEventName } from "../event-catalog";
 import { sanitizeAnalyticsMetadata } from "./metadata";
 import { normalizeAnalyticsPath } from "./normalize-path";
-import { getAnalyticsIds } from "./anonymous-id";
+import { getOrCreateAnalyticsIds } from "./anonymous-id";
 
 type TrackAnalyticsEventOptions = {
   path?: string;
@@ -12,6 +12,10 @@ type TrackAnalyticsEventOptions = {
   useBeacon?: boolean;
 };
 
+// 페이지 세션(하드 내비게이션 사이) 동안만 산다. 클라이언트 라우팅으로
+// 계속 도는 SPA에서는 무한히 자라므로 상한에서 통째로 비운다 — 최근 키를
+// 골라 남기는 것보다 단순하고, 최악의 결과는 이벤트 한 건의 중복 전송이다.
+const MAX_DEDUPE_KEYS = 500;
 const sentDedupeKeys = new Set<string>();
 
 function getCurrentPath() {
@@ -36,20 +40,20 @@ export async function trackAnalyticsEvent(
       return;
     }
 
+    if (sentDedupeKeys.size >= MAX_DEDUPE_KEYS) {
+      sentDedupeKeys.clear();
+    }
+
     sentDedupeKeys.add(options.dedupeKey);
   }
 
-  const ids = getAnalyticsIds();
+  const ids = getOrCreateAnalyticsIds();
 
   if (!ids) {
     return;
   }
 
   const path = normalizeAnalyticsPath(options.path ?? getCurrentPath());
-
-  if (path.startsWith("/admin")) {
-    return;
-  }
 
   const payload = {
     name,

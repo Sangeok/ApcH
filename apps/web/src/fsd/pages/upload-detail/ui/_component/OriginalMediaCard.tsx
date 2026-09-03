@@ -1,8 +1,10 @@
 "use client";
 
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
-import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
+import { getOriginalPlayUrl } from "~/fsd/features/upload";
+import {
+  type ProcessingStatus,
+  UploadedFileStatusBadge,
+} from "~/fsd/entities/uploaded-file";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
 import { Download } from "lucide-react";
@@ -20,11 +22,11 @@ export default function OriginalMediaCard({
   displayName,
   status,
 }: OriginalMediaCardProps) {
-  const { playUrl, isLoading } = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
+  const playUrlState = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
 
   const handleDownload = () => {
-    if (!playUrl) return;
-    triggerDownload(playUrl);
+    if (playUrlState.status !== "ready") return;
+    triggerDownload(playUrlState.url);
   };
 
   return (
@@ -38,20 +40,26 @@ export default function OriginalMediaCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="overflow-hidden rounded-xl bg-black">
-          {!isLoading && playUrl && (
+          {playUrlState.status === "ready" && (
             <video
-              src={playUrl}
+              src={playUrlState.url}
               controls
               preload="metadata"
               className="w-full rounded-md object-cover"
             />
+          )}
+          {/* 이전에는 실패 상태를 읽지 않아 presign 실패가 영원한 검은 상자로 남았다. */}
+          {playUrlState.status === "error" && (
+            <div className="flex aspect-video items-center justify-center">
+              <p className="text-xs text-white/70">Video unavailable</p>
+            </div>
           )}
         </div>
         <Button
           variant="outline"
           className="w-full"
           onClick={handleDownload}
-          disabled={!playUrl || isLoading}
+          disabled={playUrlState.status !== "ready"}
         >
           <Download className="mr-2 h-4 w-4" />
           Download

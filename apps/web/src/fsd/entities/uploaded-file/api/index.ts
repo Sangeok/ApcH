@@ -1,11 +1,12 @@
 import "server-only";
 
 import { Prisma } from "@repo/db";
-import { inngest } from "~/inngest/client";
 import { db } from "~/server/db";
-import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";
 import { deleteS3Object, objectExists } from "~/fsd/shared/api/s3";
-import { getProcessingMatchKey } from "../model/attempt-prefix";
+import {
+  toUploadedFileOutcome,
+  type UploadedFileFailureCode,
+} from "../model/failure-code";
 import {
   ACTIVE_PROCESSING_STATUSES,
   isProcessingStatus,
@@ -36,7 +37,7 @@ type EnsureUploadedFileQueuedForDispatchResult =
       currentStatus: string;
       uploaded: boolean;
     };
-type StaleProcessingCandidate = {
+export type StaleProcessingCandidate = {
   id: string;
   userId: string;
   status: string;
@@ -98,90 +99,6 @@ function toNonHiddenStatus(
   }
 
   return status;
-}
-
-function toProcessingStatus(status: string): ProcessingStatus {
-  if (!isProcessingStatus(status)) {
-    throw new Error(`Invalid uploaded file status: ${status}`);
-  }
-
-  return status;
-}
-
-function isOlderThan(date: Date | null, threshold: Date): boolean {
-  return date !== null && date < threshold;
-}
-
-function isActiveProcessingStatusValue(
-  status: ProcessingStatus,
-): status is (typeof ACTIVE_PROCESSING_STATUSES)[number] {
-  return (ACTIVE_PROCESSING_STATUSES as readonly ProcessingStatus[]).includes(
-    status,
-  );
-}
-
-function getStaleFailureCode(
-  file: StaleProcessingCandidate,
-  now: Date,
-  hasProcessingUploadForQueuedState: boolean,
-): string | null {
-  switch (file.status) {
-    case "pending_enqueue": {
-      const staleBefore = new Date(
-        now.getTime() - PROCESSING_STALE_POLICY.pendingEnqueueTimeoutMs,
-      );
-
-      return isOlderThan(file.enqueueRequestedAt, staleBefore)
-        ? "dispatch_timeout"
-        : null;
-    }
-    case "queued": {
-      if (hasProcessingUploadForQueuedState) {
-        return null;
-      }
-
-      const staleBefore = new Date(
-        now.getTime() - PROCESSING_STALE_POLICY.queuedWorkerStartTimeoutMs,
-      );
-
-      return isOlderThan(file.queuedAt, staleBefore)
-        ? "queued_worker_not_started"
-        : null;
-    }
-    case "processing": {
-      const staleBefore = new Date(
-        now.getTime() - PROCESSING_STALE_POLICY.processingTimeoutMs,
-      );
-
-      return isOlderThan(file.processingStartedAt, staleBefore)
-        ? "worker_timeout"
-        : null;
-    }
-    default:
-      return null;
-  }
-}
-
-async function sendProcessingCancelEventBestEffort(args: {
-  uploadedFileId: string;
-  attempt: number;
-}) {
-  try {
-    await inngest.send({
-      name: "process-video-events/cancel",
-      data: {
-        uploadedFileId: args.uploadedFileId,
-        attempt: args.attempt,
-        matchKey: getProcessingMatchKey(args.uploadedFileId, args.attempt),
-      },
-    });
-  } catch (error) {
-    console.error("Failed to send processing cancel event", {
-      uploadedFileId: args.uploadedFileId,
-      attempt: args.attempt,
-      error,
-    });
-  }
 }
 
 // Creates a pending upload draft used to track and recover a direct S3 upload.
@@ -377,7 +294,9 @@ export async function getUploadedFileDetailsById(
   uploadedFileId: string,
   userId: string,
 ): Promise<UploadedFileDetail | null> {
-  const file = await db.uploadedFile.findFirstOrThrow({
+  // 선언된 `| null`이 참이어야 라우트의 notFound()가 도달한다.
+  // findFirstOrThrow였을 때는 삭제된/타인의 id가 404가 아니라 에러 경계로 떨어졌다.
+  const file = await db.uploadedFile.findFirst({
     where: { id: uploadedFileId, userId },
     select: {
       id: true,
@@ -404,11 +323,15 @@ export async function getUploadedFileDetailsById(
     },
   });
 
+  if (!file) {
+    return null;
+  }
+
   if (file.status === "upload_pending") {
     return null;
   }
 
-  const { user, ...fileData } = file;
+  const { user, failureCode, ...fileData } = file;
 
   const clips =
     file.lastSuccessfulAttempt > 0
@@ -434,9 +357,14 @@ export async function getUploadedFileDetailsById(
         })
       : [];
 
+  const status = toNonHiddenStatus(file.status);
+
   return {
     ...fileData,
-    status: toNonHiddenStatus(file.status),
+    status,
+    // 컬럼의 두 어휘를 여기서 한 번 판별한다. 소비자가 `status`와 raw 코드를
+    // 짝지어 뜻을 재유도하지 않도록 raw 컬럼은 DTO에 싣지 않는다.
+    outcome: toUploadedFileOutcome(status, failureCode),
     currentUserCredits: user.credits,
     clips,
     clipDrafts,
@@ -453,6 +381,104 @@ export async function findUploadedFileS3Key(
   });
 }
 
+/** 처리 스케줄 판단에 필요한 상태. claim 트랜잭션 안에서 읽으므로 tx를 받는다. */
+export async function findUploadedFileForScheduling(
+  uploadedFileId: string,
+  userId: string,
+  options?: { tx?: Prisma.TransactionClient },
+) {
+  const client: DbClient = options?.tx ?? db;
+
+  return client.uploadedFile.findFirst({
+    where: { id: uploadedFileId, userId },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      uploaded: true,
+      currentAttempt: true,
+      targetClipCount: true,
+      reviewBeforeGenerate: true,
+      user: {
+        select: {
+          credits: true,
+        },
+      },
+    },
+  });
+}
+
+/**
+ * 다음 처리 시도를 선점한다 — 라이프사이클 컬럼 일곱 개를 한 번에 쓴다.
+ *
+ * 이 조합(상태 리셋 + 타임스탬프 셋 초기화 + failureCode 비우기 + attempt 증가)이
+ * "새 시도가 시작됐다"의 정의다. feature가 손으로 쓰고 있어서, 컬럼이 하나
+ * 늘면 여기와 무관한 곳에서 조용히 빠뜨릴 수 있었다.
+ *
+ * `currentAttempt`를 where에 넣어 낙관적 잠금으로 쓴다 — 두 요청이 동시에
+ * 들어오면 하나만 count 1을 받는다.
+ */
+export async function claimNextProcessingAttempt(
+  uploadedFileId: string,
+  userId: string,
+  allowedStatuses: readonly ProcessingStatus[],
+  currentAttempt: number,
+  options?: { tx?: Prisma.TransactionClient; now?: Date },
+): Promise<{ claimed: boolean; attempt: number }> {
+  const client: DbClient = options?.tx ?? db;
+  const now = options?.now ?? new Date();
+  const attempt = currentAttempt + 1;
+
+  const result = await client.uploadedFile.updateMany({
+    where: {
+      id: uploadedFileId,
+      userId,
+      uploaded: true,
+      status: {
+        in: [...allowedStatuses],
+      },
+      currentAttempt,
+    },
+    data: {
+      status: "pending_enqueue",
+      enqueueRequestedAt: now,
+      queuedAt: null,
+      processingStartedAt: null,
+      terminalStatusAt: null,
+      failureCode: null,
+      currentAttempt: attempt,
+    },
+  });
+
+  return { claimed: result.count === 1, attempt };
+}
+
+/**
+ * 검토 단계 판단에 필요한 상태 하나. clip-review 두 곳과 업로드의 생성 확정이
+ * 각자 `db.uploadedFile.findFirst`를 들고 있어서, 같은 판정(`review_pending` +
+ * `reviewAttempt !== null`)이 세 벌로 흩어져 있었다.
+ */
+export async function findUploadedFileReviewState(
+  uploadedFileId: string,
+  userId: string,
+) {
+  return db.uploadedFile.findFirst({
+    where: { id: uploadedFileId, userId },
+    select: {
+      id: true,
+      status: true,
+      reviewAttempt: true,
+      transcriptS3Key: true,
+      targetClipCount: true,
+      user: {
+        select: {
+          credits: true,
+        },
+      },
+    },
+  });
+}
+
 export async function findUploadedFileForDeletion(
   uploadedFileId: string,
   userId: string,
@@ -464,26 +490,6 @@ export async function findUploadedFileForDeletion(
       s3Key: true,
       status: true,
       uploaded: true,
-    },
-  });
-}
-
-// Loads the current user's uploaded file state needed before scheduling processing.
-export async function findUploadedFileForProcessRequest(
-  uploadedFileId: string,
-  userId: string,
-) {
-  return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      id: true,
-      userId: true,
-      s3Key: true,
-      status: true,
-      uploaded: true,
-      currentAttempt: true,
-      targetClipCount: true,
-      language: true,
     },
   });
 }
@@ -576,28 +582,6 @@ export async function confirmUploadedFileSourceIfObjectExists(
     status: "confirmed",
     state: confirmedState,
   };
-}
-
-// Marks a processing attempt as queued after its dispatch row has successfully
-// sent the Inngest processing event.
-export async function markUploadedFileQueuedFromDispatch(
-  uploadedFileId: string,
-  attempt: number,
-  options?: { tx?: Prisma.TransactionClient; now?: Date },
-) {
-  const now = options?.now ?? new Date();
-
-  return getClient(options?.tx).uploadedFile.updateMany({
-    where: {
-      id: uploadedFileId,
-      currentAttempt: attempt,
-      status: "pending_enqueue",
-    },
-    data: {
-      status: "queued",
-      queuedAt: now,
-    },
-  });
 }
 
 export async function ensureUploadedFileQueuedForDispatch(
@@ -801,38 +785,10 @@ export async function isUploadedFileAttemptCurrent(
   return file !== null;
 }
 
-export async function completeUploadedFileProcessingAttempt(args: {
-  uploadedFileId: string;
-  attempt: number;
-  userId: string;
-  clipsFound: number;
-  noteCode?: string | null;
-  now?: Date;
-}): Promise<{ completed: boolean }> {
-  return db.$transaction(async (tx) => {
-    const updated = await markUploadedFileAttemptProcessed(
-      args.uploadedFileId,
-      args.attempt,
-      {
-        tx,
-        now: args.now,
-        noteCode: args.noteCode,
-      },
-    );
-
-    if (updated.count !== 1) {
-      return { completed: false };
-    }
-
-    await decrementUserCreditsFloorZero(args.userId, args.clipsFound, { tx });
-    return { completed: true };
-  });
-}
-
 export async function markUploadedFileAttemptFailed(
   uploadedFileId: string,
   attempt: number,
-  failureCode: string,
+  failureCode: UploadedFileFailureCode,
   options?: {
     tx?: Prisma.TransactionClient;
     now?: Date;
@@ -883,65 +839,6 @@ export async function markUploadedFileAttemptNoCredits(
   });
 }
 
-// ⚠️ 이 함수로 status를 "processing"으로 쓰지 말 것. 정체 감시는
-//    processVideo·analyzeVideo가 claim 직후 보내는 "processing/attempt.claimed"
-//    이벤트로만 예약된다(watchProcessingAttempt, src/inngest/functions.ts).
-//    이벤트 없이 processing 행을 만들면 감시자가 없어 정체 알림이 유실된다.
-//    꼭 필요하면 같은 이벤트를 함께 보내고, 그 경로를 여기 적을 것.
-export async function updateUploadedFileStatus(
-  uploadedFileId: string,
-  status: ProcessingStatus,
-  options?: {
-    tx?: Prisma.TransactionClient;
-    processingStartedAt?: Date | null;
-    queuedAt?: Date | null;
-    terminalStatusAt?: Date | null;
-    failureCode?: string | null;
-  },
-) {
-  return getClient(options?.tx).uploadedFile.update({
-    where: { id: uploadedFileId },
-    data: {
-      status,
-      ...(options?.processingStartedAt !== undefined
-        ? { processingStartedAt: options.processingStartedAt }
-        : {}),
-      ...(options?.queuedAt !== undefined
-        ? { queuedAt: options.queuedAt }
-        : {}),
-      ...(options?.terminalStatusAt !== undefined
-        ? { terminalStatusAt: options.terminalStatusAt }
-        : {}),
-      ...(options?.failureCode !== undefined
-        ? { failureCode: options.failureCode }
-        : {}),
-    },
-  });
-}
-
-export async function updateUploadedFileLanguage(
-  uploadedFileId: string,
-  userId: string,
-  language: string,
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.update({
-    where: { id: uploadedFileId },
-    data: { language },
-  });
-}
-
-export async function setUploadedFileUploaded(
-  uploadedFileId: string,
-  uploaded: boolean,
-  options?: { tx?: Prisma.TransactionClient },
-) {
-  return getClient(options?.tx).uploadedFile.update({
-    where: { id: uploadedFileId },
-    data: { uploaded },
-  });
-}
-
 export async function hasProcessingUploadForUser(
   userId: string,
   options?: { tx?: Prisma.TransactionClient },
@@ -954,204 +851,6 @@ export async function hasProcessingUploadForUser(
   });
 
   return count > 0;
-}
-
-export async function reconcileStaleUploadedFileForUser(
-  uploadedFileId: string,
-  userId: string,
-  options?: { now?: Date },
-): Promise<{
-  changed: boolean;
-  status: ProcessingStatus;
-  failureCode: string | null;
-}> {
-  const now = options?.now ?? new Date();
-  const file = await db.uploadedFile.findFirst({
-    where: { id: uploadedFileId, userId },
-    select: {
-      id: true,
-      userId: true,
-      status: true,
-      currentAttempt: true,
-      failureCode: true,
-      enqueueRequestedAt: true,
-      queuedAt: true,
-      processingStartedAt: true,
-    },
-  });
-
-  if (!file) {
-    throw new Error("Uploaded file not found");
-  }
-
-  const status = toProcessingStatus(file.status);
-
-  if (!isActiveProcessingStatusValue(status)) {
-    return {
-      changed: false,
-      status,
-      failureCode: file.failureCode,
-    };
-  }
-
-  const hasProcessingForQueuedState =
-    status === "queued" ? await hasProcessingUploadForUser(userId) : false;
-  const failureCode = getStaleFailureCode(
-    file,
-    now,
-    hasProcessingForQueuedState,
-  );
-
-  if (!failureCode) {
-    return {
-      changed: false,
-      status,
-      failureCode: file.failureCode,
-    };
-  }
-
-  const updated = await markUploadedFileAttemptFailed(
-    file.id,
-    file.currentAttempt,
-    failureCode,
-    {
-      now,
-      statuses: [status],
-    },
-  );
-
-  if (updated.count === 1 && failureCode === "worker_timeout") {
-    await sendProcessingCancelEventBestEffort({
-      uploadedFileId: file.id,
-      attempt: file.currentAttempt,
-    });
-  }
-
-  const latest = await db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
-    select: {
-      status: true,
-      failureCode: true,
-    },
-  });
-
-  return {
-    changed: updated.count === 1,
-    status: toProcessingStatus(latest.status),
-    failureCode: latest.failureCode,
-  };
-}
-
-export async function reconcileStaleUploadedFilesForUser(
-  userId: string,
-  options?: { now?: Date; limit?: number },
-): Promise<{ changedCount: number }> {
-  const now = options?.now ?? new Date();
-  const limit = options?.limit ?? 50;
-  const activeFiles = await db.uploadedFile.findMany({
-    where: {
-      userId,
-      status: {
-        in: [...ACTIVE_PROCESSING_STATUSES],
-      },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    take: limit,
-    select: {
-      id: true,
-      userId: true,
-      status: true,
-      currentAttempt: true,
-      failureCode: true,
-      enqueueRequestedAt: true,
-      queuedAt: true,
-      processingStartedAt: true,
-    },
-  });
-
-  let changedCount = 0;
-
-  for (const file of activeFiles.filter(
-    (file) => file.status === "processing",
-  )) {
-    const failureCode = getStaleFailureCode(file, now, false);
-
-    if (failureCode !== "worker_timeout") {
-      continue;
-    }
-
-    const updated = await markUploadedFileAttemptFailed(
-      file.id,
-      file.currentAttempt,
-      failureCode,
-      {
-        now,
-        statuses: ["processing"],
-      },
-    );
-
-    if (updated.count === 1) {
-      changedCount += 1;
-      await sendProcessingCancelEventBestEffort({
-        uploadedFileId: file.id,
-        attempt: file.currentAttempt,
-      });
-    }
-  }
-
-  for (const file of activeFiles.filter(
-    (file) => file.status === "pending_enqueue",
-  )) {
-    const failureCode = getStaleFailureCode(file, now, false);
-
-    if (failureCode !== "dispatch_timeout") {
-      continue;
-    }
-
-    const updated = await markUploadedFileAttemptFailed(
-      file.id,
-      file.currentAttempt,
-      failureCode,
-      {
-        now,
-        statuses: ["pending_enqueue"],
-      },
-    );
-
-    if (updated.count === 1) {
-      changedCount += 1;
-    }
-  }
-
-  const hasProcessing = await hasProcessingUploadForUser(userId);
-
-  if (!hasProcessing) {
-    for (const file of activeFiles.filter((file) => file.status === "queued")) {
-      const failureCode = getStaleFailureCode(file, now, false);
-
-      if (failureCode !== "queued_worker_not_started") {
-        continue;
-      }
-
-      const updated = await markUploadedFileAttemptFailed(
-        file.id,
-        file.currentAttempt,
-        failureCode,
-        {
-          now,
-          statuses: ["queued"],
-        },
-      );
-
-      if (updated.count === 1) {
-        changedCount += 1;
-      }
-    }
-  }
-
-  return { changedCount };
 }
 
 export async function reconcileUploadDraftsForUser(
@@ -1295,4 +994,66 @@ export async function deleteUploadedFileRecord(
   }
 
   return result;
+}
+
+// stale 판정에 필요한 최소 컬럼만 읽는다. 판정 규칙 자체(임계값·실패 코드)는
+// 여러 엔티티와 Inngest 전송을 함께 다루므로 features/upload가 소유한다.
+export async function findStaleProcessingCandidate(
+  uploadedFileId: string,
+  userId: string,
+): Promise<StaleProcessingCandidate | null> {
+  return db.uploadedFile.findFirst({
+    where: { id: uploadedFileId, userId },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      currentAttempt: true,
+      failureCode: true,
+      enqueueRequestedAt: true,
+      queuedAt: true,
+      processingStartedAt: true,
+    },
+  });
+}
+
+export async function findUploadedFileFailureState(
+  uploadedFileId: string,
+  userId: string,
+): Promise<{ status: string; failureCode: string | null }> {
+  return db.uploadedFile.findFirstOrThrow({
+    where: { id: uploadedFileId, userId },
+    select: {
+      status: true,
+      failureCode: true,
+    },
+  });
+}
+
+export async function listActiveProcessingCandidatesByUserId(
+  userId: string,
+  limit: number,
+): Promise<StaleProcessingCandidate[]> {
+  return db.uploadedFile.findMany({
+    where: {
+      userId,
+      status: {
+        in: [...ACTIVE_PROCESSING_STATUSES],
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: limit,
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      currentAttempt: true,
+      failureCode: true,
+      enqueueRequestedAt: true,
+      queuedAt: true,
+      processingStartedAt: true,
+    },
+  });
 }

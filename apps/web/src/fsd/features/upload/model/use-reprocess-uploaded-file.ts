@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
+import { uploadedFileKeys } from "~/fsd/entities/uploaded-file";
 import { reprocessUploadedFile } from "../api";
 
 export function useReprocessUploadedFile(uploadedFileId: string) {
@@ -12,7 +12,7 @@ export function useReprocessUploadedFile(uploadedFileId: string) {
       const result = await reprocessUploadedFile(uploadedFileId);
 
       if (!result.success) {
-        throw new Error(result.error ?? "Failed to reprocess file");
+        throw new Error(result.error);
       }
     },
     onSuccess: async () => {
@@ -22,6 +22,9 @@ export function useReprocessUploadedFile(uploadedFileId: string) {
         }),
         queryClient.invalidateQueries({
           queryKey: uploadedFileKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: uploadedFileKeys.activeQueues(),
         }),
       ]);
     },

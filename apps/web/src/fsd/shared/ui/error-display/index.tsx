@@ -11,6 +11,10 @@ import {
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
 
+// 액션은 플래그가 아니라 **동반 데이터의 존재**로 켠다. 이전 형태(showRetry +
+// onRetry, showBack + backHref)는 짝이 어긋난 호출을 타입이 통과시키고
+// 런타임에 조용히 아무 버튼도 그리지 않았다 — 에러 화면에서 복구 수단만
+// 사라지는 결함이라 리뷰에서도 보이지 않는다.
 interface ErrorDisplayProps {
   /** 에러 제목 */
   title?: string;
@@ -20,18 +24,12 @@ interface ErrorDisplayProps {
   digest?: string;
   /** full-page: min-h-screen, section: min-h-[50vh] */
   variant?: "full-page" | "section";
-  /** "다시 시도" 버튼 표시 */
-  showRetry?: boolean;
-  /** retry 콜백 (error boundary의 reset 함수) */
-  onRetry?: () => void;
-  /** "홈으로" 링크 표시 */
-  showHome?: boolean;
-  /** "뒤로 가기" 링크 표시 */
-  showBack?: boolean;
-  /** 뒤로 가기 대상 경로 (기본: "/dashboard") */
-  backHref?: string;
-  /** 뒤로 가기 버튼 레이블 */
-  backLabel?: string;
+  /** 있으면 "Try again" 버튼. 보통 error boundary의 reset 함수 */
+  retry?: { onRetry: () => void };
+  /** 있으면 "뒤로 가기" 링크 */
+  back?: { href: string; label?: string };
+  /** 동반 데이터가 없는 고정 링크라 플래그로 남는다 */
+  home?: boolean;
 }
 
 export function ErrorDisplay({
@@ -39,12 +37,9 @@ export function ErrorDisplay({
   description = "An error occurred while loading the page. Please try again later.",
   digest,
   variant = "full-page",
-  showRetry = false,
-  onRetry,
-  showHome = false,
-  showBack = false,
-  backHref = "/dashboard",
-  backLabel = "Go back",
+  retry,
+  back,
+  home = false,
 }: ErrorDisplayProps) {
   const minHeight = variant === "full-page" ? "min-h-screen" : "min-h-[50vh]";
 
@@ -60,21 +55,21 @@ export function ErrorDisplay({
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="flex flex-wrap justify-center gap-2">
-            {showRetry && onRetry && (
-              <Button onClick={onRetry} variant="default">
+            {retry && (
+              <Button onClick={retry.onRetry} variant="default">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Try again
               </Button>
             )}
-            {showBack && (
+            {back && (
               <Button variant="outline" asChild>
-                <Link href={backHref}>
+                <Link href={back.href}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {backLabel}
+                  {back.label ?? "Go back"}
                 </Link>
               </Button>
             )}
-            {showHome && (
+            {home && (
               <Button variant="outline" asChild>
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />

@@ -155,14 +155,17 @@ queryClient.invalidateQueries({
 
 ```ts
 import { queryOptions } from "@tanstack/react-query";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import { getUploadedFileDetails } from "~/fsd/features/upload/api";
+// 슬라이스 barrel로 임포트한다. 깊은 경로(`.../model/query-keys`)는
+// 공개 API를 우회한다 — entities barrel은 클라이언트 안전하게 분리돼 있다.
+import { uploadedFileKeys } from "~/fsd/entities/uploaded-file";
+// ⚠️ 이 액션은 반환 전에 stale reconcile 쓰기를 한다. 이름이 그 사실을 말한다.
+import { reconcileAndGetUploadedFileDetails } from "~/fsd/features/upload";
 
 export const uploadedFileDetailQueryOptions = (uploadedFileId: string) =>
   queryOptions({
     queryKey: uploadedFileKeys.detail(uploadedFileId),
     queryFn: async () => {
-      const data = await getUploadedFileDetails(uploadedFileId);
+      const data = await reconcileAndGetUploadedFileDetails(uploadedFileId);
 
       if (!data) {
         throw new Error("Upload detail not found");

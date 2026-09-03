@@ -2,24 +2,19 @@
 
 import type { Clip } from "@repo/db";
 import { useOptimistic } from "react";
-import { deleteClip } from "~/fsd/features/clip/api";
 import ClipCard from "./_component/ClipCard";
 
 interface ClipDisplayProps {
   clips: Clip[];
-  allowDelete?: boolean;
 }
 
-export default function ClipDisplay({
-  clips,
-  allowDelete = true,
-}: ClipDisplayProps) {
+export default function ClipDisplay({ clips }: ClipDisplayProps) {
   const [optimisticClips, removeClipOptimistic] = useOptimistic(
     clips,
     (state, clipId: string) => state.filter((clip) => clip.id !== clipId),
   );
 
-  if (clips.length === 0) {
+  if (optimisticClips.length === 0) {
     return (
       <p className="text-muted-foreground p-4 text-center">No clips found</p>
     );
@@ -31,9 +26,7 @@ export default function ClipDisplay({
         <ClipCard
           key={clip.id}
           clip={clip}
-          allowDelete={allowDelete}
-          onDelete={deleteClip}
-          onDeleteSuccess={removeClipOptimistic}
+          onOptimisticRemove={removeClipOptimistic}
         />
       ))}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useReportBoundaryError } from "~/fsd/shared/observability/use-report-boundary-error";
 import { ErrorDisplay } from "~/fsd/shared/ui/error-display";
 
 export default function BillingError({
@@ -10,9 +10,7 @@ export default function BillingError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Billing error boundary caught:", error);
-  }, [error]);
+  useReportBoundaryError(error, "Billing");
 
   return (
     <ErrorDisplay
@@ -20,11 +18,8 @@ export default function BillingError({
       description="Something went wrong while loading the billing page. Please try again later."
       digest={error.digest}
       variant="section"
-      showRetry
-      onRetry={reset}
-      showBack
-      backHref="/dashboard"
-      backLabel="Back to dashboard"
+      retry={{ onRetry: reset }}
+      back={{ href: "/dashboard", label: "Back to dashboard" }}
     />
   );
 }

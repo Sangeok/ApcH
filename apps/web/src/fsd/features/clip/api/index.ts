@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteClipRecord, findClipById } from "~/fsd/entities/clip";
+import { deleteClipRecord, findClipById } from "~/fsd/entities/clip/server";
 import {
   deleteS3Object,
   generatePresignedGetUrl,

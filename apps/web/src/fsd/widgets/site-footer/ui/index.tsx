@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { PublicNavLink } from "~/fsd/shared/config/public-routes";
 
 const FOOTER_GROUPS = [
   {
@@ -41,7 +42,7 @@ const FOOTER_GROUPS = [
       { label: "Privacy Policy", href: "/privacy" },
     ],
   },
-] as const;
+] as const satisfies readonly { title: string; links: readonly PublicNavLink[] }[];
 
 export default function SiteFooter() {
   return (

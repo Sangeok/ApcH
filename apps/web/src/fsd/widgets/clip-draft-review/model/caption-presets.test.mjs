@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { captionStyleSchema } from "../../../features/clip-review/model/schemas.ts";
+// 슬라이스 경계를 넘는 임포트는 별칭으로 쓴다(상대 경로 + .ts 확장자는 파일이
+// 옮겨져도 컴파일러가 잡지 못한다). 단, 슬라이스 barrel은 "use server" api를
+// 재수출하므로 모듈을 직접 가리킨다 — 그러지 않으면 이 단위 테스트가 Prisma를 깨운다.
+import { captionStyleSchema } from "~/fsd/features/clip-review/model/schemas";
 import {
   CAPTION_STYLE_OPTIONS,
   CAPTION_STYLE_PRESETS,
-} from "../../../shared/config/constants.ts";
+} from "~/fsd/shared/config/constants";
 import { matchPresetId } from "./caption-presets.ts";
 
 // 프리셋은 position이 없는 부분 스타일이다. 저장 경로가 받는 완전한 형태로 만든다.

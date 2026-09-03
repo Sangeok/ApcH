@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getUploadedFileDetails } from "~/fsd/features/upload/api";
+import { reconcileAndGetUploadedFileDetails } from "~/fsd/features/upload";
 import UploadDetailPage from "~/fsd/pages/upload-detail/ui";
 
 interface UploadDetailPageProps {
@@ -10,7 +10,7 @@ export default async function UploadDetailPageClient({
   params,
 }: UploadDetailPageProps) {
   const { uploadedFileId } = await params;
-  const uploadedFileData = await getUploadedFileDetails(uploadedFileId);
+  const uploadedFileData = await reconcileAndGetUploadedFileDetails(uploadedFileId);
 
   if (!uploadedFileData) {
     notFound();

@@ -27,10 +27,6 @@ export const scheduleUploadedFileProcessingSchema = z.object({
   uploadedFileId: z.string().cuid(),
 });
 
-export const recoverableDraftActionSchema = z.object({
-  uploadedFileId: z.string().cuid(),
-});
-
 export function isSupportedClipCount(clipCount: number): boolean {
   return SUPPORTED_CLIP_COUNT_SET.has(clipCount);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useReportBoundaryError } from "~/fsd/shared/observability/use-report-boundary-error";
 import { ErrorDisplay } from "~/fsd/shared/ui/error-display";
 
 export default function Error({
@@ -10,9 +10,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Root error boundary caught:", error);
-  }, [error]);
+  useReportBoundaryError(error, "Root");
 
   return (
     <ErrorDisplay
@@ -20,9 +18,8 @@ export default function Error({
       description="Something went wrong while loading the page. Please try again later."
       digest={error.digest}
       variant="full-page"
-      showRetry
-      onRetry={reset}
-      showHome
+      retry={{ onRetry: reset }}
+      home
     />
   );
 }

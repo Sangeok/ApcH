@@ -1,7 +1,8 @@
 import { type Metadata } from "next";
-import { changelogEntries } from "~/fsd/pages/resources/config";
-import { ChangelogPage } from "~/fsd/pages/resources/ui";
+import { changelogEntries } from "~/fsd/pages/changelog/config";
+import { ChangelogPage } from "~/fsd/pages/changelog/ui";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "Changelog",
@@ -35,10 +36,7 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       <ChangelogPage />
     </>
   );

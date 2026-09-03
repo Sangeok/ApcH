@@ -3,15 +3,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { ClipDraft } from "@repo/db";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
+import {
+  type UploadedFileDetail,
+  uploadedFileKeys,
+} from "~/fsd/entities/uploaded-file";
 import {
   addCustomClipDraft,
   getTranscriptUrl,
   saveClipDraftEdit,
   type CaptionStyleInput,
 } from "~/fsd/features/clip-review";
-import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload/api";
+import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { matchPresetId } from "./caption-presets";
 
@@ -58,23 +60,32 @@ export function useClipDraftReview(
   const invalidateDetail = () =>
     queryClient.invalidateQueries({ queryKey: detailKey });
 
-  const { data: transcriptWords = [] } = useQuery<TranscriptWord[]>({
-    queryKey: ["clip-draft-review", "transcript", uploadedFileId],
+  // 키는 detail() 아래에 중첩한다. 위젯 이름으로 시작하는 인라인 키였을 때는
+  // 이 캐시를 무효화할 수 있는 모듈이 없어서, 재분석이 새 transcriptS3Key를 써도
+  // 세션 내내 이전 시도의 트랜스크립트로 단어 경계를 스냅했다.
+  const {
+    data: transcriptWords = [],
+    isError: isTranscriptError,
+    error: transcriptError,
+  } = useQuery<TranscriptWord[]>({
+    queryKey: uploadedFileKeys.transcript(uploadedFileId),
     staleTime: Infinity,
+    // 실패를 빈 배열로 접지 않는다. 접으면 isError가 영구 false라 presign 만료나
+    // S3 403이 "단어 스냅이 조용히 꺼진 화면"으로만 나타난다(규약 §10).
     queryFn: async () => {
       const result = await getTranscriptUrl(uploadedFileId);
       if (!result.success) {
-        return [];
+        throw new Error(result.error);
       }
 
       const response = await fetch(result.data.url);
       if (!response.ok) {
-        return [];
+        throw new Error(`Transcript fetch failed: ${response.status}`);
       }
 
       const parsed = (await response.json()) as unknown;
       if (!Array.isArray(parsed)) {
-        return [];
+        throw new Error("Transcript payload was not an array");
       }
 
       return parsed.filter(
@@ -318,22 +329,37 @@ export function useClipDraftReview(
 
   return {
     transcriptWords,
+    // 트랜스크립트 실패는 기능 하나(직접 클립 추가)를 통째로 없애므로
+    // 소비자가 안내를 띄울 수 있도록 드러낸다.
+    transcriptErrorMessage: isTranscriptError
+      ? transcriptError instanceof Error
+        ? transcriptError.message
+        : "Transcript unavailable"
+      : null,
     saveDraft: (input: SaveDraftInput) => saveMutation.mutateAsync(input),
-    applyStyleToAll: (style: CaptionStyleInput | null) =>
-      applyStyleMutation.mutateAsync(style),
-    confirmAndGenerate: () => confirmMutation.mutateAsync(),
+    // 아래 넷은 JSX가 프라미스를 버리는 fire-and-forget 호출처다. mutateAsync는
+    // mutationFn이 던지면 reject하는데 호출처가 받지 않아 unhandled rejection이 됐다
+    // (onError 토스트는 버려진 프라미스를 settle하지 않는다). mutate로 바꾼다.
+    applyStyleToAll: (style: CaptionStyleInput | null) => {
+      applyStyleMutation.mutate(style);
+    },
+    confirmAndGenerate: () => {
+      confirmMutation.mutate();
+    },
     addCustomClip: (range: ClipRange) => addCustomMutation.mutateAsync(range),
-    // 의도가 이름에 드러나도록 boolean 파라미터 대신 두 액션으로 노출하고,
-    // 형제 액션들과 동일하게 Promise를 반환한다(mutateAsync).
+    // 의도가 이름에 드러나도록 boolean 파라미터 대신 두 액션으로 노출한다.
     // clipDrafts는 Gemini 랭킹 순으로 정렬되어 온다
     // (index = moment.index ?? order, inngest/functions.ts →
     //  clip-draft/api/index.ts의 orderBy index asc).
     // 따라서 slice(0, limit)은 "상위 N개"가 맞다. 시간순이 아니다.
-    selectUpToBudget: (limit: number) =>
-      setSelectionMutation.mutateAsync(
+    selectUpToBudget: (limit: number) => {
+      setSelectionMutation.mutate(
         new Set(clipDrafts.slice(0, limit).map((draft) => draft.id)),
-      ),
-    deselectAll: () => setSelectionMutation.mutateAsync(new Set<string>()),
+      );
+    },
+    deselectAll: () => {
+      setSelectionMutation.mutate(new Set<string>());
+    },
     // 위젯(확정 다이얼로그)이 소비하는 공유 플래그. 카드 로컬 isSaving
     // (개별 카드 저장 표시)과 스코프가 다르므로 이름으로 구분한다.
     isSavingDraft: saveMutation.isPending,

@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useOptimistic, useRef } from "react";
 import { env } from "~/env";
-import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import type {
-  ActiveUploadedFileQueueState,
-  RecoverableUploadDraftSummary,
-  UploadedFileSummary,
-} from "~/fsd/entities/uploaded-file/model/types";
+import {
+  type ActiveUploadedFileQueueState,
+  isOptimisticUploadId,
+  type RecoverableUploadDraftSummary,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
 import {
   currentUserActiveUploadQueueQueryOptions,
   currentUserUploadedFileListQueryOptions,
@@ -38,42 +38,34 @@ interface DashboardViewProps {
   userId: string;
   uploadedFiles: UploadedFileSummary[];
   recoverableDrafts: RecoverableUploadDraftSummary[];
+  /** 서버 컴포넌트가 읽어 준 큐 상태. refetch가 돌려주는 것과 같은 형태다 */
+  initialActiveQueue: ActiveUploadedFileQueueState;
 }
 
 export default function DashboardView({
   userId,
   uploadedFiles,
   recoverableDrafts,
+  initialActiveQueue,
 }: DashboardViewProps) {
   const router = useRouter();
-  const initialActiveQueueFiles = useMemo(
-    () => uploadedFiles.filter((file) => isActiveProcessingStatus(file.status)),
-    [uploadedFiles],
-  );
-  const initialActiveQueueState = useMemo<ActiveUploadedFileQueueState>(
-    () => ({
-      queueFiles: initialActiveQueueFiles.slice(0, 25),
-      activeUploadedFileIds: initialActiveQueueFiles.map((file) => file.id),
-    }),
-    [initialActiveQueueFiles],
-  );
 
   const uploadedFilesQuery = useQuery(
     currentUserUploadedFileListQueryOptions(userId, uploadedFiles),
   );
   const activeQueueQuery = useQuery(
-    currentUserActiveUploadQueueQueryOptions(userId, initialActiveQueueState),
+    currentUserActiveUploadQueueQueryOptions(userId, initialActiveQueue),
   );
 
   const queriedUploadedFiles = uploadedFilesQuery.data ?? uploadedFiles;
-  const activeQueueState = activeQueueQuery.data ?? initialActiveQueueState;
+  const activeQueueState = activeQueueQuery.data ?? initialActiveQueue;
   const activeQueueFiles = activeQueueState.queueFiles;
   const [optimisticFiles, addOptimisticFile] = useOptimistic(
     queriedUploadedFiles,
     (state, newFile: UploadedFileSummary) => [newFile, ...state],
   );
   const optimisticQueueFiles = useMemo(
-    () => optimisticFiles.filter((file) => file.id.startsWith("optimistic-")),
+    () => optimisticFiles.filter((file) => isOptimisticUploadId(file.id)),
     [optimisticFiles],
   );
   const queueStatusFiles = useMemo(

@@ -1,5 +1,5 @@
 import { UploadedFileCard } from "./_component/UploadedFileCard";
-import type { UploadedFileSummary } from "../model/types";
+import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
 
 interface UploadedFileListProps {
   files: UploadedFileSummary[];

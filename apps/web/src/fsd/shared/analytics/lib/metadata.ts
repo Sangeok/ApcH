@@ -1,3 +1,5 @@
+import type { AnalyticsEventName } from "@repo/db";
+
 type SafeMetadataValue = string | number | boolean;
 
 export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
@@ -54,7 +56,7 @@ export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
   checkout_started: ["tier", "billingInterval"],
   checkout_returned_success: [],
   page_exited: ["dwellTimeMs"],
-} as const;
+} as const satisfies Record<AnalyticsEventName, readonly string[]>;
 
 function isSafeMetadataValue(value: unknown): value is SafeMetadataValue {
   if (typeof value === "string") {
@@ -69,17 +71,16 @@ function isSafeMetadataValue(value: unknown): value is SafeMetadataValue {
 }
 
 export function sanitizeAnalyticsMetadata(
-  eventName: string,
+  eventName: AnalyticsEventName,
   metadata: unknown,
 ): Record<string, SafeMetadataValue> | undefined {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
     return undefined;
   }
 
-  const allowedKeys =
-    ANALYTICS_METADATA_KEYS_BY_EVENT[
-      eventName as keyof typeof ANALYTICS_METADATA_KEYS_BY_EVENT
-    ] ?? [];
+  // `satisfies`가 계약(@repo/db의 AnalyticsEventName)과 이 맵을 묶으므로
+  // 이벤트를 개명하면 캐스트 대신 컴파일 오류가 난다.
+  const allowedKeys = ANALYTICS_METADATA_KEYS_BY_EVENT[eventName];
 
   if (allowedKeys.length === 0) {
     return undefined;

@@ -1,4 +1,6 @@
-const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+import { env } from "~/env";
+
+const configuredSiteUrl = env.NEXT_PUBLIC_SITE_URL?.trim();
 const baseSiteUrl =
   configuredSiteUrl === undefined || configuredSiteUrl === ""
     ? "https://a-pch.com"

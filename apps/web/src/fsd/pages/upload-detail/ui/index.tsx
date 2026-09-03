@@ -1,12 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
-  isPartialClipResultCode,
   PARTIAL_CLIPS_INSUFFICIENT,
-} from "~/fsd/entities/uploaded-file/model/clip-generation-outcome";
-import type { UploadedFileDetail } from "~/fsd/entities/uploaded-file/model/types";
-import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
+  type UploadedFileDetail,
+  UploadedFileStatusBadge,
+} from "~/fsd/entities/uploaded-file";
 import { UploadedFileActions } from "~/fsd/features/upload";
 import { useLiveUploadedFileDetail } from "~/fsd/pages/upload-detail/model/use-live-uploaded-file-detail";
 import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
@@ -45,7 +44,7 @@ export default function UploadDetailPage({
     processingStartedAt,
     terminalStatusAt,
     reviewReadyAt,
-    failureCode,
+    outcome,
     targetClipCount,
     currentUserCredits,
   } = liveUploadedFileData;
@@ -97,17 +96,17 @@ export default function UploadDetailPage({
         />
       </header>
 
-      {status === "processed" && isPartialClipResultCode(failureCode) && (
+      {outcome.kind === "partial-success" && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {failureCode === PARTIAL_CLIPS_INSUFFICIENT
+              {outcome.noteCode === PARTIAL_CLIPS_INSUFFICIENT
                 ? "Fewer clips than requested"
                 : "Processing stopped before all clips were done"}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            {failureCode === PARTIAL_CLIPS_INSUFFICIENT
+            {outcome.noteCode === PARTIAL_CLIPS_INSUFFICIENT
               ? "Processing finished without an error but produced fewer clips than requested. Reprocessing costs credits again and may return the same result."
               : "The clips below finished before processing failed. Reprocessing may produce more clips and will cost credits again."}
           </CardContent>
@@ -159,7 +158,7 @@ export default function UploadDetailPage({
               processingStartedAt={processingStartedAt}
               terminalStatusAt={terminalStatusAt}
               reviewReadyAt={reviewReadyAt}
-              failureCode={failureCode}
+              outcome={outcome}
             />
           </CardContent>
         </Card>
@@ -178,19 +177,13 @@ export default function UploadDetailPage({
             </div>
           </div>
           <div className="px-6 py-6">
-            <Suspense
-              fallback={
-                <p className="text-muted-foreground">Loading clips...</p>
-              }
-            >
-              {clips.length > 0 ? (
-                <ClipDisplay clips={clips} />
-              ) : (
-                <p className="text-muted-foreground text-center">
-                  No clips generated yet
-                </p>
-              )}
-            </Suspense>
+            {clips.length > 0 ? (
+              <ClipDisplay clips={clips} />
+            ) : (
+              <p className="text-muted-foreground text-center">
+                No clips generated yet
+              </p>
+            )}
           </div>
         </section>
       )}

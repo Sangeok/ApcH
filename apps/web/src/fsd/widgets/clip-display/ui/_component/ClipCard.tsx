@@ -3,71 +3,49 @@
 import type { Clip } from "@repo/db";
 import { AlertTriangle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
-import { getClipPlayUrl } from "~/fsd/features/clip/api";
+import { getClipPlayUrl } from "~/fsd/features/clip";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
-import { copyToClipboard } from "~/fsd/widgets/clip-display/lib/copy-to-clipboard";
+import { useScriptClipboard } from "../../model/use-script-clipboard";
 import {
   clipTypeLabel,
   hasClipRationale,
 } from "~/fsd/widgets/clip-display/model/clip-rationale";
 import { subtitleFallbackNotice } from "~/fsd/widgets/clip-display/model/subtitle-status";
-import { parseJsonArray } from "~/fsd/shared/lib/utils";
+import { isNonEmptyString, parseJsonArray } from "~/fsd/shared/lib/utils";
 import { ClipActions } from "./ClipActions";
 import { ClipVideoPlayer } from "./ClipVideoPlayer";
 import { ScriptModal } from "./ScriptModal";
 import { YoutubeMetadataModal } from "./YoutubeMetadataModal";
-import type { ActionResult } from "~/fsd/shared/api/result";
 
 interface ClipCardProps {
   clip: Clip;
-  allowDelete: boolean;
-  onDelete: (clipId: string) => Promise<ActionResult<void>>;
-  onDeleteSuccess: (clipId: string) => void;
+  onOptimisticRemove: (clipId: string) => void;
 }
 
-export default function ClipCard({
-  clip,
-  allowDelete,
-  onDelete,
-  onDeleteSuccess,
-}: ClipCardProps) {
-  const { playUrl, isLoading, error } = usePlayUrl(clip.id, getClipPlayUrl);
+export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
+  const playUrlState = usePlayUrl(clip.id, getClipPlayUrl);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
   const trackedPlayRef = useRef(false);
 
-  const scriptText = clip.scriptText?.trim() ?? "";
-  const hasScript = scriptText.length > 0;
+  const { hasScript, copyScript } = useScriptClipboard(clip);
 
   const youtubeHashtags = useMemo(
-    () => parseJsonArray<string>(clip.youtubeHashtags),
+    () => parseJsonArray(clip.youtubeHashtags, isNonEmptyString),
     [clip.youtubeHashtags],
   );
 
-  const hasMetadata = Boolean(
-    clip.youtubeTitle ?? clip.youtubeDescription ?? youtubeHashtags.length > 0,
-  );
+  const hasMetadata =
+    Boolean(clip.youtubeTitle) ||
+    Boolean(clip.youtubeDescription) ||
+    youtubeHashtags.length > 0;
 
   const typeLabel = clipTypeLabel(clip.clipType);
   const hook = clip.hook?.trim() ?? "";
   const payoff = clip.payoff?.trim() ?? "";
   const showRationale = hasClipRationale(clip);
   const fallbackNotice = subtitleFallbackNotice(clip.subtitleStatus);
-
-  const handleCopyScript = async () => {
-    if (!hasScript) {
-      toast.error("Script is not available yet.");
-      return;
-    }
-    const result = await copyToClipboard(scriptText);
-    if (result.success) {
-      toast.success("Copied script.");
-    } else {
-      toast.error(`Failed to copy script: ${result.error}`);
-    }
-  };
 
   const handlePlay = () => {
     if (trackedPlayRef.current) {
@@ -90,12 +68,7 @@ export default function ClipCard({
 
   return (
     <div className="flex max-w-52 flex-col gap-2">
-      <ClipVideoPlayer
-        src={playUrl}
-        isLoading={isLoading}
-        error={error}
-        onPlay={handlePlay}
-      />
+      <ClipVideoPlayer state={playUrlState} onPlay={handlePlay} />
       {fallbackNotice && (
         <p className="flex items-start gap-1 text-xs leading-snug text-amber-600 dark:text-amber-500">
           <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
@@ -121,16 +94,13 @@ export default function ClipCard({
       )}
       <ClipActions
         clip={clip}
-        playUrl={playUrl}
-        isLoading={isLoading}
+        playUrlState={playUrlState}
         hasScript={hasScript}
         hasMetadata={hasMetadata}
         onOpenScript={() => setIsScriptOpen(true)}
         onOpenMetadata={() => setIsMetadataOpen(true)}
-        onCopyScript={handleCopyScript}
-        allowDelete={allowDelete}
-        onDelete={onDelete}
-        onDeleteSuccess={onDeleteSuccess}
+        onCopyScript={copyScript}
+        onOptimisticRemove={onOptimisticRemove}
       />
       <ScriptModal
         clip={clip}

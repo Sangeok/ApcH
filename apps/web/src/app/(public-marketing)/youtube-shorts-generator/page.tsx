@@ -3,6 +3,7 @@ import { shortsFaq } from "~/fsd/pages/youtube-shorts-generator/config";
 import YoutubeShortsGeneratorPage from "~/fsd/pages/youtube-shorts-generator/ui";
 import { generateFaqJsonLd } from "~/fsd/shared/lib/seo";
 import { absoluteSiteUrl } from "~/fsd/shared/lib/site";
+import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 
 export const metadata: Metadata = {
   title: "YouTube Shorts Generator for Podcast Clips",
@@ -24,10 +25,7 @@ export default function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={faqJsonLd} />
       <YoutubeShortsGeneratorPage />
     </>
   );

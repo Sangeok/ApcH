@@ -4,12 +4,19 @@ import { Prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import {
-  createProcessingDispatch,
-  dispatchProcessingRequestByIdOrFail,
-} from "~/fsd/entities/processing-dispatch";
-import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft";
+import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch";
+import { dispatchProcessingRequestById } from "./dispatch-processing";
+import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { flushReports } from "~/fsd/shared/observability";
+import {
+  getUploadedFilePrefix,
+  isActiveProcessingStatus,
+  isProcessingStatus,
+  type ActiveUploadedFileQueueState,
+  type ProcessingStatus,
+  type UploadedFileSummary,
+  type UploadLifecycleState,
+} from "~/fsd/entities/uploaded-file";
 import {
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
@@ -18,18 +25,18 @@ import {
   findUploadedFileS3Key,
   findUploadedFileSourceState,
   getUploadedFileDetailsById,
-  getUploadedFilePrefix,
-  isActiveProcessingStatus,
-  isProcessingStatus,
   listActiveUploadedFileQueueStateByUserId,
   listUploadedFileSummariesByUserId,
+  claimNextProcessingAttempt,
+  findUploadedFileForScheduling,
+  findUploadedFileReviewState,
   markUploadedFileAttemptFailed,
+  reconcileUploadDraftsForUser,
+} from "~/fsd/entities/uploaded-file/server";
+import {
   reconcileStaleUploadedFileForUser,
   reconcileStaleUploadedFilesForUser,
-  type ActiveUploadedFileQueueState,
-  type ProcessingStatus,
-  type UploadedFileSummary,
-} from "~/fsd/entities/uploaded-file";
+} from "./reconcile-stale-processing";
 import {
   deleteS3Object,
   deleteS3Objects,
@@ -86,23 +93,11 @@ async function scheduleProcessingAttempt(
       async (
         tx,
       ): Promise<ActionResult<{ dispatchId: string; attempt: number }>> => {
-        const uploadedFile = await tx.uploadedFile.findFirst({
-          where: { id: uploadedFileId, userId },
-          select: {
-            id: true,
-            userId: true,
-            status: true,
-            uploaded: true,
-            currentAttempt: true,
-            targetClipCount: true,
-            reviewBeforeGenerate: true,
-            user: {
-              select: {
-                credits: true,
-              },
-            },
-          },
-        });
+        const uploadedFile = await findUploadedFileForScheduling(
+          uploadedFileId,
+          userId,
+          { tx },
+        );
 
         if (!uploadedFile) {
           return failure("Uploaded file not found");
@@ -135,29 +130,16 @@ async function scheduleProcessingAttempt(
           return failure("Add credits before retrying this upload.");
         }
 
-        const nextAttempt = uploadedFile.currentAttempt + 1;
-        const claimed = await tx.uploadedFile.updateMany({
-          where: {
-            id: uploadedFileId,
+        const { claimed, attempt: nextAttempt } =
+          await claimNextProcessingAttempt(
+            uploadedFileId,
             userId,
-            uploaded: true,
-            status: {
-              in: [...allowedStatuses],
-            },
-            currentAttempt: uploadedFile.currentAttempt,
-          },
-          data: {
-            status: "pending_enqueue",
-            enqueueRequestedAt: now,
-            queuedAt: null,
-            processingStartedAt: null,
-            terminalStatusAt: null,
-            failureCode: null,
-            currentAttempt: nextAttempt,
-          },
-        });
+            allowedStatuses,
+            uploadedFile.currentAttempt,
+            { tx, now },
+          );
 
-        if (claimed.count !== 1) {
+        if (!claimed) {
           return failure("Processing has already been requested");
         }
 
@@ -194,7 +176,7 @@ async function scheduleProcessingAttempt(
     return failure("Failed to schedule processing");
   }
 
-  const dispatchResult = await dispatchProcessingRequestByIdOrFail(dispatchId);
+  const dispatchResult = await dispatchProcessingRequestById(dispatchId);
 
   if (dispatchResult.status !== "sent") {
     await markUploadedFileAttemptFailed(
@@ -296,7 +278,9 @@ export async function confirmUploadObjectExists(
 }
 
 // Re-checks the upload confirmation state for a draft upload.
-export async function reconcileUploadConfirmation(uploadedFileId: string) {
+export async function reconcileUploadConfirmation(
+  uploadedFileId: string,
+): Promise<ActionResult<UploadLifecycleState>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
@@ -335,7 +319,9 @@ export async function reconcileUploadConfirmation(uploadedFileId: string) {
 
 // Re-checks the processing state without reviving dispatch work.
 // Stale active attempts are closed so the user can start a fresh retry.
-export async function reconcileProcessingRequest(uploadedFileId: string) {
+export async function reconcileProcessingRequest(
+  uploadedFileId: string,
+): Promise<ActionResult<UploadLifecycleState>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
@@ -405,19 +391,10 @@ export async function confirmClipDraftsAndGenerate(
   }
 
   try {
-    const file = await db.uploadedFile.findFirst({
-      where: {
-        id: validated.data.uploadedFileId,
-        userId: authResult.data.userId,
-      },
-      select: {
-        id: true,
-        status: true,
-        reviewAttempt: true,
-        targetClipCount: true,
-        user: { select: { credits: true } },
-      },
-    });
+    const file = await findUploadedFileReviewState(
+      validated.data.uploadedFileId,
+      authResult.data.userId,
+    );
 
     if (!file) {
       return failure("Uploaded file not found");
@@ -480,11 +457,30 @@ export async function confirmClipDraftsAndGenerate(
 }
 
 // Fetch the current user's upload details, returning null for hidden upload drafts.
-export async function getUploadedFileDetails(uploadedFileId: string) {
+//
+// ⚠️ 이름 그대로 순수 읽기가 아니다. 반환 전에 stale reconcile을 돌려
+// UploadedFile 상태를 failed로 쓸 수 있고, worker_timeout이면 Inngest
+// 취소 이벤트까지 보낸다. 폴링 queryFn으로 쓰이므로 tick마다 그럴 수 있다.
+//
+// TanStack queryFn 계약: 실패를 ActionResult가 아니라 throw로 알린다
+// (query.error로 이어져야 재시도·에러 경계가 동작한다).
+export async function reconcileAndGetUploadedFileDetails(
+  uploadedFileId: string,
+) {
   const session = await auth();
 
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
+  }
+
+  // reconcile은 행이 있을 때만 의미가 있고, 없으면 throw한다.
+  // 존재를 먼저 확인해야 라우트가 notFound()로 갈 수 있다.
+  const existing = await getUploadedFileDetailsById(
+    uploadedFileId,
+    session.user.id,
+  );
+  if (!existing) {
+    return null;
   }
 
   await reconcileStaleUploadedFileForUser(uploadedFileId, session.user.id);
@@ -492,7 +488,8 @@ export async function getUploadedFileDetails(uploadedFileId: string) {
   return getUploadedFileDetailsById(uploadedFileId, session.user.id);
 }
 
-export async function listCurrentUserUploadedFileSummaries(): Promise<
+// ⚠️ 읽기 전에 stale reconcile 쓰기가 돈다(위 주석 참조). queryFn이라 throw한다.
+export async function reconcileAndListCurrentUserUploadedFileSummaries(): Promise<
   UploadedFileSummary[]
 > {
   const authResult = await requireAuth();
@@ -500,12 +497,17 @@ export async function listCurrentUserUploadedFileSummaries(): Promise<
     throw new Error(authResult.error);
   }
 
+  // 하드 내비게이션 경로(app/dashboard/page.tsx)와 **같은 두 reconcile**을 돈다.
+  // 드래프트 reconcile이 여기 없던 동안에는 클라이언트 refetch 뒤에도
+  // 승격/만료가 반영되지 않아, 이미 승격된 드래프트가 복구 목록에 남았다.
   await reconcileStaleUploadedFilesForUser(authResult.data.userId);
+  await reconcileUploadDraftsForUser(authResult.data.userId);
 
   return listUploadedFileSummariesByUserId(authResult.data.userId);
 }
 
-export async function listCurrentUserActiveUploadedFileQueueState(): Promise<ActiveUploadedFileQueueState> {
+// ⚠️ 읽기 전에 stale reconcile 쓰기가 돈다(위 주석 참조). queryFn이라 throw한다.
+export async function reconcileAndListCurrentUserActiveUploadedFileQueueState(): Promise<ActiveUploadedFileQueueState> {
   const authResult = await requireAuth();
   if (!authResult.success) {
     throw new Error(authResult.error);

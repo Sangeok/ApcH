@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db } from "~/server/db";
 import {
   createCustomClipDraft,
   findClipDraftWithUpload,
   updateClipDraftEdit,
-} from "~/fsd/entities/clip-draft";
+} from "~/fsd/entities/clip-draft/server";
+import { findUploadedFileReviewState } from "~/fsd/entities/uploaded-file/server";
 import { generatePresignedGetUrl, S3_CONFIG } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
@@ -29,10 +29,10 @@ export async function getTranscriptUrl(
   if (!authResult.success) return authResult;
 
   try {
-    const file = await db.uploadedFile.findFirst({
-      where: { id: uploadedFileId, userId: authResult.data.userId },
-      select: { transcriptS3Key: true },
-    });
+    const file = await findUploadedFileReviewState(
+      uploadedFileId,
+      authResult.data.userId,
+    );
 
     if (!file?.transcriptS3Key) {
       return failure("Transcript is not available for this upload");
@@ -126,10 +126,10 @@ export async function addCustomClipDraft(input: {
   const { uploadedFileId, startSeconds, endSeconds } = validated.data;
 
   try {
-    const file = await db.uploadedFile.findFirst({
-      where: { id: uploadedFileId, userId: authResult.data.userId },
-      select: { id: true, status: true, reviewAttempt: true },
-    });
+    const file = await findUploadedFileReviewState(
+      uploadedFileId,
+      authResult.data.userId,
+    );
 
     if (!file) {
       return failure("Uploaded file not found");

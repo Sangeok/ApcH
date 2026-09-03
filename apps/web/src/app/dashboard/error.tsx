@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useReportBoundaryError } from "~/fsd/shared/observability/use-report-boundary-error";
 import { ErrorDisplay } from "~/fsd/shared/ui/error-display";
 
 export default function DashboardError({
@@ -10,9 +10,7 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Dashboard error boundary caught:", error);
-  }, [error]);
+  useReportBoundaryError(error, "Dashboard");
 
   return (
     <ErrorDisplay
@@ -20,9 +18,8 @@ export default function DashboardError({
       description="Something went wrong while loading the dashboard. Please try again later."
       digest={error.digest}
       variant="section"
-      showRetry
-      onRetry={reset}
-      showHome
+      retry={{ onRetry: reset }}
+      home
     />
   );
 }

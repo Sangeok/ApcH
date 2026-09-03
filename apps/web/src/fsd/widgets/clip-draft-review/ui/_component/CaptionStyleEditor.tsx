@@ -18,6 +18,16 @@ interface CaptionStyleEditorProps {
   onChange: (style: CaptionStyle) => void;
 }
 
+// 미리보기 컨테이너의 높이. 렌더마다 다시 만들 이유가 없다.
+const PREVIEW_HEIGHT_PX = 320;
+
+/**
+ * 백엔드 ASS 자막의 PlayResY (apps/backend main.py).
+ * 미리보기 좌표는 전부 이 값 기준으로 축소한다 — 여기와 백엔드가 어긋나면
+ * 편집기 미리보기와 실제 렌더 결과의 글자 크기가 달라진다.
+ */
+const ASS_PLAY_RES_Y = 1920;
+
 const POSITION_LABELS: Record<
   (typeof CAPTION_STYLE_OPTIONS.POSITIONS)[number],
   string
@@ -25,6 +35,17 @@ const POSITION_LABELS: Record<
   top: "Top",
   middle: "Middle",
   bottom: "Bottom",
+};
+
+// 위와 같은 3값 축이다. 중첩 삼항으로 두면 "middle"이 폴백에 암시돼
+// POSITIONS에 값을 추가해도 조용히 middle 스타일을 받는다.
+const POSITION_JUSTIFY_CLASS: Record<
+  (typeof CAPTION_STYLE_OPTIONS.POSITIONS)[number],
+  string
+> = {
+  top: "justify-start pt-6",
+  middle: "justify-center",
+  bottom: "justify-end pb-6",
 };
 
 function languageDefaultFontSize(language: string): number {
@@ -86,20 +107,14 @@ export default function CaptionStyleEditor({
   const activePreset = matchPresetId(value);
   const previewText = previewWords.slice(0, effectiveMaxWords).join(" ");
 
-  // 미리보기 컨테이너 높이 기준 좌표 환산 (ASS PlayResY 1920 기준, main.py).
-  const PREVIEW_HEIGHT_PX = 320;
-  const previewScale = PREVIEW_HEIGHT_PX / 1920;
+  // 미리보기 컨테이너 높이 기준 좌표 환산.
+  const previewScale = PREVIEW_HEIGHT_PX / ASS_PLAY_RES_Y;
   const previewFontPx = Math.max(10, Math.round(effectiveFontSize * previewScale));
   // ASS 외곽선은 글리프 바깥으로 나가고 CSS 스트로크는 글리프 중앙을 기준으로
   // 그려진다. 같은 두께로 보이려면 2배가 필요하다 (근사값).
   const previewStrokePx = effectiveOutlineWidth * previewScale * 2;
 
-  const justifyClass =
-    effectivePosition === "top"
-      ? "justify-start pt-6"
-      : effectivePosition === "bottom"
-        ? "justify-end pb-6"
-        : "justify-center";
+  const justifyClass = POSITION_JUSTIFY_CLASS[effectivePosition];
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

@@ -1,3 +1,5 @@
+import "server-only";
+
 import { auth } from "~/server/auth";
 import { failure } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";

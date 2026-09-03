@@ -66,18 +66,21 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 9개 파일, 58개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 12개 파일, 70개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
 | `shared/analytics/event-catalog.test.mjs` | shim이 `ANALYTICS_METADATA_KEYS_BY_EVENT` 재수출을 잃지 않는 것. **이 줄이 사라지면 타입 에러 없이 계측만 조용히 멈춘다** |
-| `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키. **`ANALYTICS_METADATA_KEYS_BY_EVENT`는 `as keyof typeof` 캐스트를 써서 계약에 타입으로 묶여 있지 않다.** 이벤트 이름을 바꿨을 때 메타데이터 정의가 고아가 되는 걸 잡는 건 타입이 아니라 이 테스트다 |
+| `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키. `ANALYTICS_METADATA_KEYS_BY_EVENT`는 `as const satisfies Record<AnalyticsEventName, readonly string[]>`로 계약에 묶여 있어, 이벤트 이름 변경은 이제 컴파일 오류다. 이 테스트는 각 이벤트가 **어떤 키를 허용하는지**(값)를 지킨다 |
 | `shared/analytics/lib/normalize-path.test.mjs` | 경로 정규화 |
 | `widgets/clip-draft-review/model/selection-budget.test.mjs` | 클립 선택 예산 |
 | `widgets/clip-draft-review/model/caption-presets.test.mjs` | 캡션 프리셋이 `captionStyleSchema` 안에 있는지와 `matchPresetId`. **프리셋은 리터럴 값 묶음이라 범위를 벗어나도 타입은 통과하고, Apply 할 때 zod가 런타임에 거부한다.** position을 무시하는 매칭도 여기서만 잡힌다 — 무너지면 위치를 바꾼 순간 프리셋 칩이 꺼진다 |
 | `pages/dashboard/model/clip-count-budget.test.mjs` | 소스 재생 길이 → 구조적 클립 상한. `floor(D/30)` 경계, 옵션 최댓값(4) 클램프, 길이 미상(`null`·비유한·0 이하) 시 가드 없음(=4), 30초 미만 시 0. **`600초 → 4`는 회귀 테스트다** — 백로그가 FEAT-02의 원인으로 지목한 "10분 소스에 4개는 무리한 요청"이 사실이 아니고, 그 경우의 미달 생성은 `apps/backend` 하이라이트 탐지 문제임을 못박는다 |
 | `entities/uploaded-file/model/clip-generation-outcome.test.mjs` | 부분 클립 결과 판정과 폴링 조기 탈출 판정. **노트 코드 두 개는 `failureCode` 컬럼에 저장되는데 union 타입이 그 상수 자신에서 파생된다.** 값을 바꾸면 타입은 그대로 통과하고 이미 저장된 행만 조용히 인식되지 않는다. `clipsFound >= expectedClipCount → null` 경계도 타입이 못 잡는다 — 무너지면 완전 성공에도 "일부만 생성됨" 안내가 뜬다 |
-| `widgets/clip-display/model/clip-rationale.test.mjs` | 최종 클립 카드의 선택 근거 표시 헬퍼. `clipTypeLabel`의 라벨 매핑(`qa`→Q&A·`insight`→Insight·**모르는 값은 원본 그대로**·nullish/공백은 null)과 `hasClipRationale`의 존재 판정(비공백이 하나라도 있으면 true). **백엔드가 `clipType`에 강제하는 enum이 없어**(`main.py:987`은 프롬프트의 요청일 뿐) 라벨이 미지의 값을 빈 칸으로 삼키지 않는 것과, 세 근거가 전부 비면 카드 블록 자체가 렌더되지 않는 것을 잡는다 |
+| `entities/clip/lib/clip-type-label.test.mjs` | `clipTypeLabel`의 라벨 매핑(`qa`→Q&A·`insight`→Insight·**모르는 값은 원본 그대로**·nullish/공백은 null). **백엔드가 `clipType`에 강제하는 enum이 없어**(`main.py:987`은 프롬프트의 요청일 뿐) 라벨이 미지의 값을 빈 칸으로 삼키지 않는 것을 잡는다 |
+| `widgets/clip-display/model/clip-rationale.test.mjs` | 최종 클립 카드의 선택 근거 존재 판정. `hasClipRationale`은 비공백이 하나라도 있으면 true — 세 근거가 전부 비면 카드 블록 자체가 렌더되지 않는다 |
+| `entities/uploaded-file/model/stuck-alert.test.mjs` | 처리 지연 경과 시간 계산(`stuckAlertElapsedMinutes`) |
+| `middleware.test.mjs` | `PROTECTED_ROUTES`·`AUTH_ROUTES`의 모든 항목이 미들웨어 `matcher` 패턴에 포섭되는지. **`authorized` 콜백은 matcher가 통과시킨 경로에서만 돈다** — 목록에만 추가하면 보호된 것처럼 읽히는 무방비 라우트가 생긴다. Next가 `config`를 정적 추출하므로 matcher를 상수에서 계산할 수 없고, 타입도 둘을 묶어 주지 못한다 |
 | `widgets/clip-display/model/subtitle-status.test.mjs` | 번역 폴백 상태 → 사용자 안내 매핑. `"partial-fallback"`/`"full-fallback"`만 안내를 내고 `"ok"`·미지값·nullish/공백은 null(정상 자막에 경고를 붙이지 않는다), padded 상태값도 `trim()`으로 매핑된다. **매핑 키는 백엔드 `translation_fallback.py` 상태 상수와 묶는 wire 계약이라 어긋나면 안내가 조용히 꺼진다** — 타입이 아니라 이 테스트가 그 회귀를 막는다 |
 
 ## Architecture
@@ -88,7 +91,7 @@ npm test -w apps/web
 
 | 레이어 | 슬라이스 |
 |---|---|
-| `pages/` | ai-podcast-clipper, compare, dashboard, features, guides, home, podcast-to-shorts, pricing, product-tour, resources, upload-detail, youtube-shorts-generator |
+| `pages/` | about, ai-podcast-clipper, changelog, compare, contact, dashboard, features, guides, home, how-it-works, podcast-to-shorts, pricing, product-tour, security, upload-detail, youtube-shorts-generator |
 | `widgets/` | clip-display, clip-draft-review, dashboard-header, login-form, site-footer, site-header, uploaded-file-list |
 | `features/` | auth, billing, clip, clip-review, handle-order-*, handle-subscription-*, upload |
 | `entities/` | analytics-event, clip, clip-draft, order, processing-dispatch, subscription, uploaded-file, user |
@@ -99,6 +102,7 @@ npm test -w apps/web
 - 상위 레이어는 하위 레이어만 임포트한다 (역방향 금지)
 - 같은 레이어 안에서의 peer 임포트 금지
 - 각 슬라이스는 `ui/`, `model/`, `api/`, `lib/` 하위로 자족한다
+- **서버 전용 접근이 있는 슬라이스는 루트 barrel을 둘로 나눈다** — `index.ts`는 클라이언트 안전(`model`·`lib`·`ui`), `server.ts`는 `import "server-only"` + `./api` 재수출. `api/`가 `server-only`인데 `index.ts`가 그걸 재수출하면 그 barrel을 임포트하는 모든 클라이언트 모듈의 **빌드**가 깨지고(타입 체크는 통과한다), 실제로는 클라이언트가 barrel을 우회해 공개 API 경계가 사라진다. `entities/{uploaded-file,clip,clip-draft}`가 이 형태다. 규약 전문은 `docs/conventions/fsd-architecture-guidelines.md`
 
 ### 서버 액션
 
@@ -116,7 +120,7 @@ features/upload/api/index.ts             업로드 준비·확정·처리 스케
 ### 인증 (`src/server/auth/`)
 
 - **Google OAuth 전용.** Credentials(이메일/비밀번호)는 2026-03-26에 제거됐다. bcrypt 의존성도 없다
-- JWT 세션 전략 (`config.edge.ts:13`). Prisma adapter를 쓰지만 세션은 DB에 저장하지 않는다
+- JWT 세션 전략 (`config.edge.ts:23`). Prisma adapter를 쓰지만 세션은 DB에 저장하지 않는다
 - `config.edge.ts`는 Edge 런타임 호환용으로 Prisma·env 의존이 없다. `middleware.ts`가 이것만 쓰고, `config.ts`가 이를 확장한다
 - 보호 경로는 `/dashboard`뿐이다. 어드민 판별(`ADMIN_EMAILS` 화이트리스트)은 `apps/admin`으로 갔다
 

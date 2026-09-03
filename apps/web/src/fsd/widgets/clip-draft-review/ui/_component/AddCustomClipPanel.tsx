@@ -14,26 +14,29 @@ import type {
 
 interface AddCustomClipPanelProps {
   transcriptWords: TranscriptWord[];
+  /** 트랜스크립트를 못 불러온 이유. null이면 정상(빈 전사일 수 있다). */
+  transcriptErrorMessage: string | null;
   onAdd: (range: ClipRange) => Promise<void>;
   isAdding: boolean;
 }
 
 function getLengthLabel(
   range: { duration: number } | null,
-  withinLimits: boolean,
+  isDurationWithinLimits: boolean,
 ): string {
   if (!range) return "No range selected";
   const base = `Length: ${range.duration.toFixed(1)}s`;
-  if (withinLimits) return base;
+  if (isDurationWithinLimits) return base;
   return `${base} (must be ${CLIP_DURATION_LIMITS.MIN_SECONDS}-${CLIP_DURATION_LIMITS.MAX_SECONDS}s)`;
 }
 
 export default function AddCustomClipPanel({
   transcriptWords,
+  transcriptErrorMessage,
   onAdd,
   isAdding,
 }: AddCustomClipPanelProps) {
-  const [open, setOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [startIdx, setStartIdx] = useState<number | null>(null);
   const [endIdx, setEndIdx] = useState<number | null>(null);
 
@@ -47,7 +50,7 @@ export default function AddCustomClipPanel({
     return { startSeconds: start, endSeconds: end, duration: end - start };
   }, [startIdx, endIdx, transcriptWords]);
 
-  const withinLimits =
+  const isDurationWithinLimits =
     !!range && isClipDurationWithinLimits(range.startSeconds, range.endSeconds);
 
   const handleWordClick = (idx: number) => {
@@ -61,7 +64,7 @@ export default function AddCustomClipPanel({
   };
 
   const handleAdd = async () => {
-    if (!range || !withinLimits) return;
+    if (!range || !isDurationWithinLimits) return;
     try {
       await onAdd({
         startSeconds: range.startSeconds,
@@ -71,11 +74,24 @@ export default function AddCustomClipPanel({
       // 사용자가 다시 시도할 수 있도록 선택을 유지한다.
       setStartIdx(null);
       setEndIdx(null);
-      setOpen(false);
+      setIsPanelOpen(false);
     } catch {
       // onError가 이미 실패를 사용자에게 알렸다.
     }
   };
+
+  // 실패를 침묵으로 만들지 않는다. 예전에는 전사 로드 실패와 "전사가 비었다"가
+  // 모두 null 렌더라, 사용자에게는 기능이 그냥 사라진 것으로 보였다.
+  if (transcriptErrorMessage !== null) {
+    return (
+      <div className="rounded-lg border p-4">
+        <p className="text-sm font-medium">Add a clip AI missed</p>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Transcript unavailable — custom clips are disabled.
+        </p>
+      </div>
+    );
+  }
 
   if (transcriptWords.length === 0) {
     return null; // 전사 없음 → 폴백(숫자 입력)은 Open Questions
@@ -94,13 +110,13 @@ export default function AddCustomClipPanel({
           type="button"
           size="sm"
           variant="ghost"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setIsPanelOpen((v) => !v)}
         >
-          {open ? "Close" : "Add custom clip"}
+          {isPanelOpen ? "Close" : "Add custom clip"}
         </Button>
       </div>
 
-      {open && (
+      {isPanelOpen && (
         <div className="mt-3 space-y-3">
           <p className="text-muted-foreground text-xs">
             Click the first word, then the last word of the clip.
@@ -140,15 +156,15 @@ export default function AddCustomClipPanel({
             <p
               className={cn(
                 "text-xs",
-                withinLimits ? "text-muted-foreground" : "text-destructive",
+                isDurationWithinLimits ? "text-muted-foreground" : "text-destructive",
               )}
             >
-              {getLengthLabel(range, withinLimits)}
+              {getLengthLabel(range, isDurationWithinLimits)}
             </p>
             <Button
               type="button"
               size="sm"
-              disabled={!withinLimits || isAdding}
+              disabled={!isDurationWithinLimits || isAdding}
               onClick={handleAdd}
             >
               {isAdding ? "Adding..." : "Add clip"}

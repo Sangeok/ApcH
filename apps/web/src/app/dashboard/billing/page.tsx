@@ -22,8 +22,8 @@ export default async function BillingRoute({
     <BillingPage
       data={result.data}
       productIds={getProductIds()}
-      showSuccessBanner={params.success === "true"}
-      subscriptionEnabled={env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED}
+      hasReturnedFromCheckout={params.success === "true"}
+      isSubscriptionEnabled={env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED}
     />
   );
 }

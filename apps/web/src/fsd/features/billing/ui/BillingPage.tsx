@@ -10,57 +10,72 @@ import { OrderHistory } from "./OrderHistory";
 import type { ProductIds } from "../config";
 import type { BillingPageData } from "../model/types";
 
+// 컴포넌트 본문에 있으면 렌더마다 다시 만들어지고, 아래 effect의 dep 배열에
+// 넣지 않아도 린트가 통과해 "의존이 없다"는 거짓 인상을 준다.
+const SUBSCRIPTION_POLL_INTERVAL_MS = 2_000;
+const SUBSCRIPTION_POLL_TIMEOUT_MS = 30_000;
+const MAX_SUBSCRIPTION_POLLS =
+  SUBSCRIPTION_POLL_TIMEOUT_MS / SUBSCRIPTION_POLL_INTERVAL_MS;
+
 interface BillingPageProps {
   data: BillingPageData;
   productIds: ProductIds;
-  showSuccessBanner: boolean;
-  subscriptionEnabled: boolean;
+  /** 체크아웃에서 돌아온 진입인지. 배너·폴링·계측 셋을 함께 켠다 */
+  hasReturnedFromCheckout: boolean;
+  isSubscriptionEnabled: boolean;
 }
 
-export function BillingPage({ data, productIds, showSuccessBanner, subscriptionEnabled }: BillingPageProps) {
+export function BillingPage({
+  data,
+  productIds,
+  hasReturnedFromCheckout,
+  isSubscriptionEnabled,
+}: BillingPageProps) {
   const router = useRouter();
-  const [polling, setPolling] = useState(false);
+  // "구독이 아직 안 붙어서 기다리는 중"이라는 뜻이다. 이전 이름 `polling`은
+  // 무엇을 폴링하는지도, 왜 배너가 뜨는지도 말하지 않았다.
+  const [isActivatingSubscription, setIsActivatingSubscription] =
+    useState(false);
   const trackedCheckoutSuccessRef = useRef(false);
-
-  const POLLING_INTERVAL_MS = 2_000;
-  const POLLING_TIMEOUT_MS = 30_000;
 
   // Poll for subscription data when redirected from checkout but data not yet available
   useEffect(() => {
-    if (!showSuccessBanner || data.subscription) return;
+    if (!hasReturnedFromCheckout || data.subscription) return;
 
-    setPolling(true);
-    let elapsed = 0;
+    setIsActivatingSubscription(true);
+    let polls = 0;
     const interval = setInterval(() => {
-      elapsed += POLLING_INTERVAL_MS;
-      if (elapsed > POLLING_TIMEOUT_MS) {
+      polls += 1;
+      if (polls > MAX_SUBSCRIPTION_POLLS) {
         clearInterval(interval);
-        setPolling(false);
-        toast.error("Subscription update is taking longer than expected. Please refresh the page.");
+        setIsActivatingSubscription(false);
+        toast.error(
+          "Subscription update is taking longer than expected. Please refresh the page.",
+        );
         return;
       }
       router.refresh();
-    }, POLLING_INTERVAL_MS);
+    }, SUBSCRIPTION_POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [showSuccessBanner, data.subscription, router]);
+  }, [hasReturnedFromCheckout, data.subscription, router]);
 
   // Show success toast once subscription data arrives
   useEffect(() => {
-    if (showSuccessBanner && data.subscription) {
-      setPolling(false);
+    if (hasReturnedFromCheckout && data.subscription) {
+      setIsActivatingSubscription(false);
       toast.success("Subscription activated! Credits have been added.");
     }
-  }, [showSuccessBanner, data.subscription]);
+  }, [hasReturnedFromCheckout, data.subscription]);
 
   useEffect(() => {
-    if (!showSuccessBanner || trackedCheckoutSuccessRef.current) return;
+    if (!hasReturnedFromCheckout || trackedCheckoutSuccessRef.current) return;
 
     trackedCheckoutSuccessRef.current = true;
     void trackAnalyticsEvent("checkout_returned_success", undefined, {
       dedupeKey: "checkout_returned_success",
     });
-  }, [showSuccessBanner]);
+  }, [hasReturnedFromCheckout]);
 
   const currentTier = data.subscription?.planTier ?? null;
 
@@ -75,7 +90,7 @@ export function BillingPage({ data, productIds, showSuccessBanner, subscriptionE
         </p>
       </div>
 
-      {polling && (
+      {isActivatingSubscription && (
         <div className="bg-muted/50 flex items-center gap-3 rounded-lg border p-4">
           <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
           <p className="text-muted-foreground text-sm">
@@ -89,7 +104,7 @@ export function BillingPage({ data, productIds, showSuccessBanner, subscriptionE
         subscription={data.subscription}
       />
 
-      {subscriptionEnabled && (
+      {isSubscriptionEnabled && (
         <div>
           <h2 className="mb-4 text-lg font-medium">Choose a Plan</h2>
           <div className="grid gap-6 md:grid-cols-2">

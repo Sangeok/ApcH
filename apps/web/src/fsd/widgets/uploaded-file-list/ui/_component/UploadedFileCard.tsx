@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { Play } from "lucide-react";
-import { useState } from "react";
-import { UploadedFileStatusBadge } from "~/fsd/entities/uploaded-file/ui/UploadedFileStatusBadge";
-import { getOriginalPlayUrl } from "~/fsd/features/upload/api";
+import { useEffect, useRef, useState } from "react";
+import {
+  UploadedFileStatusBadge,
+  type UploadedFileSummary,
+} from "~/fsd/entities/uploaded-file";
+import { getOriginalPlayUrl } from "~/fsd/features/upload";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import {
   Card,
@@ -12,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
-import type { UploadedFileSummary } from "~/fsd/widgets/uploaded-file-list/model/types";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
@@ -27,9 +29,23 @@ export function UploadedFileCard({ file }: UploadedFileCardProps) {
   const detailHref = `/dashboard/uploads/${file.id}`;
   const createdLabel = dateFormatter.format(new Date(file.createdAt));
   const [isPlaybackRequested, setIsPlaybackRequested] = useState(false);
-  const { playUrl, error } = usePlayUrl(file.id, getOriginalPlayUrl, {
+  const playUrlState = usePlayUrl(file.id, getOriginalPlayUrl, {
     enabled: isPlaybackRequested,
   });
+  const readyPlayUrl =
+    playUrlState.status === "ready" ? playUrlState.url : null;
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // 인라인 화살표 ref는 렌더마다 detach/re-attach되어 play()를 다시 호출한다.
+  // 이 목록은 7.5초 큐 폴마다 리렌더되므로 사용자가 일시정지해도 곧 다시 재생됐다.
+  // 소스가 바뀔 때만 한 번 재생한다.
+  useEffect(() => {
+    if (!readyPlayUrl) {
+      return;
+    }
+
+    void videoRef.current?.play().catch(() => undefined);
+  }, [readyPlayUrl]);
 
   return (
     <Card className="h-full transition">
@@ -55,20 +71,18 @@ export function UploadedFileCard({ file }: UploadedFileCardProps) {
             <Play className="text-muted-foreground h-8 w-8" />
           </button>
         )}
-        {isPlaybackRequested && !playUrl && !error && (
+        {playUrlState.status === "loading" && (
           <div className="bg-muted aspect-video w-full animate-pulse rounded-md" />
         )}
-        {isPlaybackRequested && error && (
+        {playUrlState.status === "error" && (
           <div className="bg-muted flex aspect-video items-center justify-center rounded-md">
             <p className="text-muted-foreground text-xs">Video unavailable</p>
           </div>
         )}
-        {isPlaybackRequested && playUrl && (
+        {playUrlState.status === "ready" && (
           <video
-            ref={(element) => {
-              void element?.play().catch(() => undefined);
-            }}
-            src={playUrl}
+            ref={videoRef}
+            src={playUrlState.url}
             controls
             playsInline
             preload="metadata"

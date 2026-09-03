@@ -3,7 +3,7 @@ export {
   ANALYTICS_METADATA_KEYS_BY_EVENT,
   type AnalyticsEventName,
 } from "./event-catalog";
-export { getAnalyticsIds } from "./lib/anonymous-id";
+export { getOrCreateAnalyticsIds } from "./lib/anonymous-id";
 export { sanitizeAnalyticsMetadata } from "./lib/metadata";
 export {
   normalizeAnalyticsPath,

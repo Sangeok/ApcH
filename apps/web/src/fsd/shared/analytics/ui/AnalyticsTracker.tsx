@@ -7,10 +7,6 @@ import { normalizeAnalyticsPath } from "../lib/normalize-path";
 import { trackAnalyticsEvent } from "../lib/track-event";
 
 function getRouteEventName(pathname: string): AnalyticsEventName | null {
-  if (pathname.startsWith("/admin")) {
-    return null;
-  }
-
   if (pathname === "/") {
     return "landing_view";
   }
@@ -25,10 +21,6 @@ function getRouteEventName(pathname: string): AnalyticsEventName | null {
 
   if (pathname === "/dashboard/billing") {
     return "billing_viewed";
-  }
-
-  if (pathname.startsWith("/dashboard/uploads/")) {
-    return null;
   }
 
   if (pathname.startsWith("/dashboard")) {
@@ -56,20 +48,16 @@ export function AnalyticsTracker() {
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname.startsWith("/admin")) {
-      return;
-    }
-
     const normalizedPath = normalizeAnalyticsPath(pathname);
     const startedAt = Date.now();
-    let sent = false;
+    let hasSentExitEvent = false;
 
     const emitExit = () => {
-      if (sent) {
+      if (hasSentExitEvent) {
         return;
       }
 
-      sent = true;
+      hasSentExitEvent = true;
       void trackAnalyticsEvent(
         "page_exited",
         {
@@ -77,7 +65,9 @@ export function AnalyticsTracker() {
         },
         {
           path: normalizedPath,
-          dedupeKey: `exit:${normalizedPath}:${startedAt}`,
+          // dedupeKey를 두지 않는다 — startedAt이 들어가 매 내비게이션마다
+          // 다시는 매칭되지 않을 키가 쌓이기만 했다. 위의 `hasSentExitEvent` 플래그가
+          // 이 effect당 1회를 이미 보장한다.
           useBeacon: true,
         },
       );

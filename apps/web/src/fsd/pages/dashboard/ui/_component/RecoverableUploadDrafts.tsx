@@ -1,15 +1,10 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, RotateCcw, Trash2 } from "lucide-react";
-import {
-  deleteUploadedFile,
-  scheduleUploadedFileProcessing,
-} from "~/fsd/features/upload/api";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file/model/types";
+import { useDeleteUploadedFile } from "~/fsd/features/upload/model/use-delete-uploaded-file";
+import { useResumeUploadDraft } from "~/fsd/features/upload/model/use-resume-upload-draft";
+import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -33,44 +28,38 @@ export default function RecoverableUploadDrafts({
   drafts,
 }: RecoverableUploadDraftsProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const [isPending, startTransition] = useTransition();
+  // 무효화 정책은 features/upload가 소유한다. router.refresh()는 RSC가 그리는
+  // 헤더 크레딧 배지까지 갱신해야 해서 여기 남는다(규약 §8 예외).
+  const resumeMutation = useResumeUploadDraft();
+  const deleteMutation = useDeleteUploadedFile({
+    onDeleted: () => router.refresh(),
+  });
+  const isPending = resumeMutation.isPending || deleteMutation.isPending;
 
   if (drafts.length === 0) {
     return null;
   }
 
   const handleResume = (uploadedFileId: string) => {
-    startTransition(async () => {
-      const result = await scheduleUploadedFileProcessing(uploadedFileId);
-
-      if (!result.success) {
-        toast.error(result.error ?? "Failed to resume processing");
-        return;
-      }
-
-      toast.success("Processing resumed");
-      await queryClient.invalidateQueries({
-        queryKey: uploadedFileKeys.lists(),
-      });
-      router.refresh();
+    resumeMutation.mutate(uploadedFileId, {
+      onSuccess: () => {
+        toast.success("Processing resumed");
+        router.refresh();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
     });
   };
 
   const handleDiscard = (uploadedFileId: string) => {
-    startTransition(async () => {
-      const result = await deleteUploadedFile(uploadedFileId);
-
-      if (!result.success) {
-        toast.error(result.error ?? "Failed to discard upload");
-        return;
-      }
-
-      toast.success("Upload discarded");
-      await queryClient.invalidateQueries({
-        queryKey: uploadedFileKeys.lists(),
-      });
-      router.refresh();
+    deleteMutation.mutate(uploadedFileId, {
+      onSuccess: () => {
+        toast.success("Upload discarded");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
     });
   };
 

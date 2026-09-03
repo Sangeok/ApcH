@@ -56,7 +56,7 @@ export const shortsFaq: FaqItem[] = [
   {
     question: "Are the outputs actually YouTube Shorts compatible?",
     answer:
-      "Yes. The export is a 1080x1920 vertical mp4 between 40 and 60 seconds with burned-in captions. You upload it to YouTube as you would any Short.",
+      "Yes. The export is a 1080x1920 vertical mp4 between 30 and 90 seconds with burned-in captions. You upload it to YouTube as you would any Short.",
   },
   {
     question: "Does it support Korean Shorts?",

@@ -8,6 +8,26 @@ import { handleSubscriptionUpdated } from "~/fsd/features/handle-subscription-up
 
 export const maxDuration = 10;
 
+// Polar metadata는 판매자가 채우는 자유 필드다. 캐스트로 통과시키면
+// 문자열이 아닌 userId가 그대로 Subscription/Order의 외래키가 되고,
+// 핸들러가 rethrow하므로 Polar가 무한 재시도한다.
+function asOptionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function asNonNegativeInt(value: unknown): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
+}
+
+function toProductMetadata(product: { metadata?: unknown } | null | undefined) {
+  const metadata = (product?.metadata ?? {}) as Record<string, unknown>;
+  return {
+    tier: asOptionalString(metadata.tier),
+    monthlyCredits: asNonNegativeInt(metadata.monthlyCredits),
+  };
+}
+
 const webhooksHandler = Webhooks({
   webhookSecret:
     env.NODE_ENV === "production"
@@ -30,15 +50,14 @@ const webhooksHandler = Webhooks({
         data.customer?.email,
       );
 
-      const tier = data.product?.metadata?.tier as string | undefined;
-      const monthlyCredits = Number(data.product?.metadata?.monthlyCredits) || 0;
+      const { tier, monthlyCredits } = toProductMetadata(data.product);
 
       const result = await handleSubscriptionActive({
         subscriptionId: data.id,
         productId: data.productId,
         customerId: data.customerId,
         customerEmail: data.customer?.email,
-        metadataUserId: data.metadata?.userId as string | undefined,
+        metadataUserId: asOptionalString(data.metadata?.userId),
         tier,
         monthlyCredits,
         currentPeriodStart: new Date(data.currentPeriodStart),
@@ -46,7 +65,7 @@ const webhooksHandler = Webhooks({
         recurringInterval: data.recurringInterval ?? "month",
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error(
           "[polar:subscription.active] userId resolution failed",
           JSON.stringify(data.metadata),
@@ -57,7 +76,7 @@ const webhooksHandler = Webhooks({
 
       console.log(
         "[polar:subscription.active] success",
-        result.userId,
+        result.data.userId,
         tier,
         monthlyCredits,
       );
@@ -72,8 +91,7 @@ const webhooksHandler = Webhooks({
       const { data } = payload;
       console.log("[polar:subscription.updated] id:", data.id, "status:", data.status);
 
-      const tier = data.product?.metadata?.tier as string | undefined;
-      const monthlyCredits = Number(data.product?.metadata?.monthlyCredits) || 0;
+      const { tier, monthlyCredits } = toProductMetadata(data.product);
 
       const result = await handleSubscriptionUpdated({
         subscriptionId: data.id,
@@ -88,7 +106,7 @@ const webhooksHandler = Webhooks({
         canceledAt: data.canceledAt ? new Date(data.canceledAt) : null,
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error("[polar:subscription.updated] subscription not found:", data.id);
         return;
       }
@@ -110,7 +128,7 @@ const webhooksHandler = Webhooks({
         canceledAt: data.canceledAt ? new Date(data.canceledAt) : null,
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error("[polar:subscription.canceled] subscription not found:", data.id);
         return;
       }
@@ -141,10 +159,10 @@ const webhooksHandler = Webhooks({
         currency: data.currency ?? "usd",
         status: "completed",
         customerEmail: data.customer?.email,
-        metadataUserId: data.metadata?.userId as string | undefined,
+        metadataUserId: asOptionalString(data.metadata?.userId),
       });
 
-      if (!result.ok) {
+      if (!result.success) {
         console.error(
           "[polar:order.created] userId resolution failed",
           JSON.stringify(data.metadata),
@@ -153,7 +171,7 @@ const webhooksHandler = Webhooks({
         return;
       }
 
-      console.log("[polar:order.created] success:", result.userId, data.id);
+      console.log("[polar:order.created] success:", result.data.userId, data.id);
     } catch (error) {
       console.error("[polar:order.created] error:", error);
       throw error;

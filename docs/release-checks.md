@@ -22,6 +22,36 @@
 
 ---
 
+## 클린코드 개선 (5렌즈 검토, 정규 77건) — web, 구현 2026-09-03
+
+원천: `apps/web/docs/proposals/completed/2026-09-03-frontend-clean-code-improvements.md` §Verification Plan 수동 표.
+보드 항목이 아니라 사용자 직접 지시로 돈 작업이라 항목ID가 없다. 커밋 `9dd6dfb`~`a3461aa`(159파일). **배포 대기** — `dev`에 커밋, `main` 합류 전.
+자동 검사 게이트(typecheck·lint·70/70 테스트·build·라우트 static/dynamic 대조)는 Phase마다 통과했다. 아래는 그 넷이 원리상 못 덮는 것뿐이다 — 외부 SaaS 테넌트, 브라우저 렌더·타이밍, 실제 워커 실행.
+**`〔auto〕` 태그를 붙이지 않는다**: release-verify 루틴의 base는 `admin.a-pch.com`이고(`scripts/release-verify/run.mjs:11`) 아래는 전부 web(`a-pch.com`) 경로다. 루틴이 web을 대상으로 확장되면 공개 라우트 줄부터 태그를 붙일 수 있다.
+
+동작이 바뀐 것 — 실물에서만 닫힌다:
+
+- [ ] **C-02 Polar 테넌트(가장 위험)**: 프로덕션 `/dashboard/billing` → "Manage Subscription"이 **프로덕션** Polar 포털을 연다(sandbox 아님). 이전에는 `getPolarClient`가 `env.POLAR_SERVER`를 보고 포털 라우트는 `"sandbox"`를 하드코딩해 둘이 갈렸다. 반대로 지금까지 sandbox가 의도였다면 이 줄이 아니라 `POLAR_SERVER` 값을 재검토해야 한다
+- [ ] **C-49 포털 미로그인·미고객 경로**: 로그아웃 상태로 `/api/portal` → `/login` 리다이렉트, 로그인했지만 Polar 고객이 아닌 계정 → `/dashboard/billing` 리다이렉트. 이전에는 빈 문자열 고객 id를 Polar에 넘겼다
+- [ ] **C-29 존재하지 않는 업로드**: `/dashboard/uploads/<없는 id>`가 404(not-found) 화면이다. 이전에는 `findFirstOrThrow`가 던져 에러 경계로 떨어졌다
+- [ ] **C-30 웹훅 입력 방어**: Modal 웹훅에 깨진 JSON을 POST하면 500이 아니라 400
+- [ ] **C-63 빈 제목 클립**: DB에서 `youtubeTitle`을 `""`로 비운 클립에서 "YouTube Metadata" 메뉴가 **활성**이다(설명·해시태그가 있으면). `??`를 `||`로 고친 결과
+- [ ] **C-17 마지막 클립 삭제**: 마지막 클립을 지운 직후 "No clips found"가 즉시 보인다(낙관적 목록 기준 판정)
+- [ ] **C-66 자동재생 재개 없음**: 업로드 하나가 `processing`인 상태에서 목록 카드를 펼쳐 재생 → 일시정지 후 15초(7.5초 큐 폴 두 번) 관찰. 재생이 다시 시작되지 않는다
+- [ ] **C-10 presign 실패 표시**: 업로드 상세의 Original media와 검토 화면 플레이어에서 presign이 실패하면 "Video unavailable"·"Preview unavailable" 문구가 보인다. 이전에는 빈 검은 상자가 영원히 남았다
+- [ ] **C-71 파괴적 액션 확인창**: 업로드 삭제와 구독 해지가 브라우저 `confirm()` 대신 앱 AlertDialog를 띄우고, 취소하면 아무 일도 없다
+
+무회귀 — 형태만 바꿨으나 실물에서만 보이는 것:
+
+- [ ] **C-72/C-73 법률 페이지와 헤더**: `/privacy`·`/terms`가 마케팅 헤더·푸터와 함께 렌더되고 URL은 그대로다. 로그인 상태로 `/`와 `/features`·`/pricing`을 오갈 때 헤더가 **같은** 인증 상태(아바타)를 보인다 — 이전에는 `/`만 아바타였다
+- [ ] **C-73 분석 라벨 합류**: 합쳐진 "Log in" 버튼의 `cta_clicked` 이벤트가 `location: "public_header"`로 기록된다. 홈의 옛 `"site_header"` 시계열은 여기로 합류한다 — 분석 소유자가 다른 값을 원하면 `widgets/site-header/ui/public-header.tsx` 한 단어를 바꾼다
+- [ ] **C-33/C-34 실패 라벨**: 실패한 업로드 상세의 타임라인에 실패 사유 문구가 그대로 뜬다(어휘를 카탈로그로 옮기면서 생산자 없는 case 둘을 지웠다 — 그 둘은 원래 표시된 적이 없다)
+- [ ] **C-36/C-37 마케팅 라우트**: `/about`·`/contact`·`/security`·`/how-it-works`·`/changelog` 다섯이 분할 전과 같은 화면을 낸다. 푸터·헤더 nav의 링크가 전부 살아 있다
+- [ ] **C-74 에러 경계**: 라우트 오류를 유도하면 다섯 경계가 이전과 같은 콘솔 문구(`<라벨> error boundary caught:`)를 남긴다
+- [ ] **C-75/C-76/C-56/C-46 워커 경로(자동 테스트 없음)**: 업로드 1건을 실제로 처리해 `processVideo` 완료 → 크레딧 차감 → 클립 표시까지 확인한다. 이어서 stale reconcile을 수동으로 유도(타임아웃)해 상태가 `failed`로 전이하고 `worker_timeout`이면 취소 이벤트가 나가는지 본다. 서버 모듈이 엔티티에서 feature로 옮겨간 것이 이 경로 전체의 유일한 검증이다
+- [ ] **C-09 두 ingest 경로**: 위 실행에서 웹훅 직접 쓰기와 Inngest 폴링 응답이 **같은** 정규화를 거친다 — 클립 카드의 13개 필드(제목·대본·해시태그·근거·자막 상태)가 두 경로 어느 쪽으로 들어와도 동일하게 채워진다
+
+
 ## FEAT-29 — 정체 감시를 cron에서 건별 이벤트 감시자로 전환 (web, 구현 2026-09-02)
 
 원천: `docs/agents/web-dev/FEAT-29.md` 「테스트로 못 덮은 범위」 + 계획서 「테스트」. **배포 대기** — `dev`에 커밋, `main` 합류 전.

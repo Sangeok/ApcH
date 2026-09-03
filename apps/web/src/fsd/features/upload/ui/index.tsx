@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   Loader2,
@@ -10,12 +9,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { uploadedFileKeys } from "~/fsd/entities/uploaded-file/model/query-keys";
-import type { ProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import { isActiveProcessingStatus } from "~/fsd/entities/uploaded-file/model/processing-status";
-import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file/model/types";
-import type { ActionResult } from "~/fsd/shared/api/result";
+import { useState } from "react";
+import {
+  isActiveProcessingStatus,
+  type ProcessingStatus,
+} from "~/fsd/entities/uploaded-file";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/fsd/shared/ui/atoms/alert-dialog";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -24,40 +32,8 @@ import {
   DropdownMenuTrigger,
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 import { toast } from "sonner";
-import { deleteUploadedFile } from "../api";
+import { useDeleteUploadedFile } from "../model/use-delete-uploaded-file";
 import { useReprocessUploadedFile } from "../model/use-reprocess-uploaded-file";
-
-type RunOptions = {
-  action: () => Promise<ActionResult<void>>;
-  successMessage: string;
-  confirmationMessage?: string;
-  onSuccess?: () => void | Promise<void>;
-  startTransition: ReturnType<typeof useTransition>[1];
-};
-
-const runAction = ({
-  action,
-  successMessage,
-  confirmationMessage,
-  onSuccess,
-  startTransition,
-}: RunOptions) => {
-  if (confirmationMessage && !confirm(confirmationMessage)) {
-    return;
-  }
-
-  startTransition(async () => {
-    const result = await action();
-
-    if (!result.success) {
-      toast.error(result.error ?? "Request failed");
-      return;
-    }
-
-    toast.success(successMessage);
-    await onSuccess?.();
-  });
-};
 
 interface UploadedFileActionsProps {
   uploadedFileId: string;
@@ -71,11 +47,18 @@ export default function UploadedFileActions({
   currentUserCredits,
 }: UploadedFileActionsProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  // 이 앱에서 가장 파괴적인 액션이라 blocking window.confirm 대신 앱의
+  // AlertDialog를 쓴다. 드롭다운 항목이 트리거라 메뉴가 닫히면서 트리거가
+  // 사라지므로, 트리거를 두지 않고 열림 상태를 직접 들고 있는다.
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const reprocessMutation = useReprocessUploadedFile(uploadedFileId);
-  const [isDeleting, startDeleteTransition] = useTransition();
+  // 캐시 정책은 feature model 훅이 소유한다. 여기서는 사용자 상호작용만 다룬다.
+  const deleteMutation = useDeleteUploadedFile({
+    onDeleted: () => router.push("/dashboard"),
+  });
   const isActive = isActiveProcessingStatus(status);
-  const anyPending = reprocessMutation.isPending || isDeleting;
+  const isAnyActionPending =
+    reprocessMutation.isPending || deleteMutation.isPending;
   const shouldBuyCredits = status === "no credits" && currentUserCredits <= 0;
   const actionLabel =
     status === "failed" || (status === "no credits" && currentUserCredits > 0)
@@ -94,35 +77,21 @@ export default function UploadedFileActions({
   };
 
   const handleDelete = () => {
-    runAction({
-      action: () => deleteUploadedFile(uploadedFileId),
-      successMessage: "Original file and clips deleted",
-      confirmationMessage:
-        "Are you sure you want to delete the file and all associated clips?",
-      onSuccess: async () => {
-        queryClient.setQueriesData<UploadedFileSummary[]>(
-          {
-            queryKey: uploadedFileKeys.lists(),
-            predicate: (query) => Array.isArray(query.state.data),
-          },
-          (old) => old?.filter((file) => file.id !== uploadedFileId),
-        );
-        queryClient.removeQueries({
-          queryKey: uploadedFileKeys.detail(uploadedFileId),
-        });
-        await queryClient.invalidateQueries({
-          queryKey: uploadedFileKeys.lists(),
-        });
-        router.push("/dashboard");
+    setIsDeleteDialogOpen(false);
+    deleteMutation.mutate(uploadedFileId, {
+      onSuccess: () => {
+        toast.success("Original file and clips deleted");
       },
-      startTransition: startDeleteTransition,
+      onError: (error) => {
+        toast.error(error.message);
+      },
     });
   };
 
   return (
     <div className="flex items-center gap-2">
       {shouldBuyCredits ? (
-        <Button variant="outline" disabled={anyPending} asChild>
+        <Button variant="outline" disabled={isAnyActionPending} asChild>
           <Link href="/dashboard/billing">
             <CreditCard className="mr-2 h-4 w-4" />
             Buy credits
@@ -131,7 +100,7 @@ export default function UploadedFileActions({
       ) : (
         <Button
           variant="outline"
-          disabled={anyPending || isActive}
+          disabled={isAnyActionPending || isActive}
           onClick={handleReprocess}
         >
           {reprocessMutation.isPending ? (
@@ -144,8 +113,8 @@ export default function UploadedFileActions({
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" disabled={anyPending || isActive}>
-            {isDeleting ? (
+          <Button variant="secondary" disabled={isAnyActionPending || isActive}>
+            {deleteMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <MoreHorizontal className="mr-2 h-4 w-4" />
@@ -156,7 +125,7 @@ export default function UploadedFileActions({
         <DropdownMenuContent align="end">
           <DropdownMenuItem
             className="text-destructive"
-            onClick={handleDelete}
+            onClick={() => setIsDeleteDialogOpen(true)}
             disabled={isActive}
           >
             <Trash2 className="mr-2 h-4 w-4" />
@@ -164,6 +133,30 @@ export default function UploadedFileActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this upload?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The original file and all clips generated from it are deleted.
+              This cannot be undone, and spent credits are not refunded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant="outline">Cancel</Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button variant="destructive" onClick={handleDelete}>
+                Delete
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
