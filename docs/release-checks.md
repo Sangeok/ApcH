@@ -31,15 +31,15 @@
 
 동작이 바뀐 것 — 실물에서만 닫힌다:
 
-- [ ] **C-02 Polar 테넌트(가장 위험)**: 프로덕션 `/dashboard/billing` → "Manage Subscription"이 **프로덕션** Polar 포털을 연다(sandbox 아님). 이전에는 `getPolarClient`가 `env.POLAR_SERVER`를 보고 포털 라우트는 `"sandbox"`를 하드코딩해 둘이 갈렸다. 반대로 지금까지 sandbox가 의도였다면 이 줄이 아니라 `POLAR_SERVER` 값을 재검토해야 한다
-- [ ] **C-49 포털 미로그인·미고객 경로**: 로그아웃 상태로 `/api/portal` → `/login` 리다이렉트, 로그인했지만 Polar 고객이 아닌 계정 → `/dashboard/billing` 리다이렉트. 이전에는 빈 문자열 고객 id를 Polar에 넘겼다
-- [ ] **C-29 존재하지 않는 업로드**: `/dashboard/uploads/<없는 id>`가 404(not-found) 화면이다. 이전에는 `findFirstOrThrow`가 던져 에러 경계로 떨어졌다
+- [x] **C-02 Polar 테넌트(가장 위험)**: 이관(BUG-09) — 확인 결과 **결함**이다. 프로덕션 「Manage Subscription」이 Polar 포털이 아니라 **HTTP 500**(본문 길이 0)을 낸다. 2026-09-03 13:20 KST·2026-09-04 15:30 KST 두 번 재현. 앞단 가드는 정상(비로그인 GET 307 `/login`)이라 `portalHandler` 진입 후 예외다. 원문:  프로덕션 `/dashboard/billing` → "Manage Subscription"이 **프로덕션** Polar 포털을 연다(sandbox 아님). 이전에는 `getPolarClient`가 `env.POLAR_SERVER`를 보고 포털 라우트는 `"sandbox"`를 하드코딩해 둘이 갈렸다. 반대로 지금까지 sandbox가 의도였다면 이 줄이 아니라 `POLAR_SERVER` 값을 재검토해야 한다
+- [ ] **C-49 포털 미로그인·미고객 경로**〔절반 확인(2026-09-03, curl 실측): 로그아웃 상태 `GET /api/portal` → **307 `https://a-pch.com/login`**. 남은 절반(로그인했으나 Polar 고객이 아닌 계정 → `/dashboard/billing`)은 그런 계정이 없어 미확인〕:  로그아웃 상태로 `/api/portal` → `/login` 리다이렉트, 로그인했지만 Polar 고객이 아닌 계정 → `/dashboard/billing` 리다이렉트. 이전에는 빈 문자열 고객 id를 Polar에 넘겼다
+- [x] **C-29 존재하지 않는 업로드**: `/dashboard/uploads/<없는 id>`가 404(not-found) 화면이다. 이전에는 `findFirstOrThrow`가 던져 에러 경계로 떨어졌다 — 확인(2026-09-04, 프로덕션 Playwright: 로그인 세션으로 `/dashboard/uploads/aaaa` → "404 / Page not found / The page you requested does not exist or has been moved." + Home 링크 렌더. 스트리밍 중 `notFound()` 전이라 콘솔에 React #419가 남지만 최종 화면은 404로 정착)
 - [ ] **C-30 웹훅 입력 방어**: Modal 웹훅에 깨진 JSON을 POST하면 500이 아니라 400
 - [ ] **C-63 빈 제목 클립**: DB에서 `youtubeTitle`을 `""`로 비운 클립에서 "YouTube Metadata" 메뉴가 **활성**이다(설명·해시태그가 있으면). `??`를 `||`로 고친 결과
 - [ ] **C-17 마지막 클립 삭제**: 마지막 클립을 지운 직후 "No clips found"가 즉시 보인다(낙관적 목록 기준 판정)
 - [ ] **C-66 자동재생 재개 없음**: 업로드 하나가 `processing`인 상태에서 목록 카드를 펼쳐 재생 → 일시정지 후 15초(7.5초 큐 폴 두 번) 관찰. 재생이 다시 시작되지 않는다
 - [ ] **C-10 presign 실패 표시**: 업로드 상세의 Original media와 검토 화면 플레이어에서 presign이 실패하면 "Video unavailable"·"Preview unavailable" 문구가 보인다. 이전에는 빈 검은 상자가 영원히 남았다
-- [ ] **C-71 파괴적 액션 확인창**: 업로드 삭제와 구독 해지가 브라우저 `confirm()` 대신 앱 AlertDialog를 띄우고, 취소하면 아무 일도 없다
+- [x] **C-71 파괴적 액션 확인창**: 업로드 삭제와 구독 해지가 브라우저 `confirm()` 대신 앱 AlertDialog를 띄우고, 취소하면 아무 일도 없다 — 확인(2026-09-04, 프로덕션 Playwright 실측). 구독 해지: `alertdialog` "Cancel your subscription?" + 본문 "Your plan stays active until 2026. 9. 27., …" + 버튼 「Keep subscription」(기본 포커스)·「Cancel subscription」 → Keep 클릭 후 Pro·Active·다음 갱신 2026-09-27 **무변경**. 업로드 삭제: Manage 메뉴 → Delete detail → `alertdialog` "Delete this upload?" + "This cannot be undone, and spent credits are not refunded." + 「Cancel」·「Delete」 → Cancel 클릭 후 다이얼로그 소멸·업로드와 4클립 **생존**. 브라우저 네이티브 `confirm()`은 두 경로 어디에도 없었다
 
 무회귀 — 형태만 바꿨으나 실물에서만 보이는 것:
 
@@ -228,7 +228,7 @@ BUG-08(backend 절반, 2026-08-29 배포)의 두 번째 절반이라, 이 절이
 
 원천: `docs/agents/web-dev/FEAT-16.md`
 
-- [ ] `ClipCard` 선택 근거 블록 렌더·clamp 시각·`showRationale` 분기 (web 로그인 세션 필요 — 미스윕)
+- [x] `ClipCard` 선택 근거 블록 렌더·clamp 시각·`showRationale` 분기 — 확인(2026-09-04, 프로덕션 Playwright: 업로드 `cmsrlyh3u000zsi2c0f0adgae`의 4클립 카드 전부에 유형 라벨(`Insight`×3·`Q&A`×1) + hook + payoff 3요소가 렌더. clamp 시각은 스냅샷 텍스트 기준이라 줄수 판정은 미포함)
 
 ## FEAT-15 — 행위자별 상세 페이지 (admin, 보드 2026-08-20 절)
 
