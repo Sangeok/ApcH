@@ -81,7 +81,7 @@ agent: web-dev
 | `src/fsd/features/clip-review/model/transcript.ts` `(신규)` | `TranscriptWord` 타입 + `parseTranscriptWords(payload: unknown): TranscriptWord[]` 순수 함수를 feature 레이어에 둔다(서버 액션과 위젯이 공유) |
 | `src/fsd/features/clip-review/model/transcript.test.mjs` `(신규)` | `parseTranscriptWords` 분기 테스트 |
 | `src/fsd/features/clip-review/api/index.ts` | `getTranscriptUrl`(presign+URL 반환)을 `getTranscript`(서버에서 S3 읽어 파싱한 `{ words }` 반환)로 교체 |
-| `src/fsd/features/clip-review/index.ts` | 배럴 재수출을 `getTranscriptUrl` → `getTranscript`로 교체 |
+| `src/fsd/features/clip-review/index.ts` | 배럴 재수출을 `getTranscriptUrl` → `getTranscript`로 교체 **+ `export type { TranscriptWord } from "./model/transcript";` 추가**(아래 검증 라운드 결함 ① — 없으면 위젯의 재수출이 TS2305로 깨진다) |
 | `src/fsd/widgets/clip-draft-review/model/use-clip-draft-review.ts` | queryFn을 `getTranscript` 호출 + `parseTranscriptWords` 결과 직접 사용으로 교체(브라우저 `fetch` 제거), `retry`·`refetchOnWindowFocus` 명시. `TranscriptWord`는 feature에서 재수출 |
 
 여기 적히지 않은 파일은 구현 단계에서 고치지 않는다. `AddCustomClipPanel.tsx`·
@@ -139,7 +139,7 @@ export function parseTranscriptWords(payload: unknown): TranscriptWord[] {
 교체 후:
 
 ```ts
-import { getS3ObjectText, S3_CONFIG } from "~/fsd/shared/api/s3"; // S3_CONFIG는 다른 액션이 계속 쓰면 유지
+import { getS3ObjectText } from "~/fsd/shared/api/s3";
 import {
   type TranscriptWord,
   parseTranscriptWords,
@@ -173,8 +173,9 @@ export async function getTranscript(
 }
 ```
 
-`generatePresignedGetUrl` 임포트(`:10`)는 이 파일의 다른 액션이 쓰지 않으면 제거한다
-(구현 시 확인). `S3_CONFIG`도 마찬가지.
+`generatePresignedGetUrl`·`S3_CONFIG` 임포트(`:10`)는 **제거한다** — 검증 라운드에서
+이 파일 전체를 열거해 두 심볼의 사용처가 `getTranscriptUrl` 내부(`:41`·`:43`)뿐임을
+확인했다(결함 ②). 조건부가 아니다.
 
 **`use-clip-draft-review.ts` — queryFn 교체 + 재시도 옵션** (현재 `:66-100`)
 
@@ -220,8 +221,10 @@ after(옵션 부분만; 필터 로직은 서버로 이동했으므로 queryFn이
 
 - **덮는 것**: `features/clip-review/model/transcript.test.mjs`로 `parseTranscriptWords`
   분기 — ① 유효 배열은 그대로, ② `start/end/word` 타입이 틀린 원소·`null`·비객체는
-  필터, ③ 배열이 아니면(`{}`·`null`·문자열) throw. 이 함수는 순수하고 Node 내장
-  러너로 확인 가능하다.
+  필터, ③ 배열이 아니면(`{}`·`null`·문자열) **`"Transcript payload was not an array"` 메시지로**
+  throw. **메시지까지 단언한다** — "throw 여부"만 보면 배열 가드를 지운 구현도 통과한다
+  (`payload.filter is not a function` TypeError도 throw이기 때문. 결함 ③의 실측 근거).
+  이 함수는 순수하고 Node 내장 러너로 확인 가능하다.
 - **못 덮는 범위**(배포 후 수동 확인으로 이관):
   - 서버 액션 `getTranscript`의 실제 S3 읽기(`getS3ObjectText`)와 인증/소유권 경로 —
     DB·S3 I/O라 러너로 못 덮는다.
@@ -260,3 +263,48 @@ S3 버킷 CORS 설정이 범위 밖 의존이 됐을 것이다 — 「대안」 
   단어 스냅·커스텀 클립이 죽는다. 백로그가 지목한 "대본 미로드"를 안 고친다.
 - **클라이언트 마운트 후에만 렌더(에러 무시)** — 해당 없음. 문제는 렌더 타이밍이
   아니라 크로스 오리진 접근이다.
+
+## 검증 라운드 기록 (메인 루프, 2026-09-04 1라운드)
+
+`docs/plans/verification-paths.md`의 필수 경로 1·2·3·4·5·6·7·8을 돌렸다. 결함 셋을 위
+본문에 반영했다. 증거는 `docs/agents/main-loop/BUG-11.md`.
+
+**결함 ① (블로커) — 배럴에 타입 재수출이 빠져 스케치가 컴파일되지 않는다.**
+스케치는 위젯 훅에 `export type { TranscriptWord } from "~/fsd/features/clip-review";`
+를 지시하지만, 「고칠 파일」의 배럴 행은 액션 이름 교체만 적었다. 현재 배럴
+(`features/clip-review/index.ts`)은 `addCustomClipDraft`·`getTranscriptUrl`·
+`saveClipDraftEdit`·`captionStyleSchema`·`CaptionStyleInput`만 내보낸다. 그 재수출 줄을
+그대로 파일에 넣고 프로젝트 tsconfig로 컴파일하니
+`error TS2305: Module '"~/fsd/features/clip-review"' has no exported member 'TranscriptWord'`.
+→ 배럴 행에 타입 재수출을 명시했다.
+
+**결함 ② (정밀도) — 임포트 제거가 조건부로 남아 있었다.**
+`generatePresignedGetUrl`·`S3_CONFIG`의 이 파일 내 사용처를 전수 열거하니 `:41`·`:43`
+(둘 다 `getTranscriptUrl` 내부)뿐이다. 교체 후 두 심볼은 반드시 미사용이 되므로
+"다른 액션이 쓰면 유지"라는 조건은 성립하지 않는다. → 확정 서술로 바꾸고 스케치의
+import 줄에서 `S3_CONFIG`를 뺐다.
+
+**결함 ③ (블로커) — 테스트 명세 ③이 돌연변이를 못 잡는다.**
+명세대로 테스트를 짜고 구현에 오류를 심어 사멸을 확인했다. `w !== null` 제거·`start`
+타입검사 완화·필터 제거는 전부 사멸했으나, **배열 가드 제거는 생존**했다 — 가드가 없어도
+비배열 입력은 `payload.filter is not a function`(TypeError)으로 throw하므로 "throw 여부"만
+보는 명세는 통과한다. → 명세 ③을 에러 메시지 단언으로 강화했다.
+
+**통과한 것**: 인용 전수 대조(경로 1) — 본문이 인용한 `파일:줄` 전부를 다시 읽어 내용까지
+일치 확인(`use-clip-draft-review.ts:66-100`의 `retry` 부재, `providers.tsx:37-45`가
+`staleTime`만 설정, `query-keys.ts`의 detail↔transcript 접두사 관계,
+`processing-status.ts:16-20`에 `review_pending` 없음, `AddCustomClipPanel.tsx:85-93`의
+실패 카드 문구, `s3.ts:6`의 `GetObjectCommand` 기존 임포트 포함). 스케치 추출·실행(경로 2)
+— `getS3ObjectText`·`parseTranscriptWords`·`getTranscript` 셋을 실제 `src/` 아래에 놓고
+`npx tsc --noEmit` 통과(특히 `response.Body.transformToString()`이 타입 검사를 통과),
+`npx eslint` 0건. 그 lint가 장식이 아님을 음성 시험(경로 7)으로 확인 — 같은 디렉터리에
+`JSON.parse` 결과를 그대로 쓰는 파일을 넣으니 `no-unsafe-assignment`·`no-unsafe-return`·
+`no-unsafe-member-access` 3건으로 종료코드 1. 전칭 여집합(경로 4) — `TranscriptWord`
+소비처를 전수 열거해 `AddCustomClipPanel.tsx`·`ClipDraftCard.tsx` 둘 다 상대경로
+`../../model/use-clip-draft-review`로 임포트함을 확인(훅이 재수출을 유지하면 수정 불요라는
+본문 주장이 성립).
+
+**인가 경계(INV-4)**: 교체 후에도 `requireAuth()` → `findUploadedFileReviewState(id, userId)`
+테넌트 스코프가 유지된다. 브라우저에 presign URL이 더는 노출되지 않으므로 접근 표면은
+줄어든다. 상태 변경이 없는 읽기 경로라 멱등성·동시성 항목은 해당 없음.
+
