@@ -18,14 +18,14 @@
   규약을 따르지 않는다. 확인 활동의 상세는 `docs/agents/main-loop/`에 쓴다.
 - 절은 항목별·최신순(보드 섹션 순서). 전부 닫힌 절도 지우지 않는다 — 닫혔다는 사실이 기록이다.
 - **자동 판정 태그**: 응답 상태·본문 문구·CSS 방출만으로 판정되는 열린 줄에는 등재 시 메인 루프가 줄 끝에 `〔auto GET <경로> [status=] [text=""]… [notext=""]… [css="a,b"] [when=""]… [when-any="a|b"] [when-board="<regex>"]〕`를 붙인다(문법·판정은 `scripts/release-verify/ledger.mjs`). 루틴은 `pass`면 태그를 지우고 `[x]` + `확인(…, 자동 — …)`로 닫고, `fail`이면 줄 아래에 `  - 자동 불합격(날짜): 사유`만 남기며(이관은 사람), `when*` 전제가 안 맞으면 건드리지 않는다.
-- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조) · 3차(PR #101 합류 직후 재스윕 — FEAT-17·18 마감, 실보드 파생 상태 라이브 관측). 상세는 `docs/agents/main-loop/FEAT-19.md`.
+- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조) · 3차(PR #101 합류 직후 재스윕 — FEAT-17·18 마감, 실보드 파생 상태 라이브 관측). 4차(2026-09-03, PR #111 합류 직후 — web 공개 라우트만, curl 실측: C-36/C-37 마감, C-72/C-73 절반). 상세는 `docs/agents/main-loop/FEAT-19.md`.
 
 ---
 
 ## 클린코드 개선 (5렌즈 검토, 정규 77건) — web, 구현 2026-09-03
 
 원천: `apps/web/docs/proposals/completed/2026-09-03-frontend-clean-code-improvements.md` §Verification Plan 수동 표.
-보드 항목이 아니라 사용자 직접 지시로 돈 작업이라 항목ID가 없다. 커밋 `9dd6dfb`~`a3461aa`(159파일). **배포 대기** — `dev`에 커밋, `main` 합류 전.
+보드 항목이 아니라 사용자 직접 지시로 돈 작업이라 항목ID가 없다. 커밋 `9dd6dfb`~`a3461aa`(159파일). **배포 완료(2026-09-03 11:02 KST, PR #111 머지).**
 자동 검사 게이트(typecheck·lint·70/70 테스트·build·라우트 static/dynamic 대조)는 Phase마다 통과했다. 아래는 그 넷이 원리상 못 덮는 것뿐이다 — 외부 SaaS 테넌트, 브라우저 렌더·타이밍, 실제 워커 실행.
 **`〔auto〕` 태그를 붙이지 않는다**: release-verify 루틴의 base는 `admin.a-pch.com`이고(`scripts/release-verify/run.mjs:11`) 아래는 전부 web(`a-pch.com`) 경로다. 루틴이 web을 대상으로 확장되면 공개 라우트 줄부터 태그를 붙일 수 있다.
 
@@ -44,9 +44,11 @@
 무회귀 — 형태만 바꿨으나 실물에서만 보이는 것:
 
 - [ ] **C-72/C-73 법률 페이지와 헤더**: `/privacy`·`/terms`가 마케팅 헤더·푸터와 함께 렌더되고 URL은 그대로다. 로그인 상태로 `/`와 `/features`·`/pricing`을 오갈 때 헤더가 **같은** 인증 상태(아바타)를 보인다 — 이전에는 `/`만 아바타였다
+  - 절반 확인(2026-09-03, 프로덕션 스윕): `/privacy`·`/terms` 둘 다 200·리다이렉트 0(URL 유지)·`<header>`/`<footer>` 각 1개 동반 렌더·내부링크 18개(마케팅 나머지와 동일 집합)·h1 "Privacy Policy"/"Terms of Service" 실렌더. **남은 절반은 로그인 상태의 헤더 인증 상태(아바타) 일치** — 웹 로그인 세션이 필요해 스윕 밖이다
 - [ ] **C-73 분석 라벨 합류**: 합쳐진 "Log in" 버튼의 `cta_clicked` 이벤트가 `location: "public_header"`로 기록된다. 홈의 옛 `"site_header"` 시계열은 여기로 합류한다 — 분석 소유자가 다른 값을 원하면 `widgets/site-header/ui/public-header.tsx` 한 단어를 바꾼다
+  - 절반 확인(2026-09-03, 프로덕션 스윕): `/features` 응답 본문에 `public_header` 1건 방출, 옛 `site_header` **0건** — 라벨 교체 자체는 실물에서 확인됐다. **남은 절반은 클릭이 실제로 `cta_clicked`를 그 값으로 기록하는지**(분석 백엔드 관측)와 값 유지 여부의 소유자 결정
 - [ ] **C-33/C-34 실패 라벨**: 실패한 업로드 상세의 타임라인에 실패 사유 문구가 그대로 뜬다(어휘를 카탈로그로 옮기면서 생산자 없는 case 둘을 지웠다 — 그 둘은 원래 표시된 적이 없다)
-- [ ] **C-36/C-37 마케팅 라우트**: `/about`·`/contact`·`/security`·`/how-it-works`·`/changelog` 다섯이 분할 전과 같은 화면을 낸다. 푸터·헤더 nav의 링크가 전부 살아 있다
+- [x] **C-36/C-37 마케팅 라우트**: `/about`·`/contact`·`/security`·`/how-it-works`·`/changelog` 다섯이 분할 전과 같은 화면을 낸다. 푸터·헤더 nav의 링크가 전부 살아 있다 — 확인(2026-09-03, 프로덕션 스윕 — 다섯 라우트 전부 200·리다이렉트 0(URL 유지)·본문 h1 실렌더("About AI Podcast Clipper" / "Contact AI Podcast Clipper" / "Security and Data Handling" / "How AI Podcast Clipper Turns Podcasts Into Shorts" / "AI Podcast Clipper Changelog"). nav 내부링크 전수 생존 — `/about` 페이지가 방출하는 18개 내부경로(`/`·`/features`·`/pricing`·`/login`·`/privacy`·`/terms`·`/ai-podcast-clipper`·`/compare`·`/guides`·`/podcast-to-shorts`·`/product-tour`·`/youtube-shorts-generator` 포함) 전부 200. 한계: "분할 전과 같은 화면"의 픽셀 대조는 분할 전 스크린샷이 없어 불가 — 라우트 생존·헤더/푸터 동반·본문 렌더까지가 이 스윕의 범위)
 - [ ] **C-74 에러 경계**: 라우트 오류를 유도하면 다섯 경계가 이전과 같은 콘솔 문구(`<라벨> error boundary caught:`)를 남긴다
 - [ ] **C-75/C-76/C-56/C-46 워커 경로(자동 테스트 없음)**: 업로드 1건을 실제로 처리해 `processVideo` 완료 → 크레딧 차감 → 클립 표시까지 확인한다. 이어서 stale reconcile을 수동으로 유도(타임아웃)해 상태가 `failed`로 전이하고 `worker_timeout`이면 취소 이벤트가 나가는지 본다. 서버 모듈이 엔티티에서 feature로 옮겨간 것이 이 경로 전체의 유일한 검증이다
 - [ ] **C-09 두 ingest 경로**: 위 실행에서 웹훅 직접 쓰기와 Inngest 폴링 응답이 **같은** 정규화를 거친다 — 클립 카드의 13개 필드(제목·대본·해시태그·근거·자막 상태)가 두 경로 어느 쪽으로 들어와도 동일하게 채워진다
@@ -54,11 +56,11 @@
 
 ## FEAT-29 — 정체 감시를 cron에서 건별 이벤트 감시자로 전환 (web, 구현 2026-09-02)
 
-원천: `docs/agents/web-dev/FEAT-29.md` 「테스트로 못 덮은 범위」 + 계획서 「테스트」. **배포 대기** — `dev`에 커밋, `main` 합류 전.
+원천: `docs/agents/web-dev/FEAT-29.md` 「테스트로 못 덮은 범위」 + 계획서 「테스트」. **배포 완료(2026-09-03 11:02 KST, PR #111 머지).**
 이 항목은 Inngest 오케스트레이션(이벤트 발송·`step.sleep` 재개·`cancelOn`·concurrency)이 본체인데 현재 러너(`tsx --test`, Inngest·DB 하니스 없음)로는 그 전부를 못 덮는다 — 아래는 배포 후 Inngest 대시보드와 Neon 콘솔에서만 닫힌다.
 남는 정기 깨움: `cleanupAnalyticsEvents`(일 1회 03:00)는 유지 대상이라 정상이다.
 
-- [ ] **배포 전 전제 — 전환 구간 공백**: 배포 순간 이미 `processing`인 attempt는 `processing/attempt.claimed`를 받은 적이 없어 감시자가 없고, 그것을 잡던 cron은 사라진다. **처리 중 업로드가 없을 때 배포**한다. 있는 채로 배포했다면 그 건은 정체돼도 알림이 없다는 것을 알고 넘어간다(사용자 가시 영향 없음 — 조회 시점 `reconcileStaleUploadedFileForUser`가 여전히 강제 실패시킨다)
+- [ ] **배포 전 전제 — 전환 구간 공백**(⚠ 배포는 2026-09-03 11:02 KST에 이미 일어났다 — 남은 확인은 "그 순간 `processing`인 업로드가 있었나" 하나다. 없었으면 이 줄은 그대로 닫힌다): 배포 순간 이미 `processing`인 attempt는 `processing/attempt.claimed`를 받은 적이 없어 감시자가 없고, 그것을 잡던 cron은 사라진다. **처리 중 업로드가 없을 때 배포**한다. 있는 채로 배포했다면 그 건은 정체돼도 알림이 없다는 것을 알고 넘어간다(사용자 가시 영향 없음 — 조회 시점 `reconcileStaleUploadedFileForUser`가 여전히 강제 실패시킨다)
 - [ ] **이벤트 발송**: 업로드 1건을 처리시키면 Inngest 대시보드에 `processing/attempt.claimed`가 claim 직후 1회 발송되고(analyze·render 각 1회), `watch-processing-attempt` 런이 그 이벤트로 시작된다
 - [ ] **sleep → check 흐름**: 그 감시자 런이 `wait-for-stuck-threshold`에서 90분 잔 뒤 `check-attempt-still-processing`을 1회 실행하고, 정상 종료된 업로드였다면 `{ alerted: false }`로 끝난다(알림 없음)
 - [ ] **슬롯 비점유(중요)**: 자는 감시자가 있는 동안 같은 유저의 다음 업로드가 **즉시** 처리 시작된다. 감시자에 concurrency를 두지 않은 이유가 이것이며, 막히면 유저당 1건 직렬화가 최대 90분 잠긴다 — 회귀 시 영향이 가장 큰 줄이다
@@ -68,7 +70,7 @@
 
 ## FEAT-28 — 실패 콜백의 부분 클립 메타데이터 소비 (web, 구현 2026-09-02)
 
-원천: `docs/agents/web-dev/FEAT-28.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에 커밋, `main` 합류 전.
+원천: `docs/agents/web-dev/FEAT-28.md` 「테스트로 못 덮은 범위」. **배포 완료(2026-09-03 11:02 KST, PR #111 머지).**
 BUG-08(backend 절반, 2026-08-29 배포)의 두 번째 절반이라, 이 절이 닫혀야 그 항목의 사용자 가시 효과가 처음 확인된다.
 `applyModalPayload`는 `processVideo` 안의 클로저라 현재 러너(`tsx --test`)로 종단 구동이 불가능하다 — 아래는 전부 실제 부분-실패 실행에서만 닫힌다.
 
