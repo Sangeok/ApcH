@@ -34,6 +34,18 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-04
+- [ ] BUG-11: 클립 검토 화면의 S3 transcript가 CORS로 전부 차단되고 무한 재시도 — 검토 화면이 대본을 못 읽는다
+  agent: web-dev
+  area: apps/web/src/fsd/features/clip-review + apps/web/src/fsd/widgets/clip-draft-review
+  status: 승인대기
+  근거: 소유자가 Polar(BUG-09)를 뒤로 미루라 지시. 남은 것 중 사용자 가시 영향이 가장 크다 — 검토 화면 대본 미로드 + 실패 안내 없는 무한 재시도. 미결 0건이라 선정 가능.
+- [ ] BUG-10: 로케일 없는 날짜 포매팅이 하이드레이션 불일치(React #418)를 매 렌더 일으킨다
+  agent: web-dev
+  area: apps/web/src/fsd/features/billing/ui + apps/web/src/fsd/pages/upload-detail/ui + apps/web/src/fsd/pages/dashboard/ui
+  status: 승인대기
+  근거: 같은 스윕(2026-09-04)에서 발견. 호출부 5곳을 저장소에 이미 있는 Intl.DateTimeFormat 패턴으로 맞추는 기계적 수정이라 BUG-11과 묶어도 부담이 작다.
+
 ## 2026-09-02
 - [x] FEAT-29: 정체 감시를 15분 cron에서 처리 건별 이벤트 감시자로 전환 — Neon 유휴 compute 깨움 제거
   agent: web-dev
