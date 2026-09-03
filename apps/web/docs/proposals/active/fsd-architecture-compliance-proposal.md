@@ -992,3 +992,19 @@ features/billing/ui/OrderHistory.tsx:16       → ~/fsd/features/billing/model/t
 
 `steiger`도 `@feature-sliced/eslint-config`도 의존성과 eslint 설정 어디에도
 없다. 3-5의 CI 권장이 미적용이다.
+
+### 재대조 (2026-09-03, 클린코드 개선 77건 이후)
+
+위 「남음」 목록은 2026-08-03 시점이다. `2026-09-03-frontend-clean-code-improvements.md`
+(커밋 `9dd6dfb`~`a75dcd6`)가 그중 일부를 닫았고 일부는 줄번호만 밀렸다. 스냅샷은
+그대로 두고 현재 상태를 여기에 적는다.
+
+| 남음 | 2026-09-03 상태 |
+| --- | --- |
+| 1. `widgets/` `index.ts` 0/7 | **그대로 0/7.** 클린코드 검토는 widgets barrel을 항목으로 올리지 않았다 |
+| 2. 크로스 슬라이스 세그먼트 직접 참조 3건 | **세 건 모두 해소.** C-07이 `entities/uploaded-file`을 클라이언트 안전 `index.ts`와 `server.ts`로 나눠 barrel 임포트가 가능해졌고, C-06·C-08이 깊은 임포트를 barrel로 되돌렸다. 현재 `grep -rn 'from "~/fsd/entities/' src/fsd/entities` 0건 |
+| 3. V11b 인트라 슬라이스 절대경로 3건 | **그대로 위반.** 줄만 밀렸다 — `SubscriptionStatus.tsx:15` → `:26`(C-71이 AlertDialog 임포트를 추가). `PlanCard.tsx:14`·`OrderHistory.tsx:16`은 변동 없음 |
+| 4. 경계 자동 검출 미도입 | **그대로 미도입** |
+
+위 확인 표의 `3-4 슬라이스 Public API | entities 8/8, features 8/9`도 낡았다 —
+C-08이 `features/clip/index.ts`를 만들어 현재 **features 9/9**다.

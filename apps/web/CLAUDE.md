@@ -120,7 +120,7 @@ features/upload/api/index.ts             업로드 준비·확정·처리 스케
 ### 인증 (`src/server/auth/`)
 
 - **Google OAuth 전용.** Credentials(이메일/비밀번호)는 2026-03-26에 제거됐다. bcrypt 의존성도 없다
-- JWT 세션 전략 (`config.edge.ts:13`). Prisma adapter를 쓰지만 세션은 DB에 저장하지 않는다
+- JWT 세션 전략 (`config.edge.ts:23`). Prisma adapter를 쓰지만 세션은 DB에 저장하지 않는다
 - `config.edge.ts`는 Edge 런타임 호환용으로 Prisma·env 의존이 없다. `middleware.ts`가 이것만 쓰고, `config.ts`가 이를 확장한다
 - 보호 경로는 `/dashboard`뿐이다. 어드민 판별(`ADMIN_EMAILS` 화이트리스트)은 `apps/admin`으로 갔다
 

@@ -109,7 +109,7 @@ WHERE "status" = 'processing';
 
 전제 조건 (구현 전 확인):
 
-- `status = 'processing'`으로 **진입하는 유일한 writer는 `startUploadedFileProcessingAttempt()`** 이다 (`src/fsd/entities/uploaded-file/api/index.ts`의 유일한 `data: { status: "processing" }`). 범용 함수 `updateUploadedFileStatus()`에 `"processing"`을 넘기는 호출자가 없는지 한 번 더 확인한다. (현재 코드 기준 진입 writer 1곳으로 확인됨)
+- `status = 'processing'`으로 **진입하는 유일한 writer는 `startUploadedFileProcessingAttempt()`** 이다 (`src/fsd/entities/uploaded-file/api/index.ts`의 유일한 `data: { status: "processing" }`). (현재 코드 기준 진입 writer 1곳으로 확인됨. 이 문장이 원래 함께 확인하라고 한 범용 함수 `updateUploadedFileStatus()`는 2026-09-03 클린코드 개선 C-05로 **삭제됐다** — 호출부가 0이었고, FEAT-29가 그 위에 붙였던 ⚠️ 불변식 주석보다 삭제가 강한 방어다.)
 - 이 인덱스는 `processing`으로 **들어가는** 전환만 제약한다. `processing → processed/failed`로 나가는 전환(`markUploadedFileAttemptProcessed`, `markUploadedFileAttemptFailed`, stale 회수)은 영향받지 않는다.
 
 마이그레이션 메커니즘:
@@ -180,7 +180,7 @@ Relevant file:
 
 ### 5. Credit Guard Improvement
 
-현재 worker는 `context.user.credits <= 0`만 확인한다 (`src/inngest/functions.ts`). 그리고 완료 시 차감은 `decrementUserCreditsFloorZero(userId, clipsFound)`로 **0에서 바닥 처리**된다 (`completeUploadedFileProcessingAttempt`, `src/fsd/entities/uploaded-file/api/index.ts`).
+현재 worker는 `context.user.credits <= 0`만 확인한다 (`src/inngest/functions.ts`). 그리고 완료 시 차감은 `decrementUserCreditsFloorZero(userId, clipsFound)`로 **0에서 바닥 처리**된다 (`completeUploadedFileProcessingAttempt` — 2026-09-03 C-75로 `src/fsd/features/upload/api/complete-processing-attempt.ts`로 이동했다. 두 엔티티에 걸친 오케스트레이션이라 어느 한쪽 엔티티가 소유하면 peer 임포트가 된다).
 
 실제 누수 지점은 이 floorZero다. 크레딧 1개로 4클립 요청 시 4개 생성 → 차감 4가 1로 floored → 3개가 무료로 나간다.
 
