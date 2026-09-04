@@ -28,7 +28,7 @@ agent: web-dev
 
 같은 문제를 가졌던 세 슬라이스는 이미 `index.ts`(클라이언트 안전) + `server.ts`(`import "server-only"` + `./api` 재수출)로 분할돼 있다 — 읽어서 확인한 패턴:
 
-- `entities/uploaded-file/index.ts:1-55`(주석 1-5 + `model`·`ui` 재수출) / `entities/uploaded-file/server.ts:1`(`import "server-only";`) `:11-40`(`./api` 함수 + `export type { StaleProcessingCandidate } from "./api";`)
+- `entities/uploaded-file/index.ts:1-54`(주석 1-5 + `model`·`ui` 재수출) / `entities/uploaded-file/server.ts:1`(`import "server-only";`) `:11-40`(`./api` 함수 + `export type { StaleProcessingCandidate } from "./api";`)
 - `entities/clip/index.ts:1-2`(`export { clipTypeLabel } from "./lib/clip-type-label";`) / `entities/clip/server.ts:1`(`import "server-only";`) `:4-10`(`./api` 함수 5)
 - `entities/clip-draft/index.ts:1-2`(`export type { ClipDraft } from "./model/types";`) / `entities/clip-draft/server.ts:1`(`import "server-only";`) `:4-11`(`./api` 함수 6)
 
