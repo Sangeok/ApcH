@@ -164,9 +164,11 @@ import 경로는 `format-duration`과 동일 관례: `import { formatDate, forma
      기본 상태가 곧 생존 조건이다. 포매터는 모듈 스코프에서 만들어지므로 **`process.env.TZ`
      설정이 임포트보다 먼저**여야 한다 — 테스트 첫 줄에서 `process.env.TZ = "Asia/Seoul"`
      을 설정하고 `await import("./format-date.ts")`로 동적 임포트한다 — 확장자는 `.ts`다
-     (이 저장소의 `*.test.mjs` 넷이 전부 `"./모듈.ts"` 형태다: `clip-type-label.test.mjs:4`,
-     `stuck-alert.test.mjs:4`, `clip-generation-outcome.test.mjs:4`,
-     `clip-count-budget.test.mjs:4`. `.js`도 tsx가 해석하지만 관례를 따른다).
+     (저장소의 모든 `*.test.mjs`에서 상대 임포트를 전수 열거하면 **11건 전부**
+     `"./모듈.ts"` 형태이고 `.js`는 0건이다 — `caption-presets`·`clip-count-budget`·
+     `clip-generation-outcome`·`clip-rationale`·`clip-type-label`·`event-catalog`·
+     `metadata`·`normalize-path`·`selection-budget`·`stuck-alert`·`subtitle-status`.
+     `.js`도 tsx가 해석하지만 관례를 따른다).
      **실제 러너로 실측**: `TZ=UTC npx tsx --test`에서 원본은 통과, `timeZone: "UTC"`를
      지운 돌연변이는 `actual: 'Jul 31, 2026, 7:55 AM'`으로 **사멸**했다.
   2. **`resolvedOptions().locale`이 정확히 `"en"`인지 단언한다**(`startsWith("en")`이
