@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "~/fsd/shared/ui/atoms/table";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
+import { formatDate } from "~/fsd/shared/lib/format-date";
 import type { OrderInfo } from "~/fsd/features/billing/model/types";
 
 interface OrderHistoryProps {
@@ -52,7 +53,7 @@ export function OrderHistory({ orders }: OrderHistoryProps) {
               {orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {formatDate(order.createdAt)}
                   </TableCell>
                   <TableCell>{order.productName}</TableCell>
                   <TableCell>

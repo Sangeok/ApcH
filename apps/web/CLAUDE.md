@@ -82,6 +82,8 @@ npm test -w apps/web
 | `entities/uploaded-file/model/stuck-alert.test.mjs` | 처리 지연 경과 시간 계산(`stuckAlertElapsedMinutes`) |
 | `middleware.test.mjs` | `PROTECTED_ROUTES`·`AUTH_ROUTES`의 모든 항목이 미들웨어 `matcher` 패턴에 포섭되는지. **`authorized` 콜백은 matcher가 통과시킨 경로에서만 돈다** — 목록에만 추가하면 보호된 것처럼 읽히는 무방비 라우트가 생긴다. Next가 `config`를 정적 추출하므로 matcher를 상수에서 계산할 수 없고, 타입도 둘을 묶어 주지 못한다 |
 | `widgets/clip-display/model/subtitle-status.test.mjs` | 번역 폴백 상태 → 사용자 안내 매핑. `"partial-fallback"`/`"full-fallback"`만 안내를 내고 `"ok"`·미지값·nullish/공백은 null(정상 자막에 경고를 붙이지 않는다), padded 상태값도 `trim()`으로 매핑된다. **매핑 키는 백엔드 `translation_fallback.py` 상태 상수와 묶는 wire 계약이라 어긋나면 안내가 조용히 꺼진다** — 타입이 아니라 이 테스트가 그 회귀를 막는다 |
+| `features/clip-review/model/transcript.test.mjs` | `parseTranscriptWords`의 분기 — 유효 배열 통과·타입 불일치/`null`/비객체 필터·비배열은 **`"Transcript payload was not an array"` 메시지로** throw. **메시지까지 단언하는 것이 요점이다**: 배열 가드를 지워도 비배열 입력은 `payload.filter is not a function`으로 throw하므로 "throw 여부"만 보는 테스트는 그 회귀를 통과시킨다(계획 검증에서 실제로 생존한 돌연변이) |
+| `shared/lib/format-date.test.mjs` | `formatDate`/`formatDateTime`가 런타임 로케일·타임존과 무관하게 고정 출력을 내는지 + 수출된 두 포매터의 `resolvedOptions()`가 로케일 `"en"`·타임존 `"UTC"` **완전 일치**인지. **골든 문자열만으로는 부족하다**: 러너 TZ가 UTC면(CI·Vercel) `timeZone` 옵션을 지운 회귀가 그대로 통과하므로 테스트가 임포트보다 **먼저** `process.env.TZ`를 비-UTC로 강제하고 동적 임포트한다. 로케일도 en 계열 CI에서 `"en-US"`가 같은 문자열을 내므로 `resolvedOptions().locale` 완전 일치가 필요하다 — 그래서 포매터 상수를 수출한다 |
 
 ## Architecture
 

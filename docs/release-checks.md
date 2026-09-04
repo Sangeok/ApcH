@@ -18,35 +18,60 @@
   규약을 따르지 않는다. 확인 활동의 상세는 `docs/agents/main-loop/`에 쓴다.
 - 절은 항목별·최신순(보드 섹션 순서). 전부 닫힌 절도 지우지 않는다 — 닫혔다는 사실이 기록이다.
 - **자동 판정 태그**: 응답 상태·본문 문구·CSS 방출만으로 판정되는 열린 줄에는 등재 시 메인 루프가 줄 끝에 `〔auto GET <경로> [status=] [text=""]… [notext=""]… [css="a,b"] [when=""]… [when-any="a|b"] [when-board="<regex>"]〕`를 붙인다(문법·판정은 `scripts/release-verify/ledger.mjs`). 루틴은 `pass`면 태그를 지우고 `[x]` + `확인(…, 자동 — …)`로 닫고, `fail`이면 줄 아래에 `  - 자동 불합격(날짜): 사유`만 남기며(이관은 사람), `when*` 전제가 안 맞으면 건드리지 않는다.
-- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조) · 3차(PR #101 합류 직후 재스윕 — FEAT-17·18 마감, 실보드 파생 상태 라이브 관측). 상세는 `docs/agents/main-loop/FEAT-19.md`.
+- 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조) · 3차(PR #101 합류 직후 재스윕 — FEAT-17·18 마감, 실보드 파생 상태 라이브 관측). 4차(2026-09-03, PR #111 합류 직후 — web 공개 라우트만, curl 실측: C-36/C-37 마감, C-72/C-73 절반). 상세는 `docs/agents/main-loop/FEAT-19.md`.
+
+---
+
+## BUG-11 · BUG-10 (web, 구현 2026-09-04)
+
+원천: `docs/agents/web-dev/BUG-11.md`·`BUG-10.md`의 「테스트로 못 덮은 범위」. 커밋 `07c4761`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+자동 검사 게이트(`npm run check` EXIT 0 · `npm test` 77/0)는 통과했다. 아래는 그 게이트가 원리상 못 덮는 것 — 브라우저 런타임, 실제 S3·DB I/O, 외부 응답 한도.
+**`〔auto〕` 태그를 붙이지 않는다**: release-verify 루틴의 base는 `admin.a-pch.com`인데 아래는 전부 web(`a-pch.com`)의 로그인 뒤 화면·브라우저 콘솔이다.
+
+BUG-11 — 서버 액션 프록시로 CORS 제거:
+
+- [ ] **핵심 — CORS 소멸**: 프로덕션에서 `Review Needed` 업로드 상세를 열어 콘솔에 S3 `transcript.json`에 대한 CORS 차단·`net::ERR_FAILED`가 **더는 뜨지 않는다**. 2026-09-04 스윕의 관측(5s·7s·10s·15s 간격 반복)이 근거 상태다
+- [ ] **전사가 실제로 로드된다**: 같은 화면에서 단어 경계 스냅·커스텀 클립 추가가 동작한다(전사가 비어 있으면 패널이 `null` 렌더라 "그냥 없는" 화면이 된다)
+- [ ] **서버 액션의 실제 S3 읽기·인증 경로**: `getTranscript`가 `getS3ObjectText`로 실제 객체를 읽고, 남의 업로드 id로는 실패한다(테넌트 스코프 `findUploadedFileReviewState(id, userId)` 유지)
+- [ ] **실패 안내가 몇 초 안에 뜬다**: 전사가 없는/깨진 업로드에서 "Transcript unavailable — custom clips are disabled."가 `retry: 2` 소진 후 빠르게 보인다. 이전에는 재시도가 포커스·뮤테이션마다 재점화돼 안내가 사실상 안 떴다
+- [ ] **큰 전사 payload**: 긴 영상의 전사가 Vercel 함수 응답 한도(4.5MB) 안인지 실측. 넘으면 스트리밍·페이지네이션이 후속 항목이 된다
+
+BUG-10 — 날짜 포매팅 UTC 고정:
+
+- [ ] **핵심 — React #418 소멸**: `/dashboard/billing`과 `/dashboard/uploads/<id>`를 열어 콘솔에 `Minified React error #418`이 **더는 뜨지 않는다**. 2026-09-03·09-04 두 날 매 로드 1건씩 뜨던 것이 근거 상태다
+- [ ] **날짜 하루 이월(소유자가 알고 택한 트레이드오프)**: 빌링 화면의 구독 갱신일·결제일이 예상과 다른지 본다. UTC 15:00 이후 타임스탬프는 KST 기준 다음 날이라 하루 이르게 표시된다(계획서 「표시 문구 변화」의 실측 표). 실제로 몇 건이 그런지는 `Order.createdAt`·`Subscription.currentPeriodEnd`를 봐야 안다
+- [ ] **표시 문구 전환**: 날짜+시각이 ko-KR `2026. 7. 30. 오후 10:55:46`에서 en/UTC `Jul 30, 2026, 10:55 PM` 형태로 바뀐 것이 화면에서 어색하지 않은지
+- [ ] **러너가 못 덮는 두 곳**: `RecoverableUploadDrafts`(복구 초안이 있을 때)·`UploadedFileCard`(My Clips 탭)의 시각 표기가 서버·클라이언트 동일한지 — 실제 데이터와 탭 전환이 필요하다
 
 ---
 
 ## 클린코드 개선 (5렌즈 검토, 정규 77건) — web, 구현 2026-09-03
 
 원천: `apps/web/docs/proposals/completed/2026-09-03-frontend-clean-code-improvements.md` §Verification Plan 수동 표.
-보드 항목이 아니라 사용자 직접 지시로 돈 작업이라 항목ID가 없다. 커밋 `9dd6dfb`~`a3461aa`(159파일). **배포 대기** — `dev`에 커밋, `main` 합류 전.
+보드 항목이 아니라 사용자 직접 지시로 돈 작업이라 항목ID가 없다. 커밋 `9dd6dfb`~`a3461aa`(159파일). **배포 완료(2026-09-03 11:02 KST, PR #111 머지).**
 자동 검사 게이트(typecheck·lint·70/70 테스트·build·라우트 static/dynamic 대조)는 Phase마다 통과했다. 아래는 그 넷이 원리상 못 덮는 것뿐이다 — 외부 SaaS 테넌트, 브라우저 렌더·타이밍, 실제 워커 실행.
 **`〔auto〕` 태그를 붙이지 않는다**: release-verify 루틴의 base는 `admin.a-pch.com`이고(`scripts/release-verify/run.mjs:11`) 아래는 전부 web(`a-pch.com`) 경로다. 루틴이 web을 대상으로 확장되면 공개 라우트 줄부터 태그를 붙일 수 있다.
 
 동작이 바뀐 것 — 실물에서만 닫힌다:
 
-- [ ] **C-02 Polar 테넌트(가장 위험)**: 프로덕션 `/dashboard/billing` → "Manage Subscription"이 **프로덕션** Polar 포털을 연다(sandbox 아님). 이전에는 `getPolarClient`가 `env.POLAR_SERVER`를 보고 포털 라우트는 `"sandbox"`를 하드코딩해 둘이 갈렸다. 반대로 지금까지 sandbox가 의도였다면 이 줄이 아니라 `POLAR_SERVER` 값을 재검토해야 한다
-- [ ] **C-49 포털 미로그인·미고객 경로**: 로그아웃 상태로 `/api/portal` → `/login` 리다이렉트, 로그인했지만 Polar 고객이 아닌 계정 → `/dashboard/billing` 리다이렉트. 이전에는 빈 문자열 고객 id를 Polar에 넘겼다
-- [ ] **C-29 존재하지 않는 업로드**: `/dashboard/uploads/<없는 id>`가 404(not-found) 화면이다. 이전에는 `findFirstOrThrow`가 던져 에러 경계로 떨어졌다
+- [x] **C-02 Polar 테넌트(가장 위험)**: 이관(BUG-09) — 확인 결과 **결함**이다. 프로덕션 「Manage Subscription」이 Polar 포털이 아니라 **HTTP 500**(본문 길이 0)을 낸다. 2026-09-03 13:20 KST·2026-09-04 15:30 KST 두 번 재현. 앞단 가드는 정상(비로그인 GET 307 `/login`)이라 `portalHandler` 진입 후 예외다. 원문:  프로덕션 `/dashboard/billing` → "Manage Subscription"이 **프로덕션** Polar 포털을 연다(sandbox 아님). 이전에는 `getPolarClient`가 `env.POLAR_SERVER`를 보고 포털 라우트는 `"sandbox"`를 하드코딩해 둘이 갈렸다. 반대로 지금까지 sandbox가 의도였다면 이 줄이 아니라 `POLAR_SERVER` 값을 재검토해야 한다
+- [ ] **C-49 포털 미로그인·미고객 경로**〔절반 확인(2026-09-03, curl 실측): 로그아웃 상태 `GET /api/portal` → **307 `https://a-pch.com/login`**. 남은 절반(로그인했으나 Polar 고객이 아닌 계정 → `/dashboard/billing`)은 그런 계정이 없어 미확인〕:  로그아웃 상태로 `/api/portal` → `/login` 리다이렉트, 로그인했지만 Polar 고객이 아닌 계정 → `/dashboard/billing` 리다이렉트. 이전에는 빈 문자열 고객 id를 Polar에 넘겼다
+- [x] **C-29 존재하지 않는 업로드**: `/dashboard/uploads/<없는 id>`가 404(not-found) 화면이다. 이전에는 `findFirstOrThrow`가 던져 에러 경계로 떨어졌다 — 확인(2026-09-04, 프로덕션 Playwright: 로그인 세션으로 `/dashboard/uploads/aaaa` → "404 / Page not found / The page you requested does not exist or has been moved." + Home 링크 렌더. 스트리밍 중 `notFound()` 전이라 콘솔에 React #419가 남지만 최종 화면은 404로 정착)
 - [ ] **C-30 웹훅 입력 방어**: Modal 웹훅에 깨진 JSON을 POST하면 500이 아니라 400
 - [ ] **C-63 빈 제목 클립**: DB에서 `youtubeTitle`을 `""`로 비운 클립에서 "YouTube Metadata" 메뉴가 **활성**이다(설명·해시태그가 있으면). `??`를 `||`로 고친 결과
 - [ ] **C-17 마지막 클립 삭제**: 마지막 클립을 지운 직후 "No clips found"가 즉시 보인다(낙관적 목록 기준 판정)
 - [ ] **C-66 자동재생 재개 없음**: 업로드 하나가 `processing`인 상태에서 목록 카드를 펼쳐 재생 → 일시정지 후 15초(7.5초 큐 폴 두 번) 관찰. 재생이 다시 시작되지 않는다
 - [ ] **C-10 presign 실패 표시**: 업로드 상세의 Original media와 검토 화면 플레이어에서 presign이 실패하면 "Video unavailable"·"Preview unavailable" 문구가 보인다. 이전에는 빈 검은 상자가 영원히 남았다
-- [ ] **C-71 파괴적 액션 확인창**: 업로드 삭제와 구독 해지가 브라우저 `confirm()` 대신 앱 AlertDialog를 띄우고, 취소하면 아무 일도 없다
+- [x] **C-71 파괴적 액션 확인창**: 업로드 삭제와 구독 해지가 브라우저 `confirm()` 대신 앱 AlertDialog를 띄우고, 취소하면 아무 일도 없다 — 확인(2026-09-04, 프로덕션 Playwright 실측). 구독 해지: `alertdialog` "Cancel your subscription?" + 본문 "Your plan stays active until 2026. 9. 27., …" + 버튼 「Keep subscription」(기본 포커스)·「Cancel subscription」 → Keep 클릭 후 Pro·Active·다음 갱신 2026-09-27 **무변경**. 업로드 삭제: Manage 메뉴 → Delete detail → `alertdialog` "Delete this upload?" + "This cannot be undone, and spent credits are not refunded." + 「Cancel」·「Delete」 → Cancel 클릭 후 다이얼로그 소멸·업로드와 4클립 **생존**. 브라우저 네이티브 `confirm()`은 두 경로 어디에도 없었다
 
 무회귀 — 형태만 바꿨으나 실물에서만 보이는 것:
 
 - [ ] **C-72/C-73 법률 페이지와 헤더**: `/privacy`·`/terms`가 마케팅 헤더·푸터와 함께 렌더되고 URL은 그대로다. 로그인 상태로 `/`와 `/features`·`/pricing`을 오갈 때 헤더가 **같은** 인증 상태(아바타)를 보인다 — 이전에는 `/`만 아바타였다
+  - 절반 확인(2026-09-03, 프로덕션 스윕): `/privacy`·`/terms` 둘 다 200·리다이렉트 0(URL 유지)·`<header>`/`<footer>` 각 1개 동반 렌더·내부링크 18개(마케팅 나머지와 동일 집합)·h1 "Privacy Policy"/"Terms of Service" 실렌더. **남은 절반은 로그인 상태의 헤더 인증 상태(아바타) 일치** — 웹 로그인 세션이 필요해 스윕 밖이다
 - [ ] **C-73 분석 라벨 합류**: 합쳐진 "Log in" 버튼의 `cta_clicked` 이벤트가 `location: "public_header"`로 기록된다. 홈의 옛 `"site_header"` 시계열은 여기로 합류한다 — 분석 소유자가 다른 값을 원하면 `widgets/site-header/ui/public-header.tsx` 한 단어를 바꾼다
+  - 절반 확인(2026-09-03, 프로덕션 스윕): `/features` 응답 본문에 `public_header` 1건 방출, 옛 `site_header` **0건** — 라벨 교체 자체는 실물에서 확인됐다. **남은 절반은 클릭이 실제로 `cta_clicked`를 그 값으로 기록하는지**(분석 백엔드 관측)와 값 유지 여부의 소유자 결정
 - [ ] **C-33/C-34 실패 라벨**: 실패한 업로드 상세의 타임라인에 실패 사유 문구가 그대로 뜬다(어휘를 카탈로그로 옮기면서 생산자 없는 case 둘을 지웠다 — 그 둘은 원래 표시된 적이 없다)
-- [ ] **C-36/C-37 마케팅 라우트**: `/about`·`/contact`·`/security`·`/how-it-works`·`/changelog` 다섯이 분할 전과 같은 화면을 낸다. 푸터·헤더 nav의 링크가 전부 살아 있다
+- [x] **C-36/C-37 마케팅 라우트**: `/about`·`/contact`·`/security`·`/how-it-works`·`/changelog` 다섯이 분할 전과 같은 화면을 낸다. 푸터·헤더 nav의 링크가 전부 살아 있다 — 확인(2026-09-03, 프로덕션 스윕 — 다섯 라우트 전부 200·리다이렉트 0(URL 유지)·본문 h1 실렌더("About AI Podcast Clipper" / "Contact AI Podcast Clipper" / "Security and Data Handling" / "How AI Podcast Clipper Turns Podcasts Into Shorts" / "AI Podcast Clipper Changelog"). nav 내부링크 전수 생존 — `/about` 페이지가 방출하는 18개 내부경로(`/`·`/features`·`/pricing`·`/login`·`/privacy`·`/terms`·`/ai-podcast-clipper`·`/compare`·`/guides`·`/podcast-to-shorts`·`/product-tour`·`/youtube-shorts-generator` 포함) 전부 200. 한계: "분할 전과 같은 화면"의 픽셀 대조는 분할 전 스크린샷이 없어 불가 — 라우트 생존·헤더/푸터 동반·본문 렌더까지가 이 스윕의 범위)
 - [ ] **C-74 에러 경계**: 라우트 오류를 유도하면 다섯 경계가 이전과 같은 콘솔 문구(`<라벨> error boundary caught:`)를 남긴다
 - [ ] **C-75/C-76/C-56/C-46 워커 경로(자동 테스트 없음)**: 업로드 1건을 실제로 처리해 `processVideo` 완료 → 크레딧 차감 → 클립 표시까지 확인한다. 이어서 stale reconcile을 수동으로 유도(타임아웃)해 상태가 `failed`로 전이하고 `worker_timeout`이면 취소 이벤트가 나가는지 본다. 서버 모듈이 엔티티에서 feature로 옮겨간 것이 이 경로 전체의 유일한 검증이다
 - [ ] **C-09 두 ingest 경로**: 위 실행에서 웹훅 직접 쓰기와 Inngest 폴링 응답이 **같은** 정규화를 거친다 — 클립 카드의 13개 필드(제목·대본·해시태그·근거·자막 상태)가 두 경로 어느 쪽으로 들어와도 동일하게 채워진다
@@ -54,11 +79,11 @@
 
 ## FEAT-29 — 정체 감시를 cron에서 건별 이벤트 감시자로 전환 (web, 구현 2026-09-02)
 
-원천: `docs/agents/web-dev/FEAT-29.md` 「테스트로 못 덮은 범위」 + 계획서 「테스트」. **배포 대기** — `dev`에 커밋, `main` 합류 전.
+원천: `docs/agents/web-dev/FEAT-29.md` 「테스트로 못 덮은 범위」 + 계획서 「테스트」. **배포 완료(2026-09-03 11:02 KST, PR #111 머지).**
 이 항목은 Inngest 오케스트레이션(이벤트 발송·`step.sleep` 재개·`cancelOn`·concurrency)이 본체인데 현재 러너(`tsx --test`, Inngest·DB 하니스 없음)로는 그 전부를 못 덮는다 — 아래는 배포 후 Inngest 대시보드와 Neon 콘솔에서만 닫힌다.
 남는 정기 깨움: `cleanupAnalyticsEvents`(일 1회 03:00)는 유지 대상이라 정상이다.
 
-- [ ] **배포 전 전제 — 전환 구간 공백**: 배포 순간 이미 `processing`인 attempt는 `processing/attempt.claimed`를 받은 적이 없어 감시자가 없고, 그것을 잡던 cron은 사라진다. **처리 중 업로드가 없을 때 배포**한다. 있는 채로 배포했다면 그 건은 정체돼도 알림이 없다는 것을 알고 넘어간다(사용자 가시 영향 없음 — 조회 시점 `reconcileStaleUploadedFileForUser`가 여전히 강제 실패시킨다)
+- [ ] **배포 전 전제 — 전환 구간 공백**(⚠ 배포는 2026-09-03 11:02 KST에 이미 일어났다 — 남은 확인은 "그 순간 `processing`인 업로드가 있었나" 하나다. 없었으면 이 줄은 그대로 닫힌다): 배포 순간 이미 `processing`인 attempt는 `processing/attempt.claimed`를 받은 적이 없어 감시자가 없고, 그것을 잡던 cron은 사라진다. **처리 중 업로드가 없을 때 배포**한다. 있는 채로 배포했다면 그 건은 정체돼도 알림이 없다는 것을 알고 넘어간다(사용자 가시 영향 없음 — 조회 시점 `reconcileStaleUploadedFileForUser`가 여전히 강제 실패시킨다)
 - [ ] **이벤트 발송**: 업로드 1건을 처리시키면 Inngest 대시보드에 `processing/attempt.claimed`가 claim 직후 1회 발송되고(analyze·render 각 1회), `watch-processing-attempt` 런이 그 이벤트로 시작된다
 - [ ] **sleep → check 흐름**: 그 감시자 런이 `wait-for-stuck-threshold`에서 90분 잔 뒤 `check-attempt-still-processing`을 1회 실행하고, 정상 종료된 업로드였다면 `{ alerted: false }`로 끝난다(알림 없음)
 - [ ] **슬롯 비점유(중요)**: 자는 감시자가 있는 동안 같은 유저의 다음 업로드가 **즉시** 처리 시작된다. 감시자에 concurrency를 두지 않은 이유가 이것이며, 막히면 유저당 1건 직렬화가 최대 90분 잠긴다 — 회귀 시 영향이 가장 큰 줄이다
@@ -68,7 +93,7 @@
 
 ## FEAT-28 — 실패 콜백의 부분 클립 메타데이터 소비 (web, 구현 2026-09-02)
 
-원천: `docs/agents/web-dev/FEAT-28.md` 「테스트로 못 덮은 범위」. **배포 대기** — `dev`에 커밋, `main` 합류 전.
+원천: `docs/agents/web-dev/FEAT-28.md` 「테스트로 못 덮은 범위」. **배포 완료(2026-09-03 11:02 KST, PR #111 머지).**
 BUG-08(backend 절반, 2026-08-29 배포)의 두 번째 절반이라, 이 절이 닫혀야 그 항목의 사용자 가시 효과가 처음 확인된다.
 `applyModalPayload`는 `processVideo` 안의 클로저라 현재 러너(`tsx --test`)로 종단 구동이 불가능하다 — 아래는 전부 실제 부분-실패 실행에서만 닫힌다.
 
@@ -128,7 +153,7 @@ BUG-08(backend 절반, 2026-08-29 배포)의 두 번째 절반이라, 이 절이
 
 - [ ] 노드 색/형태 — done 흑연 채움 · **현재·사용자 게이트 = 호박 빈 링**(`border-2 border-stamp`) · **현재·팀 = 남색 채움**(`bg-active`) · upcoming 옅은 빈 링. 현재 노드 크기 강조(size-2.5 vs 1.5)와 연결선 색
 - [ ] 단계 라벨 반응형 — 데스크톱(sm↑) 7 라벨 노출, 폰에서 숨김(`hidden sm:block`)이되 노드 레일은 유지
-- [ ] 캡션 항상 표시 — "지금 <현재> · [대기 낱말] · 다음 <다음>", 호박/남색 색 일치, `flex-wrap` 폰 줄바꿈 〔auto GET /pipeline text="지금 " text="· 다음 " css="flex-wrap" when-any="선정 중|당신 차례|작업 중|검증 중|인수 중"〕
+- [x] 캡션 항상 표시 — "지금 <현재> · [대기 낱말] · 다음 <다음>", 호박/남색 색 일치, `flex-wrap` 폰 줄바꿈 — 확인(2026-09-04 09:08 KST, 자동 — GET /pipeline 200 · text 2/2 · css 1/1)
 - [ ] `InboxCard` 통합 — 발화↔레일↔게이트 순서, `GateCardLock` 밖 배치, `ValidationMark` 칩과 시각 일관(검증 줄 있으면 칩=통과·레일=게이트②)
 - [x] 신규 Tailwind 유틸 조합 방출 — `bg-silence`·`bg-active`·`border-stamp`·`border-active/50`·`border-stamp/50`가 실빌드에서 나오는지 — 확인(2026-08-29 13:41 KST, 자동 — GET /pipeline 200 · css 5/5)
 
@@ -162,7 +187,7 @@ BUG-08(backend 절반, 2026-08-29 배포)의 두 번째 절반이라, 이 절이
 
 - [ ] 도장 → 즉시 반영 — 게이트 도장 후 새로고침/refresh 시 실행 콘솔이 5분 대기 없이 새 status를 반영 (토큰 설정 배포, 데스크톱)
 - [ ] 잠금 칩 새 문구 렌더 — 도장 후 "도장 찍음"(· 보드 반영 대기 없이), 반려 후 액션 낱말만
-- [ ] 게이트대기 설명 새 문구 — "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."(최대 5분 문장 없음) 〔auto GET /pipeline text="결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다." notext="최대 5분" when="진행할 작업 없음" when-board="status: (승인대기|검토대기)"〕
+- [x] 게이트대기 설명 새 문구 — "결재함 항목에 도장을 찍으면 실행할 작업이 생깁니다."(최대 5분 문장 없음) — 확인(2026-09-04 09:08 KST, 자동 — GET /pipeline 200 · text 1/1 · notext 1/1)
 - [ ] 토큰 부재 폴백의 5분 잔상 재발 성질 — 프로덕션 미경유(토큰 필수)라 확인 불요, 성질만 기록
 
 ## FEAT-21 — 번역 폴백 안내의 웹 절반 (web, 구현 2026-08-26)
@@ -226,7 +251,7 @@ BUG-08(backend 절반, 2026-08-29 배포)의 두 번째 절반이라, 이 절이
 
 원천: `docs/agents/web-dev/FEAT-16.md`
 
-- [ ] `ClipCard` 선택 근거 블록 렌더·clamp 시각·`showRationale` 분기 (web 로그인 세션 필요 — 미스윕)
+- [x] `ClipCard` 선택 근거 블록 렌더·clamp 시각·`showRationale` 분기 — 확인(2026-09-04, 프로덕션 Playwright: 업로드 `cmsrlyh3u000zsi2c0f0adgae`의 4클립 카드 전부에 유형 라벨(`Insight`×3·`Q&A`×1) + hook + payoff 3요소가 렌더. clamp 시각은 스냅샷 텍스트 기준이라 줄수 판정은 미포함)
 
 ## FEAT-15 — 행위자별 상세 페이지 (admin, 보드 2026-08-20 절)
 

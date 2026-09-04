@@ -1,0 +1,338 @@
+# BUG-10: 날짜를 로케일 지정 없이 포매팅해 하이드레이션 불일치(React #418)가 매 렌더 발생
+
+agent: web-dev
+
+## 현재 동작
+
+다섯 호출부가 로케일·타임존 인자 없이 날짜를 포매팅한다. 전부 `"use client"`
+컴포넌트이고, 서버가 데이터를 갖고 렌더(SSR)한 뒤 브라우저가 하이드레이트한다:
+
+- `features/billing/ui/OrderHistory.tsx:55` — `{new Date(order.createdAt).toLocaleDateString()}`
+  (날짜만). `OrderHistory`는 지시자 없는 컴포넌트지만 `"use client"`인
+  `BillingPage.tsx:1,9`가 임포트하므로 클라이언트 트리에 든다. `orders`는 서버
+  라우트 `app/dashboard/billing/page.tsx`가 `getBillingData()`로 읽어
+  `BillingPage`에 넘긴 SSR 데이터다. `order.createdAt`은 `Date`
+  (`features/billing/model/types.ts`의 `OrderInfo.createdAt: Date`).
+- `features/billing/ui/SubscriptionStatus.tsx:95` — `{new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
+  (날짜만). `:127-129` — AlertDialog 설명 안 `{new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
+  (날짜만). `SubscriptionStatus.tsx:1`은 `"use client"`. `currentPeriodEnd: Date`.
+- `pages/upload-detail/ui/index.tsx:87` — `{new Date(createdAt).toLocaleString()}`
+  (날짜+시각). `index.tsx:1`은 `"use client"`.
+- `pages/upload-detail/ui/_component/ProcessingTimeline.tsx:159` —
+  `{timestamp ? timestamp.toLocaleString() : "Waiting..."}`(날짜+시각). `timestamp`는
+  `Date | null`. `:1`은 `"use client"`.
+- `pages/dashboard/ui/_component/QueueStatus.tsx:71` — `{new Date(file.createdAt).toLocaleString()}`
+  (날짜+시각). `:1`은 `"use client"`. 대시보드 기본 탭("upload")에 있어 SSR된다 —
+  `pages/dashboard/ui/index.tsx:124`가 기본 `TabsContent value="upload"`(`:121`) 안에서
+  `QueueStatus`를 렌더하고, 큐 데이터는 서버가 넘긴 `initialActiveQueue`(`:42,57,61`)다.
+
+`toLocaleDateString()`/`toLocaleString()`는 인자가 없으면 **런타임의 기본 로케일·
+타임존**을 쓴다. 서버(Vercel, UTC·en-US)와 브라우저(관측상 ko-KR·Asia/Seoul)가 다른
+문자열을 만든다 — 관측된 클라이언트 렌더는 `2026. 9. 27.`, `2026. 7. 30. 오후 10:55:46`
+(ko-KR). 서버 HTML과 달라 React가 하이드레이션 텍스트 불일치(#418)를 던지고 그
+서브트리를 클라이언트 렌더로 되돌린다.
+
+**저장소의 대비 사례(로케일만 고정, 타임존은 미고정)**:
+
+- `widgets/uploaded-file-list/ui/_component/UploadedFileCard.tsx:19-22` —
+  `const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });`,
+  `:30`에서 `dateFormatter.format(new Date(file.createdAt))`.
+- `pages/dashboard/ui/_component/RecoverableUploadDrafts.tsx:22-25` — 동일한 `"en"`
+  포매터, `:88`에서 `formatter.format(...)`.
+
+**중요 — 이 두 "정상" 사례가 #418을 안 내는 이유는 로케일 고정 때문이 아니다**:
+- `UploadedFileCard`는 비활성 탭("my-clips") 안에 있다(`dashboard/ui/index.tsx:131-141`).
+  Radix `Tabs`는 기본값이 아닌 탭 내용을 초기 SSR에 렌더하지 않으므로, 이 카드는
+  탭 전환 후 클라이언트에서만 마운트된다 — 서버 HTML에 날짜가 없어 대조 자체가 없다.
+- `RecoverableUploadDrafts`는 기본 탭에 있으나 `drafts.length === 0`이면 `null`을
+  렌더한다(`RecoverableUploadDrafts.tsx:39-41`). 관측 계정에 복구 대상 초안이 없어
+  포매터가 실행되지 않았을 뿐이다.
+
+즉 두 포매터는 **로케일만 고정하고 타임존은 고정하지 않아**, SSR되며 시각을 그리는
+순간 서버(UTC)·브라우저(Asia/Seoul)가 시각 부분에서 어긋난다("10:55 PM" vs "7:55 AM").
+지금 #418을 안 내는 것은 우연(비활성 탭·빈 상태)이지 옳아서가 아니다.
+
+## 문제
+
+백로그(`BUG-10` source)가 지목한 것: 로케일 미지정 포매팅이 서버·클라이언트에서 다른
+문자열을 만들어 하이드레이션이 매 렌더 깨진다. 코드에서 확인한 원인은 로케일뿐 아니라
+**타임존도 미고정**이라는 점이다 — 다섯 호출부(`toLocaleDateString`/`toLocaleString`,
+인자 없음)와, 심지어 대비 사례로 제시된 `"en"` 포매터 둘도 타임존을 고정하지 않는다.
+따라서 백로그가 "이미 있는 정상 패턴으로 통일"이라 부른 대상(`"en"`만 고정) 자체가
+잠복 결함이며, 그대로 베끼면 시각을 그리는 SSR 지점에서 #418이 재발한다.
+
+**백로그와 코드가 어긋난 지점**: 백로그는 두 `"en"` 포매터를 "서버·클라이언트가 같다"
+는 정상 사례로 들지만, 코드상 그 둘은 타임존 미고정이라 SSR+시각 렌더 시 어긋난다.
+이번 수정은 로케일뿐 아니라 **타임존까지 고정**해야 하고, 기존 두 곳도 같은 공용
+포매터로 합쳐 잠복 결함을 함께 닫는다.
+
+## 고칠 파일
+
+| 파일 | 변경 |
+| --- | --- |
+| `src/fsd/shared/lib/format-date.ts` `(신규)` | 로케일 `"en"` + 타임존 `"UTC"` 고정 포매터 둘: `formatDate`(날짜만)·`formatDateTime`(날짜+시각). **`DATE_FORMATTER`·`DATE_TIME_FORMATTER` 상수도 수출한다** — 테스트가 모듈의 실제 설정을 단언할 핸들이 필요하다(검증 라운드 결함 ⑥) |
+| `src/fsd/shared/lib/format-date.test.mjs` `(신규)` | 고정 입력→고정 출력이 일정한지(로케일·타임존 비의존) |
+| `src/fsd/features/billing/ui/OrderHistory.tsx` | `:55`를 `formatDate(order.createdAt)`로 |
+| `src/fsd/features/billing/ui/SubscriptionStatus.tsx` | `:95`·`:127-129`를 `formatDate(subscription.currentPeriodEnd)`로 |
+| `src/fsd/pages/upload-detail/ui/index.tsx` | `:87`을 `formatDateTime(createdAt)`로 |
+| `src/fsd/pages/upload-detail/ui/_component/ProcessingTimeline.tsx` | `:159`를 `formatDateTime(timestamp)`로(널 가드 유지) |
+| `src/fsd/pages/dashboard/ui/_component/QueueStatus.tsx` | `:71`을 `formatDateTime(file.createdAt)`로 |
+| `src/fsd/widgets/uploaded-file-list/ui/_component/UploadedFileCard.tsx` | 모듈 상수 `dateFormatter`(`:19-22`) 제거, `:30`을 `formatDateTime(file.createdAt)`로(잠복 결함 통합) |
+| `src/fsd/pages/dashboard/ui/_component/RecoverableUploadDrafts.tsx` | 모듈 상수 `formatter`(`:22-25`) 제거, `:88`을 `formatDateTime(...)`로(잠복 결함 통합) |
+| `src/fsd/widgets/site-footer/ui/index.tsx` | `:72`의 `new Date().getFullYear()` → `new Date().getUTCFullYear()`. **현재 결함이 아니다**(서버 컴포넌트라 서버 TZ=UTC로 이미 렌더된다) — 소유자의 "모든 시간 UTC" 지시를 명시적으로 만드는 변경이다. 서버 런타임 TZ가 바뀌어도 흔들리지 않는다 |
+
+**기존 두 곳도 합친다** — 같은 타임존 잠복 결함을 갖고 있고, 통합하면 중복 포매터가
+사라지고 재발 지점이 준다. 기계적이며 같은 파일 부류 안이다.
+
+## 구현 스케치
+
+**`shared/lib/format-date.ts` (신규)** — `format-duration.ts`(`formatSecondsAsClock`)와
+같은 자리·같은 스타일(순수 함수, null 처리는 호출부). 로케일·타임존을 **둘 다** 고정해
+서버·클라이언트가 동일 문자열을 낸다.
+
+```ts
+// 서버(Vercel, UTC)와 브라우저(사용자 로케일·타임존)가 같은 문자열을 내야
+// 하이드레이션(React #418)이 깨지지 않는다. 로케일은 "en", 타임존은 "UTC"로
+// 고정한다 — UTC는 서버 런타임과 같아 최소 변경이고, 사용자 위치를 가정하지
+// 않는 중립값이다. 표시 시각이 사용자 로컬이 아니라 UTC라는 점은 감수한다
+// (「대안」의 Asia/Seoul·클라이언트 전용 렌더 참조).
+// 두 상수를 수출하는 이유는 테스트다. 함수 출력만으로는 `"en"`과 `"en-US"`를
+// 구분할 수 없어(고정 옵션에서 두 로케일의 출력이 같다) 로케일 인자를 지운 회귀를
+// en 계열 CI에서 못 잡는다. 테스트가 `resolvedOptions()`를 직접 볼 핸들이 있어야
+// 한다 — 「테스트」 절 장치 2.
+export const DATE_FORMATTER = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
+export const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "UTC",
+});
+
+// 날짜만(주문일·구독 갱신/만료일). 주의: '시각이 안 보인다'와 '타임존이 무관하다'는
+// 다르다 — UTC 15:00 이후 타임스탬프는 KST 기준 다음 날이라 **표시되는 날짜 자체가
+// 하루 달라진다**(「표시 문구 변화」 참조).
+export function formatDate(value: Date | string | number): string {
+  return DATE_FORMATTER.format(new Date(value));
+}
+
+// 날짜+시각(업로드 시각·처리 타임라인 등).
+export function formatDateTime(value: Date | string | number): string {
+  return DATE_TIME_FORMATTER.format(new Date(value));
+}
+```
+
+- `Date | string | number`를 받아 내부에서 `new Date(value)` — 호출부가 `Date`
+  (`OrderInfo.createdAt`, `ProcessingTimeline`의 `timestamp`)든 직렬화 문자열이든
+  같은 함수를 쓴다.
+- **널 처리는 하지 않는다**(`format-duration.ts:8` 철학과 동일). `ProcessingTimeline`
+  은 기존 `timestamp ? … : "Waiting..."` 널 가드를 유지하고 truthy일 때만 호출한다.
+
+**호출부 교체(전부 import 추가 + 한 줄 치환)** — 예:
+
+- `OrderHistory.tsx:55`: `{new Date(order.createdAt).toLocaleDateString()}` →
+  `{formatDate(order.createdAt)}`
+- `SubscriptionStatus.tsx:95`: → `{formatDate(subscription.currentPeriodEnd)}`;
+  `:127-129`: → `{formatDate(subscription.currentPeriodEnd)}`
+- `upload-detail/ui/index.tsx:87`: `{new Date(createdAt).toLocaleString()}` →
+  `{formatDateTime(createdAt)}`
+- `ProcessingTimeline.tsx:159`: `{timestamp ? timestamp.toLocaleString() : "Waiting..."}`
+  → `{timestamp ? formatDateTime(timestamp) : "Waiting..."}`
+- `QueueStatus.tsx:71`: → `{formatDateTime(file.createdAt)}`
+- `UploadedFileCard.tsx`: `:19-22` 상수 제거, `:30` `dateFormatter.format(new Date(file.createdAt))`
+  → `formatDateTime(file.createdAt)`
+- `RecoverableUploadDrafts.tsx`: `:22-25` 상수 제거, `:88` `formatter.format(<원래 인자>)`
+  → `formatDateTime(<원래 인자>)`
+
+import 경로는 `format-duration`과 동일 관례: `import { formatDate, formatDateTime } from "~/fsd/shared/lib/format-date";`.
+
+**표시 문구 변화(사용자 가시)**: 날짜+시각 문구가 ko-KR "2026. 7. 30. 오후 10:55:46"
+에서 `"en"`/UTC "Jul 30, 2026, 10:55 PM" 형태로 바뀐다. 시각은 이제 UTC 기준이다
+(예: KST 오후 10:55 = 다음날 표기가 아니라 UTC 시각으로 재계산). 존 라벨은 붙이지
+않는다(`dateStyle`/`timeStyle`에 `timeZoneName`을 섞으면 Intl이 throw).
+
+**날짜만 필드도 하루 밀릴 수 있다(검증 라운드 결함 ⑦ — 게이트② 판단 재료)**:
+`formatDate`를 쓰는 주문일·구독 갱신일은 시각을 안 보여줄 뿐 타임존과 무관하지 않다.
+**UTC 15:00 이후 타임스탬프는 KST로 이미 다음 날**이라, 지금 KST로 보이던 날짜가
+UTC 고정 후 하루 앞으로 당겨진다. 실측:
+
+| 저장된 타임스탬프 | 현재(KST 브라우저) | 변경 후(UTC 고정) |
+| --- | --- | --- |
+| `2026-09-27T20:00:00Z` | `2026. 9. 28.` | `Sep 27, 2026` |
+| `2026-09-27T15:00:00Z` | `2026. 9. 28.` | `Sep 27, 2026` |
+| `2026-09-27T14:59:00Z` | `2026. 9. 27.` | `Sep 27, 2026` |
+
+즉 구독 갱신일·결제일이 **실제로 하루 이르게 표시될 수 있다**. 결제 관련 날짜라
+소유자가 게이트②에서 이 점을 알고 타임존을 골라야 한다(「대안」의 Asia/Seoul 고정은
+이 이월이 없다).
+
+## 테스트
+
+- **덮는 것**: `shared/lib/format-date.test.mjs`로 `formatDate`·`formatDateTime`가
+  **런타임 로케일·타임존과 무관하게 고정 출력**을 내는지. 골든 문자열은 검증 라운드에서
+  실측했다(Node v22.13.1): `formatDateTime("2026-07-30T22:55:46Z")` →
+  `"Jul 30, 2026, 10:55 PM"`, `formatDate("2026-09-27T00:00:00Z")` → `"Sep 27, 2026"`.
+  (ICU 버전 의존이므로 구현 시 CI 러너 출력으로 재확인한다.)
+
+  **이 테스트는 아래 두 장치가 있어야 회귀를 실제로 잡는다**(없으면 장식이다 — 검증
+  라운드 결함 ④⑤의 실측 근거):
+
+  1. **테스트가 프로세스 타임존을 비-UTC로 강제한 뒤 모듈을 임포트한다.** 골든 대조만
+     으로는 **러너의 TZ가 UTC일 때 `timeZone: "UTC"`를 지운 구현이 그대로 통과한다**
+     (실측: `TZ=UTC`에서 돌연변이 생존, `TZ=Asia/Seoul`에서 사멸). CI·Vercel이 UTC이므로
+     기본 상태가 곧 생존 조건이다. 포매터는 모듈 스코프에서 만들어지므로 **`process.env.TZ`
+     설정이 임포트보다 먼저**여야 한다 — 테스트 첫 줄에서 `process.env.TZ = "Asia/Seoul"`
+     을 설정하고 `await import("./format-date.ts")`로 동적 임포트한다 — 확장자는 `.ts`다
+     (저장소의 모든 `*.test.mjs`에서 상대 임포트를 전수 열거하면 **11건 전부**
+     `"./모듈.ts"` 형태이고 `.js`는 0건이다 — `caption-presets`·`clip-count-budget`·
+     `clip-generation-outcome`·`clip-rationale`·`clip-type-label`·`event-catalog`·
+     `metadata`·`normalize-path`·`selection-budget`·`stuck-alert`·`subtitle-status`.
+     `.js`도 tsx가 해석하지만 관례를 따른다).
+     **실제 러너로 실측**: `TZ=UTC npx tsx --test`에서 원본은 통과, `timeZone: "UTC"`를
+     지운 돌연변이는 `actual: 'Jul 31, 2026, 7:55 AM'`으로 **사멸**했다.
+  2. **모듈이 수출한 포매터의 `resolvedOptions().locale`이 정확히 `"en"`인지 단언한다**
+     — `assert.equal(mod.DATE_TIME_FORMATTER.resolvedOptions().locale, "en")`
+     (`startsWith("en")`이 아니라 완전 일치). 로케일 인자를 지운 구현은 시스템 로케일로
+     해석되는데, en 계열 CI에서는 `"en-US"`가 되고 **고정 옵션에서 `"en"`과 `"en-US"`의
+     출력 문자열이 같아** 골든 대조로는 못 잡는다(독립 검증에서 en-US 모사 돌연변이가
+     `pass 2 / fail 0`으로 생존).
+     **테스트가 모듈의 포매터를 볼 수 있어야 한다** — 함수 둘(`formatDate`·`formatDateTime`)
+     만 수출하면 테스트에 핸들이 없고, 테스트가 스스로 `new Intl.DateTimeFormat("en", …)`
+     를 만들어 단언하면 리터럴 자기검사(동어반복)라 아무 돌연변이도 죽이지 않는다.
+     그래서 「고칠 파일」에서 두 포매터 상수를 수출 대상에 넣었다.
+     **실측**: 포매터를 수출하고 위 단언을 붙이면 `TZ=UTC`에서 `"en-US"` 돌연변이가
+     `expected: 'en'` / `actual: 'en-US'`로 **사멸**한다.
+- **못 덮는 범위**(배포 후 수동 확인으로 이관):
+  - **프로덕션 콘솔의 React #418 소멸이 최종 판정이다.** 이 결함은 `npm run build`·
+    현재 러너로 재현되지 않는다(서버·클라 로케일·타임존이 같은 러너에서는 불일치가
+    안 난다). 배포 후 `/dashboard/billing`과 `/dashboard/uploads/<id>`를 열어 콘솔에
+    `Minified React error #418`이 더 이상 뜨지 않는지 확인해야 한다.
+  - `RecoverableUploadDrafts`(복구 초안이 있을 때)·`UploadedFileCard`(My Clips 탭)의
+    시각 표기가 서버·클라 동일한지는 실제 데이터·탭 전환이 필요해 러너로 못 덮는다.
+  - 날짜만 필드의 **하루 이월**이 실제 데이터에서 몇 건이나 발생하는지 — 프로덕션의
+    `Order.createdAt`·`Subscription.currentPeriodEnd` 중 UTC 15:00 이후 타임스탬프가
+    얼마나 되는지는 DB를 봐야 안다. 배포 후 빌링 화면에서 날짜가 예상과 다른지 확인한다.
+  - UTC 표기가 사용자에게 혼란을 주는지(로컬 시각 기대) — **표시 정책은 UTC로 확정됐다**
+    (「대안」 참조). 남는 것은 실제 화면에서 어색한 곳이 있는지의 관측이라 실물
+    관측 대상.
+
+## 범위 밖 의존
+
+없음. 전부 `apps/web/src/fsd/shared/lib`와 호출부(features/billing·pages) 안이다.
+`packages/db`·다른 워크스페이스에 닿지 않는다.
+
+## 대안
+
+- **타임존 `"Asia/Seoul"` 고정** — **소유자가 기각했다(2026-09-04 세션 지시:
+  "Asia/Seoul 대신 UTC로 표시하긴 해야 돼. 현재 프로젝트의 모든 시간을").**
+  결함 ⑦의 날짜 하루 이월(결제일이 하루 이르게 표시될 수 있음)을 알고 내린 결정이다.
+  근거: 영어로 글로벌 마케팅하는 제품에 한국 타임존을 박지 않는다. (유저가 붙으면
+  "사용자 로컬 시각" 표시는 후속 항목으로.)
+- **클라이언트 전용 렌더(마운트 후 로컬 시각)** — `useEffect`/마운트 플래그나
+  `suppressHydrationWarning`으로 서버는 안정 자리표시자, 클라는 로컬 시각. 진짜 로컬
+  시각을 보여주지만 자리표시자→시각의 깜빡임과 컴포넌트별 상태가 늘어 복잡하다.
+  저장소가 이미 `Intl.DateTimeFormat` 고정 포매터 방향을 택했으므로(대비 사례 둘)
+  그 방향을 완성(타임존까지 고정)하는 편이 일관적이라 채택하지 않았다.
+- **로케일만 고정("en"), 타임존 미고정** — 저장소의 기존 두 포매터가 이 형태다.
+  날짜+시각을 SSR하는 순간 서버(UTC)·브라우저(Asia/Seoul)가 시각 부분에서 어긋나
+  #418을 재발시키므로 불충분하다(「문제」 참조).
+
+## 검증 라운드 기록 (메인 루프, 2026-09-04 1라운드)
+
+`docs/plans/verification-paths.md`의 필수 경로 1·2·3·4·5·7·8을 돌렸다. 결함 둘을 위
+「테스트」 절에 반영했다. 증거는 `docs/agents/main-loop/BUG-10.md`.
+
+**결함 ④ (블로커) — 골든 테스트가 CI에서 타임존 돌연변이를 못 잡는다.**
+계획서는 "이 테스트가 로케일·타임존 미고정으로의 회귀를 잡는다"고 주장했다. 명세대로
+테스트를 짜고 `timeZone: "UTC"`를 제거한 돌연변이를 넣어 돌리니, `TZ=Asia/Seoul`(개발자
+머신)에서는 사멸했지만 **`TZ=UTC`에서는 생존**했다 — 프로세스 TZ가 이미 UTC면 옵션을
+지워도 같은 문자열이 나온다. CI와 Vercel이 UTC이므로 이 테스트는 가장 중요한 회귀를
+못 잡는 상태로 들어간다. `resolvedOptions().timeZone === "UTC"` 단언을 더해도 같은
+이유로 생존한다(실측). → 테스트가 임포트 전에 `process.env.TZ`를 비-UTC로 강제하는
+방식으로 명세를 강화했다(실측으로 사멸 확인).
+
+**결함 ⑤ (블로커) — 로케일 돌연변이도 같은 구멍이 있다.**
+로케일 인자를 지운 구현은 시스템 로케일로 해석된다. 이 머신은 ko-KR이라 사멸하지만,
+en 계열 CI에서는 `"en-US"`로 해석돼 골든 문자열이 우연히 일치할 수 있다.
+`resolvedOptions().locale`은 `"en"` 인자에 대해 정확히 `"en"`을, `undefined`에 대해
+시스템 로케일(`"ko-KR"` 실측)을 돌려주므로, **완전 일치** 단언이면 en 계열 CI에서도
+사멸한다. → 명세에 완전 일치 단언을 명시했다.
+
+**통과한 것**: 인용 전수 대조(경로 1) — 다섯 호출부와 대비 사례 둘의 `파일:줄`을 다시
+읽어 내용까지 일치 확인. 스케치 실행(경로 2) — 포매터 스케치를 그대로 Node에서 돌려
+골든 문자열 두 개가 **정확히 일치**함을 실측(Node v22.13.1). 전칭 여집합(경로 4) —
+저장소 전체에서 `toLocaleDateString|toLocaleTimeString|toLocaleString|Intl.DateTimeFormat`
+를 열거해 여덟 곳(대상 다섯 + 기존 포매터 둘 + 테스트 제외)이 전부임을 확인, 「고칠 파일」
+표가 그 여덟을 빠짐없이 덮는다. 돌연변이 검사(경로 5)는 위 결함 ④⑤로 이어졌다.
+계획서의 "`dateStyle`/`timeStyle`에 `timeZoneName`을 섞으면 Intl이 throw" 주장도 실측
+확인(TypeError).
+
+**남은 비차단 위험**: 표시 시각이 UTC로 바뀌는 것은 사용자 가시 변화다. 계획서가
+「대안」에 트레이드오프를 남겼고 게이트②에서 소유자가 선택할 수 있다 — 검증 결함이
+아니라 결정 사항이다.
+
+## 검증 라운드 5 (2026-09-04, plan-verifier 독립 패스 반영)
+
+`plan-verifier`가 처음 보는 컨텍스트에서 필수 경로를 전부 돌려 결함 2건을 보고했다.
+둘 다 재현해 위 본문에 반영했다.
+
+**결함 ⑥ (블로커) — 결함 ⑤의 수정이 스케치된 공개 표면으로는 구현 불가였다.**
+1라운드에서 "`resolvedOptions().locale` 완전 일치 단언"을 넣었으나, 「고칠 파일」과
+스케치는 모듈이 함수 둘만 수출하고 포매터는 **비수출 상수**로 두게 돼 있었다.
+독립 검증이 `Object.keys(mod)` = `['formatDate','formatDateTime']`,
+`"DATE_TIME_FORMATTER" in mod` = `false`로 확인했다 — 테스트에 핸들이 없다. 테스트가
+스스로 포매터를 만들어 단언하면 동어반복이라 아무 돌연변이도 죽이지 않는다. 실제로
+en-US 모사 돌연변이가 `pass 2 / fail 0`으로 **생존**했다. 즉 결함 ⑤가 닫았다고 한
+구멍이 안 닫혀 있었다. → 포매터 상수를 수출 대상에 넣고, 단언을 모듈 포매터 기준으로
+다시 썼다. **재현·확인**: 수출 후 같은 단언을 붙이니 `TZ=UTC`에서 `"en-US"` 돌연변이가
+`expected: 'en'` / `actual: 'en-US'`로 사멸.
+
+**결함 ⑦ (문서 정확성 — 게이트② 판단 재료) — 날짜만 필드의 하루 이월이 누락됐다.**
+스케치 주석이 `formatDate` 대상 필드를 "시계가 무의미한 곳"이라 불렀고 「표시 문구
+변화」는 날짜+시각 필드의 변화만 적었다. 그러나 UTC 15:00 이후 타임스탬프는 KST로
+다음 날이라 **표시되는 날짜 자체가 하루 달라진다**. 실측: `2026-09-27T20:00:00Z` →
+현재 `2026. 9. 28.` / 변경 후 `Sep 27, 2026`. 주문일·구독 갱신일이라 결제와 직결된다.
+→ 주석 정정 + 실측 표를 「표시 문구 변화」에 넣고 「못 덮는 범위」에 확인 항목을 더했다.
+
+**독립 패스가 통과시킨 것**: 인용 전수 대조(부속 인용 포함 전부 일치, Radix `TabsContent`
+에 `forceMount` 부재까지 확인), 스케치 실행(골든 2개 정확 일치·`tsc` clean), before/after
+(모듈 상수 2개의 잔여 참조 0건 확인), 전칭 여집합(포맷 호출부 8곳·테스트 상대 임포트
+11건 재확인), 돌연변이 검사의 장치 1(타임존)은 `TZ=UTC`에서 실제로 사멸, 음성 시험
+(장치 1을 빼면 `pass 2 / fail 0`으로 생존 — 장치 1이 하중 부재임을 독립 재현), 실물
+렌더(`renderToStaticMarkup`으로 서버·브라우저 TZ 양쪽에서 **바이트 동일** 마크업 방출 —
+#418 소멸 메커니즘 확인).
+
+**결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
+
+## 표시 타임존 결정 (소유자, 2026-09-04)
+
+**UTC로 확정.** 소유자 지시: "Asia/Seoul 대신 UTC로 표시하긴 해야 돼. 현재 프로젝트의
+모든 시간을." 결함 ⑦(날짜만 필드가 하루 이르게 표시될 수 있음)을 제시한 뒤 내린
+결정이다. 「대안」의 Asia/Seoul 안은 기각됐다.
+
+### "모든 시간"의 여집합 확인
+
+지시가 "모든 시간"이라 「고칠 파일」이 실제로 전부를 덮는지 저장소 전수로 확인했다.
+`toLocaleDateString|toLocaleTimeString|toLocaleString|Intl.DateTimeFormat|
+Intl.RelativeTimeFormat|toISOString|toDateString|toTimeString|getFullYear|date-fns|dayjs`
+로 열거한 결과(테스트 제외):
+
+| 위치 | 성격 | 처리 |
+| --- | --- | --- |
+| 다섯 호출부 + 기존 포매터 둘 (8 occurrence) | 사용자 가시 타임스탬프 | 「고칠 파일」이 전부 덮는다 |
+| `widgets/site-footer/ui/index.tsx:72` `new Date().getFullYear()` | 저작권 연도 | **표에 추가**. 서버 컴포넌트라(`home/ui/index.tsx`·`(public-marketing)/layout.tsx` 둘 다 `"use client"` 없음) 이미 서버 TZ=UTC로 렌더되어 현재 결함은 아니다. `getUTCFullYear()`로 명시화 |
+| `inngest/functions.ts:348,793` `new Date().toISOString()` | 이벤트 페이로드 | 표시가 아니라 데이터. ISO-8601은 이미 UTC. 해당 없음 |
+
+`apps/web`에는 이 밖에 시간을 그리는 곳이 없다. `date-fns`·`dayjs`는 의존성에도 없다.
+
+### 워크스페이스 밖 (이 계획서 범위 아님)
+
+`apps/admin`에 시간 표시가 하나 있다 — `pages/analytics/ui/index.tsx:236`의
+`row.lastSeenAt.toLocaleString()`. 로케일·타임존 미고정이지만 그 파일은 서버 컴포넌트라
+(지시자 없음) 서버에서만 렌더되어 하이드레이션 불일치가 없고 이미 UTC로 표시된다 —
+결함이 아니라 **암묵적 의존**이다. 같은 파일의 다른 `toLocaleString()` 여섯은 숫자
+포매팅이라 시간이 아니다. `apps/admin`은 `admin-dev`의 쓰기 범위라 이 계획서가 건드리지
+않는다. 백로그 항목으로 넘겼다(BUG-12).
+

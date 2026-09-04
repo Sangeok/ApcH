@@ -13,16 +13,12 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
+import { formatDateTime } from "~/fsd/shared/lib/format-date";
 import { toast } from "sonner";
 
 interface RecoverableUploadDraftsProps {
   drafts: RecoverableUploadDraftSummary[];
 }
-
-const formatter = new Intl.DateTimeFormat("en", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 export default function RecoverableUploadDrafts({
   drafts,
@@ -85,9 +81,7 @@ export default function RecoverableUploadDrafts({
               </p>
               <p className="text-muted-foreground text-sm">
                 Uploaded{" "}
-                {formatter.format(
-                  new Date(draft.sourceUploadedAt ?? draft.createdAt),
-                )}
+                {formatDateTime(draft.sourceUploadedAt ?? draft.createdAt)}
               </p>
             </div>
 

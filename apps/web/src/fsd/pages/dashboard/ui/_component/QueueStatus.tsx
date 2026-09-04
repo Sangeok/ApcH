@@ -8,6 +8,7 @@ import {
   type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
 import { Button } from "~/fsd/shared/ui/atoms/button";
+import { formatDateTime } from "~/fsd/shared/lib/format-date";
 import {
   Table,
   TableBody,
@@ -68,7 +69,7 @@ export default function QueueStatus({
                     {file.fileName}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(file.createdAt).toLocaleString()}
+                    {formatDateTime(file.createdAt)}
                   </TableCell>
                   <TableCell className="max-w-xs truncate font-medium">
                     <UploadedFileStatusBadge status={file.status} />

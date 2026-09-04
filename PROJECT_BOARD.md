@@ -34,6 +34,22 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-04
+- [x] BUG-11: 클립 검토 화면의 S3 transcript가 CORS로 전부 차단된다 — 대본을 못 읽고 실패 안내는 재시도 소진 후에야 뜬다
+  agent: web-dev
+  area: apps/web/src/fsd/features/clip-review + apps/web/src/fsd/widgets/clip-draft-review
+  status: 완료
+  근거: 소유자가 Polar(BUG-09)를 뒤로 미루라 지시. 남은 것 중 사용자 가시 영향이 가장 크다 — 검토 화면 대본 미로드 + 실패 안내 없는 무한 재시도. 미결 0건이라 선정 가능.
+  결과: 브라우저 S3 직접 GET(CORS 원인)을 서버 액션 getTranscript로 교체·retry 2 명시. 순수 파서+테스트3. check EXIT0·test 73/0(70→73). 상세 web-dev/BUG-11
+  검증: 클린 패스 (2026-09-04, 독립 무편집 1라운드 — plan-verifier 2사이클째)
+- [x] BUG-10: 로케일 없는 날짜 포매팅이 하이드레이션 불일치(React #418)를 매 렌더 일으킨다
+  agent: web-dev
+  area: apps/web/src/fsd/features/billing/ui + apps/web/src/fsd/pages/upload-detail/ui + apps/web/src/fsd/pages/dashboard/ui
+  status: 완료
+  근거: 같은 스윕(2026-09-04)에서 발견. 호출부 5곳을 저장소에 이미 있는 Intl.DateTimeFormat 패턴으로 맞추는 기계적 수정이라 BUG-11과 묶어도 부담이 작다.
+  결과: 로케일·타임존(UTC) 고정 공용 포매터로 날짜 8곳 통일(#418)+footer getUTCFullYear. 순수+테스트4. check EXIT0·test 77/0(73→77). 상세 web-dev/BUG-10
+  검증: 클린 패스 (2026-09-04, 독립 무편집 1라운드 — plan-verifier 2사이클째)
+
 ## 2026-09-02
 - [x] FEAT-29: 정체 감시를 15분 cron에서 처리 건별 이벤트 감시자로 전환 — Neon 유휴 compute 깨움 제거
   agent: web-dev

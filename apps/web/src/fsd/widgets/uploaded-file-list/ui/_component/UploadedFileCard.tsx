@@ -8,6 +8,7 @@ import {
   type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
 import { getOriginalPlayUrl } from "~/fsd/features/upload";
+import { formatDateTime } from "~/fsd/shared/lib/format-date";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import {
   Card,
@@ -16,18 +17,13 @@ import {
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
 
-const dateFormatter = new Intl.DateTimeFormat("en", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
 interface UploadedFileCardProps {
   file: UploadedFileSummary;
 }
 
 export function UploadedFileCard({ file }: UploadedFileCardProps) {
   const detailHref = `/dashboard/uploads/${file.id}`;
-  const createdLabel = dateFormatter.format(new Date(file.createdAt));
+  const createdLabel = formatDateTime(file.createdAt);
   const [isPlaybackRequested, setIsPlaybackRequested] = useState(false);
   const playUrlState = usePlayUrl(file.id, getOriginalPlayUrl, {
     enabled: isPlaybackRequested,
