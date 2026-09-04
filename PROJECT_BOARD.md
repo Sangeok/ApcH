@@ -45,6 +45,7 @@
   area: apps/web/src/fsd/features/billing/ui + apps/web/src/fsd/pages/upload-detail/ui + apps/web/src/fsd/pages/dashboard/ui
   status: 검토대기
   근거: 같은 스윕(2026-09-04)에서 발견. 호출부 5곳을 저장소에 이미 있는 Intl.DateTimeFormat 패턴으로 맞추는 기계적 수정이라 BUG-11과 묶어도 부담이 작다.
+  검증: 클린 패스 (2026-09-04, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
 ## 2026-09-02
 - [x] FEAT-29: 정체 감시를 15분 cron에서 처리 건별 이벤트 감시자로 전환 — Neon 유휴 compute 깨움 제거
