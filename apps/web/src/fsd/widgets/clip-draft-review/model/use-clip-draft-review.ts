@@ -9,26 +9,21 @@ import {
 } from "~/fsd/entities/uploaded-file";
 import {
   addCustomClipDraft,
-  getTranscriptUrl,
+  getTranscript,
   saveClipDraftEdit,
   type CaptionStyleInput,
+  type TranscriptWord,
 } from "~/fsd/features/clip-review";
 import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { matchPresetId } from "./caption-presets";
 
+export type { TranscriptWord };
+
 // 검토 계측이 쓰는 정규화된 경로. normalizeAnalyticsPath가 실제 URL을 이 형태로
 // 접으므로(shared/analytics/lib/normalize-path.ts) 기존 upload_detail_viewed
 // 호출부와 동일한 문자열을 쓴다. 훅과 위젯이 같은 값을 쓰도록 여기서 export한다.
 export const REVIEW_ANALYTICS_PATH = "/dashboard/uploads/[uploadedFileId]";
-
-// 전사 JSON의 단어 단위 형태 (백엔드 transcribe_video 반환 형식, main.py).
-// 카드·에디터가 동일 타입을 소비하도록 위젯 model에서 단일 정의·export한다.
-export interface TranscriptWord {
-  start: number;
-  end: number;
-  word: string;
-}
 
 export interface SaveDraftInput {
   clipDraftId: string;
@@ -70,32 +65,19 @@ export function useClipDraftReview(
   } = useQuery<TranscriptWord[]>({
     queryKey: uploadedFileKeys.transcript(uploadedFileId),
     staleTime: Infinity,
-    // 실패를 빈 배열로 접지 않는다. 접으면 isError가 영구 false라 presign 만료나
+    // 실패한 전사는 같은 결과로 반복되기 쉽다(키 부재·권한). 소량 재시도 후
+    // 즉시 에러 상태로 보내 안내를 띄운다. 포커스 재점화는 끈다 — 브로큰
+    // 리소스를 focus마다 다시 때리면 콘솔만 오염된다.
+    retry: 2,
+    refetchOnWindowFocus: false,
+    // 실패를 빈 배열로 접지 않는다. 접으면 isError가 영구 false라 키 부재나
     // S3 403이 "단어 스냅이 조용히 꺼진 화면"으로만 나타난다(규약 §10).
     queryFn: async () => {
-      const result = await getTranscriptUrl(uploadedFileId);
+      const result = await getTranscript(uploadedFileId);
       if (!result.success) {
         throw new Error(result.error);
       }
-
-      const response = await fetch(result.data.url);
-      if (!response.ok) {
-        throw new Error(`Transcript fetch failed: ${response.status}`);
-      }
-
-      const parsed = (await response.json()) as unknown;
-      if (!Array.isArray(parsed)) {
-        throw new Error("Transcript payload was not an array");
-      }
-
-      return parsed.filter(
-        (word): word is TranscriptWord =>
-          typeof word === "object" &&
-          word !== null &&
-          typeof (word as TranscriptWord).start === "number" &&
-          typeof (word as TranscriptWord).end === "number" &&
-          typeof (word as TranscriptWord).word === "string",
-      );
+      return result.data.words;
     },
   });
 

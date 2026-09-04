@@ -44,6 +44,17 @@ export async function generatePresignedGetUrl(
   return getSignedUrl(getS3Client(), command, { expiresIn });
 }
 
+export async function getS3ObjectText(key: string): Promise<string> {
+  const response = await getS3Client().send(
+    new GetObjectCommand({ Bucket: env.S3_BUCKET_NAME, Key: key }),
+  );
+  if (!response.Body) {
+    throw new Error(`S3 object has no body: ${key}`);
+  }
+  // AWS SDK v3 Node 스트림. 트랜스크립트는 1회/세션 읽고 캐시되므로 전량 문자열화 허용.
+  return response.Body.transformToString();
+}
+
 export async function generatePresignedPutUrl(
   key: string,
   contentType: string,

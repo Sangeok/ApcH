@@ -7,7 +7,7 @@ import {
   updateClipDraftEdit,
 } from "~/fsd/entities/clip-draft/server";
 import { findUploadedFileReviewState } from "~/fsd/entities/uploaded-file/server";
-import { generatePresignedGetUrl, S3_CONFIG } from "~/fsd/shared/api/s3";
+import { getS3ObjectText } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
 import {
@@ -19,12 +19,14 @@ import {
   updateClipDraftSchema,
   type CaptionStyleInput,
 } from "../model/schemas";
+import { type TranscriptWord, parseTranscriptWords } from "../model/transcript";
 
-// Generate a short-lived URL for the stored word-level transcript JSON,
-// used by the review UI for word-boundary snapping and text preview.
-export async function getTranscriptUrl(
+// 검토 UI가 단어 경계 스냅·미리보기에 쓰는 단어 단위 전사를 서버에서 읽어 넘긴다.
+// 브라우저가 S3를 직접 GET하지 않으므로 크로스 오리진(CORS)이 없고 presign URL도
+// 노출되지 않는다.
+export async function getTranscript(
   uploadedFileId: string,
-): Promise<ActionResult<{ url: string }>> {
+): Promise<ActionResult<{ words: TranscriptWord[] }>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
@@ -38,15 +40,11 @@ export async function getTranscriptUrl(
       return failure("Transcript is not available for this upload");
     }
 
-    const url = await generatePresignedGetUrl(
-      file.transcriptS3Key,
-      S3_CONFIG.PRESIGNED_GET_URL_EXPIRY,
-    );
-
-    return success({ url });
+    const raw = await getS3ObjectText(file.transcriptS3Key);
+    return success({ words: parseTranscriptWords(JSON.parse(raw)) });
   } catch (error) {
-    console.error("Failed to get transcript url", error);
-    return failure("Failed to get transcript url");
+    console.error("Failed to load transcript", error);
+    return failure("Failed to load transcript");
   }
 }
 

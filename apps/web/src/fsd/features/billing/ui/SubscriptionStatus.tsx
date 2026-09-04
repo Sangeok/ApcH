@@ -24,6 +24,7 @@ import {
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import { cancelSubscription } from "~/fsd/features/billing/api";
+import { formatDate } from "~/fsd/shared/lib/format-date";
 import { PLAN_TIERS } from "../config";
 import type { SubscriptionInfo } from "../model/types";
 
@@ -92,7 +93,7 @@ export function SubscriptionStatus({
                 {subscription.cancelAtPeriodEnd ? "Expires" : "Next renewal"}
               </span>
               <span className="text-sm">
-                {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                {formatDate(subscription.currentPeriodEnd)}
               </span>
             </div>
             <Separator />
@@ -124,9 +125,7 @@ export function SubscriptionStatus({
                       </AlertDialogTitle>
                       <AlertDialogDescription>
                         Your plan stays active until{" "}
-                        {new Date(
-                          subscription.currentPeriodEnd,
-                        ).toLocaleDateString()}
+                        {formatDate(subscription.currentPeriodEnd)}
                         , then it will not renew. Credits you already have are
                         kept.
                       </AlertDialogDescription>

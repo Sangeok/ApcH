@@ -69,7 +69,7 @@ export default function SiteFooter() {
         ))}
       </div>
       <p className="border-border/60 mt-10 border-t pt-6 text-center text-xs">
-        Copyright &copy; {new Date().getFullYear()} SangEok. All rights
+        Copyright &copy; {new Date().getUTCFullYear()} SangEok. All rights
         reserved.
       </p>
     </footer>

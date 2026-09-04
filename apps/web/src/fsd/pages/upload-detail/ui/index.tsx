@@ -10,6 +10,7 @@ import { UploadedFileActions } from "~/fsd/features/upload";
 import { useLiveUploadedFileDetail } from "~/fsd/pages/upload-detail/model/use-live-uploaded-file-detail";
 import ProcessingTimeline from "~/fsd/pages/upload-detail/ui/_component/ProcessingTimeline";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
+import { formatDateTime } from "~/fsd/shared/lib/format-date";
 import {
   Card,
   CardContent,
@@ -84,7 +85,7 @@ export default function UploadDetailPage({
             {displayName ?? "Untitled"}
           </h1>
           <div className="text-muted-foreground mt-2 flex items-center gap-2 text-sm">
-            <span>{new Date(createdAt).toLocaleString()}</span>
+            <span>{formatDateTime(createdAt)}</span>
             <Separator orientation="vertical" className="h-4" />
             <UploadedFileStatusBadge status={status} />
           </div>

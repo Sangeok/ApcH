@@ -6,6 +6,7 @@ import {
   type ProcessingStatus,
   type UploadedFileOutcome,
 } from "~/fsd/entities/uploaded-file";
+import { formatDateTime } from "~/fsd/shared/lib/format-date";
 import { cn } from "~/fsd/shared/lib/utils";
 
 type TimelineEventKey =
@@ -156,7 +157,7 @@ export default function ProcessingTimeline(props: ProcessingTimelineProps) {
             <div className="flex-1">
               <p className="font-medium">{EVENT_LABELS[event]}</p>
               <p className="text-muted-foreground text-sm">
-                {timestamp ? timestamp.toLocaleString() : "Waiting..."}
+                {timestamp ? formatDateTime(timestamp) : "Waiting..."}
               </p>
               {failureLabel && (
                 <p className="text-muted-foreground mt-1 text-sm">
