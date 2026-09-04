@@ -1,5 +1,5 @@
-import { createOrder, findOrderByPolarId } from "~/fsd/entities/order";
-import { resolvePolarCustomerUserId } from "~/fsd/entities/user";
+import { createOrder, findOrderByPolarId } from "~/fsd/entities/order/server";
+import { resolvePolarCustomerUserId } from "~/fsd/entities/user/server";
 import { failure, success } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";
 

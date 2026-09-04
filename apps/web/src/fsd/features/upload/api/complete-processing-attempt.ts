@@ -1,6 +1,6 @@
 import "server-only";
 
-import { decrementUserCreditsFloorZero } from "~/fsd/entities/user";
+import { decrementUserCreditsFloorZero } from "~/fsd/entities/user/server";
 import { markUploadedFileAttemptProcessed } from "~/fsd/entities/uploaded-file/server";
 import { db } from "~/server/db";
 

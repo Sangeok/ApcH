@@ -35,11 +35,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-04
-- [ ] FEAT-31: 엔티티 배럴 다섯을 클라이언트 안전 `index.ts` + 서버 전용 `server.ts`로 분할 — 첫 클라이언트 임포트가 빌드를 깨는 잠복 파손 제거
+- [x] FEAT-31: 엔티티 배럴 다섯을 클라이언트 안전 `index.ts` + 서버 전용 `server.ts`로 분할 — 첫 클라이언트 임포트가 빌드를 깨는 잠복 파손 제거
   agent: web-dev
   area: apps/web/src/fsd/entities/analytics-event + apps/web/src/fsd/entities/order + apps/web/src/fsd/entities/processing-dispatch + apps/web/src/fsd/entities/subscription + apps/web/src/fsd/entities/user
-  status: 구현승인
+  status: 완료
   근거: 소유자가 이 세션에서 직접 지목("FEAT 31 수행"). 다섯 배럴이 `import "server-only"` api를 재수출하는 것을 메인 루프가 재확인했다. tsc는 통과하고 build에서만 터져 배포 직전에 발견된다. 미결 0건.
+  결과: 다섯 barrel을 index.ts(클라 안전)+server.ts(신규5)로 분할, 임포터 13개 /server 교체. 프로브 build EXIT0(다섯 클라 안전 동시증명). check EXIT0·test 77/0·build EXIT0. 상세 web-dev/FEAT-31
   검증: 클린 패스 (2026-09-04, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
 - [x] BUG-11: 클립 검토 화면의 S3 transcript가 CORS로 전부 차단된다 — 대본을 못 읽고 실패 안내는 재시도 소진 후에야 뜬다

@@ -1,7 +1,7 @@
 import {
   findSubscriptionByPolarId,
   updateSubscriptionByPolarId,
-} from "~/fsd/entities/subscription";
+} from "~/fsd/entities/subscription/server";
 import { failure, success } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";
 

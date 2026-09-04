@@ -3,12 +3,12 @@ import {
   findSubscriptionByPolarId,
   findSubscriptionByUserId,
   upsertSubscription,
-} from "~/fsd/entities/subscription";
+} from "~/fsd/entities/subscription/server";
 import {
   incrementUserCreditsAndSetPolarCustomerId,
   resolvePolarCustomerUserId,
   updateUserPolarCustomerId,
-} from "~/fsd/entities/user";
+} from "~/fsd/entities/user/server";
 import { failure, success } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";
 

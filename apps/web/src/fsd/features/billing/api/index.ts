@@ -1,8 +1,8 @@
 "use server";
 
 import { env } from "~/env";
-import { findSubscriptionByUserId, updateSubscriptionByPolarId } from "~/fsd/entities/subscription";
-import { getBillingUserSnapshot } from "~/fsd/entities/user";
+import { findSubscriptionByUserId, updateSubscriptionByPolarId } from "~/fsd/entities/subscription/server";
+import { getBillingUserSnapshot } from "~/fsd/entities/user/server";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { reportError } from "~/fsd/shared/observability";
 import { success, failure } from "~/fsd/shared/api/result";

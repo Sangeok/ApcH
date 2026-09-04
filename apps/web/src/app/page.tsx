@@ -1,5 +1,5 @@
 import { type Metadata } from "next";
-import { getHomeUserProfile } from "~/fsd/entities/user";
+import { getHomeUserProfile } from "~/fsd/entities/user/server";
 import HomePage from "~/fsd/pages/home/ui";
 import { generateWebApplicationJsonLd } from "~/fsd/shared/lib/seo";
 import { SITE_NAME, absoluteSiteUrl } from "~/fsd/shared/lib/site";
