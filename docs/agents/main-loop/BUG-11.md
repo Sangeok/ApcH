@@ -92,3 +92,46 @@
 던지는 문구(`"Transcript payload was not an array"`)와 일치함을 확인.
 
 **결과**: 무편집·무소득 라운드. `plan-verifier` 독립 패스 디스패치 자격이 생겼다.
+
+## 검증 라운드 6 (2026-09-04, plan-verifier 독립 패스 2사이클 — 클린)
+
+라운드 5 수정(위젯 임포트 교정형)을 반영한 뒤 새 컨텍스트의 독립 패스를 붙였다. **결함 0건.**
+
+**독립성에 대한 검증자의 지적 — 기록해 둔다**: 내 브리핑이 직전 블로커(결함 ⑧)와 내가 넣은
+수정 내용을 명시해서 **무선입견 재독이 아니었다.** 검증자가 이를 스스로 지적하고, 직전 패스가
+통과시킨 것을 결과로 받지 않은 채 인용을 전부 다시 읽고 스케치를 계획서 문언에서 재조립했으며,
+TS2304 판정도 프리어 보고를 믿지 않고 **자기 손으로 음성 대조군을 돌려 독립 재현**했다고 밝혔다.
+다음 라운드 브리핑은 "무엇이 바뀌었는지"만 주고 직전 결함의 내용은 빼는 편이 낫다 — BUG-10의
+2사이클 브리핑이 그렇게 돼 있었고 검증자가 독립성 훼손 없음을 명시했다.
+
+**이번 초점(라운드 5 수정)에 대한 판정**:
+- 교정 스케치를 배럴·위젯·**소비처 둘까지 함께** 실제 tsconfig 플래그(`verbatimModuleSyntax`
+  +`isolatedModules`+`strict`)와 실제 `node_modules`(`@aws-sdk/client-s3 ^3.928.0`,
+  `@tanstack/react-query ^5.100.5`)에 물려 컴파일 → **EXIT 0**.
+- **음성 대조군**: 경고받은 순수 재수출 형태를 같은 오버레이에 넣으니
+  `error TS2304: Cannot find name 'TranscriptWord'`(`use-clip-draft-review.ts:64`) **EXIT 2**.
+  라운드 5 수정이 필요하고 충분함을 독립 재현했다.
+- `import { …, type X }` + `export type { X }` 조합이 lint-safe함도 확인 — `import/first`는
+  `eslint-config-next`에서 미활성(활성 import 규칙은 `import/no-anonymous-default-export`뿐)이라
+  `export type` 줄을 임포트 사이에 둬도 문제없고, `consistent-type-imports`(warn, inline)는
+  인라인 `type` 표기로 충족된다.
+- **번들·직렬화 영향 없음** — 배럴이 `"use server"` `./api`를 재수출하면서 `./model/transcript`
+  에서 타입만 재수출하는데, `verbatimModuleSyntax`에서 타입 재수출은 완전 소거되어
+  `transcript.ts`와 그 값 `parseTranscriptWords`가 배럴 런타임/클라이언트 번들에 편입되지 않는다.
+  `getTranscript`의 반환 `{ words: TranscriptWord[] }`도 평문 직렬화 가능.
+
+**독립 패스가 통과시킨 나머지**: 인용 전수 대조 오기 0건. 전칭 여집합 — `getTranscriptUrl`
+사용처 3곳 전부 교체 대상(고아 소비자 0), `generatePresignedGetUrl`·`S3_CONFIG`는
+`features/clip`·`features/upload`도 쓰므로 **`s3.ts`의 export는 유지가 옳고**(계획서가 안 지운다)
+`clip-review/api` 내부 사용처만 `:41·:43`이라 제거가 안전함을 재확인. 돌연변이 검사 — 배열 가드
+제거 시 `{}`·`"str"`은 `payload.filter is not a function`, `null`은 `Cannot read properties of null`
+로 throw해 어느 것도 계획서 지정 메시지가 아니므로 메시지 단언 명세가 이 돌연변이를 잡는다.
+경로 6 — 백엔드 생산자 계약(`main.py:923·932·934` → `:1064·1068-1076`)을 추적해 `transcript.json`
+이 맨 배열임을 확인, 파서 가드가 실데이터에 throw하지 않음. 경로 8 — `AddCustomClipPanel`을
+실제로 렌더해 실패 분기 문구와 정상 분기 문구가 모두 나오는 것 확인.
+
+**곁가지 정정**: 보드·백로그의 BUG-11 제목에 남아 있던 "무한 재시도"를 고쳤다. 계획서가 코드로
+`retry: 3`(유한)임을 확정했고 무한처럼 보인 이유(지수 백오프·포커스/무효화 재점화·소진 전 무안내)
+를 밝혔는데, 상태 기계와 원장에 틀린 주장이 남아 있으면 대시보드가 그것을 그대로 보여준다.
+
+**결과**: 무편집·무소득 독립 패스. 보드에 `검증: 클린 패스` 기록. 게이트② 대기.
