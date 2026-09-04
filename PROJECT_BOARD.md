@@ -40,6 +40,7 @@
   area: apps/web/src/fsd/entities/analytics-event + apps/web/src/fsd/entities/order + apps/web/src/fsd/entities/processing-dispatch + apps/web/src/fsd/entities/subscription + apps/web/src/fsd/entities/user
   status: 검토대기
   근거: 소유자가 이 세션에서 직접 지목("FEAT 31 수행"). 다섯 배럴이 `import "server-only"` api를 재수출하는 것을 메인 루프가 재확인했다. tsc는 통과하고 build에서만 터져 배포 직전에 발견된다. 미결 0건.
+  검증: 클린 패스 (2026-09-04, 독립 무편집 1라운드 — plan-verifier 2사이클째)
 
 - [x] BUG-11: 클립 검토 화면의 S3 transcript가 CORS로 전부 차단된다 — 대본을 못 읽고 실패 안내는 재시도 소진 후에야 뜬다
   agent: web-dev
