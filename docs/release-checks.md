@@ -24,24 +24,25 @@
 
 ## BUG-11 · BUG-10 (web, 구현 2026-09-04)
 
-원천: `docs/agents/web-dev/BUG-11.md`·`BUG-10.md`의 「테스트로 못 덮은 범위」. 커밋 `07c4761`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+원천: `docs/agents/web-dev/BUG-11.md`·`BUG-10.md`의 「테스트로 못 덮은 범위」. 커밋 `07c4761`. **배포 완료(2026-09-04, PR #112 머지 `3153989`).** 같은 날 메인 루프가 프로덕션에서 스윕해 9줄 중 5줄 마감.
 자동 검사 게이트(`npm run check` EXIT 0 · `npm test` 77/0)는 통과했다. 아래는 그 게이트가 원리상 못 덮는 것 — 브라우저 런타임, 실제 S3·DB I/O, 외부 응답 한도.
 **`〔auto〕` 태그를 붙이지 않는다**: release-verify 루틴의 base는 `admin.a-pch.com`인데 아래는 전부 web(`a-pch.com`)의 로그인 뒤 화면·브라우저 콘솔이다.
 
 BUG-11 — 서버 액션 프록시로 CORS 제거:
 
-- [ ] **핵심 — CORS 소멸**: 프로덕션에서 `Review Needed` 업로드 상세를 열어 콘솔에 S3 `transcript.json`에 대한 CORS 차단·`net::ERR_FAILED`가 **더는 뜨지 않는다**. 2026-09-04 스윕의 관측(5s·7s·10s·15s 간격 반복)이 근거 상태다
-- [ ] **전사가 실제로 로드된다**: 같은 화면에서 단어 경계 스냅·커스텀 클립 추가가 동작한다(전사가 비어 있으면 패널이 `null` 렌더라 "그냥 없는" 화면이 된다)
-- [ ] **서버 액션의 실제 S3 읽기·인증 경로**: `getTranscript`가 `getS3ObjectText`로 실제 객체를 읽고, 남의 업로드 id로는 실패한다(테넌트 스코프 `findUploadedFileReviewState(id, userId)` 유지)
+- [x] **핵심 — CORS 소멸** — 확인(2026-09-04, 프로덕션 Playwright: `/dashboard/uploads/cms7kthjp0001jp04l2vybhj4` 로드에서 **콘솔 오류 0건**. 배포 전 같은 페이지는 S3 `transcript.json`에 대한 CORS 차단 + `net::ERR_FAILED`가 5s·7s·10s·15s 간격으로 반복됐다)
+- [x] **전사가 실제로 로드된다** — 확인(2026-09-04: 같은 화면에 「Add a clip AI missed」 문단과 「Add custom clip」 버튼이 렌더됐다. 이 패널은 `transcriptWords.length > 0`일 때만 나오고 전사가 비면 `null`을 렌더한다 — 배포 전 스냅샷에는 이 문구가 없었다. 즉 서버 액션 `getTranscript` → `getS3ObjectText`의 실제 S3 읽기가 성공한다)
+- [ ] **서버 액션의 인증 경로(테넌트 스코프)**: 남의 업로드 id로는 실패한다(`findUploadedFileReviewState(id, userId)`). 두 번째 계정이 필요해 미확인 — S3 읽기 절반은 위 줄에서 닫혔다
 - [ ] **실패 안내가 몇 초 안에 뜬다**: 전사가 없는/깨진 업로드에서 "Transcript unavailable — custom clips are disabled."가 `retry: 2` 소진 후 빠르게 보인다. 이전에는 재시도가 포커스·뮤테이션마다 재점화돼 안내가 사실상 안 떴다
 - [ ] **큰 전사 payload**: 긴 영상의 전사가 Vercel 함수 응답 한도(4.5MB) 안인지 실측. 넘으면 스트리밍·페이지네이션이 후속 항목이 된다
 
 BUG-10 — 날짜 포매팅 UTC 고정:
 
-- [ ] **핵심 — React #418 소멸**: `/dashboard/billing`과 `/dashboard/uploads/<id>`를 열어 콘솔에 `Minified React error #418`이 **더는 뜨지 않는다**. 2026-09-03·09-04 두 날 매 로드 1건씩 뜨던 것이 근거 상태다
-- [ ] **날짜 하루 이월(소유자가 알고 택한 트레이드오프)**: 빌링 화면의 구독 갱신일·결제일이 예상과 다른지 본다. UTC 15:00 이후 타임스탬프는 KST 기준 다음 날이라 하루 이르게 표시된다(계획서 「표시 문구 변화」의 실측 표). 실제로 몇 건이 그런지는 `Order.createdAt`·`Subscription.currentPeriodEnd`를 봐야 안다
-- [ ] **표시 문구 전환**: 날짜+시각이 ko-KR `2026. 7. 30. 오후 10:55:46`에서 en/UTC `Jul 30, 2026, 10:55 PM` 형태로 바뀐 것이 화면에서 어색하지 않은지
-- [ ] **러너가 못 덮는 두 곳**: `RecoverableUploadDrafts`(복구 초안이 있을 때)·`UploadedFileCard`(My Clips 탭)의 시각 표기가 서버·클라이언트 동일한지 — 실제 데이터와 탭 전환이 필요하다
+- [x] **핵심 — React #418 소멸** — 확인(2026-09-04, 프로덕션 Playwright: `/dashboard/billing`·`/dashboard/uploads/<id>` 둘 다 **콘솔 오류 0건**. 배포 전에는 2026-09-03·09-04 두 날 매 로드 1건씩 떴다)
+- [x] **날짜 하루 이월(소유자가 알고 택한 트레이드오프)** — 확인(2026-09-04, 프로덕션 실측: **빌링 화면의 날짜 6건 전부 하루 당겨졌다**. 다음 갱신 `2026. 9. 27.` → `Sep 26, 2026`, 결제 이력 `2026. 8. 27.`→`Aug 26, 2026`·`2026. 7. 27.`→`Jul 26, 2026`·`2026. 6. 27.`→`Jun 26, 2026`·`2026. 4. 27.`→`Apr 26, 2026`·`2026. 3. 27.`→`Mar 26, 2026`. 이 계정의 구독 타임스탬프가 전부 UTC 15:00 이후라는 뜻이다. 예고된 동작이며 결함이 아니다 — 소유자가 UTC를 택할 때 이 이월을 알고 있었다)
+- [x] **표시 문구 전환** — 확인(2026-09-04: 업로드 상세 상단 `Aug 13, 2026, 2:23 PM`, 처리 타임라인 4단계 `Aug 25, 2026, 3:22 PM`~`3:32 PM`, 빌링 `Sep 26, 2026`. 배포 전 ko-KR `2026. 7. 30. 오후 10:55:46` 형태에서 전환됐고 화면에서 어색한 곳은 없었다)
+- [ ] **러너가 못 덮는 두 곳**: `RecoverableUploadDrafts`(복구 초안이 있을 때)·`UploadedFileCard`(My Clips 탭)의 시각 표기가 서버·클라이언트 동일한지
+  - 절반 확인(2026-09-04): `UploadedFileCard`는 My Clips 탭을 열어 확인 — `Uploaded: Aug 13, 2026, 2:23 PM`(배포 전 같은 카드는 KST `11:23 PM`)로 UTC 전환됐고 콘솔 오류 0건. **기존 포매터의 타임존 미고정 잠복 결함도 함께 닫혔다.** `RecoverableUploadDrafts`는 이 계정에 복구 대상 초안이 없어 미확인
 
 ---
 
