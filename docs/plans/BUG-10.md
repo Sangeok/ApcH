@@ -70,7 +70,7 @@ agent: web-dev
 
 | 파일 | 변경 |
 | --- | --- |
-| `src/fsd/shared/lib/format-date.ts` `(신규)` | 로케일 `"en"` + 타임존 `"UTC"` 고정 포매터 둘: `formatDate`(날짜만)·`formatDateTime`(날짜+시각) |
+| `src/fsd/shared/lib/format-date.ts` `(신규)` | 로케일 `"en"` + 타임존 `"UTC"` 고정 포매터 둘: `formatDate`(날짜만)·`formatDateTime`(날짜+시각). **`DATE_FORMATTER`·`DATE_TIME_FORMATTER` 상수도 수출한다** — 테스트가 모듈의 실제 설정을 단언할 핸들이 필요하다(검증 라운드 결함 ⑥) |
 | `src/fsd/shared/lib/format-date.test.mjs` `(신규)` | 고정 입력→고정 출력이 일정한지(로케일·타임존 비의존) |
 | `src/fsd/features/billing/ui/OrderHistory.tsx` | `:55`를 `formatDate(order.createdAt)`로 |
 | `src/fsd/features/billing/ui/SubscriptionStatus.tsx` | `:95`·`:127-129`를 `formatDate(subscription.currentPeriodEnd)`로 |
@@ -95,18 +95,24 @@ agent: web-dev
 // 고정한다 — UTC는 서버 런타임과 같아 최소 변경이고, 사용자 위치를 가정하지
 // 않는 중립값이다. 표시 시각이 사용자 로컬이 아니라 UTC라는 점은 감수한다
 // (「대안」의 Asia/Seoul·클라이언트 전용 렌더 참조).
-const DATE_FORMATTER = new Intl.DateTimeFormat("en", {
+// 두 상수를 수출하는 이유는 테스트다. 함수 출력만으로는 `"en"`과 `"en-US"`를
+// 구분할 수 없어(고정 옵션에서 두 로케일의 출력이 같다) 로케일 인자를 지운 회귀를
+// en 계열 CI에서 못 잡는다. 테스트가 `resolvedOptions()`를 직접 볼 핸들이 있어야
+// 한다 — 「테스트」 절 장치 2.
+export const DATE_FORMATTER = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
   timeZone: "UTC",
 });
 
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en", {
+export const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
   timeStyle: "short",
   timeZone: "UTC",
 });
 
-// 날짜만(주문일·구독 갱신/만료일 등 시계가 무의미한 곳).
+// 날짜만(주문일·구독 갱신/만료일). 주의: '시각이 안 보인다'와 '타임존이 무관하다'는
+// 다르다 — UTC 15:00 이후 타임스탬프는 KST 기준 다음 날이라 **표시되는 날짜 자체가
+// 하루 달라진다**(「표시 문구 변화」 참조).
 export function formatDate(value: Date | string | number): string {
   return DATE_FORMATTER.format(new Date(value));
 }
@@ -144,8 +150,22 @@ import 경로는 `format-duration`과 동일 관례: `import { formatDate, forma
 **표시 문구 변화(사용자 가시)**: 날짜+시각 문구가 ko-KR "2026. 7. 30. 오후 10:55:46"
 에서 `"en"`/UTC "Jul 30, 2026, 10:55 PM" 형태로 바뀐다. 시각은 이제 UTC 기준이다
 (예: KST 오후 10:55 = 다음날 표기가 아니라 UTC 시각으로 재계산). 존 라벨은 붙이지
-않는다(`dateStyle`/`timeStyle`에 `timeZoneName`을 섞으면 Intl이 throw). UTC 표기라는
-점은 「테스트」의 못 덮는 범위와 「대안」에 남긴다.
+않는다(`dateStyle`/`timeStyle`에 `timeZoneName`을 섞으면 Intl이 throw).
+
+**날짜만 필드도 하루 밀릴 수 있다(검증 라운드 결함 ⑦ — 게이트② 판단 재료)**:
+`formatDate`를 쓰는 주문일·구독 갱신일은 시각을 안 보여줄 뿐 타임존과 무관하지 않다.
+**UTC 15:00 이후 타임스탬프는 KST로 이미 다음 날**이라, 지금 KST로 보이던 날짜가
+UTC 고정 후 하루 앞으로 당겨진다. 실측:
+
+| 저장된 타임스탬프 | 현재(KST 브라우저) | 변경 후(UTC 고정) |
+| --- | --- | --- |
+| `2026-09-27T20:00:00Z` | `2026. 9. 28.` | `Sep 27, 2026` |
+| `2026-09-27T15:00:00Z` | `2026. 9. 28.` | `Sep 27, 2026` |
+| `2026-09-27T14:59:00Z` | `2026. 9. 27.` | `Sep 27, 2026` |
+
+즉 구독 갱신일·결제일이 **실제로 하루 이르게 표시될 수 있다**. 결제 관련 날짜라
+소유자가 게이트②에서 이 점을 알고 타임존을 골라야 한다(「대안」의 Asia/Seoul 고정은
+이 이월이 없다).
 
 ## 테스트
 
@@ -171,10 +191,18 @@ import 경로는 `format-duration`과 동일 관례: `import { formatDate, forma
      `.js`도 tsx가 해석하지만 관례를 따른다).
      **실제 러너로 실측**: `TZ=UTC npx tsx --test`에서 원본은 통과, `timeZone: "UTC"`를
      지운 돌연변이는 `actual: 'Jul 31, 2026, 7:55 AM'`으로 **사멸**했다.
-  2. **`resolvedOptions().locale`이 정확히 `"en"`인지 단언한다**(`startsWith("en")`이
-     아니라 완전 일치). 로케일 인자를 지운 구현은 시스템 로케일로 해석되는데, en 계열
-     CI에서는 `"en-US"`가 되어 골든 문자열이 우연히 같을 수 있다. 완전 일치 단언이면
-     `"en-US" !== "en"`으로 사멸한다.
+  2. **모듈이 수출한 포매터의 `resolvedOptions().locale`이 정확히 `"en"`인지 단언한다**
+     — `assert.equal(mod.DATE_TIME_FORMATTER.resolvedOptions().locale, "en")`
+     (`startsWith("en")`이 아니라 완전 일치). 로케일 인자를 지운 구현은 시스템 로케일로
+     해석되는데, en 계열 CI에서는 `"en-US"`가 되고 **고정 옵션에서 `"en"`과 `"en-US"`의
+     출력 문자열이 같아** 골든 대조로는 못 잡는다(독립 검증에서 en-US 모사 돌연변이가
+     `pass 2 / fail 0`으로 생존).
+     **테스트가 모듈의 포매터를 볼 수 있어야 한다** — 함수 둘(`formatDate`·`formatDateTime`)
+     만 수출하면 테스트에 핸들이 없고, 테스트가 스스로 `new Intl.DateTimeFormat("en", …)`
+     를 만들어 단언하면 리터럴 자기검사(동어반복)라 아무 돌연변이도 죽이지 않는다.
+     그래서 「고칠 파일」에서 두 포매터 상수를 수출 대상에 넣었다.
+     **실측**: 포매터를 수출하고 위 단언을 붙이면 `TZ=UTC`에서 `"en-US"` 돌연변이가
+     `expected: 'en'` / `actual: 'en-US'`로 **사멸**한다.
 - **못 덮는 범위**(배포 후 수동 확인으로 이관):
   - **프로덕션 콘솔의 React #418 소멸이 최종 판정이다.** 이 결함은 `npm run build`·
     현재 러너로 재현되지 않는다(서버·클라 로케일·타임존이 같은 러너에서는 불일치가
@@ -182,6 +210,9 @@ import 경로는 `format-duration`과 동일 관례: `import { formatDate, forma
     `Minified React error #418`이 더 이상 뜨지 않는지 확인해야 한다.
   - `RecoverableUploadDrafts`(복구 초안이 있을 때)·`UploadedFileCard`(My Clips 탭)의
     시각 표기가 서버·클라 동일한지는 실제 데이터·탭 전환이 필요해 러너로 못 덮는다.
+  - 날짜만 필드의 **하루 이월**이 실제 데이터에서 몇 건이나 발생하는지 — 프로덕션의
+    `Order.createdAt`·`Subscription.currentPeriodEnd` 중 UTC 15:00 이후 타임스탬프가
+    얼마나 되는지는 DB를 봐야 안다. 배포 후 빌링 화면에서 날짜가 예상과 다른지 확인한다.
   - UTC 표기가 사용자에게 혼란을 주는지(로컬 시각 기대) — 표시 정책 판단이라 실물
     관측 대상.
 
@@ -239,4 +270,37 @@ en 계열 CI에서는 `"en-US"`로 해석돼 골든 문자열이 우연히 일�
 **남은 비차단 위험**: 표시 시각이 UTC로 바뀌는 것은 사용자 가시 변화다. 계획서가
 「대안」에 트레이드오프를 남겼고 게이트②에서 소유자가 선택할 수 있다 — 검증 결함이
 아니라 결정 사항이다.
+
+## 검증 라운드 5 (2026-09-04, plan-verifier 독립 패스 반영)
+
+`plan-verifier`가 처음 보는 컨텍스트에서 필수 경로를 전부 돌려 결함 2건을 보고했다.
+둘 다 재현해 위 본문에 반영했다.
+
+**결함 ⑥ (블로커) — 결함 ⑤의 수정이 스케치된 공개 표면으로는 구현 불가였다.**
+1라운드에서 "`resolvedOptions().locale` 완전 일치 단언"을 넣었으나, 「고칠 파일」과
+스케치는 모듈이 함수 둘만 수출하고 포매터는 **비수출 상수**로 두게 돼 있었다.
+독립 검증이 `Object.keys(mod)` = `['formatDate','formatDateTime']`,
+`"DATE_TIME_FORMATTER" in mod` = `false`로 확인했다 — 테스트에 핸들이 없다. 테스트가
+스스로 포매터를 만들어 단언하면 동어반복이라 아무 돌연변이도 죽이지 않는다. 실제로
+en-US 모사 돌연변이가 `pass 2 / fail 0`으로 **생존**했다. 즉 결함 ⑤가 닫았다고 한
+구멍이 안 닫혀 있었다. → 포매터 상수를 수출 대상에 넣고, 단언을 모듈 포매터 기준으로
+다시 썼다. **재현·확인**: 수출 후 같은 단언을 붙이니 `TZ=UTC`에서 `"en-US"` 돌연변이가
+`expected: 'en'` / `actual: 'en-US'`로 사멸.
+
+**결함 ⑦ (문서 정확성 — 게이트② 판단 재료) — 날짜만 필드의 하루 이월이 누락됐다.**
+스케치 주석이 `formatDate` 대상 필드를 "시계가 무의미한 곳"이라 불렀고 「표시 문구
+변화」는 날짜+시각 필드의 변화만 적었다. 그러나 UTC 15:00 이후 타임스탬프는 KST로
+다음 날이라 **표시되는 날짜 자체가 하루 달라진다**. 실측: `2026-09-27T20:00:00Z` →
+현재 `2026. 9. 28.` / 변경 후 `Sep 27, 2026`. 주문일·구독 갱신일이라 결제와 직결된다.
+→ 주석 정정 + 실측 표를 「표시 문구 변화」에 넣고 「못 덮는 범위」에 확인 항목을 더했다.
+
+**독립 패스가 통과시킨 것**: 인용 전수 대조(부속 인용 포함 전부 일치, Radix `TabsContent`
+에 `forceMount` 부재까지 확인), 스케치 실행(골든 2개 정확 일치·`tsc` clean), before/after
+(모듈 상수 2개의 잔여 참조 0건 확인), 전칭 여집합(포맷 호출부 8곳·테스트 상대 임포트
+11건 재확인), 돌연변이 검사의 장치 1(타임존)은 `TZ=UTC`에서 실제로 사멸, 음성 시험
+(장치 1을 빼면 `pass 2 / fail 0`으로 생존 — 장치 1이 하중 부재임을 독립 재현), 실물
+렌더(`renderToStaticMarkup`으로 서버·브라우저 TZ 양쪽에서 **바이트 동일** 마크업 방출 —
+#418 소멸 메커니즘 확인).
+
+**결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
 
