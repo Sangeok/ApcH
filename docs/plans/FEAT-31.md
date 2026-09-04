@@ -287,9 +287,17 @@ import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch/ser
    }
    ```
    - **분할 전에 이 프로브를 넣고 `npm run build`** → `server-only` 위반으로 빌드 실패해야 한다(잠복 파손이 실재함을 증명). `next build`가 첫 위반에서 멈추므로 이 실패는 "다섯 중 적어도 하나"를 보이며, 다섯 `api/index.ts:1`이 모두 `server-only`임은 「현재 동작」에서 파일로 확인했다.
+     **이 절반은 검증 라운드에서 이미 실행해 확정됐다**(2026-09-04, 메인 루프): `src/app/barrel-probe/page.tsx`에 `"use client"` + `import "~/fsd/entities/user";`만 넣고 `npm run build` →
+     ```
+     Failed to compile.
+     Error: You're importing a component that needs "server-only". ...
+       1 | import "server-only";
+     > Build failed because of webpack errors     (exit 1)
+     ```
+     같은 프로브가 있는 상태에서 `npx tsc --noEmit` **EXIT 0**, `npx next lint` **EXIT 0** — 즉 `npm run check`는 통과하는데 `npm run build`만 깨진다는 이 항목의 전제가 실물로 확인됐다. 구현 단계에서는 **분할 후 절반**(다섯 barrel 동시 임포트 프로브가 통과하는지)만 실행하면 된다.
    - **분할 후에 같은 프로브로 `npm run build`** → 통과해야 한다. 프로브가 다섯 barrel을 side-effect로 전부 임포트하므로, 하나라도 여전히 `server-only`를 끌어오면 빌드가 실패한다 — 통과는 **다섯 전부**가 클라이언트 안전해졌다는 동시 증명이다.
    - 검증 후 프로브 라우트를 삭제하고 `npm run build`를 한 번 더 돌려 실물 통과를 확인한다.
-3. **`npm test -w apps/web`** — 로직 무변경 회귀 확인(기존 70 테스트 유지).
+3. **`npm test -w apps/web`** — 로직 무변경 회귀 확인(**기존 77 테스트 유지**. 검증 라운드에서 실측: BUG-11·BUG-10이 신규 테스트 7개를 더해 70 → 77이 됐다).
 
 프로브 파일은 검증 아티팩트이므로 최종 커밋에 포함하지 않는다. `next build`가 `_`-접두 private 폴더는 라우트로 컴파일하지 않으므로 프로브는 실제 라우트 세그먼트(`barrel-probe`)로 둔다.
 
@@ -302,3 +310,33 @@ import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch/ser
 - **순수 서버 슬라이스 넷의 `index.ts`를 아예 삭제하고 `server.ts`만 둔다.** 기각: 규약 §5.3(각 슬라이스는 `index.ts`로 공개 API를 노출)과 어긋나고, 빈 barrel이 모듈 해석을 안정적으로 유지하며(bare barrel 임포트가 `TS2307` 대신 "심볼 없음"으로 걸려 의도가 명확), 나중에 클라이언트 안전 심볼이 생기면 한 줄 추가로 끝난다.
 - **`index.ts`가 `./api`를 계속 재수출하되 lint/build 규칙으로 클라이언트 임포트를 금지한다.** 기각: 잠복 파손을 없애지 못한다 — barrel은 여전히 클라이언트가 못 쓰고, 클라이언트는 계속 barrel을 우회해 공개 API 경계가 사라진다. FEAT-31이 지목한 바로 그 상태다.
 - **당장 위험한 슬라이스만 분할한다.** 기각: 다섯 모두 동일한 잠복 파손(`api/index.ts:1` = `server-only`, barrel이 재수출)을 갖고, 백로그가 다섯 전부를 범위로 지정했다.
+
+## 검증 라운드 기록 (메인 루프, 2026-09-04 1라운드)
+
+필수 경로: 1(인용 전수 대조) · 2(스케치 추출·실행) · 3(before/after) · 4(전칭 여집합) · 7(음성 시험).
+5(돌연변이)는 판정 로직·순수 함수 신설이 없어 제외, 6(실제 사건 재생)은 외부 신호 해석이 없어 제외,
+8(실물 렌더)은 마크업 변경이 없어 제외했다. 증거는 `docs/agents/main-loop/FEAT-31.md`.
+
+**결함 ① (정밀도) — 테스트 수가 낡았다.** 「테스트」 3번이 "기존 70 테스트 유지"라 적었으나 현재는
+**77**이다(BUG-11의 `transcript.test.mjs` 3 + BUG-10의 `format-date.test.mjs` 4). 구현자가 70을
+기준으로 대조하면 정상을 회귀로 읽는다. → 77로 고치고 근거를 남겼다.
+
+**통과한 것**
+
+- **경로 4 전칭 여집합(이 항목의 본체)** — 다섯 barrel의 임포터를 독립 열거해
+  **13개 파일**이 전부임을 확인(계획서 표와 일치). 여집합을 넓혀도 깨끗하다: 상대경로 임포터
+  **0건**, barrel을 우회한 깊은 임포트(`entities/<slice>/...`) **0건**, 13개 중 `"use client"`
+  **0건**(1행이 `next/server`·`"use server"`·`import "server-only"`·metadata 등 전부 서버 측),
+  `features/*` 공개 API가 다섯 barrel을 재수출하는 곳 **0건**.
+- **경로 7 음성 시험(전제 증명)** — 프로브로 잠복 파손이 실재함을 실물 확인(위 「테스트」 2번에
+  출력 인용). `npm run check`는 통과하고 `npm run build`만 깨진다는 비대칭까지 확인.
+- **경로 1 인용 전수 대조** — 임포터 12곳의 `파일:줄`을 다시 읽어 내용까지 대조, 전부 일치.
+  `processing-dispatch/index.ts:9`가 `export type { ProcessingDispatchStatus } from "./model/types";`
+  인 것도 확인.
+- **경로 2·3 구조 확인** — 네 슬라이스(`analytics-event`·`order`·`subscription`·`user`)에 `api`
+  세그먼트뿐이고 `model`·`lib`·`ui`가 없음을 확인 → `index.ts`가 `export {};`가 되는 근거가 맞다.
+  `processing-dispatch`만 `api`+`model`이라 타입 하나가 남는 것도 맞다. `user/index.ts`가 실제로
+  계획서가 센 심볼 **10개**를 알파벳 순으로 내보내는 것도 대조. 선례 `entities/clip/server.ts`의
+  형태(주석 문구 포함)와 스케치가 일치. `export {};` 한 줄짜리 모듈이 프로젝트 설정에서
+  `npx eslint` **0건** · `tsc --noEmit` **EXIT 0**임도 실측(빈 barrel이 게이트를 깨지 않는다).
+
