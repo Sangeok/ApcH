@@ -79,6 +79,7 @@ agent: web-dev
 | `src/fsd/pages/dashboard/ui/_component/QueueStatus.tsx` | `:71`을 `formatDateTime(file.createdAt)`로 |
 | `src/fsd/widgets/uploaded-file-list/ui/_component/UploadedFileCard.tsx` | 모듈 상수 `dateFormatter`(`:19-22`) 제거, `:30`을 `formatDateTime(file.createdAt)`로(잠복 결함 통합) |
 | `src/fsd/pages/dashboard/ui/_component/RecoverableUploadDrafts.tsx` | 모듈 상수 `formatter`(`:22-25`) 제거, `:88`을 `formatDateTime(...)`로(잠복 결함 통합) |
+| `src/fsd/widgets/site-footer/ui/index.tsx` | `:72`의 `new Date().getFullYear()` → `new Date().getUTCFullYear()`. **현재 결함이 아니다**(서버 컴포넌트라 서버 TZ=UTC로 이미 렌더된다) — 소유자의 "모든 시간 UTC" 지시를 명시적으로 만드는 변경이다. 서버 런타임 TZ가 바뀌어도 흔들리지 않는다 |
 
 **기존 두 곳도 합친다** — 같은 타임존 잠복 결함을 갖고 있고, 통합하면 중복 포매터가
 사라지고 재발 지점이 준다. 기계적이며 같은 파일 부류 안이다.
@@ -213,7 +214,8 @@ UTC 고정 후 하루 앞으로 당겨진다. 실측:
   - 날짜만 필드의 **하루 이월**이 실제 데이터에서 몇 건이나 발생하는지 — 프로덕션의
     `Order.createdAt`·`Subscription.currentPeriodEnd` 중 UTC 15:00 이후 타임스탬프가
     얼마나 되는지는 DB를 봐야 안다. 배포 후 빌링 화면에서 날짜가 예상과 다른지 확인한다.
-  - UTC 표기가 사용자에게 혼란을 주는지(로컬 시각 기대) — 표시 정책 판단이라 실물
+  - UTC 표기가 사용자에게 혼란을 주는지(로컬 시각 기대) — **표시 정책은 UTC로 확정됐다**
+    (「대안」 참조). 남는 것은 실제 화면에서 어색한 곳이 있는지의 관측이라 실물
     관측 대상.
 
 ## 범위 밖 의존
@@ -223,11 +225,11 @@ UTC 고정 후 하루 앞으로 당겨진다. 실측:
 
 ## 대안
 
-- **타임존 `"Asia/Seoul"` 고정** — 현재 관측 화면이 이미 KST를 보여주므로 현
-  운영자(1인, 한국)에겐 표시 시각이 그대로 유지되고 #418도 사라진다. 그러나 영어로
-  글로벌 마케팅하는 제품에 한국 타임존을 박는 것이라, 다른 지역 사용자에게는 KST가
-  뜬다. UTC는 사용자 위치를 가정하지 않아 중립적이고 서버와 같아 최소 변경이라
-  1차로 채택했다. (유저가 붙으면 "사용자 로컬 시각" 표시는 후속 항목으로.)
+- **타임존 `"Asia/Seoul"` 고정** — **소유자가 기각했다(2026-09-04 세션 지시:
+  "Asia/Seoul 대신 UTC로 표시하긴 해야 돼. 현재 프로젝트의 모든 시간을").**
+  결함 ⑦의 날짜 하루 이월(결제일이 하루 이르게 표시될 수 있음)을 알고 내린 결정이다.
+  근거: 영어로 글로벌 마케팅하는 제품에 한국 타임존을 박지 않는다. (유저가 붙으면
+  "사용자 로컬 시각" 표시는 후속 항목으로.)
 - **클라이언트 전용 렌더(마운트 후 로컬 시각)** — `useEffect`/마운트 플래그나
   `suppressHydrationWarning`으로 서버는 안정 자리표시자, 클라는 로컬 시각. 진짜 로컬
   시각을 보여주지만 자리표시자→시각의 깜빡임과 컴포넌트별 상태가 늘어 복잡하다.
@@ -303,4 +305,34 @@ en-US 모사 돌연변이가 `pass 2 / fail 0`으로 **생존**했다. 즉 결�
 #418 소멸 메커니즘 확인).
 
 **결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
+
+## 표시 타임존 결정 (소유자, 2026-09-04)
+
+**UTC로 확정.** 소유자 지시: "Asia/Seoul 대신 UTC로 표시하긴 해야 돼. 현재 프로젝트의
+모든 시간을." 결함 ⑦(날짜만 필드가 하루 이르게 표시될 수 있음)을 제시한 뒤 내린
+결정이다. 「대안」의 Asia/Seoul 안은 기각됐다.
+
+### "모든 시간"의 여집합 확인
+
+지시가 "모든 시간"이라 「고칠 파일」이 실제로 전부를 덮는지 저장소 전수로 확인했다.
+`toLocaleDateString|toLocaleTimeString|toLocaleString|Intl.DateTimeFormat|
+Intl.RelativeTimeFormat|toISOString|toDateString|toTimeString|getFullYear|date-fns|dayjs`
+로 열거한 결과(테스트 제외):
+
+| 위치 | 성격 | 처리 |
+| --- | --- | --- |
+| 다섯 호출부 + 기존 포매터 둘 (8 occurrence) | 사용자 가시 타임스탬프 | 「고칠 파일」이 전부 덮는다 |
+| `widgets/site-footer/ui/index.tsx:72` `new Date().getFullYear()` | 저작권 연도 | **표에 추가**. 서버 컴포넌트라(`home/ui/index.tsx`·`(public-marketing)/layout.tsx` 둘 다 `"use client"` 없음) 이미 서버 TZ=UTC로 렌더되어 현재 결함은 아니다. `getUTCFullYear()`로 명시화 |
+| `inngest/functions.ts:348,793` `new Date().toISOString()` | 이벤트 페이로드 | 표시가 아니라 데이터. ISO-8601은 이미 UTC. 해당 없음 |
+
+`apps/web`에는 이 밖에 시간을 그리는 곳이 없다. `date-fns`·`dayjs`는 의존성에도 없다.
+
+### 워크스페이스 밖 (이 계획서 범위 아님)
+
+`apps/admin`에 시간 표시가 하나 있다 — `pages/analytics/ui/index.tsx:236`의
+`row.lastSeenAt.toLocaleString()`. 로케일·타임존 미고정이지만 그 파일은 서버 컴포넌트라
+(지시자 없음) 서버에서만 렌더되어 하이드레이션 불일치가 없고 이미 UTC로 표시된다 —
+결함이 아니라 **암묵적 의존**이다. 같은 파일의 다른 `toLocaleString()` 여섯은 숫자
+포매팅이라 시간이 아니다. `apps/admin`은 `admin-dev`의 쓰기 범위라 이 계획서가 건드리지
+않는다. 백로그 항목으로 넘겼다(BUG-12).
 
