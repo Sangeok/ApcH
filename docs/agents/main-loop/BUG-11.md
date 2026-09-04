@@ -70,3 +70,25 @@
 (블로커), ② 임포트 제거가 조건부로 남음(정밀도), ③ 테스트 명세 ③이 돌연변이를 못 잡음
 (블로커). **무소득 라운드가 아니므로 `plan-verifier` 디스패치 자격이 아직 없다** —
 다음은 메인 루프의 무편집 패스다.
+
+## 검증 라운드 2 (2026-09-04, 메인 루프 무편집 패스)
+
+1라운드 편집분을 다시 읽고 코드로 재확인했다. **편집 없음.**
+
+**결함 ① 수정안의 실효 검증** — 배럴 행에 넣은
+`export type { TranscriptWord } from "./model/transcript";`가 실제로 TS2305를 없애는지
+확인했다. 저장소에 `features/clip-review/model/transcript.ts`를 임시로 만들고 배럴에 그
+줄을 더한 뒤, 위젯이 쓸 재수출(`export type { TranscriptWord } from "~/fsd/features/clip-review";`)
+을 넣고 `npx tsc --noEmit` → **EXIT 0**(1라운드에서는 같은 줄이 TS2305였다). 확인 후
+임시 파일 삭제 + `git checkout`으로 배럴 복원, `git status` 청결 확인.
+
+**부수 확인** — 위젯 훅의 임포트 출처가 배럴임을 재확인했다
+(`use-clip-draft-review.ts:10-15` → `from "~/fsd/features/clip-review"`). 따라서 계획서
+배럴 행의 두 변경(액션 이름 교체 + 타입 재수출 추가)이 위젯 쪽 수정과 정확히 맞물린다.
+타입 전용 재수출은 컴파일 시 지워지므로 클라이언트 번들에 배럴을 새로 끌어들이지 않는다.
+
+**결함 ②③ 재확인** — ② 본문이 "제거한다(조건부 아님)"로 바뀌었고 스케치 import 줄에서
+`S3_CONFIG`가 빠진 것을 확인. ③ 명세가 에러 메시지 단언으로 바뀌었고, 스케치 구현이
+던지는 문구(`"Transcript payload was not an array"`)와 일치함을 확인.
+
+**결과**: 무편집·무소득 라운드. `plan-verifier` 독립 패스 디스패치 자격이 생겼다.

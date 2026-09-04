@@ -163,8 +163,12 @@ import 경로는 `format-duration`과 동일 관례: `import { formatDate, forma
      (실측: `TZ=UTC`에서 돌연변이 생존, `TZ=Asia/Seoul`에서 사멸). CI·Vercel이 UTC이므로
      기본 상태가 곧 생존 조건이다. 포매터는 모듈 스코프에서 만들어지므로 **`process.env.TZ`
      설정이 임포트보다 먼저**여야 한다 — 테스트 첫 줄에서 `process.env.TZ = "Asia/Seoul"`
-     을 설정하고 `await import("./format-date.js")`로 동적 임포트한다(실측: 이렇게 하면
-     `TZ=UTC`로 띄운 프로세스에서도 돌연변이가 `"Jul 31, 2026, 7:55 AM"`으로 사멸).
+     을 설정하고 `await import("./format-date.ts")`로 동적 임포트한다 — 확장자는 `.ts`다
+     (이 저장소의 `*.test.mjs` 넷이 전부 `"./모듈.ts"` 형태다: `clip-type-label.test.mjs:4`,
+     `stuck-alert.test.mjs:4`, `clip-generation-outcome.test.mjs:4`,
+     `clip-count-budget.test.mjs:4`. `.js`도 tsx가 해석하지만 관례를 따른다).
+     **실제 러너로 실측**: `TZ=UTC npx tsx --test`에서 원본은 통과, `timeZone: "UTC"`를
+     지운 돌연변이는 `actual: 'Jul 31, 2026, 7:55 AM'`으로 **사멸**했다.
   2. **`resolvedOptions().locale`이 정확히 `"en"`인지 단언한다**(`startsWith("en")`이
      아니라 완전 일치). 로케일 인자를 지운 구현은 시스템 로케일로 해석되는데, en 계열
      CI에서는 `"en-US"`가 되어 골든 문자열이 우연히 같을 수 있다. 완전 일치 단언이면
