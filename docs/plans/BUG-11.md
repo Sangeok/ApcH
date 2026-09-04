@@ -207,9 +207,28 @@ after(옵션 부분만; 필터 로직은 서버로 이동했으므로 queryFn이
   });
 ```
 
-`import { getTranscriptUrl, ... }`(`:12`)는 `getTranscript`로 바꾸고,
-`export interface TranscriptWord {...}`(`:27-31`)는 feature 재수출로 바꾼다:
-`export type { TranscriptWord } from "~/fsd/features/clip-review";`. 반환부의
+배럴 값 임포트 블록(`:10-15`)에서 `getTranscriptUrl`을 `getTranscript`로 바꾸고,
+**같은 블록에 `type TranscriptWord`를 함께 들인 뒤** 별도 줄로 재수출한다:
+
+```ts
+import {
+  addCustomClipDraft,
+  getTranscript,
+  saveClipDraftEdit,
+  type CaptionStyleInput,
+  type TranscriptWord,
+} from "~/fsd/features/clip-review";
+
+export type { TranscriptWord };
+```
+
+`export interface TranscriptWord {...}`(`:27-31`)는 삭제한다.
+
+**순수 재수출 한 줄(`export type { TranscriptWord } from "~/fsd/features/clip-review";`)로
+바꾸면 안 된다** — 재수출은 **로컬 바인딩을 만들지 않아** 같은 파일에 남는
+`useQuery<TranscriptWord[]>`(`:70`)가 깨진다. 실측:
+`error TS2304: Cannot find name 'TranscriptWord'` / `EXIT=2`. 위 교정형(로컬 임포트 +
+재수출)은 같은 컴파일 플래그에서 `EXIT=0`이다(검증 라운드 결함 ⑧). 반환부의
 `transcriptErrorMessage`(`:334-338`)는 그대로 둔다.
 
 **사용자에게 보이는 문구**: 실패 시 노출되는 문구는 기존
@@ -307,4 +326,41 @@ import 줄에서 `S3_CONFIG`를 뺐다.
 **인가 경계(INV-4)**: 교체 후에도 `requireAuth()` → `findUploadedFileReviewState(id, userId)`
 테넌트 스코프가 유지된다. 브라우저에 presign URL이 더는 노출되지 않으므로 접근 표면은
 줄어든다. 상태 변경이 없는 읽기 경로라 멱등성·동시성 항목은 해당 없음.
+
+## 검증 라운드 5 (2026-09-04, plan-verifier 독립 패스 반영)
+
+`plan-verifier`가 처음 보는 컨텍스트에서 필수 경로 여덟을 전부 돌려 **블로커 1건**을
+보고했다. 재현해 본문에 반영했다.
+
+**결함 ⑧ (블로커) — 결함 ①의 수정이 절반만 맞았다.**
+1라운드는 재수출의 **원천**(배럴)만 격리 검사해 TS2305를 잡고 배럴 행을 고쳤다. 그러나
+위젯이 그 타입을 **로컬로 계속 소비한다**(`useQuery<TranscriptWord[]>`)는 상호작용을 함께
+컴파일하지 않았다. `export type { X } from "…"`는 재수출일 뿐 로컬 바인딩을 만들지 않으므로,
+계획서 지시대로 구현하면 `error TS2304: Cannot find name 'TranscriptWord'`로 `npm run check`
+의 tsc 게이트가 깨진다 — 계획서 자신이 못 박은 성공 기준을 못 넘는다. **실측 재현**:
+지시형 `EXIT=2`(TS2304), 교정형(`import type` + `export type { … }`) `EXIT=0`.
+→ 스케치를 배럴 값 임포트 블록에 `type TranscriptWord`를 합치고 별도 줄로 재수출하는
+형태로 다시 썼고, 순수 재수출이 왜 안 되는지 실측 근거와 함께 남겼다.
+
+**독립 패스가 통과시킨 것**: 인용 전수 대조(부수 확인으로 `ACTIVE_UPLOAD_POLLING_INTERVAL_MS
+= 7_500`까지 대조해 "7.5초 폴" 정확 확인, 오기 0건). 스케치 추출·실행 — 스크래치패드에
+tsconfig를 복제해 **실제 `@aws-sdk/client-s3 ^3.928.0`**에 물려 `transformToString()` 타입
+통과(EXIT 0), 재구성 `api/index.ts`도 실제 크로스슬라이스 모듈에 물려 EXIT 0, 타입인지
+eslint 0건(특히 `parseTranscriptWords(JSON.parse(raw))`가 `no-unsafe-argument`를 내지
+않음 — 파라미터가 `unknown`이라 안전). 음성 시험 — 같은 eslint 하니스에 `JSON.parse`
+직사용 파일을 넣으니 `no-unsafe-*` 4건 EXIT 1(검출력 확인). 전칭 여집합 — `getTranscriptUrl`
+사용처 3곳(정의·배럴·위젯) 전부 교체 대상에 포함(고아 소비자 0), `S3_CONFIG`·
+`generatePresignedGetUrl` 사용처 `:41`·`:43`뿐(결함 ② 정확), `TranscriptWord` 외부 소비처
+정확히 둘. 돌연변이 검사 — 강화 명세(메시지 단언)에서 돌연변이 4개 **전부 사멸**,
+throw-only로 되돌리면 배열 가드 제거가 **생존**(결함 ③의 근거를 독립 재현).
+
+**경로 6 판정 갱신**: 1라운드는 "실측 payload를 못 얻어 미검증"으로 남겼는데, 독립 패스가
+**생산자 계약을 직접 추적**해 대체 실행했다 — `apps/backend/main.py:923·932·934`가
+`{"start":float,"end":float,"word":str}` 배열을 만들고 `:1064·1068-1076`이 그것을
+`transcript.json`에 **맨 배열**로 올린다. 그 계약대로 재구성한 배열(유니코드 포함)을
+컴파일된 파서에 통과시켜 7/7 유지·유니코드 보존 확인. 진짜 캡처 파일 재생은 여전히
+불가하지만(데이터가 S3에 있음), **모양 불일치 위험은 생산자 계약 확인으로 닫혔다** —
+래퍼 객체가 아니라 맨 배열이라 파서가 실데이터에 throw하지 않는다.
+
+**결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
 
