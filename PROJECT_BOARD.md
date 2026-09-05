@@ -40,6 +40,7 @@
   area: apps/web/src/fsd/widgets + apps/web/src/fsd/pages + apps/web/src/app + apps/web/src/fsd/features/billing
   status: 검토대기
   근거: 소유자가 FEAT-31 인수 후 다음 항목으로 지목("진행"). 전제 재확인 — widgets 배럴 0/7, 슬라이스 밖 참조 9곳, 인트라 자기참조 10건(clip-display 7·billing 3). FEAT-34의 선행이다. 미결 0건.
+  검증: 클린 패스 (2026-09-05, 독립 무편집 1라운드 — plan-verifier 3사이클째)
 
 ## 2026-09-04
 - [x] FEAT-31: 엔티티 배럴 다섯을 클라이언트 안전 `index.ts` + 서버 전용 `server.ts`로 분할 — 첫 클라이언트 임포트가 빌드를 깨는 잠복 파손 제거
