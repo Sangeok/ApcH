@@ -22,6 +22,17 @@
 
 ---
 
+## FEAT-33 — widgets Public API 배럴 + import 경로 위생 (web, 구현 2026-09-05)
+
+원천: `docs/agents/web-dev/FEAT-33.md`의 「테스트로 못 덮은 범위」. 커밋 `ac7808c`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+사용자 가시 동작 변화가 **없는** 항목이다(배럴 신설 + import specifier 교체, 컴포넌트 본문 무변경). 게이트는 `npm run check` EXIT 0 · `npm test` 77/0 · `npm run build` EXIT 0으로 통과했고, 경계가 실제로 생겼는지는 기계 검증 세 숫자로 판정했다 — 메인 루프가 인수 시 직접 재현: widgets 배럴 `find` **7**, 위젯 세그먼트 직접 참조 grep **0**, billing 슬라이스 자기참조 grep **0**.
+**`〔auto〕` 태그를 붙이지 않는다**: 아래는 로그인 뒤 화면을 포함한 육안 렌더 확인이라 admin base의 루틴이 판정할 수 없다.
+
+- [ ] **배럴 경유 마운트 무회귀(육안)**: 배럴로 임포트 경로가 바뀐 컴포넌트가 실제로 렌더된다 — `/`(SiteFooter·PublicHeader), `(public-marketing)` 라우트 다섯(SiteFooter·PublicHeader), `/login`(LoginForm), `/dashboard`(DashboardHeader·UploadedFileList), `/dashboard/uploads/<id>`(ClipDisplay·ClipDraftReviewSection), `/dashboard/billing`(billing 자기참조 3건이 상대경로로 바뀐 화면). `npm test`는 DOM이 없어 렌더를 못 덮고 `tsc`·`build`가 모듈 해석만 보장한다
+- [ ] **경계가 유지되는지(감시 지점)**: 이번에 세운 배럴이 **앞으로도 유일 경로로 강제되지는 않는다.** 누군가 다시 `~/fsd/widgets/<슬라이스>/ui`로 직접 임포트해도 `check`·`build`가 통과한다 — 위 grep 세 숫자를 사람이 돌려야 안다. FEAT-34(경계 자동 검출)가 도입되면 `대체(FEAT-34)`로 닫는다
+
+---
+
 ## FEAT-31 — 엔티티 배럴 다섯의 런타임 분할 (web, 구현 2026-09-04)
 
 원천: `docs/agents/web-dev/FEAT-31.md`의 「테스트로 못 덮은 범위」. 커밋 `a3d85c2`. **배포 대기** — `dev`에 있고 `main` 합류 전.
