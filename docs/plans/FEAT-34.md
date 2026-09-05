@@ -35,7 +35,7 @@ agent: web-dev
 admin 스크립트가 web에 주는 것과 web에 맞춰 조정할 것:
 
 - **주는 것**: AST 파싱·규칙 ID·종료코드·evidence 출력·인메모리 음성 픽스처 패턴은 그대로 이식할 수 있다. 신규 의존성이 없다(`typescript` 재사용).
-- **조정할 것(규칙 셋은 web 관례에 맞춘다)**: admin의 R1~R13은 admin 전용 owner(analytics `findMany` 유일 owner, pipeline private export 목록, legacy 디렉터리)에 묶여 있어 그대로 쓸 수 없다. web의 Public entry 관례가 다르다 — admin은 엔티티 server query를 `entities/<슬라이스>/api`(api/index.ts)로 두지만, **web은 `entities/<슬라이스>/server.ts`**로 둔다(§4 「슬라이스 공개 API를 런타임 기준으로 나눈다」, guidelines `docs/conventions/fsd-architecture-guidelines.md:108`). feature server action은 `features/<슬라이스>/api`로 둔다. 따라서 규칙은 web-특화로 다시 쓴다(아래 W1~W8).
+- **조정할 것(규칙 셋은 web 관례에 맞춘다)**: admin의 R1~R13은 admin 전용 owner(analytics `findMany` 유일 owner, pipeline private export 목록, legacy 디렉터리)에 묶여 있어 그대로 쓸 수 없다. web의 Public entry 관례가 다르다 — admin은 엔티티 server query를 `entities/<슬라이스>/api`(api/index.ts)로 두지만, **web은 `entities/<슬라이스>/server.ts`**로 둔다(§4 「슬라이스 공개 API를 런타임 기준으로 나눈다」, guidelines `apps/web/docs/conventions/fsd-architecture-guidelines.md:108`). feature server action은 `features/<슬라이스>/api`로 둔다. 따라서 규칙은 web-특화로 다시 쓴다(아래 W1~W8).
 - **`--final` 모드는 web에 불필요**: web은 FSD 마이그레이션이 사실상 끝났다 — legacy 최상위 소스 디렉터리가 없고(`src/fsd`가 유일한 제품 코드 홈), 모든 엔티티·배럴이 이미 존재한다. 걷어낼 잔재가 없으므로 완결성 게이트가 검사할 대상이 없다. web은 단일 `verify:fsd`가 게이트다.
 
 ## 문제
@@ -561,4 +561,33 @@ pages 인트라 자기참조도 **정확히 4건**(`UploadPodcast.tsx:26·27`, `
 재직렬화·`npm test` 글롭이 `scripts/`를 제외함(→ `verify:fsd:test` 별도 실행 필요)을 확인.
 
 **결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
+
+## 검증 라운드 3 (plan-verifier 독립 패스 2사이클) — 결함 1건
+
+**결함 (문서 위생, 상호참조)**: 「현재 동작」 38행이 guidelines를
+`docs/conventions/fsd-architecture-guidelines.md:108`로 인용했다. 이 계획서는 저장소 루트
+`docs/plans/`에 있어 그 경로는 **루트 기준으로 해석되는데, 루트 `docs/conventions/`에는
+`.gitkeep`뿐**이다(실측). 실제 파일은 `apps/web/docs/conventions/...` 하나뿐이다. 같은 계획서가
+바로 옆에서는 접두사를 정확히 구분해 쓴다(`docs/release-checks.md:32·43`은 루트,
+`apps/web/docs/proposals/README.md`는 접두사 있음) — 이 한 줄만 빠졌다. → `apps/web/` 접두사 추가.
+줄 내용(108행 = 「슬라이스 공개 API를 런타임 기준으로 나눈다」)은 검증자가 직접 재독해 정확함을
+확인했고, §4 규약은 계획서 본문 72·81행과 `apps/web/CLAUDE.md`에 중복 서술돼 있어 구현 영향은 없다.
+
+**독립 패스 2사이클이 통과시킨 것** — 1사이클보다 넓게 갔다.
+
+- **경로 3에서 after 상태를 실제로 조립했다**: 선행 정리 5건을 인메모리로 적용하고
+  `entities/uploaded-file/index.ts`에 `PROCESSING_STALE_POLICY` 재수출을 더한 뒤
+  `analyzeFsdBoundaries`를 돌려 **`[]`(클린)** 을 확인했다. 즉 "5건을 고치면 0이 된다"가
+  주장이 아니라 실측이 됐다.
+- **경로 4에서 계획서의 산술을 재구성했다**: "크로스 슬라이스 딥 임포트 27건 = 정당 배럴 21 +
+  정당 server-action 1 + 위반 5"를 독립 검산 — `entities/*/server` 임포트 32건에서 비-fsd 소스
+  11건을 빼면 21, 거기에 `features/upload/api` 1건과 위반 5건. **정확**. `db` 값 임포트도 12건
+  전수 열거해 전부 승인 owner에 포섭됨을 확인.
+- **경로 7에서 내 2라운드 수정을 독립 재현**: W8이 owner 값 임포트 `[]` · 비-owner 값 임포트
+  `[W8]` · `import type { db }`와 `import { type db }` **둘 다 `[]`** — `isTypeOnly` 가드가
+  inline `type` 지정자까지 정확히 거른다. owner 변이(`clip/api` 형제로 바꾸기)도 `[W8]`을 내
+  등록이 장식이 아님을 확인.
+- 게이트 베이스라인도 실행 — `typecheck` EXIT 0, `test` **77/77**, `lint` 경고·에러 0.
+
+**결과**: 소폭 편집(경로 접두사 하나). 다음은 새 독립 패스.
 
