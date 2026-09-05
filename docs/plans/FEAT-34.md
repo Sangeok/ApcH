@@ -6,31 +6,31 @@ agent: web-dev
 
 `apps/web`에는 FSD 경계를 강제하는 어떤 자동 검사도 없다. 사람 감사(`fsd-architecture-compliance-proposal.md`의 Audit)만 재발을 막고 있다.
 
-- `apps/web/package.json:8` `"check": "next lint && tsc --noEmit"` — lint와 타입체크뿐이다. 경계 검사 스크립트가 없다. `scripts/`에 `verify:fsd*`가 없고 `package.json`의 scripts는 dev·inngest-dev·build·start·check·format:check·format:write·lint·lint:fix·preview·typecheck·dev:polar·ngrok·test뿐이다(전수 확인).
+- `apps/web/package.json:10` `"check": "next lint && tsc --noEmit",` — lint와 타입체크뿐이다. 경계 검사 스크립트가 없다. `scripts/`에 `verify:fsd*`가 없고 `package.json`의 scripts는 dev·inngest-dev·build·start·check·format:check·format:write·lint·lint:fix·preview·typecheck·dev:polar·ngrok·test뿐이다(전수 확인).
 - `apps/web/eslint.config.js` — `tseslint.config(...)` flat config이나 `no-restricted-imports` 룰이 없다(전수 확인: `no-restricted-imports` 0건). 규칙은 `@typescript-eslint/*` 스타일 룰과 `next/core-web-vitals`만 있다.
-- `apps/web`에 `steiger.config.*`가 없고, `package.json`의 dependencies·devDependencies에 `steiger`·`@feature-sliced/steiger-plugin`·`@feature-sliced/eslint-config`가 없다(전수 확인). `typescript@5.9.3`은 devDependencies에 이미 있어 AST 파서로 즉시 쓸 수 있다.
+- `apps/web`에 `steiger.config.*`가 없고, `package.json`의 dependencies·devDependencies에 `steiger`·`@feature-sliced/steiger-plugin`·`@feature-sliced/eslint-config`가 없다(전수 확인). `typescript`는 devDependencies에 이미 있어(`package.json:72` 선언은 `"^5.8.2"`, 설치본은 5.9.3) AST 파서로 즉시 쓸 수 있다.
 
 현재 FSD 트리는 실측상 아래 불변식을 이미 지키고 있다(FEAT-31·FEAT-33·클린코드 개선의 결과). 각 수치는 이 계획서를 쓰며 재측정했다.
 
 - **레이어 선형 흐름(상위→하위만)**: `src/fsd` 내부 상향 임포트 **0건**.
 - **슬라이스 격리(peer 임포트 금지)**: 같은 레이어 다른 슬라이스 임포트 **0건**.
 - **자기 배럴 임포트 금지**: 슬라이스가 자기 루트 배럴을 임포트 **0건**.
-- **widgets Public API 경유**: `~/fsd/widgets/<슬라이스>` 소비 8곳 전부 슬라이스 루트 배럴 경유(clip-display·clip-draft-review·dashboard-header·login-form·uploaded-file-list 각 1, site-footer·site-header 각 2). 위젯 세그먼트(`.../ui`, `.../model` 등) 직접 참조 **0건**.
-- **엔티티 클라이언트 배럴 순수성**: `entities/*/index.ts` 8개 전부 `./api`(server-only)를 재수출하지 않는다(`entities/uploaded-file/index.ts`는 model·ui만 재수출; 나머지 7개는 `export {}` 또는 model만). server-only 접근은 `entities/*/server.ts`가 `./api`를 재수출한다(예: `entities/uploaded-file/server.ts:1` `import "server-only";`).
+- **widgets Public API 경유**: `~/fsd/widgets/<슬라이스>` 소비 **9곳** 전부 슬라이스 루트 배럴 경유(clip-display·clip-draft-review·dashboard-header·login-form·uploaded-file-list 각 1, site-footer·site-header 각 2). 위젯 세그먼트(`.../ui`, `.../model` 등) 직접 참조 **0건**.
+- **엔티티 클라이언트 배럴 순수성**: `entities/*/index.ts` 8개 전부 `./api`(server-only)를 재수출하지 않는다(`entities/uploaded-file/index.ts`는 model·ui만 재수출; 나머지 7개는 `export {}`(analytics-event·order·subscription·user)·model 타입(clip-draft·processing-dispatch)·**lib**(clip — `export { clipTypeLabel } from "./lib/clip-type-label";`)). server-only 접근은 `entities/*/server.ts`가 `./api`를 재수출한다(예: `entities/uploaded-file/server.ts:1` `import "server-only";`).
 
 두 감시 지점은 지금 `check`·`build`로 잡히지 않는다.
 
 - `docs/release-checks.md:43`(FEAT-31 절 「회귀 방어선 부재(감시 지점)」): "새 `api/index.ts` 심볼이 다시 `index.ts`로 재수출돼도 **클라이언트 임포터가 생기기 전까지 CI가 못 잡는다** … FEAT-34(경계 자동 검출)가 도입되면 `대체(FEAT-34)`로 닫는다".
 - `docs/release-checks.md:32`(FEAT-33 절 「경계가 유지되는지(감시 지점)」): "누군가 다시 `~/fsd/widgets/<슬라이스>/ui`로 직접 임포트해도 `check`·`build`가 통과한다 … FEAT-34(경계 자동 검출)가 도입되면 `대체(FEAT-34)`로 닫는다".
 
-저장소 선례는 `apps/admin/scripts/verify-fsd-boundaries.mjs`(731줄)다. 구조를 실제로 읽었다.
+저장소 선례는 `apps/admin/scripts/verify-fsd-boundaries.mjs`(730줄)다. 구조를 실제로 읽었다.
 
 - `analyzeFsdBoundaries({ files, mode })`를 **export**해 순수 함수로 테스트 가능하게 하고(`:232`), CLI는 그 결과를 소비한다.
 - `typescript`로 각 파일을 AST 파싱(`ts.createSourceFile`, `:242`)해 import/export 지정자·호출식·directive를 순회한다. 정규식이 주석·문자열에서 오탐하는 문제를 피한다.
 - 규칙마다 **ID**(R1~R13)와 메시지를 붙이고(`addViolation`, `:215`), 위반을 `path:line [RULE] message`로 stderr에 출력(`:717-721`).
 - CLI는 위반이 있으면 `process.exitCode = 1`(`:722`), 없으면 `FSD boundary check passed`(`:714`).
 - `--final` 모드(`:708`)는 admin의 **진행 중 마이그레이션 완결성**을 검사한다 — `REQUIRED_FINAL_FILES` 존재(`:47-68`), `LEGACY_TOP_LEVEL` 잔존 금지(`:70-77`), effect-owner 드리프트(`:670-681`). admin은 legacy 최상위 디렉터리(`src/analytics/`·`src/pipeline/` 등)를 아직 걷어내는 중이라 이 모드가 필요하다.
-- 셀프테스트 `verify-fsd-boundaries.test.mjs`(208줄)는 **음성 픽스처**를 인메모리 파일맵으로 넣어 각 규칙이 실제로 위반을 낸다는 것을 고정한다(예: `:38-48` 상향·peer, `:100-109` wildcard/private export, `:111-123` public directive/server leak, `:177-194` owner 등록이 장식이 아님을 mutation으로 증명). `apps/admin/package.json:16-18`이 `verify:fsd`·`verify:fsd:test`·`verify:fsd:final` 세 스크립트를 두고 `check`(`:11`)가 `verify:fsd:test && verify:fsd`를 앞세운다.
+- 셀프테스트 `verify-fsd-boundaries.test.mjs`(207줄)는 **음성 픽스처**를 인메모리 파일맵으로 넣어 각 규칙이 실제로 위반을 낸다는 것을 고정한다(예: `:38-48` 상향·peer, `:100-109` wildcard/private export, `:111-123` public directive/server leak, `:177-194` owner 등록이 장식이 아님을 mutation으로 증명). `apps/admin/package.json:17-19`가 `verify:fsd`·`verify:fsd:test`·`verify:fsd:final` 세 스크립트를 두고 `check`(`:13`)가 `verify:fsd:test && verify:fsd`를 앞세운다.
 
 admin 스크립트가 web에 주는 것과 web에 맞춰 조정할 것:
 
@@ -224,12 +224,15 @@ function addViolation(violations, sourceFile, node, rule, message) {
 }
 function importsDbClient(node) {
   const clause = node.importClause;
-  const bindings = clause?.namedBindings;
+  // 타입 전용 임포트는 컴파일 시 소거돼 런타임 결합이 없다 — W8은 값 임포트만 본다.
+  // (`verbatimModuleSyntax`가 켜져 있어 타입 사용은 반드시 `import type`/inline `type`으로 표기된다.)
+  if (!clause || clause.isTypeOnly) return false;
+  const bindings = clause.namedBindings;
   if (!bindings) return false;
   if (ts.isNamespaceImport(bindings)) return true;
   if (ts.isNamedImports(bindings)) {
     return bindings.elements.some(
-      (el) => (el.propertyName?.text ?? el.name.text) === "db",
+      (el) => !el.isTypeOnly && (el.propertyName?.text ?? el.name.text) === "db",
     );
   }
   return false;
@@ -395,7 +398,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
 
 ### `package.json` (before/after)
 
-before(`:8`): `"check": "next lint && tsc --noEmit",`
+before(`:10`): `"check": "next lint && tsc --noEmit",`
 
 after(scripts 블록에 추가 + check 교체):
 ```json
@@ -529,4 +532,33 @@ pages 인트라 자기참조도 **정확히 4건**(`UploadPodcast.tsx:26·27`, `
 `features/upload/index.ts:22·23·25`가 `query-options`·`useDeleteUploadedFile`·`useResumeUploadDraft`를
 각각 재수출한다. `stale-policy.ts`는 임포트 **0건**의 순수 상수(`export const PROCESSING_STALE_POLICY = {`)라
 배럴에 올려도 클라이언트 안전하다는 판단이 맞다.
+
+## 검증 라운드 2 (plan-verifier 독립 패스 1사이클) — 결함 6건, 전부 반영
+
+독립 패스가 여섯을 냈고 **구현을 틀리게 하는 것은 0건**이라고 스스로 분류했다(before 전부 바이트
+일치, after-import가 실재 배럴로 해석, package.json after 상태가 구조적으로 유효). 여섯 다 메인
+루프가 재현해 본문에 반영했다.
+
+| # | 무엇 | 실측 | 반영 |
+| --- | --- | --- | --- |
+| 1 | widgets 소비 "8곳" | **9곳**(계획서 자신의 내역 합도 9: 5×1+2×2) | 9로 |
+| 2 | `web/package.json:8`의 check | 실제 **:10**(8행은 `inngest-dev`), 문자열은 일치 | 줄번호 정정 |
+| 3 | admin `check(:11)`·`verify(:16-18)` | 실제 **:13**·**:17-19** | 정정 |
+| 4 | admin 스크립트 731/208줄 | 실제 **730/207**. `typescript` 선언은 `^5.8.2`(설치본 5.9.3) | 정정 + 선언값 명시 |
+| 5 | "나머지 7개는 `export {}` 또는 model만" | `entities/clip/index.ts`가 **lib**를 재수출(`clipTypeLabel`) | 세 부류로 분해 |
+| 6 | W8이 "값 임포트"라 하는데 코드가 타입 임포트도 발화 | 픽스처 실측: `import type { db }`가 값 임포트와 **동일하게** `[W8]` EXIT 1 | 스케치에 `isTypeOnly` 가드 추가 |
+
+**6에 대한 판단**: 규칙 서술을 코드에 맞추는 대신 **코드를 서술에 맞췄다.** `import type { db }`는
+컴파일 시 소거돼 런타임 결합이 없으므로 경계 위반이 아니다 — W8이 잡으려는 것은 런타임 db 접근이다.
+`verbatimModuleSyntax`가 켜져 있어 타입 사용은 반드시 `import type`/inline `type`으로 표기되므로
+`isTypeOnly` 가드가 안전하다. 현 트리 W8=0이라 지금은 무영향이지만, 나중에 누가 타입만 참조하려다
+거짓 위반을 받는 것을 막는다.
+
+**독립 패스가 통과시킨 것**: 스크립트 283줄을 바이트 추출해 실트리 실행 — W6 5건·오탐 0·EXIT 1
+(메인 루프 1라운드와 같은 결과를 독립 재현). 음성 시험을 **여덟 규칙 전부**에 돌려 각각의 음성이
+발화하고 양성이 통과함을 확인했고, W8은 owner 목록에서 빼는 **변이**까지 돌려 등록이 장식이 아님을
+보였다. 구조적 아티팩트 검사(경로 9)로 package.json after 상태를 JSON 파싱해 키 충돌 0·유효
+재직렬화·`npm test` 글롭이 `scripts/`를 제외함(→ `verify:fsd:test` 별도 실행 필요)을 확인.
+
+**결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
 
