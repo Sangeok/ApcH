@@ -56,7 +56,7 @@ admin 스크립트가 web에 주는 것과 web에 맞춰 조정할 것:
 | `src/fsd/pages/dashboard/ui/_component/RecoverableUploadDrafts.tsx` | 훅 딥 임포트 둘을 upload 배럴 경유로(W6 선행 정리) |
 | `src/fsd/entities/uploaded-file/index.ts` | `PROCESSING_STALE_POLICY` 재수출 추가(배럴에 없어서 아래 파일이 딥 임포트 중) |
 | `src/fsd/features/upload/api/reconcile-stale-processing.ts` | `stale-policy` 딥 임포트를 uploaded-file 배럴 경유로(W6 선행 정리) |
-| `apps/web/docs/proposals/active/fsd-architecture-compliance-proposal.md` → `completed/` | 마지막 남은 항목이 0이 되므로 완료 이동 + frontmatter(status·stage·completed-at·verification-summary) 갱신 |
+| `apps/web/docs/proposals/active/fsd-architecture-compliance-proposal.md` → `completed/` **(담당: 메인 루프)** | 마지막 남은 항목이 0이 되므로 완료 이동 + frontmatter 갱신 + 「Completion or Closure Notes」 절 신설. web-dev 쓰기 범위 밖이라 인수 시 메인 루프가 처리한다(「범위 밖 의존」의 담당 확정 참조) |
 
 여기 적히지 않은 파일은 구현 단계에서 고치지 않는다.
 
@@ -441,7 +441,11 @@ after(scripts 블록에 추가 + check 교체):
 
 ### proposal 완료 이동
 
-`apps/web/docs/proposals/active/fsd-architecture-compliance-proposal.md`를 `completed/`로 이동하고 frontmatter를 갱신한다(`status: "completed"`, `stage: "done"`, `completed-at: "<구현일>"`, `verification-summary: "경계 자동 검출 스크립트(verify:fsd) 도입, check 배선, 감시 지점 둘 음성 시험 통과"`). 기준은 `apps/web/docs/proposals/README.md`.
+`apps/web/docs/proposals/active/fsd-architecture-compliance-proposal.md`를 `completed/`로 이동하고 frontmatter를 갱신한다(`status: "completed"`, **`stage: null`**(README:45 — "`stage`는 `pending` 문서에만 사용한다. `completed` 또는 `closed` 문서는 `stage: null`로 둔다"), `completed-at: "<구현일>"`, `verification-summary: "경계 자동 검출 스크립트(verify:fsd) 도입, check 배선, 감시 지점 둘 음성 시험 통과"`). 기준은 `apps/web/docs/proposals/README.md`다. 그 파일이 요구하는 것을 전부 옮기면:
+
+- frontmatter 넷(`status`·`stage`·`completed-at`·`verification-summary`) — 위 값
+- **「Completion or Closure Notes」 절 신설**(README:249). 이 제안서에는 그 절이 없다(현재 마지막 절이 `## Audit (2026-08-03)`) — 새로 더한다. 담을 것: 어떤 항목들이 이 제안서를 닫았는지(FEAT-31·FEAT-33·FEAT-34), 원래 범위 중 **실제로 수행하지 않은 것**(제안서 Phase 1~4의 상당 부분은 2026-09-03 클린코드 개선 77건이 다른 경로로 이미 닫았고, 남았던 것이 「Audit」 절의 네 항목이었다), 검증 결과.
+- 완료 이동 기준 여덟(README:279-288) 중 "문서가 더 이상 실행 전 제안서가 아니라 수행 기록으로 읽힘"을 만족하려면 **본문 앞머리에 완료 요약이 필요하다** — 제안서 본문은 여전히 미래형(「제안하는 해결책」·「마이그레이션 단계」)이다. 「Audit」·「재대조」 절이 사실상 그 역할을 하므로, Completion 절에서 그 둘을 가리키고 "본문의 Phase 서술은 당시 계획이며 실제 이행 경로는 아래와 같다"고 명시한다.
 
 ## 테스트
 
@@ -464,10 +468,65 @@ after(scripts 블록에 추가 + check 교체):
 
 없음. 신규 의존성이 없다(`typescript`는 devDependencies에 이미 있음). `packages/db`·다른 워크스페이스 변경 없음. 모든 대상이 `apps/web` 안이다.
 
-주의(범위 판단): `apps/web/docs/proposals/` 이동은 `apps/web` 워크스페이스 안이지만 `src/**` 밖이다. 이 계획서 「고칠 파일」에 넣되, 구현 단계에서 담당 쓰기 범위 밖으로 판정되면 그 부분만 `보류`로 남기고 스크립트·배선·선행 정리(본체)는 완료한다 — proposal 이동은 본체가 아니라 후속 정리다.
+**담당 확정(검증 라운드에서 결론)**: proposal 이동은 **메인 루프가 한다.** `web-dev`의 쓰기 범위는 `.claude/agents/web-dev.md:22`가 `apps/web/src/**`(FSD·Inngest·App Router·server 설정)와 `apps/web` 하위 테스트 파일로 한정한다 — `apps/web/docs/**`는 그 밖이다. "구현 단계에서 판정"으로 미룰 물음이 아니라 이미 답이 있다. 같은 전례가 있다 — FEAT-31·FEAT-33에서 `apps/web/CLAUDE.md`(역시 web-dev 범위 밖)의 갱신을 메인 루프가 인수 시 처리했다.
+
+따라서 **「고칠 파일」의 proposal 행은 담당이 메인 루프**이고, web-dev는 나머지 여덟 파일만 건드린다. 구현 보고에 `보류`가 생기지 않는다.
 
 ## 대안
 
 - **(a) `steiger` + `@feature-sliced/steiger-plugin` 신규 도입**: 채택하지 않음. ① 신규 의존성 둘이 필요하고 플러그인 API가 버전 결합(proposal도 "버전에 맞춰 조정"이라 단서). ② 기본 ruleset이 FSD 표준을 그대로 강제해 **web 현실과 즉시 충돌** — web `pages`는 배럴(index.ts)이 하나도 없어(16개 슬라이스 전부 `src/app`이 `ui`/`config` 세그먼트를 직접 임포트) steiger public-api 룰이 대량 위반을 낸다. 우리 커스텀 규칙은 "fsd 내부에서 pages를 임포트하는 곳이 0"임을 이용해 pages 배럴 없이도 통과하도록 스코프를 좁힐 수 있지만 steiger 기본 룰은 그 재단이 어렵다. ③ steiger는 디렉터리 스코프(`steiger src/fsd`)라 `src/app`→widgets 내부 같은 **엔트리 포인트發 위반(W4)**을 못 본다 — FEAT-33 감시 지점을 절반만 닫는다. ④ 예외를 config로 표현해도 R2 queries처럼 web에 없는 예외까지 옮기면 죽은 설정이 된다.
 - **(c) ESLint `no-restricted-imports`만으로**: 채택하지 않음(단독으로는 불충분). `~/server/db` 임포트는 막을 수 있으나(W8의 일부), **widgets 내부 딥 임포트(W4/W6)와 엔티티 배럴의 `./api` 재수출(W5)은 잡지 못한다** — 후자는 "재수출 대상이 같은 슬라이스의 api 세그먼트인가"라는 AST 재수출 분석이 필요하고, 전자는 "임포터의 소속 슬라이스"를 알아야 한다. 두 감시 지점 다 ESLint 경로 룰로는 표현이 안 된다. 다만 `no-restricted-imports`는 에디터 즉시 피드백 이점이 있어 W8을 ESLint로 **보완**하는 것은 후속으로 가능하다(이 계획에선 스크립트가 owner 검사를 담당).
 - **채택 (b) admin 스크립트 이식**: 저장소 선례이고 신규 의존성이 없으며(`typescript` 재사용), web-특화 관례(server.ts 배럴·features api 표면·엔트리 포인트 스코프)를 코드로 정확히 표현할 수 있다. 종료코드·규칙 ID·evidence 출력·인메모리 음성 픽스처를 그대로 얻는다. `--final` 모드만 web에 불필요해 뺀다.
+
+## 검증 라운드 기록 (메인 루프, 2026-09-05 1라운드)
+
+필수 경로: 1(인용 전수 대조) · 2(스케치 추출·실행) · 3(before/after) · 4(전칭 여집합) ·
+**7(음성 시험 — 이 항목의 본체)** · 9(구조적 아티팩트 — 신설 설정·스크립트).
+5·6·8은 제외(판정 로직은 스크립트 자신이라 5는 셀프테스트가 대신하고, 외부 신호 해석 없음,
+화면 변경 없음). 증거는 `docs/agents/main-loop/FEAT-34.md`.
+
+**결함 ① (구현 영향) — `stage: "done"`은 규약 위반.** proposals README:45가 "`completed` 또는
+`closed` 문서는 `stage: null`로 둔다"고 못 박는다. 실제 completed 문서 표본도 `stage` 값을
+쓰지 않는다. 그대로 구현하면 제안서가 **자기 규약을 어긴 상태로** 완료 처리된다. → `stage: null`로
+정정하고 근거를 붙였다.
+
+**결함 ② (구현 영향) — 완료 이동 요구를 절반만 옮겼다.** README:249는 frontmatter 넷과 함께
+**「Completion or Closure Notes」 절 갱신**을 요구하고, README:279-288의 이동 기준 여덟 중 하나는
+"문서가 더 이상 실행 전 제안서가 아니라 수행 기록으로 읽힘"이다. 계획서는 frontmatter만 적었다.
+이 제안서에는 Completion 절이 아예 없고(마지막 절이 `## Audit (2026-08-03)`), 본문은 여전히
+미래형이다. → 절 신설과 담을 내용을 명시했다.
+
+**결함 ③ (정밀도) — 미뤄둔 담당 물음이 이미 답이 있다.** 계획서가 proposal 이동을 "구현 단계에서
+쓰기 범위 밖으로 판정되면 그 부분만 `보류`"로 남겼는데, `.claude/agents/web-dev.md:22`가 쓰기
+범위를 `apps/web/src/**`와 테스트 파일로 한정한다 — `docs/**`는 밖이다. 판정할 게 아니라 정해져
+있다. → 담당을 메인 루프로 확정했다(FEAT-31·33에서 `apps/web/CLAUDE.md`를 같은 이유로 메인
+루프가 처리한 전례).
+
+**통과한 것 — 특히 경로 7(본체)**
+
+계획서의 스크립트 전문 283줄을 **바이트 그대로 추출해 실제로 돌렸다**(스크래치패드, `process.cwd()`
+루트).
+
+- **현 트리 실행**: 정확히 **W6 5건**만 보고하고 EXIT 1. 내가 독립 열거한 5건과 파일·줄이 완전히
+  일치하며 오탐 0(W1·W2·W3·W4·W5·W7·W8 전부 0 — 계획서 표와 같다).
+- **음성 시험(감시 지점 둘)**: 스크래치패드에 픽스처 트리를 만들어
+  ① `entities/foo/index.ts`가 `./api`(`import "server-only"`)를 재수출 →
+  `[W5] entity client barrel must not re-export server-only ./api; use server.ts`,
+  ② `src/app/page.tsx`가 `~/fsd/widgets/bar/ui`를 임포트 →
+  `[W4] widget internals require the slice barrel` — **둘 다 발화, EXIT 1**.
+- **대조군**: 같은 픽스처를 규약대로 고치니(`index.ts` → `export {};` + `server.ts` 분리,
+  임포트를 배럴 경유로) `FSD boundary check passed.` **EXIT 0**.
+
+즉 **원장의 감시 지점 두 줄을 이 검사가 실제로 닫는다**는 것이 구현 전에 실증됐다.
+
+**경로 4 전칭 여집합** — W6 위반을 독립 열거해 **정확히 5건**, 계획서의 선행 정리 목록과 파일·줄이
+일치. W5(엔티티 배럴의 `./api` 재수출) 0건, W4(비-fsd 소스의 widgets 내부 임포트) 0건 —
+FEAT-31·33이 각각 닫아둔 결과다. `entities/*/api/queries/` 디렉터리 **0개**(R2 예외가 죽은 설정이
+된다는 계획서 판단이 맞다), `entities/*/api/`는 `index.ts` 하나씩뿐. 계획서가 범위 밖으로 보고한
+pages 인트라 자기참조도 **정확히 4건**(`UploadPodcast.tsx:26·27`, `upload-detail/ui/index.tsx:10·11`).
+
+**경로 1·3** — 선행 정리 5건의 근거를 전수 확인: `features/billing/index.ts:1`이 `PLAN_TIERS`를,
+`features/upload/index.ts:22·23·25`가 `query-options`·`useDeleteUploadedFile`·`useResumeUploadDraft`를
+각각 재수출한다. `stale-policy.ts`는 임포트 **0건**의 순수 상수(`export const PROCESSING_STALE_POLICY = {`)라
+배럴에 올려도 클라이언트 안전하다는 판단이 맞다.
+
