@@ -40,11 +40,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-05
-- [ ] FEAT-33: widgets 슬라이스 Public API — 배럴 `index.ts` 7개 신설 + 인트라 슬라이스 절대경로 자기참조 10건 정리
+- [x] FEAT-33: widgets 슬라이스 Public API — 배럴 `index.ts` 7개 신설 + 인트라 슬라이스 절대경로 자기참조 10건 정리
   agent: web-dev
   area: apps/web/src/fsd/widgets + apps/web/src/fsd/pages + apps/web/src/app + apps/web/src/fsd/features/billing
-  status: 구현승인
+  status: 완료
   근거: 소유자가 FEAT-31 인수 후 다음 항목으로 지목("진행"). 전제 재확인 — widgets 배럴 0/7, 슬라이스 밖 참조 9곳, 인트라 자기참조 10건(clip-display 7·billing 3). FEAT-34의 선행이다. 미결 0건.
+  결과: 배럴 7 신설·외부 참조 9 배럴 named 교체·인트라 자기참조 10 상대화(신규7+수정15=22). check EXIT0·test 77/0·build EXIT0. 기계검증 배럴7·widgets세그먼트0·billing자기0. 상세 web-dev/FEAT-33
   검증: 클린 패스 (2026-09-05, 독립 무편집 1라운드 — plan-verifier 3사이클째)
 
 ## 2026-09-04

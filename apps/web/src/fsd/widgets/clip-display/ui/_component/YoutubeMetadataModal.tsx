@@ -16,7 +16,7 @@ import {
   Sheet,
   SheetContent,
 } from "~/fsd/shared/ui/atoms/sheet";
-import { useMetadataClipboard } from "~/fsd/widgets/clip-display/model/useMetadataClipboard";
+import { useMetadataClipboard } from "../../model/useMetadataClipboard";
 import { CharacterCountBar } from "./CharacterCountBar";
 import { CopyButton } from "./CopyButton";
 

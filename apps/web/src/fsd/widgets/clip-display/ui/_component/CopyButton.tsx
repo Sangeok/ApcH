@@ -1,6 +1,6 @@
 import { Check, Copy } from "lucide-react";
 import { Button } from "~/fsd/shared/ui/atoms/button";
-import type { CopiedField } from "~/fsd/widgets/clip-display/model/useMetadataClipboard";
+import type { CopiedField } from "../../model/useMetadataClipboard";
 
 const STYLES = {
   button:

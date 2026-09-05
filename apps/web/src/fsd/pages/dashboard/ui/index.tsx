@@ -29,7 +29,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "~/fsd/shared/ui/atoms/tabs";
-import UploadedFileList from "~/fsd/widgets/uploaded-file-list/ui";
+import { UploadedFileList } from "~/fsd/widgets/uploaded-file-list";
 import QueueStatus from "./_component/QueueStatus";
 import RecoverableUploadDrafts from "./_component/RecoverableUploadDrafts";
 import UploadPodcast from "./_component/UploadPodcast";

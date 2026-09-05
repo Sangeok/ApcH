@@ -14,7 +14,7 @@ import {
 } from "~/fsd/shared/ui/atoms/table";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { formatDate } from "~/fsd/shared/lib/format-date";
-import type { OrderInfo } from "~/fsd/features/billing/model/types";
+import type { OrderInfo } from "../model/types";
 
 interface OrderHistoryProps {
   orders: OrderInfo[];

@@ -18,8 +18,8 @@ import {
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
-import ClipDisplay from "~/fsd/widgets/clip-display/ui";
-import ClipDraftReviewSection from "~/fsd/widgets/clip-draft-review/ui";
+import { ClipDisplay } from "~/fsd/widgets/clip-display";
+import { ClipDraftReviewSection } from "~/fsd/widgets/clip-draft-review";
 import OriginalMediaCard from "./_component/OriginalMediaCard";
 
 interface UploadDetailPageProps {

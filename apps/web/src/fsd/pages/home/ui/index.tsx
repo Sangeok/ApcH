@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import SiteFooter from "~/fsd/widgets/site-footer/ui";
+import { SiteFooter } from "~/fsd/widgets/site-footer";
 import HeroSection from "./_component/HeroSection";
 import FeaturesSection from "./_component/FeaturesSection";
 import WorkflowSection from "./_component/WorkflowSection";
