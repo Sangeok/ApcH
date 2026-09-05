@@ -45,6 +45,7 @@
   area: apps/web/eslint.config.js + apps/web/package.json + apps/web/scripts (신설) + apps/web/src/fsd/pages/pricing/ui
   status: 검토대기
   근거: 소유자가 FEAT-33 인수 후 지목("진행"). 전제 재확인 — steiger.config 0·관련 의존성 0·no-restricted-imports 0·verify 스크립트 0. FEAT-31·33이 원장에 남긴 감시 지점 두 줄을 닫는다. FSD 제안서의 마지막 항목.
+  검증: 클린 패스 (2026-09-06, 독립 무편집 1라운드 — plan-verifier 4사이클째)
 
 - [x] FEAT-33: widgets 슬라이스 Public API — 배럴 `index.ts` 7개 신설 + 인트라 슬라이스 절대경로 자기참조 10건 정리
   agent: web-dev
