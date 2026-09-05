@@ -34,6 +34,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-05
+- [ ] FEAT-33: widgets 슬라이스 Public API — 배럴 `index.ts` 7개 신설 + 인트라 슬라이스 절대경로 자기참조 10건 정리
+  agent: web-dev
+  area: apps/web/src/fsd/widgets + apps/web/src/fsd/pages + apps/web/src/app + apps/web/src/fsd/features/billing
+  status: 계획지시
+  근거: 소유자가 FEAT-31 인수 후 다음 항목으로 지목("진행"). 전제 재확인 — widgets 배럴 0/7, 슬라이스 밖 참조 9곳, 인트라 자기참조 10건(clip-display 7·billing 3). FEAT-34의 선행이다. 미결 0건.
+
 ## 2026-09-04
 - [x] FEAT-31: 엔티티 배럴 다섯을 클라이언트 안전 `index.ts` + 서버 전용 `server.ts`로 분할 — 첫 클라이언트 임포트가 빌드를 깨는 잠복 파손 제거
   agent: web-dev
