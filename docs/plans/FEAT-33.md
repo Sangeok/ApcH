@@ -221,6 +221,6 @@ export { default as PublicHeader } from "./ui/public-header";
 
 ## 대안
 
-- **site-header에 `ui/index.tsx`를 새로 만들거나 `public-header.tsx`를 `index.tsx`로 개명** — 택하지 않았다. `public-header.tsx:15-19` 주석이 "이전에 `ui/index.tsx`(SiteHeader)가 있었고 중복 때문에 제거됐다"는 이력을 담고 있어, 같은 이름을 되살리면 혼란스럽다. 서술적 파일명을 유지한 채 배럴이 `./ui/public-header`를 가리키는 편이 diff도 최소이고 의도도 분명하다.
+- **site-header에 `ui/index.tsx`를 새로 만들거나 `public-header.tsx`를 `index.tsx`로 개명** — 택하지 않았다. `public-header.tsx:16-19` 주석이 "이전에 `ui/index.tsx`(SiteHeader)가 있었고 중복 때문에 제거됐다"는 이력을 담고 있어, 같은 이름을 되살리면 혼란스럽다. 서술적 파일명을 유지한 채 배럴이 `./ui/public-header`를 가리키는 편이 diff도 최소이고 의도도 분명하다.
 - **default export를 named export로 변환한 뒤 배럴에서 `export { X } from "./ui"`** — 택하지 않았다. 6개 `ui/index.tsx`의 함수 선언을 바꾸고, 그 파일을 임포트하는 지점(현재는 없지만)까지 봐야 해 변경면이 넓어진다. `export { default as X }`는 원본 파일을 건드리지 않고 배럴 한 줄로 끝나며, 저장소 선례(`features/upload/index.ts:26`)와도 일치한다.
 - **billing 3건·pricing 1건을 이 항목에서 함께 정리** — billing 자기참조 3건은 백로그가 FEAT-33에 명시적으로 포함해 넣었으나, pricing→billing/config 크로스 슬라이스 참조는 열거 밖이라 제외했다(「고칠 파일」 범위 경계 참조). 승인 범위를 넘지 않기 위해 관측만 보고한다.
