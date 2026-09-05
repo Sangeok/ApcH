@@ -59,3 +59,22 @@ W6 위반 독립 열거 **5건**(계획서 선행 정리 목록과 파일·줄 �
 
 **브리핑 주의**: `plan-verifier.md`의 브리핑 계약이 이번 세션에 강화됐다(위반 시 무소득 판정
 자격 상실). 셋만 준다 — 항목ID·계획서 경로·필수 경로 목록.
+
+## 라운드 3 (무편집) — 무소득
+
+2라운드에서 내가 고친 여섯 중 **코드 수정(결함 6, `isTypeOnly` 가드)이 실제로 듣는지**를 시험했다.
+갱신된 스케치를 다시 바이트 추출(286줄, 가드 포함 확인)해 세 방향으로 돌렸다.
+
+| 시험 | 기대 | 결과 |
+| --- | --- | --- |
+| 실트리 재실행 | 회귀 없이 W6 5건 | **5건, EXIT 1** |
+| `import type { db }` 픽스처 | 이제 발화하지 않아야 | **`FSD boundary check passed.` EXIT 0** |
+| `import { db }` 값 임포트 대조군 | 여전히 발화해야 | **`[W8] db client import is outside approved owners` EXIT 1** |
+
+가드가 의도한 것만 정확히 걷어낸다 — 과잉 교정도, 회귀도 없다.
+
+수치 정정 다섯도 재확인: widgets 소비 9건, `web/package.json:10`의 check,
+`admin/package.json:13`(check)·`:17-19`(verify 셋), admin 스크립트 730/207줄,
+`entities/clip/index.ts`의 lib 재수출. 전부 실측과 일치.
+
+편집 없음·소득 없음 → `plan-verifier` 독립 패스 2사이클 디스패치.
