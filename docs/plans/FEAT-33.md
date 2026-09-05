@@ -42,7 +42,7 @@ features/billing 3건(grep으로 현재 줄 확인):
 
 > **백로그 수치 정정**: 백로그는 OrderHistory를 `:16`으로 인용했으나 실제는 `:17`이다. 대상 슬라이스·개수(10건)는 일치한다. ClipCard.tsx:9는 이미 `../../model/use-script-clipboard` 상대경로라 자기참조 위반에서 제외된다 — 같은 파일 안에서 상대(9행)와 절대(13·14행)가 섞여 있어 정리 대상이 되는 부류다.
 
-이 클래스 문제의 규약 근거는 `apps/web/docs/conventions/fsd-architecture-guidelines.md` §5.3(슬라이스는 `index.ts`로 외부 경계 제공, 외부 슬라이스의 세그먼트 내부 직접 참조 금지)이다. 인트라 슬라이스 자기참조는 §5.3 위반은 아니고 제안서 V11b가 든 권장 사항이다.
+이 클래스 문제의 규약 근거는 `apps/web/docs/conventions/fsd-architecture-guidelines.md`의 **§5 「의존성 규칙」 3번 「Public API」**(219-223행: "각 Slice는 반드시 `index.ts` 파일을 통해 외부로 노출할 요소만 export", "외부에서는 Slice의 내부 파일에 직접 접근하지 말고 Public API를 통해 접근")이다. 이 저장소 문서들이 쓰는 `§5.3` 표기가 가리키는 곳이며(같은 표기법으로 `§5.1`=Linear Flow, `§5.4`=도메인 데이터 접근 위임), 규약 문서에 문자 그대로의 "5.3" 소제목은 없다. 인트라 슬라이스 자기참조는 §5.3 위반은 아니고 제안서 V11b가 든 권장 사항이다.
 
 ## 문제
 
