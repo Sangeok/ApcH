@@ -43,7 +43,7 @@
 - [ ] FEAT-34: apps/web FSD 경계 자동 검출 도입 — 배럴·레이어 위반 재발을 사람 감사 대신 CI가 잡게
   agent: web-dev
   area: apps/web/eslint.config.js + apps/web/package.json + apps/web/scripts (신설) + apps/web/src/fsd/pages/pricing/ui
-  status: 계획지시
+  status: 검토대기
   근거: 소유자가 FEAT-33 인수 후 지목("진행"). 전제 재확인 — steiger.config 0·관련 의존성 0·no-restricted-imports 0·verify 스크립트 0. FEAT-31·33이 원장에 남긴 감시 지점 두 줄을 닫는다. FSD 제안서의 마지막 항목.
 
 - [x] FEAT-33: widgets 슬라이스 Public API — 배럴 `index.ts` 7개 신설 + 인트라 슬라이스 절대경로 자기참조 10건 정리
