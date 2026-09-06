@@ -43,7 +43,7 @@
 - [ ] FEAT-32: 클라이언트 Sentry 초기화 — 브라우저 오류가 현재 어떤 텔레메트리에도 도달하지 않음
   agent: web-dev
   area: apps/web/src/instrumentation.ts + apps/web/src/env.js + apps/web/next.config.js + apps/web/src/fsd/shared/observability
-  status: 계획지시
+  status: 검토대기
   근거: 소유자가 FEAT-34 배포 확인 후 지목("FEAT-32 진행"). 전제 재확인 — Sentry.init은 sentry.server.config.ts 하나뿐, 클라 진입점 0개, 에러 경계 5개가 console.error만 한다. DSN이 SENTRY_DSN(서버 스코프)이라 클라에서 못 읽는 것도 확인. 미결 0건.
 
 ## 2026-09-05
