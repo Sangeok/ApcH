@@ -57,10 +57,14 @@ agent: web-dev
 // 그래서 shared/observability/index.ts(server-only report-error를 재수출)에는 넣지 않고
 // 파일 경로로만 임포트한다 — use-report-boundary-error.ts:11-13과 같은 이유.
 
+// 경계에 백슬래시를 포함한다(원본에는 없다 — 검증 라운드 결함 ①).
+// JSON.stringify가 값 안의 따옴표를 \" 로 이스케이프하는데, 원본 경계 [^&\s"']는
+// 그 백슬래시에서 멈추지 않아 닫는 따옴표까지 삼킨다 → 치환 결과가 깨진 JSON이 되고
+// JSON.parse가 던져 catch가 **스크럽되지 않은 원본을 그대로 반환**한다(fail-open).
 const SCRUB_RULES: Array<[RegExp, string]> = [
-  [/X-Amz-Signature=[^&\s"']+/gi, "X-Amz-Signature=[REDACTED]"],
-  [/X-Amz-Credential=[^&\s"']+/gi, "X-Amz-Credential=[REDACTED]"],
-  [/X-Amz-Security-Token=[^&\s"']+/gi, "X-Amz-Security-Token=[REDACTED]"],
+  [/X-Amz-Signature=[^&\s"'\\]+/gi, "X-Amz-Signature=[REDACTED]"],
+  [/X-Amz-Credential=[^&\s"'\\]+/gi, "X-Amz-Credential=[REDACTED]"],
+  [/X-Amz-Security-Token=[^&\s"'\\]+/gi, "X-Amz-Security-Token=[REDACTED]"],
 ];
 
 /** 문자열 리터럴 치환. 서버는 [엔드포인트 호스트, "[PROCESS_VIDEO_ENDPOINT]"]를 넘긴다. */
@@ -96,7 +100,18 @@ export function scrubEvent<T>(
 }
 ```
 
-정규식·순서·fail-open은 `sentry.server.config.ts` 원본과 바이트 동일하게 옮긴다(SCRUB_RULES는 `:12-14`, 규칙 적용 루프는 `:30-32`, 엔드포인트 치환은 `:34-36`, catch는 `:60-62`). 규칙 적용 → 리터럴 치환 순서도 원본과 같다.
+순서·fail-open 구조는 `sentry.server.config.ts` 원본과 같게 옮긴다(규칙 적용 루프 `:30-32`, 엔드포인트 치환 `:34-36`, catch `:60-62`). 규칙 적용 → 리터럴 치환 순서도 원본과 같다.
+
+**정규식만 원본(`:12-14`)과 다르다 — 경계에 `\\`를 추가한다.** 검증 라운드에서 실측한 결함이다: 서명값 뒤에 따옴표가 오는 이벤트(`X-Amz-Signature=abc"tail`)를 넣으면 `JSON.stringify`가 `abc\\"tail`로 이스케이프하고, 원본 경계 `[^&\s"']`가 백슬래시에서 멈추지 않아 닫는 따옴표까지 먹는다 → 치환 결과가 깨진 JSON → `JSON.parse` throw → catch가 **원본을 그대로 반환**한다. 즉 **서명이 스크럽 없이 Sentry로 나간다.** 네 입력으로 실측 대조:
+
+| 입력 | 현행 정규식 | `\\` 추가 |
+| --- | --- | --- |
+| `X-Amz-Signature=abc"tail rest` | **깨진 JSON → fail-open(유출)** | 유효 JSON · 스크럽 |
+| `?X-Amz-Signature=abc123&next=1` | 유효 · 스크럽 | 유효 · 스크럽 |
+| `X-Amz-Signature=abc def` | 유효 · 스크럽 | 유효 · 스크럽 |
+| `X-Amz-Signature=AKIA/2026/ap/s3/aws4_request` | 유효 · 스크럽 | 유효 · 스크럽 |
+
+**이 수정은 서버에도 적용된다** — `sentry.server.config.ts`가 이 모듈에 위임하므로 같은 결함이 서버에서도 닫힌다. 원본 주석이 catch를 "사실상 죽은 경로"라 했는데, SDK 정규화가 순환 참조·BigInt를 걸러도 **이 경로는 살아 있다**(정규화 뒤에도 문자열 안의 따옴표는 남는다). 그 주석도 함께 고친다.
 
 ### 2. `src/instrumentation-client.ts` (신규)
 
@@ -225,7 +240,8 @@ export default withSentryConfig(config, {
 ## 테스트
 
 - **덮는 것** — `src/fsd/shared/observability/scrub-event.test.mjs` (`import { scrubString, scrubEvent } from "./scrub-event.ts"`):
-  - `scrubString`: X-Amz-Signature/Credential/Security-Token 각각을 `[REDACTED]`로 치환(세 규칙 개별 + 한 문자열에 셋 동시). 서명값 뒤 `&`·공백·따옴표에서 경계가 끊기는지(`[^&\s"']+`).
+  - `scrubString`: X-Amz-Signature/Credential/Security-Token 각각을 `[REDACTED]`로 치환(세 규칙 개별 + 한 문자열에 셋 동시). 서명값 뒤 `&`·공백·따옴표·**백슬래시**에서 경계가 끊기는지.
+  - **이스케이프된 따옴표 회귀(결함 ①)**: `scrubEvent({ message: 'X-Amz-Signature=abc"tail' })`가 **스크럽된 결과를 반환**하는지 — 반환값이 입력과 동일 객체면(=fail-open) 실패다. 경계에서 `\\`를 빼면 이 테스트가 죽는다(음성 시험으로 확인할 것).
   - `scrubString` 리터럴 치환: `literals`로 넘긴 needle이 `split().join()`으로 전부 치환되는지(다중 출현), 빈 배열이면 규칙만 적용되는지.
   - 스크럽 대상이 없는 문자열은 그대로 통과.
   - `scrubEvent`: 중첩 이벤트 객체(message·exception.values[].value·contexts에 서명값을 심음)에서 어느 위치든 치환되는지(왕복 직렬화).
