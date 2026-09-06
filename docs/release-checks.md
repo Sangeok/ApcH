@@ -22,6 +22,17 @@
 
 ---
 
+## FEAT-34 — FSD 경계 자동 검출 도입 (web, 구현 2026-09-06)
+
+원천: `docs/agents/web-dev/FEAT-34.md`의 「테스트로 못 덮은 범위」. 커밋 `9275ccd`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+사용자 가시 동작 변화가 **없는** 항목이다(CI 검사 도입 + 선행 정리 5건의 임포트 경로 교체). 게이트는 `verify:fsd` EXIT 0 · 셀프테스트 **11/11** · `npm run check` EXIT 0 · `npm test` **77/0** · `npm run build` EXIT 0으로 통과했고, 감시 지점 둘의 검출은 메인 루프가 인수 시 위반을 심어 직접 실증했다(W5·W4 각 EXIT 1, 되돌리면 통과).
+**`〔auto〕` 태그를 붙이지 않는다**: 아래는 저장소 상태·CI 동작이라 admin base의 프로덕션 응답으로 판정할 수 없다.
+
+- [ ] **선행 정리 5건의 런타임 무회귀(배포 실물)**: 임포트를 배럴 경유로 바꾼 다섯 곳이 실제로 동작한다 — `/pricing`(PLAN_TIERS 렌더), `/dashboard`(업로드 큐·목록 쿼리 옵션), 대시보드의 복구 초안 카드(삭제·재개 훅), 그리고 stale reconcile 경로(`PROCESSING_STALE_POLICY`). `tsc`·`build`가 모듈 해석을 보장하지만 런타임 흐름은 실물에서만 확인된다
+- [ ] **CI에서 실제로 도는지**: 배포 파이프라인이나 다음 `npm run check` 실행에서 `verify:fsd:test && verify:fsd`가 앞단으로 돌고, 위반이 생기면 배포 전에 막힌다. 로컬에서는 확인했으나 CI 환경(다른 Node·경로 구분자)에서의 첫 실행은 관측 대상
+
+---
+
 ## FEAT-33 — widgets Public API 배럴 + import 경로 위생 (web, 구현 2026-09-05)
 
 원천: `docs/agents/web-dev/FEAT-33.md`의 「테스트로 못 덮은 범위」. 커밋 `ac7808c`. **배포 대기** — `dev`에 있고 `main` 합류 전.
@@ -29,7 +40,7 @@
 **`〔auto〕` 태그를 붙이지 않는다**: 아래는 로그인 뒤 화면을 포함한 육안 렌더 확인이라 admin base의 루틴이 판정할 수 없다.
 
 - [ ] **배럴 경유 마운트 무회귀(육안)**: 배럴로 임포트 경로가 바뀐 컴포넌트가 실제로 렌더된다 — `/`(SiteFooter·PublicHeader), `(public-marketing)` 라우트 다섯(SiteFooter·PublicHeader), `/login`(LoginForm), `/dashboard`(DashboardHeader·UploadedFileList), `/dashboard/uploads/<id>`(ClipDisplay·ClipDraftReviewSection), `/dashboard/billing`(billing 자기참조 3건이 상대경로로 바뀐 화면). `npm test`는 DOM이 없어 렌더를 못 덮고 `tsc`·`build`가 모듈 해석만 보장한다
-- [ ] **경계가 유지되는지(감시 지점)**: 이번에 세운 배럴이 **앞으로도 유일 경로로 강제되지는 않는다.** 누군가 다시 `~/fsd/widgets/<슬라이스>/ui`로 직접 임포트해도 `check`·`build`가 통과한다 — 위 grep 세 숫자를 사람이 돌려야 안다. FEAT-34(경계 자동 검출)가 도입되면 `대체(FEAT-34)`로 닫는다
+- [x] **경계가 유지되는지(감시 지점)** — 대체(FEAT-34). 이제 강제된다: `npm run check`가 `verify:fsd`를 앞세우고(`package.json:10`), 규칙 **W4**(비-fsd 소스 → widgets 내부)와 **W6**(fsd 소스 → 크로스 슬라이스 딥 임포트)가 이 회귀를 잡는다. 메인 루프가 인수 시 직접 재현 — `src/app/dashboard/loading.tsx`에 `~/fsd/widgets/clip-display/ui` 임포트를 심으니 `[W4] widget internals require the slice barrel` **EXIT 1**, 되돌리니 `FSD boundary check passed.` EXIT 0. 사람이 grep을 돌릴 필요가 없어졌다
 
 ---
 
@@ -40,7 +51,7 @@
 **`〔auto〕` 태그를 붙이지 않는다**: 아래는 로그인 뒤 흐름이거나 코드 상태 감시라 admin base의 루틴이 판정할 수 없다.
 
 - [ ] **서버 경로 무회귀(배포 실물)**: 임포터 13개가 닿는 흐름이 배포 후에도 동작한다 — 홈(`getHomeUserProfile`)·대시보드 레이아웃(`getDashboardHeaderUser`)·분석 이벤트 수집·업로드 처리 디스패치·완료 시 크레딧 차감·Polar 웹훅 4종(주문 생성·구독 활성/갱신/해지)·빌링 화면. `tsc`가 임포트 경로를 보장하지만 **런타임 흐름 자체는 실물에서만 확인된다**
-- [ ] **회귀 방어선 부재(감시 지점)**: 이 결함의 유일한 게이트가 `npm run build`인데, 그것을 깨는 프로브는 **커밋에 포함되지 않았다.** 즉 새 `api/index.ts` 심볼이 다시 `index.ts`로 재수출돼도 **클라이언트 임포터가 생기기 전까지 CI가 못 잡는다** — FEAT-31이 없앤 상태로 조용히 되돌아갈 수 있다. FEAT-34(경계 자동 검출)가 도입되면 `대체(FEAT-34)`로 닫는다
+- [x] **회귀 방어선 부재(감시 지점)** — 대체(FEAT-34). 규칙 **W5**가 배럴 **정의**를 보므로 **임포터 유무와 무관하게** 잡는다 — 잠복할 수 없다. 메인 루프가 인수 시 직접 재현 — `entities/user/index.ts`에 `export { getUserPolarCustomerId } from "./api";`를 심으니 `[W5] entity client barrel must not re-export server-only ./api; use server.ts` **EXIT 1**, 되돌리니 EXIT 0. `npm run check`에 배선돼 있어 사람이 기억할 필요가 없다
 
 ---
 

@@ -1,13 +1,13 @@
 ---
-status: "pending"
-stage: "draft"
+status: "completed"
+stage: null
 proposal-size: "standard"
 created-at: "2026-04-18"
-approved-by: null
-approved-at: null
-approval-scope: null
-completed-at: null
-verification-summary: null
+approved-by: "HamSangEok"
+approved-at: "2026-09-06"
+approval-scope: "잔여 항목 셋(FEAT-31·33·34)을 파이프라인 게이트①②로 개별 승인"
+completed-at: "2026-09-06"
+verification-summary: "잔여 넷 중 셋을 FEAT-31·33·34로 이행, 나머지 하나(V11b billing 3건)는 FEAT-33에 흡수. 경계 자동 검출(verify:fsd, W1~W8) 도입으로 재발이 CI에서 막힌다 — check 배선 EXIT 0, 셀프테스트 11/11, 감시 지점 음성 시험(W5·W4) 각 EXIT 1 실증"
 closed-at: null
 closed-by: null
 closed-reason: null
@@ -1008,3 +1008,61 @@ features/billing/ui/OrderHistory.tsx:16       → ~/fsd/features/billing/model/t
 
 위 확인 표의 `3-4 슬라이스 Public API | entities 8/8, features 8/9`도 낡았다 —
 C-08이 `features/clip/index.ts`를 만들어 현재 **features 9/9**다.
+
+---
+
+## Completion or Closure Notes (2026-09-06)
+
+**이 문서는 수행 기록이다.** 본문의 「제안하는 해결책」·「마이그레이션 단계」는 2026-04-18 작성
+시점의 계획이며, 실제 이행 경로는 아래와 같다. 현재 상태를 알려면 본문보다 「Audit (2026-08-03)」과
+그 아래 「재대조 (2026-09-03)」, 그리고 이 절을 읽는 것이 빠르다.
+
+### 실제로 무엇이 닫았나
+
+제안서 Phase 1~4의 상당 부분은 **이 제안서를 실행해서가 아니라 다른 경로로** 닫혔다.
+`entities/` 레이어 신설, 상위 레이어의 DB 직접 조회 제거(V3~V6), 금지·안티패턴 세그먼트 정리
+(V7·V8·V9), 크로스 슬라이스 Public API 위반(V11a) 등은 2026-09-03 클린코드 개선 77건
+(커밋 `9dd6dfb`~`a75dcd6`)이 처리했다. 「Audit (2026-08-03)」이 그 시점의 잔여를 넷으로 좁혔고,
+「재대조 (2026-09-03)」가 그중 하나(크로스 슬라이스 세그먼트 직접 참조)를 닫힌 것으로 기록했다.
+
+남은 셋을 파이프라인 항목으로 등재해 이행했다.
+
+| 잔여 항목 | 이행 |
+| --- | --- |
+| widgets 배럴 0/7 (3-4) | **FEAT-33** — 배럴 7개 신설, 슬라이스 밖 참조 9곳을 배럴 경유로 교체 |
+| V11b 인트라 슬라이스 절대경로 자기참조 | **FEAT-33**에 흡수 — 제안서가 열거한 billing 3건 + 같은 부류로 확인된 clip-display 7건, 총 10건을 상대경로로 |
+| 경계 자동 검출 미도입 (Phase 2 step 6·7) | **FEAT-34** — `scripts/verify-fsd-boundaries.mjs`(규칙 W1~W8) + 셀프테스트, `check`에 배선 |
+
+덧붙여 **FEAT-31**(엔티티 배럴 다섯의 런타임 분할)이 같은 흐름에서 나왔다 — 제안서가 열거하지
+않았지만 같은 Public API 부류의 잠복 결함이었다(배럴이 `import "server-only"`인 `./api`를
+재수출해, 첫 클라이언트 임포터가 빌드를 깨는 상태).
+
+### 원래 설계 중 채택하지 않은 것
+
+- **`steiger` 도입**(Phase 2 step 6): 채택하지 않았다. web `pages`에 배럴이 하나도 없어 기본
+  ruleset이 즉시 대량 위반을 내고, 디렉터리 스코프라 `src/app`→widgets 위반을 못 본다. 대신
+  `apps/admin/scripts/verify-fsd-boundaries.mjs`(저장소 선례)를 web 관례로 이식했다 — 신규
+  의존성 0.
+- **`steiger.config.ts`의 예외 셋**: R2 경로(`entities/**/api/queries/**`)는 web에 그 디렉터리가
+  없어 죽은 설정이 되므로 넣지 않았다. 진입점의 entity 직접 조합 허용은 **규칙 스코프로 구현**해
+  만료 예정 예외 블록을 두지 않았다(Phase 3에서 삭제할 잔재가 없다). `features/*/api` 직접
+  임포트 예외(P15)만 실재해 Public entry 정의에 반영했다.
+- **ESLint `no-restricted-imports`**(Phase 2 step 7): 단독으로는 불충분해 채택하지 않았다.
+  배럴의 `./api` 재수출과 "임포터의 소속 슬라이스" 판정은 경로 룰로 표현되지 않는다. 후속으로
+  에디터 즉시 피드백 목적의 보완은 가능하다.
+
+### 검증
+
+FEAT-31·33·34 각각 `plan-verifier` 독립 무편집 패스로 클린 판정을 받았고(2·3·4사이클),
+구현 후 메인 루프가 인수 조건 다섯을 직접 재현했다. FEAT-34는 감시 지점 음성 시험까지 실증했다 —
+엔티티 배럴에 `./api` 재수출을 심으면 `[W5]` EXIT 1, `src/app`에서 widgets 내부를 임포트하면
+`[W4]` EXIT 1, 되돌리면 통과. `npm run check`(verify 앞단 포함) EXIT 0, 셀프테스트 11/11,
+`npm test` 77/77, `npm run build` EXIT 0.
+
+### 남은 것
+
+- **배포 후 확인**: FEAT-31·33·34의 「못 덮는 범위」가 `docs/release-checks.md`에 등재돼 있다.
+  FEAT-31·33이 남긴 감시 지점 두 줄은 FEAT-34 도입으로 `대체(FEAT-34)` 처리된다.
+- **후속 정리 후보**(이 제안서 범위 밖): `pages` 슬라이스 내부의 인트라 절대경로 자기참조 4건
+  (`UploadPodcast.tsx:26·27`, `upload-detail/ui/index.tsx:10·11`). V11b와 같은 부류이나 소프트
+  권장이고 `verify:fsd`가 강제하지 않는다.
