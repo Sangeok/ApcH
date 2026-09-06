@@ -43,7 +43,7 @@
 - [ ] FEAT-34: apps/web FSD 경계 자동 검출 도입 — 배럴·레이어 위반 재발을 사람 감사 대신 CI가 잡게
   agent: web-dev
   area: apps/web/eslint.config.js + apps/web/package.json + apps/web/scripts (신설) + apps/web/src/fsd/pages/pricing/ui
-  status: 검토대기
+  status: 구현승인
   근거: 소유자가 FEAT-33 인수 후 지목("진행"). 전제 재확인 — steiger.config 0·관련 의존성 0·no-restricted-imports 0·verify 스크립트 0. FEAT-31·33이 원장에 남긴 감시 지점 두 줄을 닫는다. FSD 제안서의 마지막 항목.
   검증: 클린 패스 (2026-09-06, 독립 무편집 1라운드 — plan-verifier 4사이클째)
 
