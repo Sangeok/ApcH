@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { PLAN_TIERS } from "~/fsd/features/billing/config/plan-tiers";
+import { PLAN_TIERS } from "~/fsd/features/billing";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {

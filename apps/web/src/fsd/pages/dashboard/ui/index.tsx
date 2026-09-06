@@ -14,7 +14,7 @@ import {
 import {
   currentUserActiveUploadQueueQueryOptions,
   currentUserUploadedFileListQueryOptions,
-} from "~/fsd/features/upload/model/query-options";
+} from "~/fsd/features/upload";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,

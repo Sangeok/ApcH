@@ -40,11 +40,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-05
-- [ ] FEAT-34: apps/web FSD 경계 자동 검출 도입 — 배럴·레이어 위반 재발을 사람 감사 대신 CI가 잡게
+- [x] FEAT-34: apps/web FSD 경계 자동 검출 도입 — 배럴·레이어 위반 재발을 사람 감사 대신 CI가 잡게
   agent: web-dev
   area: apps/web/eslint.config.js + apps/web/package.json + apps/web/scripts (신설) + apps/web/src/fsd/pages/pricing/ui
-  status: 구현승인
+  status: 완료
   근거: 소유자가 FEAT-33 인수 후 지목("진행"). 전제 재확인 — steiger.config 0·관련 의존성 0·no-restricted-imports 0·verify 스크립트 0. FEAT-31·33이 원장에 남긴 감시 지점 두 줄을 닫는다. FSD 제안서의 마지막 항목.
+  결과: 경계검출기 W1~W8 + 셀프테스트 신설, 선행정리 5로 W6 0, check에 verify 배선. verify:fsd EXIT0·셀프11/11·감시지점 W4/W5/W6 음성 실증·check/test77/build EXIT0. 상세 web-dev/FEAT-34
   검증: 클린 패스 (2026-09-06, 독립 무편집 1라운드 — plan-verifier 4사이클째)
 
 - [x] FEAT-33: widgets 슬라이스 Public API — 배럴 `index.ts` 7개 신설 + 인트라 슬라이스 절대경로 자기참조 10건 정리

@@ -3,11 +3,11 @@ import "server-only";
 import { getProcessingMatchKey } from "~/fsd/entities/uploaded-file";
 import {
   isActiveProcessingStatus,
+  PROCESSING_STALE_POLICY,
   toProcessingStatus,
   type ProcessingStatus,
   type UploadedFileFailureCode,
 } from "~/fsd/entities/uploaded-file";
-import { PROCESSING_STALE_POLICY } from "~/fsd/entities/uploaded-file/model/stale-policy";
 import {
   findStaleProcessingCandidate,
   findUploadedFileFailureState,
