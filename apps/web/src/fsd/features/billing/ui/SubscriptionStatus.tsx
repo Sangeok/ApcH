@@ -23,7 +23,7 @@ import {
 } from "~/fsd/shared/ui/atoms/card";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
 import { Separator } from "~/fsd/shared/ui/atoms/separator";
-import { cancelSubscription } from "~/fsd/features/billing/api";
+import { cancelSubscription } from "../api";
 import { formatDate } from "~/fsd/shared/lib/format-date";
 import { PLAN_TIERS } from "../config";
 import type { SubscriptionInfo } from "../model/types";

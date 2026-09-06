@@ -1,11 +1,11 @@
 import { type Metadata } from "next";
-import { getHomeUserProfile } from "~/fsd/entities/user";
+import { getHomeUserProfile } from "~/fsd/entities/user/server";
 import HomePage from "~/fsd/pages/home/ui";
 import { generateWebApplicationJsonLd } from "~/fsd/shared/lib/seo";
 import { SITE_NAME, absoluteSiteUrl } from "~/fsd/shared/lib/site";
 import { auth } from "~/server/auth";
 import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
-import PublicHeader from "~/fsd/widgets/site-header/ui/public-header";
+import { PublicHeader } from "~/fsd/widgets/site-header";
 
 export const metadata: Metadata = {
   title: "AI Podcast Clipper for YouTube Shorts",

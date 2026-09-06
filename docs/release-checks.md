@@ -22,26 +22,60 @@
 
 ---
 
+## FEAT-34 — FSD 경계 자동 검출 도입 (web, 구현 2026-09-06)
+
+원천: `docs/agents/web-dev/FEAT-34.md`의 「테스트로 못 덮은 범위」. 커밋 `9275ccd`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+사용자 가시 동작 변화가 **없는** 항목이다(CI 검사 도입 + 선행 정리 5건의 임포트 경로 교체). 게이트는 `verify:fsd` EXIT 0 · 셀프테스트 **11/11** · `npm run check` EXIT 0 · `npm test` **77/0** · `npm run build` EXIT 0으로 통과했고, 감시 지점 둘의 검출은 메인 루프가 인수 시 위반을 심어 직접 실증했다(W5·W4 각 EXIT 1, 되돌리면 통과).
+**`〔auto〕` 태그를 붙이지 않는다**: 아래는 저장소 상태·CI 동작이라 admin base의 프로덕션 응답으로 판정할 수 없다.
+
+- [ ] **선행 정리 5건의 런타임 무회귀(배포 실물)**: 임포트를 배럴 경유로 바꾼 다섯 곳이 실제로 동작한다 — `/pricing`(PLAN_TIERS 렌더), `/dashboard`(업로드 큐·목록 쿼리 옵션), 대시보드의 복구 초안 카드(삭제·재개 훅), 그리고 stale reconcile 경로(`PROCESSING_STALE_POLICY`). `tsc`·`build`가 모듈 해석을 보장하지만 런타임 흐름은 실물에서만 확인된다
+- [ ] **CI에서 실제로 도는지**: 배포 파이프라인이나 다음 `npm run check` 실행에서 `verify:fsd:test && verify:fsd`가 앞단으로 돌고, 위반이 생기면 배포 전에 막힌다. 로컬에서는 확인했으나 CI 환경(다른 Node·경로 구분자)에서의 첫 실행은 관측 대상
+
+---
+
+## FEAT-33 — widgets Public API 배럴 + import 경로 위생 (web, 구현 2026-09-05)
+
+원천: `docs/agents/web-dev/FEAT-33.md`의 「테스트로 못 덮은 범위」. 커밋 `ac7808c`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+사용자 가시 동작 변화가 **없는** 항목이다(배럴 신설 + import specifier 교체, 컴포넌트 본문 무변경). 게이트는 `npm run check` EXIT 0 · `npm test` 77/0 · `npm run build` EXIT 0으로 통과했고, 경계가 실제로 생겼는지는 기계 검증 세 숫자로 판정했다 — 메인 루프가 인수 시 직접 재현: widgets 배럴 `find` **7**, 위젯 세그먼트 직접 참조 grep **0**, billing 슬라이스 자기참조 grep **0**.
+**`〔auto〕` 태그를 붙이지 않는다**: 아래는 로그인 뒤 화면을 포함한 육안 렌더 확인이라 admin base의 루틴이 판정할 수 없다.
+
+- [ ] **배럴 경유 마운트 무회귀(육안)**: 배럴로 임포트 경로가 바뀐 컴포넌트가 실제로 렌더된다 — `/`(SiteFooter·PublicHeader), `(public-marketing)` 라우트 다섯(SiteFooter·PublicHeader), `/login`(LoginForm), `/dashboard`(DashboardHeader·UploadedFileList), `/dashboard/uploads/<id>`(ClipDisplay·ClipDraftReviewSection), `/dashboard/billing`(billing 자기참조 3건이 상대경로로 바뀐 화면). `npm test`는 DOM이 없어 렌더를 못 덮고 `tsc`·`build`가 모듈 해석만 보장한다
+- [x] **경계가 유지되는지(감시 지점)** — 대체(FEAT-34). 이제 강제된다: `npm run check`가 `verify:fsd`를 앞세우고(`package.json:10`), 규칙 **W4**(비-fsd 소스 → widgets 내부)와 **W6**(fsd 소스 → 크로스 슬라이스 딥 임포트)가 이 회귀를 잡는다. 메인 루프가 인수 시 직접 재현 — `src/app/dashboard/loading.tsx`에 `~/fsd/widgets/clip-display/ui` 임포트를 심으니 `[W4] widget internals require the slice barrel` **EXIT 1**, 되돌리니 `FSD boundary check passed.` EXIT 0. 사람이 grep을 돌릴 필요가 없어졌다
+
+---
+
+## FEAT-31 — 엔티티 배럴 다섯의 런타임 분할 (web, 구현 2026-09-04)
+
+원천: `docs/agents/web-dev/FEAT-31.md`의 「테스트로 못 덮은 범위」. 커밋 `a3d85c2`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+사용자 가시 동작 변화가 **없는** 항목이다(순수 배럴 재배선, DB 접근 코드 무변경). 게이트는 `npm run check` EXIT 0 · `npm test` 77/0 · `npm run build` EXIT 0으로 통과했고, 분할 효과는 프로브 빌드로 실증했다 — 메인 루프가 인수 시 직접 재현: 다섯 barrel을 `"use client"`에서 동시 임포트해 `✓ Compiled successfully`, 라우트 목록에 `/barrel-probe` 등재. 분할 **전** 같은 조건은 `server-only` 위반으로 exit 1이었다(계획 검증 1라운드 실측).
+**`〔auto〕` 태그를 붙이지 않는다**: 아래는 로그인 뒤 흐름이거나 코드 상태 감시라 admin base의 루틴이 판정할 수 없다.
+
+- [ ] **서버 경로 무회귀(배포 실물)**: 임포터 13개가 닿는 흐름이 배포 후에도 동작한다 — 홈(`getHomeUserProfile`)·대시보드 레이아웃(`getDashboardHeaderUser`)·분석 이벤트 수집·업로드 처리 디스패치·완료 시 크레딧 차감·Polar 웹훅 4종(주문 생성·구독 활성/갱신/해지)·빌링 화면. `tsc`가 임포트 경로를 보장하지만 **런타임 흐름 자체는 실물에서만 확인된다**
+- [x] **회귀 방어선 부재(감시 지점)** — 대체(FEAT-34). 규칙 **W5**가 배럴 **정의**를 보므로 **임포터 유무와 무관하게** 잡는다 — 잠복할 수 없다. 메인 루프가 인수 시 직접 재현 — `entities/user/index.ts`에 `export { getUserPolarCustomerId } from "./api";`를 심으니 `[W5] entity client barrel must not re-export server-only ./api; use server.ts` **EXIT 1**, 되돌리니 EXIT 0. `npm run check`에 배선돼 있어 사람이 기억할 필요가 없다
+
+---
+
 ## BUG-11 · BUG-10 (web, 구현 2026-09-04)
 
-원천: `docs/agents/web-dev/BUG-11.md`·`BUG-10.md`의 「테스트로 못 덮은 범위」. 커밋 `07c4761`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+원천: `docs/agents/web-dev/BUG-11.md`·`BUG-10.md`의 「테스트로 못 덮은 범위」. 커밋 `07c4761`. **배포 완료(2026-09-04, PR #112 머지 `3153989`).** 같은 날 메인 루프가 프로덕션에서 스윕해 9줄 중 5줄 마감.
 자동 검사 게이트(`npm run check` EXIT 0 · `npm test` 77/0)는 통과했다. 아래는 그 게이트가 원리상 못 덮는 것 — 브라우저 런타임, 실제 S3·DB I/O, 외부 응답 한도.
 **`〔auto〕` 태그를 붙이지 않는다**: release-verify 루틴의 base는 `admin.a-pch.com`인데 아래는 전부 web(`a-pch.com`)의 로그인 뒤 화면·브라우저 콘솔이다.
 
 BUG-11 — 서버 액션 프록시로 CORS 제거:
 
-- [ ] **핵심 — CORS 소멸**: 프로덕션에서 `Review Needed` 업로드 상세를 열어 콘솔에 S3 `transcript.json`에 대한 CORS 차단·`net::ERR_FAILED`가 **더는 뜨지 않는다**. 2026-09-04 스윕의 관측(5s·7s·10s·15s 간격 반복)이 근거 상태다
-- [ ] **전사가 실제로 로드된다**: 같은 화면에서 단어 경계 스냅·커스텀 클립 추가가 동작한다(전사가 비어 있으면 패널이 `null` 렌더라 "그냥 없는" 화면이 된다)
-- [ ] **서버 액션의 실제 S3 읽기·인증 경로**: `getTranscript`가 `getS3ObjectText`로 실제 객체를 읽고, 남의 업로드 id로는 실패한다(테넌트 스코프 `findUploadedFileReviewState(id, userId)` 유지)
+- [x] **핵심 — CORS 소멸** — 확인(2026-09-04, 프로덕션 Playwright: `/dashboard/uploads/cms7kthjp0001jp04l2vybhj4` 로드에서 **콘솔 오류 0건**. 배포 전 같은 페이지는 S3 `transcript.json`에 대한 CORS 차단 + `net::ERR_FAILED`가 5s·7s·10s·15s 간격으로 반복됐다)
+- [x] **전사가 실제로 로드된다** — 확인(2026-09-04: 같은 화면에 「Add a clip AI missed」 문단과 「Add custom clip」 버튼이 렌더됐다. 이 패널은 `transcriptWords.length > 0`일 때만 나오고 전사가 비면 `null`을 렌더한다 — 배포 전 스냅샷에는 이 문구가 없었다. 즉 서버 액션 `getTranscript` → `getS3ObjectText`의 실제 S3 읽기가 성공한다)
+- [ ] **서버 액션의 인증 경로(테넌트 스코프)**: 남의 업로드 id로는 실패한다(`findUploadedFileReviewState(id, userId)`). 두 번째 계정이 필요해 미확인 — S3 읽기 절반은 위 줄에서 닫혔다
 - [ ] **실패 안내가 몇 초 안에 뜬다**: 전사가 없는/깨진 업로드에서 "Transcript unavailable — custom clips are disabled."가 `retry: 2` 소진 후 빠르게 보인다. 이전에는 재시도가 포커스·뮤테이션마다 재점화돼 안내가 사실상 안 떴다
 - [ ] **큰 전사 payload**: 긴 영상의 전사가 Vercel 함수 응답 한도(4.5MB) 안인지 실측. 넘으면 스트리밍·페이지네이션이 후속 항목이 된다
 
 BUG-10 — 날짜 포매팅 UTC 고정:
 
-- [ ] **핵심 — React #418 소멸**: `/dashboard/billing`과 `/dashboard/uploads/<id>`를 열어 콘솔에 `Minified React error #418`이 **더는 뜨지 않는다**. 2026-09-03·09-04 두 날 매 로드 1건씩 뜨던 것이 근거 상태다
-- [ ] **날짜 하루 이월(소유자가 알고 택한 트레이드오프)**: 빌링 화면의 구독 갱신일·결제일이 예상과 다른지 본다. UTC 15:00 이후 타임스탬프는 KST 기준 다음 날이라 하루 이르게 표시된다(계획서 「표시 문구 변화」의 실측 표). 실제로 몇 건이 그런지는 `Order.createdAt`·`Subscription.currentPeriodEnd`를 봐야 안다
-- [ ] **표시 문구 전환**: 날짜+시각이 ko-KR `2026. 7. 30. 오후 10:55:46`에서 en/UTC `Jul 30, 2026, 10:55 PM` 형태로 바뀐 것이 화면에서 어색하지 않은지
-- [ ] **러너가 못 덮는 두 곳**: `RecoverableUploadDrafts`(복구 초안이 있을 때)·`UploadedFileCard`(My Clips 탭)의 시각 표기가 서버·클라이언트 동일한지 — 실제 데이터와 탭 전환이 필요하다
+- [x] **핵심 — React #418 소멸** — 확인(2026-09-04, 프로덕션 Playwright: `/dashboard/billing`·`/dashboard/uploads/<id>` 둘 다 **콘솔 오류 0건**. 배포 전에는 2026-09-03·09-04 두 날 매 로드 1건씩 떴다)
+- [x] **날짜 하루 이월(소유자가 알고 택한 트레이드오프)** — 확인(2026-09-04, 프로덕션 실측: **빌링 화면의 날짜 6건 전부 하루 당겨졌다**. 다음 갱신 `2026. 9. 27.` → `Sep 26, 2026`, 결제 이력 `2026. 8. 27.`→`Aug 26, 2026`·`2026. 7. 27.`→`Jul 26, 2026`·`2026. 6. 27.`→`Jun 26, 2026`·`2026. 4. 27.`→`Apr 26, 2026`·`2026. 3. 27.`→`Mar 26, 2026`. 이 계정의 구독 타임스탬프가 전부 UTC 15:00 이후라는 뜻이다. 예고된 동작이며 결함이 아니다 — 소유자가 UTC를 택할 때 이 이월을 알고 있었다)
+- [x] **표시 문구 전환** — 확인(2026-09-04: 업로드 상세 상단 `Aug 13, 2026, 2:23 PM`, 처리 타임라인 4단계 `Aug 25, 2026, 3:22 PM`~`3:32 PM`, 빌링 `Sep 26, 2026`. 배포 전 ko-KR `2026. 7. 30. 오후 10:55:46` 형태에서 전환됐고 화면에서 어색한 곳은 없었다)
+- [ ] **러너가 못 덮는 두 곳**: `RecoverableUploadDrafts`(복구 초안이 있을 때)·`UploadedFileCard`(My Clips 탭)의 시각 표기가 서버·클라이언트 동일한지
+  - 절반 확인(2026-09-04): `UploadedFileCard`는 My Clips 탭을 열어 확인 — `Uploaded: Aug 13, 2026, 2:23 PM`(배포 전 같은 카드는 KST `11:23 PM`)로 UTC 전환됐고 콘솔 오류 0건. **기존 포매터의 타임존 미고정 잠복 결함도 함께 닫혔다.** `RecoverableUploadDrafts`는 이 계정에 복구 대상 초안이 없어 미확인
 
 ---
 
@@ -279,7 +313,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 원천: `docs/agents/admin-dev/FEAT-13.md`
 
 - [x] `ValidationMark` 점선 「검증 전」 칩 + 검토대기 조건부 — 확인(2026-08-24, 실보드: BUG-03 검토대기 카드에 점선 칩 실렌더, 승인대기 BUG-02 카드엔 없음 — 조건부 양·음성 동시 관측)
-- [ ] `ValidationMark` 실선 「검증 통과」 칩·`title` 툴팁 — BUG-03 검증 클린 패스 후 보드에 `검증:` 줄이 생기면 자연 확인 〔auto GET /pipeline text="검증 통과" text="클린 패스 (" when-board="status: 검토대기[^\n]*\n(?:[^\n]*\n){0,2}\s*검증: 클린 패스"〕
+- [x] `ValidationMark` 실선 「검증 통과」 칩·`title` 툴팁 — BUG-03 검증 클린 패스 후 보드에 `검증:` 줄이 생기면 자연 확인 — 확인(2026-09-06 09:06 KST, 자동 — GET /pipeline 200 · text 2/2)
 
 ## FEAT-12 — 보드 감압·행위자 보고서 표시 (admin+루트 문서, 보드 2026-08-18 절)
 

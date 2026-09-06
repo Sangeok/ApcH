@@ -3,7 +3,7 @@
 import type { Clip } from "@repo/db";
 import { Copy, X } from "lucide-react";
 import { formatSecondsAsClock } from "~/fsd/shared/lib/format-duration";
-import { useScriptClipboard } from "~/fsd/widgets/clip-display/model/use-script-clipboard";
+import { useScriptClipboard } from "../../model/use-script-clipboard";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Sheet,

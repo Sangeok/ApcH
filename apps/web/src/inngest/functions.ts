@@ -21,7 +21,7 @@ import {
 import { PROCESSING_STALE_POLICY } from "~/fsd/entities/uploaded-file/model/stale-policy";
 import { stuckAlertElapsedMinutes } from "~/fsd/entities/uploaded-file/model/stuck-alert";
 import { createClipDraftsBulk } from "~/fsd/entities/clip-draft/server";
-import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event";
+import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event/server";
 import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
 import {
   flushReports,

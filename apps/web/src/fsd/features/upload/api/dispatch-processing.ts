@@ -6,7 +6,7 @@ import {
   markProcessingDispatchDeadLetter,
   markProcessingDispatchSent,
   type PendingProcessingDispatch,
-} from "~/fsd/entities/processing-dispatch";
+} from "~/fsd/entities/processing-dispatch/server";
 import { getSelectedRenderMomentsForAttempt } from "~/fsd/entities/clip-draft/server";
 import {
   getAttemptOutputPrefix,

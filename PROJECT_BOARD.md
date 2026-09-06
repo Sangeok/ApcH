@@ -15,7 +15,12 @@
 > `검토대기` 계획서의 검증은 카탈로그(`docs/plans/verification-paths.md`)의 필수 경로를 소진한 뒤,
 > **`plan-verifier`(새 컨텍스트)의 무편집 무소득 패스 1회가 나오면 끝난 것이다.** 메인 루프 자신의
 > 무소득 라운드는 트리거(디스패치 자격)이지 판정이 아니다 — 고친 컨텍스트의 재독은 회상과 구분되지 않는다.
-> 독립 패스가 3사이클 연속 결함을 내면 계획서 수정으로 풀리지 않는 문제다 — `보류`로 보고한다.
+> 독립 패스가 3사이클 연속 **구현 영향 결함**을 내면 계획서 수정으로 풀리지 않는 문제다 — `보류`로 보고한다.
+> 계수는 `plan-verifier`가 표시하는 「구현을 틀리게 하는가 / 문서 위생인가」 구분을 따른다(`plan-verifier.md` 「결함의 기준」).
+> **문서 위생만 나온 사이클은 계수에 넣지 않는다** — 정지 규칙은 계획이 흔들릴 때를 위한 것이지 주석 줄 세기를 위한 것이 아니다.
+> 다만 문서 위생만 2사이클 연속이면 **경로 선정이 과했다는 신호**다. 다음 항목의 필수 경로를 좁히고 그 판단을
+> `docs/agents/main-loop/<항목ID>.md`에 남긴다(2026-09-05 FEAT-33: 3사이클을 썼는데 1·2사이클 소득이 절 표기와
+> 주석 줄 범위뿐이었고, 구현 지시 결함은 처음부터 0건이었다).
 > 재검증은 계획서나 그것이 인용하는 코드가 바뀌었을 때만 돌린다 — FEAT-02에서 클린 패스 뒤에 돌린 4차가
 > 아무것도 못 찾았고, 같은 컨텍스트의 무편집 반복도 역대 소득 0건이다(FEAT-08·09·15).
 > **`구현승인`이어야 코드를 고친다.** `완료`로 기록할 때 TASK_BACKLOG.md에서도 그 항목을 제거한다.
@@ -34,7 +39,32 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-05
+- [x] FEAT-34: apps/web FSD 경계 자동 검출 도입 — 배럴·레이어 위반 재발을 사람 감사 대신 CI가 잡게
+  agent: web-dev
+  area: apps/web/eslint.config.js + apps/web/package.json + apps/web/scripts (신설) + apps/web/src/fsd/pages/pricing/ui
+  status: 완료
+  근거: 소유자가 FEAT-33 인수 후 지목("진행"). 전제 재확인 — steiger.config 0·관련 의존성 0·no-restricted-imports 0·verify 스크립트 0. FEAT-31·33이 원장에 남긴 감시 지점 두 줄을 닫는다. FSD 제안서의 마지막 항목.
+  결과: 경계검출기 W1~W8 + 셀프테스트 신설, 선행정리 5로 W6 0, check에 verify 배선. verify:fsd EXIT0·셀프11/11·감시지점 W4/W5/W6 음성 실증·check/test77/build EXIT0. 상세 web-dev/FEAT-34
+  검증: 클린 패스 (2026-09-06, 독립 무편집 1라운드 — plan-verifier 4사이클째)
+
+- [x] FEAT-33: widgets 슬라이스 Public API — 배럴 `index.ts` 7개 신설 + 인트라 슬라이스 절대경로 자기참조 10건 정리
+  agent: web-dev
+  area: apps/web/src/fsd/widgets + apps/web/src/fsd/pages + apps/web/src/app + apps/web/src/fsd/features/billing
+  status: 완료
+  근거: 소유자가 FEAT-31 인수 후 다음 항목으로 지목("진행"). 전제 재확인 — widgets 배럴 0/7, 슬라이스 밖 참조 9곳, 인트라 자기참조 10건(clip-display 7·billing 3). FEAT-34의 선행이다. 미결 0건.
+  결과: 배럴 7 신설·외부 참조 9 배럴 named 교체·인트라 자기참조 10 상대화(신규7+수정15=22). check EXIT0·test 77/0·build EXIT0. 기계검증 배럴7·widgets세그먼트0·billing자기0. 상세 web-dev/FEAT-33
+  검증: 클린 패스 (2026-09-05, 독립 무편집 1라운드 — plan-verifier 3사이클째)
+
 ## 2026-09-04
+- [x] FEAT-31: 엔티티 배럴 다섯을 클라이언트 안전 `index.ts` + 서버 전용 `server.ts`로 분할 — 첫 클라이언트 임포트가 빌드를 깨는 잠복 파손 제거
+  agent: web-dev
+  area: apps/web/src/fsd/entities/analytics-event + apps/web/src/fsd/entities/order + apps/web/src/fsd/entities/processing-dispatch + apps/web/src/fsd/entities/subscription + apps/web/src/fsd/entities/user
+  status: 완료
+  근거: 소유자가 이 세션에서 직접 지목("FEAT 31 수행"). 다섯 배럴이 `import "server-only"` api를 재수출하는 것을 메인 루프가 재확인했다. tsc는 통과하고 build에서만 터져 배포 직전에 발견된다. 미결 0건.
+  결과: 다섯 barrel을 index.ts(클라 안전)+server.ts로 분할, 임포터 13개 /server 교체. 프로브 build EXIT0(다섯 클라 안전 동시증명). check EXIT0·test 77/0·build EXIT0. 상세 web-dev/FEAT-31
+  검증: 클린 패스 (2026-09-04, 독립 무편집 1라운드 — plan-verifier 2사이클째)
+
 - [x] BUG-11: 클립 검토 화면의 S3 transcript가 CORS로 전부 차단된다 — 대본을 못 읽고 실패 안내는 재시도 소진 후에야 뜬다
   agent: web-dev
   area: apps/web/src/fsd/features/clip-review + apps/web/src/fsd/widgets/clip-draft-review

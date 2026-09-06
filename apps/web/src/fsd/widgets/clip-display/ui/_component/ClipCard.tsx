@@ -10,8 +10,8 @@ import { useScriptClipboard } from "../../model/use-script-clipboard";
 import {
   clipTypeLabel,
   hasClipRationale,
-} from "~/fsd/widgets/clip-display/model/clip-rationale";
-import { subtitleFallbackNotice } from "~/fsd/widgets/clip-display/model/subtitle-status";
+} from "../../model/clip-rationale";
+import { subtitleFallbackNotice } from "../../model/subtitle-status";
 import { isNonEmptyString, parseJsonArray } from "~/fsd/shared/lib/utils";
 import { ClipActions } from "./ClipActions";
 import { ClipVideoPlayer } from "./ClipVideoPlayer";

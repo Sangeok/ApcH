@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
 import { Badge } from "~/fsd/shared/ui/atoms/badge";
-import { getCheckoutUrl } from "~/fsd/features/billing/api";
+import { getCheckoutUrl } from "../api";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { PLAN_TIERS } from "../config";
 import type { PlanTier, ProductIds } from "../config";

@@ -1,8 +1,8 @@
 import {
   findSubscriptionByPolarId,
   updateSubscriptionByPolarId,
-} from "~/fsd/entities/subscription";
-import { incrementUserCredits } from "~/fsd/entities/user";
+} from "~/fsd/entities/subscription/server";
+import { incrementUserCredits } from "~/fsd/entities/user/server";
 import { failure, success } from "~/fsd/shared/api/result";
 import type { ActionResult } from "~/fsd/shared/api/result";
 

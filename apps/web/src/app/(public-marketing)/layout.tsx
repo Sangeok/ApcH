@@ -1,5 +1,5 @@
-import SiteFooter from "~/fsd/widgets/site-footer/ui";
-import PublicHeader from "~/fsd/widgets/site-header/ui/public-header";
+import { SiteFooter } from "~/fsd/widgets/site-footer";
+import { PublicHeader } from "~/fsd/widgets/site-header";
 
 export default function PublicMarketingLayout({
   children,

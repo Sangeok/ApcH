@@ -1,8 +1,8 @@
 import { type Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getDashboardHeaderUser } from "~/fsd/entities/user";
+import { getDashboardHeaderUser } from "~/fsd/entities/user/server";
 import { Toaster } from "~/fsd/shared/ui/atoms/sonner";
-import DashboardHeader from "~/fsd/widgets/dashboard-header/ui";
+import { DashboardHeader } from "~/fsd/widgets/dashboard-header";
 import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {

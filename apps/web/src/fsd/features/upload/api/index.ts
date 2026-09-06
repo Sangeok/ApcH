@@ -4,7 +4,7 @@ import { Prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch";
+import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch/server";
 import { dispatchProcessingRequestById } from "./dispatch-processing";
 import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { flushReports } from "~/fsd/shared/observability";

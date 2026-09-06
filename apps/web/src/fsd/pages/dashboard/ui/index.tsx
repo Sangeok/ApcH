@@ -14,7 +14,7 @@ import {
 import {
   currentUserActiveUploadQueueQueryOptions,
   currentUserUploadedFileListQueryOptions,
-} from "~/fsd/features/upload/model/query-options";
+} from "~/fsd/features/upload";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -29,7 +29,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "~/fsd/shared/ui/atoms/tabs";
-import UploadedFileList from "~/fsd/widgets/uploaded-file-list/ui";
+import { UploadedFileList } from "~/fsd/widgets/uploaded-file-list";
 import QueueStatus from "./_component/QueueStatus";
 import RecoverableUploadDrafts from "./_component/RecoverableUploadDrafts";
 import UploadPodcast from "./_component/UploadPodcast";

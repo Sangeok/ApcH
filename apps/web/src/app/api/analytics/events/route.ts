@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { recordAnalyticsEvent } from "~/fsd/entities/analytics-event";
+import { recordAnalyticsEvent } from "~/fsd/entities/analytics-event/server";
 import { ANALYTICS_EVENT_NAMES } from "~/fsd/shared/analytics/event-catalog";
 import { sanitizeAnalyticsMetadata } from "~/fsd/shared/analytics/lib/metadata";
 import {

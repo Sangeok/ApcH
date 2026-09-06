@@ -1,7 +1,7 @@
 import { CustomerPortal } from "@polar-sh/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
-import { getUserPolarCustomerId } from "~/fsd/entities/user";
+import { getUserPolarCustomerId } from "~/fsd/entities/user/server";
 import { POLAR_SERVER } from "~/fsd/shared/api/polar";
 import { auth } from "~/server/auth";
 

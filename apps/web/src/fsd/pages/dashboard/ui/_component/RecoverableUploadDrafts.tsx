@@ -2,8 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Loader2, RotateCcw, Trash2 } from "lucide-react";
-import { useDeleteUploadedFile } from "~/fsd/features/upload/model/use-delete-uploaded-file";
-import { useResumeUploadDraft } from "~/fsd/features/upload/model/use-resume-upload-draft";
+import { useDeleteUploadedFile, useResumeUploadDraft } from "~/fsd/features/upload";
 import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {

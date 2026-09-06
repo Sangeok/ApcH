@@ -1,9 +1,2 @@
-export {
-  claimPendingProcessingDispatch,
-  createProcessingDispatch,
-  findPendingProcessingDispatchById,
-  markProcessingDispatchDeadLetter,
-  markProcessingDispatchSent,
-} from "./api";
-export type { PendingProcessingDispatch } from "./api";
+/** 클라이언트 안전 표면. 서버 전용 DB 접근은 `./server`. */
 export type { ProcessingDispatchStatus } from "./model/types";

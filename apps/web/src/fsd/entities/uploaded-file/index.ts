@@ -8,6 +8,7 @@ export {
   getProcessingMatchKey,
   getUploadedFilePrefix,
 } from "./model/attempt-prefix";
+export { PROCESSING_STALE_POLICY } from "./model/stale-policy";
 export {
   PARTIAL_CLIPS_AFTER_BACKEND_ERROR,
   PARTIAL_CLIPS_INSUFFICIENT,
