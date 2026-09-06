@@ -302,7 +302,7 @@ raw CDN 잔상(max-age=300)은 확인 항목이 아니라 수용된 트레이드
 원천: `docs/agents/admin-dev/FEAT-13.md`
 
 - [x] `ValidationMark` 점선 「검증 전」 칩 + 검토대기 조건부 — 확인(2026-08-24, 실보드: BUG-03 검토대기 카드에 점선 칩 실렌더, 승인대기 BUG-02 카드엔 없음 — 조건부 양·음성 동시 관측)
-- [ ] `ValidationMark` 실선 「검증 통과」 칩·`title` 툴팁 — BUG-03 검증 클린 패스 후 보드에 `검증:` 줄이 생기면 자연 확인 〔auto GET /pipeline text="검증 통과" text="클린 패스 (" when-board="status: 검토대기[^\n]*\n(?:[^\n]*\n){0,2}\s*검증: 클린 패스"〕
+- [x] `ValidationMark` 실선 「검증 통과」 칩·`title` 툴팁 — BUG-03 검증 클린 패스 후 보드에 `검증:` 줄이 생기면 자연 확인 — 확인(2026-09-06 09:06 KST, 자동 — GET /pipeline 200 · text 2/2)
 
 ## FEAT-12 — 보드 감압·행위자 보고서 표시 (admin+루트 문서, 보드 2026-08-18 절)
 
