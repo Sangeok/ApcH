@@ -4,7 +4,7 @@ agent: web-dev
 
 ## 현재 동작
 
-- `Sentry.init`은 저장소 전체에서 **하나뿐**이다 — `src/sentry.server.config.ts:65` `Sentry.init({`. DSN·environment·`sendDefaultPii: false`·`tracesSampleRate: 0`·`beforeSend`를 준다.
+- `Sentry.init`은 **`apps/web` 안에서 하나뿐**이다 — `src/sentry.server.config.ts:65` `Sentry.init({`. (저장소에는 둘이다 — `apps/admin/src/sentry.server.config.ts:9`가 **같은 Sentry 프로젝트**로 보내며 `initialScope: { tags: { app: "admin" } }`로 구분한다. admin은 별도 Vercel 프로젝트라 이 항목의 범위 밖이고, web 이벤트에 `app` 태그가 없는 비대칭은 여기서 건드리지 않는다.) DSN·environment·`sendDefaultPii: false`·`tracesSampleRate: 0`·`beforeSend`를 준다.
 - 그 서버 설정은 서버 런타임에서만 로드된다 — `src/instrumentation.ts:4` `if (process.env.NEXT_RUNTIME === "nodejs") {` 안에서 `await import("./sentry.server.config")` (`:5`). `onRequestError = Sentry.captureRequestError` (`:10`)는 서버 컴포넌트·route handler 전용이다.
 - **클라이언트 진입점 파일은 0개다.** `src/instrumentation-client.{ts,js}`·`src/sentry.client.config.{ts,js}`·루트 동명 파일 모두 없음(전수 `ls` 확인). 즉 브라우저에는 `Sentry.init`이 한 번도 실행되지 않아 SDK가 비활성이다.
 - 라우트 에러 경계는 **5개**이고 전부 같은 훅을 쓴다 — `src/app/error.tsx:13`, `src/app/global-error.tsx:12`, `src/app/dashboard/error.tsx:13`, `src/app/dashboard/billing/error.tsx:13`, `src/app/dashboard/uploads/[uploadedFileId]/error.tsx:13`이 각각 `useReportBoundaryError(error, "...")`를 호출한다(호출부 5개 = 파일 5개, `grep -c` 확인).
@@ -140,7 +140,7 @@ export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 ### 3. `src/env.js` — 두 곳
 
-client 블록(현재 `:52-58`)에 추가. 위치는 `NEXT_PUBLIC_SITE_URL` 다음 줄(`:53` 아래):
+client 블록(현재 `:52-58`)에 추가. 위치는 `client: {` 바로 아래 — 즉 `NEXT_PUBLIC_SITE_URL`(`:53`) **위**다(아래 after 블록이 적용 대상이다). 키 순서는 t3-env·Zod 동작과 무관하다:
 
 before (`:52-53`):
 ```js
