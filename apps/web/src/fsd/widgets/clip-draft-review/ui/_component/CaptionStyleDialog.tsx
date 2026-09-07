@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/fsd/shared/ui/atoms/dialog";
+import type { TranscriptWord } from "~/fsd/features/clip-review";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
 import CaptionStyleEditor from "./CaptionStyleEditor";
 
@@ -20,7 +21,10 @@ interface CaptionStyleDialogProps {
   language: string;
   // 서버에 저장된 스타일. 열릴 때마다 이 값으로 작업본을 다시 만든다.
   initialValue: CaptionStyle | null;
-  previewWords: string[];
+  playUrl: string | null;
+  clipStart: number;
+  clipEnd: number;
+  words: TranscriptWord[];
   onApply: (style: CaptionStyle | null) => void;
   onApplyToAll: (style: CaptionStyle) => void;
   isApplyingToAll: boolean;
@@ -31,7 +35,10 @@ export default function CaptionStyleDialog({
   onOpenChange,
   language,
   initialValue,
-  previewWords,
+  playUrl,
+  clipStart,
+  clipEnd,
+  words,
   onApply,
   onApplyToAll,
   isApplyingToAll,
@@ -64,7 +71,10 @@ export default function CaptionStyleDialog({
         <CaptionStyleEditor
           language={language}
           value={working}
-          previewWords={previewWords}
+          playUrl={playUrl}
+          clipStart={clipStart}
+          clipEnd={clipEnd}
+          words={words}
           onChange={setWorking}
         />
 

@@ -152,3 +152,46 @@ before 앵커 전부 바이트 일치, 삭제 후 잔존 참조 0. 전칭 넷 �
 **결과: 무편집 클린 패스.** FEAT-32 선례(독립 패스가 위생만 냈을 때 반영 + 확인 패스로 마감)와 보드 안내
 ("문서 위생만 나온 사이클은 계수에 넣지 않는다", "같은 컨텍스트의 무편집 반복은 역대 소득 0건")를 따라 재디스패치하지
 않는다. 보드에 `검증:` 줄을 쓴다.
+
+## 인수 (2026-09-08)
+
+인수 조건 다섯을 직접 재현했다 — 보고를 받아쓰지 않았다.
+
+1. **변경 파일 ↔ 「고칠 파일」** — 정확히 9개. 수정 6(`constants.ts`·`layout.tsx`·`CaptionStyleEditor`·
+   `CaptionStyleDialog`·`ClipDraftCard`·`ui/index.tsx`) + 신규 3(`caption-preview.ts`·`.test.mjs`·
+   `CaptionPreviewPlayer.tsx`). 그 밖의 `apps/web` 변경 0 — 다른 세션의 FEAT-35 파일(`format-duration.ts`,
+   `preview-range.ts`, `boundary-snap.ts`)은 트리에 나타나지 않았다.
+2. **diff ↔ 스케치 (기계 대조)** — 검증 때 만든 워크트리(`wt36`, 베이스 `f7e6e57`)에 계획서 블록 13개를
+   재적용해 실제 구현과 파일별로 diff했다. `git diff f7e6e57 HEAD -- apps/web`가 비어 베이스 유효.
+   **8파일 중 7파일 바이트 일치**(diff 0줄). `CaptionStyleEditor.tsx`만 12줄 갈렸는데 전부 **내 하니스의
+   근사 오차**였다: ① `import type { TranscriptWord }` 위치 — 내 스크립트는 `matchPresetId` 앞, dev는 상단
+   import 정렬 자리(계획서는 "상단 import에 추가"라고만 했고 lint가 dev 쪽을 통과시켰다). ② 내 스크립트가
+   `PREVIEW_HEIGHT_PX` 상수만 지우고 위 주석을 남겼다 — 계획서는 검증 라운드 1에서 `:21-22`(주석 포함)로
+   고쳤고 dev가 그대로 따랐다. ③ 삭제 후 빈 줄 정리. **코드 의미 차이 0, dev가 계획서에 더 충실하다.**
+3. **검증 명령 직접 재실행** — `npm test -w apps/web` **107 pass / 0 fail**(25 suite),
+   `npm run check -w apps/web` **EXIT 0**(verify:fsd:test 11/11 · FSD 경계 통과 · lint 무경고 · tsc clean).
+4. **백로그 제거** — `grep -c FEAT-36 TASK_BACKLOG.md` **0**, FEAT-35는 **1**로 유지(남의 항목 무접촉).
+5. **상세 기록 실재** — `docs/agents/web-dev/FEAT-36.md` **90줄**, 8절.
+
+**보드 `결과` 146자** (150 이내). 반송 없음.
+
+**테스트 명세 대조** — 계획서 「테스트」의 "덮는 것"과 실제 테스트를 항목 단위로 맞췄다: `buildCaptionCues`
+①~⑥ 6건 + `pickActiveCue` 4건 + `getPreviewFontPx` 4건 + `getPreviewStrokePx`·`getPreviewShadowPx` 각 1건 +
+`getPreviewVerticalInset` 3건 = **19건**, 파일의 `it(` 수와 일치. 검증 라운드 1이 요구한 추가 단언 둘
+(두 번째 큐 start, `end === clipEnd` 포함)도 테스트 이름에 실재한다.
+
+**메인 루프가 직접 처리한 것** — web-dev 쓰기 범위 밖이라 못 고치는 문서 드리프트:
+`apps/web/CLAUDE.md:69` 「15개 파일, 19 suite, 88개 테스트」 → 「16개 파일, 25 suite, 107개」(dev 보고를
+믿지 않고 `find -name "*.test.mjs" | wc -l` = 16, `npm test` 출력 = 25 suite/107 tests로 실측),
+테스트 표에 `caption-preview.test.mjs` 행 추가(표 15행 → 16행 = 실제 파일 수).
+
+**런북 8단계** — 「못 덮는 범위」를 `docs/release-checks.md`에 FEAT-36 절로 등재(8줄). 전부 브라우저 재생·
+시각 대조라 `〔auto〕` 태그 대상이 아니다 — 미리보기가 인증 뒤 검토 화면에서만 열려 공개 응답 본문으로
+판정할 수 없다. **크레딧 없이 닫는 법**을 절 머리에 적었다: 이미 생성된 클립의 캡션과, 스타일을 바꾸지 않은
+미리보기를 대조하면 기본 스타일끼리의 비교라 새 생성이 필요 없다(핵심 두 줄인 EN/KR 크기 대조가 이 방법으로 닫힌다).
+
+**후속 후보(사용자 제시용)** — 계획서 「범위 밖 의존」은 "없음(차단 없음)"이지만 같은 절이 후속 셋을 적었고,
+백로그에서 FEAT-36을 지웠으므로 등재하지 않으면 pm의 입력에서 증발한다(런북 7단계가 경고하는 BUG-02 경로):
+(a) 렌더 후 재캡션 — 자막 전 세로 영상(`main.py:755`) 보관 + CPU 번인. 이 항목이 못 닫는 두 근사(화자 크롭·
+한국어 텍스트)를 닫는 유일한 경로. backend+web, 크레딧 정책 결정 필요. (b) 한국어 미리보기 번역 서버 액션.
+(c) 같은 플레이어를 왼쪽 메인 패널에 재사용해 카드 Preview도 저장된 스타일로 보이게.

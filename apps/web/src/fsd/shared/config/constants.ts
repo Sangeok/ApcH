@@ -67,6 +67,34 @@ export const CAPTION_STYLE_OPTIONS = {
   DEFAULT_OUTLINE_WIDTH: { English: 1.1, Korean: 1.3 },
 } as const;
 
+/**
+ * 캡션 렌더 좌표 상수. apps/backend/main.py 및 설치 폰트 파일과 동기.
+ * 미리보기(CaptionPreviewPlayer)가 PlayRes 비율로 환산해 실렌더 픽셀을 근사한다.
+ */
+export const CAPTION_RENDER = {
+  PLAY_RES_Y: 1920, // main.py:354 subs.info["PlayResY"]
+  // top/bottom 세로 마진(PLAY_RES_Y 기준). middle은 중앙 정렬이라 마진 미사용.
+  MARGINV: { top: 200, bottom: 260 }, // main.py:141-142
+  SHADOW: 6.5, // main.py:369 new_style.shadow / :562 korean_style.shadow
+  // ⚠️ libass는 face.ascender/descender를 OS/2 usWinAscent/usWinDescent로 덮어쓴 뒤
+  // (ass_font.c set_font_metrics — 0.15.2 :98-104, master :356-366; Ubuntu 22.04 ffmpeg가
+  // 링크하는 0.15.2도 동일) FreeType REAL_DIM(= ascender − descender)으로 크기를 요청한다
+  // (ass_face_set_size, FT_SIZE_REQUEST_TYPE_REAL_DIM). 즉 ASS fontsize 1 = (winAscent +
+  // winDescent) 픽셀. USE_TYPO_METRICS는 FreeType 기본값만 바꾸고 libass가 그 값을
+  // 덮어쓰므로 무관하다.
+  // 그래서 CSS font-size(px) = assFontSize × (unitsPerEm / (winAscent + winDescent)) × previewScale.
+  // 아래 값은 main.py:70,74가 설치하는 실제 폰트 파일을 받아 OS/2·head 표를
+  // 파싱해 확정했다(2026-09-07):
+  //   Anton-Regular.ttf   : unitsPerEm 2048, usWinAscent 2876 + usWinDescent 674 = 3550
+  //     (sTypo·hhea는 2409/−674 = 3083이지만 libass가 쓰는 값이 아니다)
+  //   NotoSansKR-Bold.otf : unitsPerEm 1000, usWinAscent 1160 + usWinDescent 288 = 1448
+  //     (hhea 1160/−288과 동일)
+  EM_SCALE: {
+    English: 2048 / 3550, // ≈ 0.576901  (Anton, 영어 클립)
+    Korean: 1000 / 1448, //  ≈ 0.690608  (Noto Sans KR, 한국어 클립)
+  },
+} as const;
+
 // 30~90초 검증의 단일 지점. zod refine과 서버 액션 가드가 모두 이 함수를 사용한다.
 export function isClipDurationWithinLimits(
   startSeconds: number,

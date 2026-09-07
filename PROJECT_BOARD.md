@@ -40,12 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-07
-- [ ] FEAT-36: 캡션 스타일 미리보기를 실제 영상 위 타이밍 오버레이로 — 렌더 없이 9:16 프레임에서 자막 큐 재생
+- [x] FEAT-36: 캡션 스타일 미리보기를 실제 영상 위 타이밍 오버레이로 — 렌더 없이 9:16 프레임에서 자막 큐 재생
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/shared/config/constants.ts + apps/web/src/app/layout.tsx
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-08, 무편집 4라운드 — 독립 1사이클, 위생 1건 반영)
   근거: 소유자 발주 — 캡션 스타일을 실제 영상 위에서 보고 싶다. 전제 재확인: 편집기 미리보기는 그라데이션 상자·시간축 없음, 원본 플레이어와 단어별 전사(렌더와 같은 파일)는 이미 클라이언트에 있음. 미결 1건(FEAT-35).
+  결과: 미리보기를 9:16 오버레이로 교체(순수 caption-preview 모듈+테스트19·CaptionPreviewPlayer·폰트2 로드·상수 CAPTION_RENDER). check EXIT0·test 107/0(88→107). 상세 web-dev/FEAT-36
 - [ ] FEAT-35: 클립 경계 편집 루프를 닫는다 — 경계 프리뷰 + 넛지 스냅 방향 + 시계 표기 입력
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/shared/lib/format-duration.ts
