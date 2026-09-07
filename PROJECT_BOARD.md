@@ -43,7 +43,7 @@
 - [ ] FEAT-35: 클립 경계 편집 루프를 닫는다 — 경계 프리뷰 + 넛지 스냅 방향 + 시계 표기 입력
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/shared/lib/format-duration.ts
-  status: 승인대기
+  status: 계획지시
   근거: 소유자가 검토 화면 실사용 중 발주 — Preview 결과와 Start/End 값이 대응되지 않는다. 전제 재확인: Preview는 구간 전체(30~90초) 재생이라 경계 확인 경로가 없고, 넛지는 단어 간격 1.0초 이상이면 no-op(재현 확인). 미결 0건.
 - [x] FEAT-32: 클라이언트 Sentry 초기화 — 브라우저 오류가 현재 어떤 텔레메트리에도 도달하지 않음
   agent: web-dev
