@@ -155,3 +155,51 @@ literal 루프 제거). **음성 시험 — 경계에서 `\`를 뺀 원본 정�
 이빨을 독립 확인했다. 계획서 동작표 4행도 재현해 전부 일치.
 
 **결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
+
+---
+
+## 4라운드 — 메인 루프 무편집 패스 (2026-09-07)
+
+3라운드에서 **내가 새로 쓴 내용**(「environment 값 주의」절·`getVercelEnv` 인용 블록)은 아직 아무도
+검증하지 않았으므로 거기를 최우선 표적으로 삼았다.
+
+**통과한 것**
+
+- **경로 1(인용 전수)** — SDK 인용 재대조: `getVercelEnv.js:4-5` 축자 일치(`void 0`까지),
+  `client/index.js:54` environment 체인 일치, `getDefaultIntegrations` `:85-103`(`:104`가 다음 심볼),
+  `captureRouterTransitionStart` `:109`, 버전 `10.68.0`. 소스 인용도 재대조:
+  `sentry.server.config.ts` `:11-15`·`:17-23`·`:25`·`:27-39`(루프 `:30-32`, 엔드포인트 `:34-36`)·
+  `:57-63`(catch `:60-62`)·`:65`·`:69`·`:74`, `env.js` `:43`·`:52`·`:53`·`:54`·`:88`·`:90`·`:91`,
+  `next.config.js` `:60`·`:98`·`:115`, `instrumentation.ts` `:4`·`:5`·`:10`,
+  `use-report-boundary-error.ts` `:11-13`·`:15-17`·`:19`·`:24`, `observability/index.ts` `:1-8`,
+  `report-error.ts:1` — 전부 내용까지 일치.
+- **경로 3(before/after 기계 적용)** — before 블록 9개를 `grep -Fxq`로 현재 트리와 축자 대조, 9/9 일치.
+- **경로 4(전칭 여집합)** — `Sentry.init` 실호출 1건(`env.js:42`는 주석), 클라 진입점 **후보 8경로 전수
+  `ls`로 부재 확인**(`src/`·루트 × `instrumentation-client`·`sentry.client.config` × `.ts`/`.js`),
+  `useReportBoundaryError` 호출부 5건(+정의 1) — 파일 5개와 줄번호(`:13`×4, `global-error :12`)까지 일치.
+- **경로 9(구조적 아티팩트)** — 이 항목에서 처음 실행. 둘을 봤다.
+  ① `withSentryConfig`의 `webpack.treeshake.{removeTracing,removeDebugLogging}` 키가 **실재**하는지:
+  `webpack.js:556·559`가 그 키를 읽어 DefinePlugin에 심고, `:259`가 `webpack?.treeshake` 존재 시
+  `setupTreeshakingFromConfig`를 부른다. 타입 정의 `types.d.ts:92`에도 `treeshake?:`가 있다.
+  → 오타 키로 조용히 no-op이 될 위험 없음. `build` 스크립트가 `next build`(turbopack 플래그 없음)이라
+  webpack 경로가 맞다.
+  ② **FEAT-34 경계 검사기가 새 임포트를 잡는가** — 계획서가 다루지 않은 지점이라 직접 확인했다.
+  `readSourceFiles`가 `src/` 전체를 걷으므로 `src/instrumentation-client.ts`도 스캔 대상이다. 그러나
+  두 신규 임포트(`instrumentation-client.ts`·`sentry.server.config.ts` → `~/fsd/shared/observability/scrub-event`)는
+  둘 다 `srcLoc === null`(비-fsd 소스)이고, W4는 `tgtLoc.layer === "widgets"` 한정, W6은
+  `srcLoc !== null` 블록 안이며 `tgtLoc.layer !== "shared"`를 명시 제외한다. → **위반 0**.
+  기존 에러 경계 5개가 같은 slice를 깊은 경로로 임포트하고도 통과하는 것과 같은 이유다.
+  ③ 테스트 임포트 관용구 — 기존 `*.test.mjs` 14개가 전부 `from "./name.ts"` 형태이고 러너가
+  `tsx --test "src/**/*.test.mjs"`다. 계획서의 `from "./scrub-event.ts"`가 관용구와 일치.
+
+**결함 ㉮ (문서 위생) — 3라운드 편집이 마크다운을 깨뜨렸다.** `:14`의 백틱이 **홀수(31개)**였다:
+`...담는다)`가 `env.PROCESS_VIDEO_ENDPOINT`...`에서 떠도는 백틱이 뒤 심볼의 여는 백틱과 짝을 지어
+그 줄의 코드 스팬이 통째로 뒤집힌다. 하필 `getEndpointHost`/`:25`를 설명하는 자리다.
+→ 떠도는 백틱 제거(짝수 30). 파일 전체를 `awk`로 재검사해 홀수 줄 30개가 **전부 펜스(```)**이고
+15쌍으로 닫힘을 확인.
+
+**결함 ㉯ (문서 위생) — 인용 범위 off-by-one.** `webpack.js:553-573`이라 썼는데 `:573`은 마지막 if의
+닫는 중괄호이고 함수는 `:574`에서 닫힌다(`:575` 공백, `:576` exports). 3라운드 결함 ③(`getEndpointHost`
+`:17-23`)과 같은 부류다. → `:553-574`로 정정.
+
+**결과**: 편집 라운드(문서 위생 2건). 구현 영향 결함 0. 다음은 새 독립 패스.
