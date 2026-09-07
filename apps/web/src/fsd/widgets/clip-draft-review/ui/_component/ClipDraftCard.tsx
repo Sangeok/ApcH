@@ -11,12 +11,17 @@ import {
   type CaptionStyle,
   isClipDurationWithinLimits,
 } from "~/fsd/shared/config/constants";
-import { formatSecondsAsClock } from "~/fsd/shared/lib/format-duration";
+import {
+  formatSecondsAsClock,
+  parseClockToSeconds,
+} from "~/fsd/shared/lib/format-duration";
 import type {
   ClipRange,
   SaveDraftInput,
   TranscriptWord,
 } from "../../model/use-clip-draft-review";
+import { getPreviewRange } from "../../model/preview-range";
+import { snapToAdjacentBoundary } from "../../model/boundary-snap";
 import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
@@ -60,25 +65,6 @@ function roundTenth(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-function nearestBoundary(value: number, boundaries: number[]): number {
-  if (boundaries.length === 0) {
-    return value;
-  }
-
-  let best = boundaries[0]!;
-  let bestDistance = Math.abs(best - value);
-
-  for (const boundary of boundaries) {
-    const distance = Math.abs(boundary - value);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = boundary;
-    }
-  }
-
-  return best;
-}
-
 export default function ClipDraftCard({
   draft,
   isActive,
@@ -97,6 +83,9 @@ export default function ClipDraftCard({
   // Select all/Deselect all이 캐시만 갱신하고 카드 체크박스는 그대로 남는다.
   const [startSeconds, setStartSeconds] = useState<number>(draft.startSeconds);
   const [endSeconds, setEndSeconds] = useState<number>(draft.endSeconds);
+  // 편집 중에만 원시 텍스트를 담는다. null = 편집 아님(초 state에서 포맷). 커밋은 blur에서만.
+  const [startText, setStartText] = useState<string | null>(null);
+  const [endText, setEndText] = useState<string | null>(null);
   // 캡션 스타일은 로컬 state로 두지 않는다. 편집은 다이얼로그의 작업본에서만
   // 일어나고 Apply가 곧바로 저장하므로, 구간 자동 저장은 스타일을 건드리지 않는다
   // (captionStyle: undefined = 변경 없음).
@@ -123,20 +112,24 @@ export default function ClipDraftCard({
 
   const previewText = wordsInRange.map((word) => word.word).join(" ");
 
-  const adjustStart = (delta: number) => {
-    const next = nearestBoundary(
-      roundTenth(startSeconds + delta),
+  const adjustStart = (direction: "back" | "forward") => {
+    const next = snapToAdjacentBoundary(
+      startSeconds,
       transcriptWords.map((word) => word.start),
+      direction,
+      STEP_SECONDS,
     );
-    setStartSeconds(Math.max(0, roundTenth(next)));
+    setStartSeconds(Math.max(0, next));
   };
 
-  const adjustEnd = (delta: number) => {
-    const next = nearestBoundary(
-      roundTenth(endSeconds + delta),
+  const adjustEnd = (direction: "back" | "forward") => {
+    const next = snapToAdjacentBoundary(
+      endSeconds,
       transcriptWords.map((word) => word.end),
+      direction,
+      STEP_SECONDS,
     );
-    setEndSeconds(Math.max(0, roundTenth(next)));
+    setEndSeconds(Math.max(0, next));
   };
 
   const resetToAi = () => {
@@ -322,25 +315,53 @@ export default function ClipDraftCard({
           {isSaving && (
             <span className="text-muted-foreground text-xs">Saving…</span>
           )}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => onPreview({ startSeconds, endSeconds })}
-          >
-            Preview
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-xs"
+              aria-label="Preview clip start"
+              onClick={() =>
+                onPreview(getPreviewRange("start", startSeconds, endSeconds))
+              }
+            >
+              Start
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-xs"
+              aria-label="Preview whole clip"
+              onClick={() =>
+                onPreview(getPreviewRange("full", startSeconds, endSeconds))
+              }
+            >
+              Full
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-xs"
+              aria-label="Preview clip end"
+              onClick={() =>
+                onPreview(getPreviewRange("end", startSeconds, endSeconds))
+              }
+            >
+              End
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div>
-          {/* 식별 라인이 m:ss 범위를 담당하므로 여기서 되풀이하지 않는다.
-              이 필드는 초 단위 편집기이고, 라벨에 단위를 명시해야 위쪽의
-              "4:32.9"와 이 입력의 "272.9"가 같은 값의 두 표기가 아니라
-              서로 다른 역할로 읽힌다. */}
+          {/* 입력도 배지(:285-286)·플레이어와 같은 m:ss.s 시계 표기다. 파싱은
+              parseClockToSeconds가 하고, 넛지·자동저장·길이 판정은 초 기반을 유지한다. */}
           <p className="text-muted-foreground mb-1 text-xs font-medium">
-            Start (s)
+            Start
           </p>
           {/* Before는 테두리 있는 박스 3개가 gap으로 떨어져 있어 카드마다
               6개, 목록 전체로 42개의 상자가 깔렸다. 하나의 컨트롤로 묶는다.
@@ -352,33 +373,32 @@ export default function ClipDraftCard({
               type="button"
               aria-label="Nudge start back"
               className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-l-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
-              onClick={() => adjustStart(-STEP_SECONDS)}
+              onClick={() => adjustStart("back")}
             >
               {/* 하이픈이 아니라 마이너스 기호. 식별 라인의 범위 대시(–)와
                   헷갈리지 않게 한다. */}
               −
             </button>
             <input
-              type="number"
-              step={0.1}
-              min={0}
-              // 위 <p>는 label 요소가 아니라 이 입력의 접근 가능한 이름이 되지
-              // 못한다. 라벨 문구를 고치는 김에 이름을 붙인다.
-              aria-label="Start seconds"
-              value={startSeconds}
-              onChange={(event) =>
-                setStartSeconds(Math.max(0, Number(event.target.value)))
-              }
-              // 반올림은 onChange가 아니라 blur에서 한다. 입력마다 반올림하면
-              // "272." 같은 입력 중간 상태가 272로 덮여 소수점을 칠 수 없다.
-              onBlur={() => setStartSeconds(roundTenth(startSeconds))}
+              type="text"
+              aria-label="Start time (m:ss.s)"
+              value={startText ?? formatSecondsAsClock(startSeconds, { decimals: 1 })}
+              onChange={(event) => setStartText(event.target.value)}
+              onBlur={() => {
+                const parsed =
+                  startText === null ? null : parseClockToSeconds(startText);
+                if (parsed !== null) {
+                  setStartSeconds(Math.max(0, roundTenth(parsed)));
+                }
+                setStartText(null);
+              }}
               className="w-24 border-x px-2 py-1.5 text-center text-sm tabular-nums focus-visible:outline-none"
             />
             <button
               type="button"
               aria-label="Nudge start forward"
               className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-r-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
-              onClick={() => adjustStart(STEP_SECONDS)}
+              onClick={() => adjustStart("forward")}
             >
               +
             </button>
@@ -387,34 +407,37 @@ export default function ClipDraftCard({
 
         <div>
           <p className="text-muted-foreground mb-1 text-xs font-medium">
-            End (s)
+            End
           </p>
           <div className="flex w-fit items-center rounded-md border">
             <button
               type="button"
               aria-label="Nudge end back"
               className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-l-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
-              onClick={() => adjustEnd(-STEP_SECONDS)}
+              onClick={() => adjustEnd("back")}
             >
               −
             </button>
             <input
-              type="number"
-              step={0.1}
-              min={0}
-              aria-label="End seconds"
-              value={endSeconds}
-              onChange={(event) =>
-                setEndSeconds(Math.max(0, Number(event.target.value)))
-              }
-              onBlur={() => setEndSeconds(roundTenth(endSeconds))}
+              type="text"
+              aria-label="End time (m:ss.s)"
+              value={endText ?? formatSecondsAsClock(endSeconds, { decimals: 1 })}
+              onChange={(event) => setEndText(event.target.value)}
+              onBlur={() => {
+                const parsed =
+                  endText === null ? null : parseClockToSeconds(endText);
+                if (parsed !== null) {
+                  setEndSeconds(Math.max(0, roundTenth(parsed)));
+                }
+                setEndText(null);
+              }}
               className="w-24 border-x px-2 py-1.5 text-center text-sm tabular-nums focus-visible:outline-none"
             />
             <button
               type="button"
               aria-label="Nudge end forward"
               className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-r-md px-2.5 py-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
-              onClick={() => adjustEnd(STEP_SECONDS)}
+              onClick={() => adjustEnd("forward")}
             >
               +
             </button>
