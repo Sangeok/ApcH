@@ -11,7 +11,7 @@ agent: web-dev
 - 그 훅은 `console.error`만 한다 — `src/fsd/shared/observability/use-report-boundary-error.ts:24` `console.error(\`${origin} error boundary caught:\`, error);`. 파일 주석(`:15-17`)이 "클라이언트 Sentry 초기화가 없어 `Sentry.captureException`을 넣어도 아무 데도 도달하지 않는다 — 클라이언트 init을 먼저 붙이고 브라우저 이벤트 도달을 확인한 뒤에 추가할 것"이라고 이미 순서를 못 박아 둔다.
 - 그 훅을 barrel에서 재수출하지 못하는 이유도 파일에 있다 — `use-report-boundary-error.ts:11-13`: barrel `index.ts`가 `server-only`를 재수출하므로 `"use client"` 경계가 barrel을 임포트하면 빌드가 깨진다. 실제로 `src/fsd/shared/observability/index.ts:1-8`이 `./report-error`의 5개 심볼·2개 타입을 재수출하고, `src/fsd/shared/observability/report-error.ts:1`이 `import "server-only";`다. → **이 slice의 `index.ts`는 사실상 server-only barrel이고, 클라이언트 안전 조각은 파일 경로로 직접 임포트한다**(에러 경계 5개가 이미 `~/fsd/shared/observability/use-report-boundary-error`를 파일 경로로 임포트).
 - DSN은 **server 스코프**에만 있다 — `src/env.js:43` `SENTRY_DSN: z.string().optional(),` (server 블록 안, `:9-45`). `runtimeEnv`에도 `SENTRY_DSN: process.env.SENTRY_DSN` (`:88`). client 블록(`:52-58`)에는 `NEXT_PUBLIC_SITE_URL`(`:53`)·`NEXT_PUBLIC_SUBSCRIPTION_ENABLED`(`:54`)뿐이라 브라우저 번들에서 DSN을 읽을 수 없다.
-- 서버 `beforeSend`는 순수 스크럽을 건다 — `sentry.server.config.ts:11-15`의 `SCRUB_RULES`(X-Amz-Signature/Credential/Security-Token 3종 정규식), `:27-39`의 `scrub()`(규칙 적용 + `:34-36` 엔드포인트 호스트 `split().join()` 치환), `:57-63`의 `scrubEvent()`(직렬화→치환→역직렬화, `:60-62` fail-open catch). 엔드포인트 호스트는 `:17-25` `getEndpointHost()`가 `env.PROCESS_VIDEO_ENDPOINT`(server 스코프)에서 뽑는다.
+- 서버 `beforeSend`는 순수 스크럽을 건다 — `sentry.server.config.ts:11-15`의 `SCRUB_RULES`(X-Amz-Signature/Credential/Security-Token 3종 정규식), `:27-39`의 `scrub()`(규칙 적용 + `:34-36` 엔드포인트 호스트 `split().join()` 치환), `:57-63`의 `scrubEvent()`(직렬화→치환→역직렬화, `:60-62` fail-open catch). 엔드포인트 호스트는 `:17-23` `getEndpointHost()`(`:25`가 그 반환을 `ENDPOINT_HOST` 상수에 담는다)`가 `env.PROCESS_VIDEO_ENDPOINT`(server 스코프)에서 뽑는다.
 - CSP `connect-src`에 Sentry ingest 호스트가 **없다** — `next.config.js:98` `"connect-src 'self' https://*.amazonaws.com https://*.neon.tech https://*.inngest.com https://*.polar.sh",`. 프로덕션에서만 CSP가 적용된다(`:60` `if (process.env.NODE_ENV === "development") return [];`).
 - `withSentryConfig`는 `authToken`·`sourcemaps.deleteSourcemapsAfterUpload: true`·`silent: true`만 준다 — `next.config.js:115-121`.
 
@@ -22,7 +22,7 @@ agent: web-dev
 - `sentry.client.config.ts`는 채택하지 않는다. `webpack.js:213`이 그 파일 존재 시 `DEPRECATION WARNING`을 찍고 "When using Turbopack `sentry.client.config.ts` will no longer work"라고 명시한다. 이 앱의 dev는 Turbopack이다(`package.json` `"dev": "next dev --turbo"`). `instrumentation-client.ts`는 Next.js 파일 컨벤션이라(경고 메시지가 nextjs.org 문서를 가리킨다) Turbopack·webpack 양쪽에서 로드된다. Next 버전 `node_modules/next/package.json` → `15.5.7`이 이 컨벤션(15.3+)을 지원한다.
 - SDK가 앱 라우터 내비게이션 계측을 위해 클라 진입점에서 기대하는 export가 하나 있다 — `build/cjs/client/index.js:109` `exports.captureRouterTransitionStart = ...`. 진입점에서 `export const onRouterTransitionStart = Sentry.captureRouterTransitionStart`를 내보낸다(Next 15 `instrumentation-client` 훅).
 - 클라 environment는 옵션 생략 시 SDK가 자동 채운다 — `client/index.js:54` `environment: options.environment || process.env.SENTRY_ENVIRONMENT || getVercelEnv(true) || process.env.NODE_ENV`. `getVercelEnv(true)`는 `common/getVercelEnv.js:4`에서 **클라이언트일 때 `process.env.NEXT_PUBLIC_VERCEL_ENV`**를 읽는다(서버의 `VERCEL_ENV`는 클라에서 못 읽음).
-- 번들: 기본 통합에 tracing이 포함될 수 있다 — `client/index.js:85-108` `getDefaultIntegrations()`가 `__SENTRY_TRACING__`이 undefined/truthy면 `browserTracingIntegration()`를 push한다. Replay는 기본 통합이 아니다(추가해야만 들어옴). `webpack.js:553-573` `setupTreeshakingFromConfig`는 `webpack.treeshake.removeTracing`→`__SENTRY_TRACING__=false`, `removeDebugLogging`→`__SENTRY_DEBUG__=false`를 DefinePlugin으로 심어 해당 코드를 tree-shake한다(webpack 빌드 한정 — 프로덕션 `next build`는 webpack이다).
+- 번들: 기본 통합에 tracing이 포함될 수 있다 — `client/index.js:85-103` `getDefaultIntegrations()`가 `__SENTRY_TRACING__`이 undefined/truthy면 `browserTracingIntegration()`를 push한다. Replay는 기본 통합이 아니다(추가해야만 들어옴). `webpack.js:553-573` `setupTreeshakingFromConfig`는 `webpack.treeshake.removeTracing`→`__SENTRY_TRACING__=false`, `removeDebugLogging`→`__SENTRY_DEBUG__=false`를 DefinePlugin으로 심어 해당 코드를 tree-shake한다(webpack 빌드 한정 — 프로덕션 `next build`는 webpack이다).
 
 ## 문제
 
@@ -260,7 +260,7 @@ export default withSentryConfig(config, {
 1. **선행(사용자)**: Vercel Production(및 Preview) 스코프에 `NEXT_PUBLIC_SENTRY_DSN`을 기존 `SENTRY_DSN`과 **동일한 DSN 값**으로 주입하고 배포.
 2. 프로덕션(a-pch.com)에서 브라우저 devtools 콘솔을 열고, **에러 경계에 잡히지 않는** 오류를 유도한다 — 예: `setTimeout(() => { throw new Error("apch-sentry-client-smoke https://x.s3/y?X-Amz-Signature=SHOULD_BE_REDACTED"); })`. 비동기 throw는 `window.onerror`→SDK globalHandlers→ingest POST 경로라 훅 없이 init만으로 도달한다. `Promise.reject(new Error("apch-sentry-rejection-smoke"))`로 unhandledrejection 경로도 함께 확인.
 3. **CSP 통과 확인**: devtools Network에서 `*.ingest.*.sentry.io`로 나가는 POST가 200이고, 콘솔에 CSP 위반(`Refused to connect ... connect-src`) 경고가 없는지 본다.
-4. **Sentry 대시보드(사용자)**: Issues에서 `apch-sentry-client-smoke` 이벤트가 뜨는지, environment가 production인지, 그리고 **`X-Amz-Signature=[REDACTED]`로 마스킹**됐는지(스크럽 실동작) 확인.
+4. **Sentry 대시보드(사용자)**: Issues에서 `apch-sentry-client-smoke` 이벤트가 뜨는지, environment가 `production`인지(**아래 「environment 값 주의」** — 기본 경로에서만 그렇다), 그리고 **`X-Amz-Signature=[REDACTED]`로 마스킹**됐는지(스크럽 실동작) 확인.
 5. release-checks 등재는 메인 루프 몫(런북 8단계). 이 항목의 「못 덮는 범위」는 위 2~4의 실측이며, 마감 증거는 `확인(날짜, Sentry 이벤트 스크린샷/이슈 링크)` 형태다. 응답 상태·본문 문구만으로 판정되지 않으므로 `〔auto〕` 태그 대상이 아니다.
 
 ## 범위 밖 의존
@@ -271,7 +271,29 @@ export default withSentryConfig(config, {
 - **Vercel 환경변수 주입(사용자)**: `NEXT_PUBLIC_SENTRY_DSN`을 Production·Preview 스코프에 기존 `SENTRY_DSN`과 같은 DSN 값으로 추가한다. 코드는 이 값 없이도 빌드·배포되며(`.optional()`), 없으면 client init이 조용히 no-op일 뿐이다. 즉 이 선행이 구현을 막지는 않지만, 없으면 §검증이 성립하지 않는다.
   - **DSN을 클라이언트에 노출해도 되는가**: 된다. Sentry 공식 문서 입장 — DSN은 비밀이 아니며 클라이언트/공개 코드에 노출해도 안전하다. DSN은 **이벤트 제출(쓰기)만** 허용하고 프로젝트 데이터 읽기·조회 권한을 주지 않기 때문이다. 남용(스팸 제출)은 Sentry의 inbound rate limit·spike protection으로 관리한다. 서버 설정도 이미 같은 DSN을 쓰므로 값 자체는 새로 비밀이 되지 않는다.
 - **Sentry 대시보드 접근(사용자)**: §검증 4단계의 이벤트 도달·스크럽 확인에 필요.
-- **(선택) `NEXT_PUBLIC_VERCEL_ENV` 노출**: 클라 이벤트의 environment를 preview/production으로 정확히 가르려면 Vercel의 "system environment variables 노출" 설정으로 이 변수를 브라우저에 노출한다. 없으면 SDK가 `NODE_ENV`로 폴백해 프로덕션 이벤트는 여전히 `production`으로 태깅되므로 필수는 아니다.
+- **(선택 — 권장하지 않음) `NEXT_PUBLIC_VERCEL_ENV` 노출**: preview와 production을 클라 이벤트에서 가르고 싶을 때만. **노출하지 않는 것을 기본으로 한다** — 이유는 아래.
+
+### environment 값 주의 (검증 라운드 결함 ②)
+
+`getVercelEnv.js:4-5`가 값에 **`vercel-` 접두사를 붙인다**:
+
+```js
+function getVercelEnv(isClient) {
+  const vercelEnvVar = isClient ? process.env.NEXT_PUBLIC_VERCEL_ENV : process.env.VERCEL_ENV;
+  return vercelEnvVar ? `vercel-${vercelEnvVar}` : void 0;
+}
+```
+
+따라서 두 경로가 갈린다.
+
+| 경로 | 클라 environment | 서버 environment |
+| --- | --- | --- |
+| **노출 안 함(채택)** | `getVercelEnv(true)`가 `undefined` → `NODE_ENV` 폴백 = **`production`** | `sentry.server.config.ts:69`의 `process.env.VERCEL_ENV ?? "development"` = **`production`** |
+| 노출함 | **`vercel-production`** | `production` (그대로) |
+
+노출하면 **서버·클라 이벤트의 environment 태그가 비대칭**이 되고 Sentry에서 한 환경으로 묶이지 않는다. preview를 가르는 값보다 이 비대칭의 대가가 크다. 정말 필요해지면 클라가 아니라 **서버 쪽을 `getVercelEnv` 규약에 맞추는 방향**으로 통일할 것(별도 항목).
+
+§검증 4단계의 "environment가 `production`" 기대값은 **노출하지 않는 기본 경로 기준**이다.
 
 ## 대안
 
