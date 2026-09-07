@@ -22,6 +22,28 @@
 
 ---
 
+## FEAT-32 — 클라이언트 Sentry 초기화 (web, 구현 2026-09-07)
+
+원천: `docs/agents/web-dev/FEAT-32.md`의 「테스트로 못 덮은 범위」와 계획서 §검증. **배포 대기.**
+게이트는 `npm run check` EXIT 0 · `npm test` **88/0**(+11) · FSD 경계 통과로 닫혔고, 스크럽 계약은
+순수 모듈 테스트가 서버·클라 양쪽을 동시에 지킨다. 아래는 **브라우저·실제 네트워크·외부 대시보드**가
+필요해 Node 러너가 원리상 못 덮는 것들이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 전부 브라우저 실행·외부 콘솔 판정이라 프로덕션 응답 본문으로
+판정할 수 없다.
+
+**선행(사용자)**: Vercel Production·Preview 스코프에 `NEXT_PUBLIC_SENTRY_DSN`을 기존 `SENTRY_DSN`과
+**같은 DSN 값**으로 주입. 없으면 클라 init이 조용히 no-op이라 아래 넷이 전부 성립하지 않는다.
+(코드는 이 값 없이도 빌드·배포된다 — `.optional()`.)
+
+- [ ] **브라우저에서 init이 실제로 돌고 이벤트가 도달하는지** — 이 항목의 본체. 프로덕션(a-pch.com) 콘솔에서 `setTimeout(() => { throw new Error("apch-sentry-client-smoke https://x.s3/y?X-Amz-Signature=SHOULD_BE_REDACTED"); })`로 에러 경계에 안 잡히는 오류를 유도하고, Sentry Issues에 뜨는지 확인. 마감 증거는 `확인(날짜, Sentry 이슈 링크/스크린샷)`
+- [ ] **unhandledrejection 경로** — `Promise.reject(new Error("apch-sentry-rejection-smoke"))`가 같은 경로로 도달하는지. C-27이 남긴 버려진 프라미스 넷이 이 경로로 잡힌다
+- [ ] **CSP가 이벤트 POST를 막지 않는지** — devtools Network에서 `*.ingest.*.sentry.io` POST가 200이고 콘솔에 `Refused to connect ... connect-src` 위반이 없는지. `connect-src`에 `https://*.sentry.io`를 새로 넣었고 CSP는 프로덕션에서만 적용되므로 배포 실물에서만 닫힌다
+- [ ] **스크럽이 실동작하는지** — 위 스모크 이벤트의 Sentry 본문에서 서명값이 `X-Amz-Signature=[REDACTED]`로 마스킹됐는지. 테스트는 순수 함수를 덮지만 **SDK 정규화 뒤 실제 `beforeSend` 경로**를 통과하는 것은 실물에서만 확인된다
+- [ ] **environment 태그가 `production`인지** — 클라는 `NEXT_PUBLIC_VERCEL_ENV`를 노출하지 않는 기본 경로라 SDK가 `NODE_ENV` 폴백으로 채운다. 노출하면 `vercel-production`이 되어 서버(`production`)와 비대칭이 되므로, 값이 `vercel-` 접두를 달고 있으면 그 변수가 어딘가에 주입된 것이다
+- [ ] **`webpack.treeshake`가 실제 번들에서 tracing을 걷어냈는지** — 옵션 키가 SDK에 실재함은 인수 시 확인했으나(`webpack.js:556·559`), 산출물 크기 변화는 배포 빌드에서만 관측된다. 미달이어도 기능 결함은 아니다(번들 크기만)
+
+---
+
 ## FEAT-34 — FSD 경계 자동 검출 도입 (web, 구현 2026-09-06)
 
 원천: `docs/agents/web-dev/FEAT-34.md`의 「테스트로 못 덮은 범위」. 커밋 `9275ccd`. **배포 완료(2026-09-07, PR #113 머지 `f2825a5`).**

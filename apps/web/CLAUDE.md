@@ -66,7 +66,7 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 14개 파일, 17 suite, 77개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 15개 파일, 19 suite, 88개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -84,6 +84,7 @@ npm test -w apps/web
 | `widgets/clip-display/model/subtitle-status.test.mjs` | 번역 폴백 상태 → 사용자 안내 매핑. `"partial-fallback"`/`"full-fallback"`만 안내를 내고 `"ok"`·미지값·nullish/공백은 null(정상 자막에 경고를 붙이지 않는다), padded 상태값도 `trim()`으로 매핑된다. **매핑 키는 백엔드 `translation_fallback.py` 상태 상수와 묶는 wire 계약이라 어긋나면 안내가 조용히 꺼진다** — 타입이 아니라 이 테스트가 그 회귀를 막는다 |
 | `features/clip-review/model/transcript.test.mjs` | `parseTranscriptWords`의 분기 — 유효 배열 통과·타입 불일치/`null`/비객체 필터·비배열은 **`"Transcript payload was not an array"` 메시지로** throw. **메시지까지 단언하는 것이 요점이다**: 배열 가드를 지워도 비배열 입력은 `payload.filter is not a function`으로 throw하므로 "throw 여부"만 보는 테스트는 그 회귀를 통과시킨다(계획 검증에서 실제로 생존한 돌연변이) |
 | `shared/lib/format-date.test.mjs` | `formatDate`/`formatDateTime`가 런타임 로케일·타임존과 무관하게 고정 출력을 내는지 + 수출된 두 포매터의 `resolvedOptions()`가 로케일 `"en"`·타임존 `"UTC"` **완전 일치**인지. **골든 문자열만으로는 부족하다**: 러너 TZ가 UTC면(CI·Vercel) `timeZone` 옵션을 지운 회귀가 그대로 통과하므로 테스트가 임포트보다 **먼저** `process.env.TZ`를 비-UTC로 강제하고 동적 임포트한다. 로케일도 en 계열 CI에서 `"en-US"`가 같은 문자열을 내므로 `resolvedOptions().locale` 완전 일치가 필요하다 — 그래서 포매터 상수를 수출한다 |
+| `shared/observability/scrub-event.test.mjs` | `scrubString`/`scrubEvent`의 스크럽 계약 — X-Amz-Signature/Credential/Security-Token 정규식 치환, 경계(`&`·공백·따옴표·**백슬래시**), 리터럴 치환(서버가 넘기는 엔드포인트 호스트), 왕복 직렬화, fail-open. **정규식 경계에 `\`가 없으면 이스케이프된 따옴표가 섞인 이벤트가 깨진 JSON이 되어 `JSON.parse`가 던지고 catch가 원본을 그대로 반환한다 — 서명이 스크럽 없이 나간다**(FEAT-32 계획 검증에서 실측한 결함). 서버·클라 `beforeSend`가 같은 순수 함수를 쓰므로 이 테스트 하나가 양쪽 계약을 지킨다 |
 
 ## Architecture
 

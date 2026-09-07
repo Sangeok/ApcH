@@ -40,12 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-07
-- [ ] FEAT-32: 클라이언트 Sentry 초기화 — 브라우저 오류가 현재 어떤 텔레메트리에도 도달하지 않음
+- [x] FEAT-32: 클라이언트 Sentry 초기화 — 브라우저 오류가 현재 어떤 텔레메트리에도 도달하지 않음
   agent: web-dev
   area: apps/web/src/instrumentation.ts + apps/web/src/env.js + apps/web/next.config.js + apps/web/src/fsd/shared/observability
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-07, 무편집 6라운드)
   근거: 소유자가 FEAT-34 배포 확인 후 지목("FEAT-32 진행"). 전제 재확인 — Sentry.init은 sentry.server.config.ts 하나뿐, 클라 진입점 0개, 에러 경계 5개가 console.error만 한다. DSN이 SENTRY_DSN(서버 스코프)이라 클라에서 못 읽는 것도 확인. 미결 0건.
+  결과: 클라 Sentry.init 신규+스크럽 순수모듈 추출(서버 위임·정규식 결함① 수정)·env·CSP·treeshake. check EXIT0·test 88/0(+11). 상세 web-dev/FEAT-32
 
 ## 2026-09-05
 - [x] FEAT-34: apps/web FSD 경계 자동 검출 도입 — 배럴·레이어 위반 재발을 사람 감사 대신 CI가 잡게

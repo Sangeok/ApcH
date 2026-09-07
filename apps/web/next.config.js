@@ -95,7 +95,7 @@ const config = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.amazonaws.com",
               "media-src 'self' https://*.amazonaws.com",
-              "connect-src 'self' https://*.amazonaws.com https://*.neon.tech https://*.inngest.com https://*.polar.sh",
+              "connect-src 'self' https://*.amazonaws.com https://*.neon.tech https://*.inngest.com https://*.polar.sh https://*.sentry.io",
               "frame-src 'self' https://checkout.polar.sh https://sandbox.polar.sh",
               "frame-ancestors 'none'",
               "base-uri 'self'",
@@ -118,4 +118,7 @@ export default withSentryConfig(config, {
   sourcemaps: { deleteSourcemapsAfterUpload: true },
   // 토큰이 없는 환경(preview/로컬)에서 빌드가 깨지지 않게
   silent: true,
+  // tracesSampleRate 0이라 tracing·debug 코드는 죽은 코드다. webpack 빌드에서 tree-shake.
+  // (프로덕션 next build는 webpack; dev의 Turbopack에는 적용되지 않으나 dev 번들 크기는 무관)
+  webpack: { treeshake: { removeTracing: true, removeDebugLogging: true } },
 });

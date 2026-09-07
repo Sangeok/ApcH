@@ -257,3 +257,44 @@ runtimeEnv 27 정합(누락·잉여 0), 편집 후 28로 정합 유지.
 다섯 중 넷이 인용 범위·백틱·산문 방향 — 전부 경로 1/3의 반복 재독에서 나왔고, 반복 재독은
 계획서가 안 바뀐 부분까지 매번 다시 훑느라 새 소득 없이 사이클을 태웠다. 경로 2·5·7·9는
 **첫 사이클에서 이미 결정적 소득**(fail-open 유출, 돌연변이 6+5종 사멸)을 냈으므로 그대로 둔다.
+
+---
+
+## 인수 (2026-09-07)
+
+인수 조건 다섯을 직접 재현했다 — 보고를 받아쓰지 않았다.
+
+1. **변경 파일 ↔ 「고칠 파일」** — 정확히 6개(`scrub-event.{ts,test.mjs}`·`instrumentation-client.ts` 신규,
+   `env.js`·`sentry.server.config.ts`·`next.config.js` 수정). 계획서가 "건드리지 않는다"고 못박은
+   에러 경계 5개·`use-report-boundary-error.ts`는 `git status`에 없다.
+2. **diff ↔ 스케치** — 네 파일 전부 일치. 정규식 경계의 `\`는 `od -c`로 바이트 확인.
+3. **검증 명령 직접 재실행** — `npm test -w apps/web` **88 pass / 0 fail**,
+   `npm run check -w apps/web` **EXIT 0**(verify:fsd:test 11/11 · FSD 경계 통과 · lint 0 · tsc clean).
+   FSD 경계 통과는 6라운드에서 W4/W6 조건으로 예측한 그대로다.
+4. **백로그 제거** — `grep FEAT-32 TASK_BACKLOG.md` 0건.
+5. **상세 기록 실재** — `docs/agents/web-dev/FEAT-32.md` 71줄.
+
+**반송 3건 → 반영 확인**
+
+- **결과 154자** (150 초과, FEAT-31의 152자와 같은 실패) → **136자**.
+- **매달린 참조** — `scrub-event.ts:35`가 "서버 원본 주석의 한계 1과 동일"이라 가리키는데 dev가 그
+  원본을 삭제했다(`grep -c "한계" sentry.server.config.ts` = 0). 드리프트를 피하려던 삭제가
+  다른 드리프트를 만든 것이다 → 자기완결형으로 재작성, 여집합 0건 확인.
+- **지식 소실 둘** — 삭제된 주석에 딸려 나갔는데 **삭제된 함수가 아니라 지금도 유효한 계약**을
+  적은 것들이었다. `src/` 전수로 부재 확인 후 새 위치에 복원: ① 왕복 손실(`T => T`인데
+  undefined/함수/심볼 소실·Date는 문자열 — `scrubEvent`가 여전히 `JSON.parse(JSON.stringify)`라 유효),
+  ② 유지보수 지시(`ReportContext` 채널로 **새 종류의 비밀**이 들어오면 규칙 추가 — 추가 지점이
+  이제 이 모듈이므로 지시도 따라와야 한다).
+  반영 후 코드 라인 diff **0**(주석만) 확인, `check` EXIT 0 재확인.
+
+**메인 루프가 직접 처리한 것** — web-dev 쓰기 범위 밖이라 못 고치는 문서 드리프트:
+`apps/web/CLAUDE.md:69` 「14개 파일, 17 suite, 77개 테스트」 → 「15개 파일, 19 suite, 88개」,
+테스트 표에 `scrub-event.test.mjs` 행 추가. 표 행 수 15 = 실제 `*.test.mjs` 15개로 대조.
+
+**런북 8단계** — 「못 덮는 범위」 6줄을 `docs/release-checks.md`에 FEAT-32 절로 등재.
+전부 브라우저 실행·외부 콘솔 판정이라 `〔auto〕` 태그 대상이 아니다. 선행(사용자)인
+`NEXT_PUBLIC_SENTRY_DSN` 주입이 없으면 여섯 중 다섯이 성립하지 않음을 절 머리에 명시했다.
+
+**후속 후보(사용자 제시용)**: ① `use-report-boundary-error.ts`에 `Sentry.captureException` 배선
+(계획서 §대안이 도달 실측 뒤로 연기 — web 범위), ② web 이벤트에 `app` 태그 부재
+(admin은 `app: "admin"`을 다는데 web은 안 단다 — 같은 프로젝트라 구분이 비대칭).
