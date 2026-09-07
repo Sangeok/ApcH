@@ -24,3 +24,37 @@ export function formatSecondsAsClock(
   // 소수 자리를 포함하므로 패딩 폭이 "ss." + 소수 자릿수다.
   return `${minutes}:${rest.toFixed(decimals).padStart(3 + decimals, "0")}`;
 }
+
+/**
+ * `m:ss`·`m:ss.s`·맨숫자(초)를 초로 파싱한다. 편집 입력의 표시 레이어 전용이다 —
+ * 넛지·자동저장·isClipDurationWithinLimits 판정은 초 기반을 유지한다.
+ * 읽을 수 없으면 null(호출부가 마지막 유효값을 유지한다).
+ */
+export function parseClockToSeconds(text: string): number | null {
+  const trimmed = text.trim();
+  if (trimmed === "") return null;
+
+  const colonIndex = trimmed.indexOf(":");
+  if (colonIndex === -1) {
+    const seconds = Number(trimmed);
+    return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+  }
+
+  const minutesPart = trimmed.slice(0, colonIndex);
+  const secondsPart = trimmed.slice(colonIndex + 1);
+  const minutes = Number(minutesPart);
+  const seconds = Number(secondsPart);
+
+  if (
+    minutesPart.trim() === "" ||
+    secondsPart.trim() === "" ||
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds) ||
+    minutes < 0 ||
+    seconds < 0 ||
+    seconds >= 60
+  ) {
+    return null;
+  }
+  return minutes * 60 + seconds;
+}
