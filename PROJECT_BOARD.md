@@ -43,12 +43,12 @@
 - [ ] FEAT-36: 캡션 스타일 미리보기를 실제 영상 위 타이밍 오버레이로 — 렌더 없이 9:16 프레임에서 자막 큐 재생
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/shared/config/constants.ts + apps/web/src/app/layout.tsx
-  status: 승인대기
+  status: 계획지시
   근거: 소유자 발주 — 캡션 스타일을 실제 영상 위에서 보고 싶다. 전제 재확인: 편집기 미리보기는 그라데이션 상자·시간축 없음, 원본 플레이어와 단어별 전사(렌더와 같은 파일)는 이미 클라이언트에 있음. 미결 1건(FEAT-35).
 - [ ] FEAT-35: 클립 경계 편집 루프를 닫는다 — 경계 프리뷰 + 넛지 스냅 방향 + 시계 표기 입력
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/shared/lib/format-duration.ts
-  status: 계획지시
+  status: 검토대기
   근거: 소유자가 검토 화면 실사용 중 발주 — Preview 결과와 Start/End 값이 대응되지 않는다. 전제 재확인: Preview는 구간 전체(30~90초) 재생이라 경계 확인 경로가 없고, 넛지는 단어 간격 1.0초 이상이면 no-op(재현 확인). 미결 0건.
 - [x] FEAT-32: 클라이언트 Sentry 초기화 — 브라우저 오류가 현재 어떤 텔레메트리에도 도달하지 않음
   agent: web-dev
