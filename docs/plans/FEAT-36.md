@@ -31,8 +31,10 @@ agent: web-dev
   `:115` `const previewStrokePx = effectiveOutlineWidth * previewScale * 2;`(외곽선 2배 보정).
 - 위치는 `:42-49`의 `POSITION_JUSTIFY_CLASS`(top→`justify-start pt-6` 등)로 근사한다 — marginv 픽셀이 아니다.
 - 안내문 `:338-342`가 "배경은 실제와 다르다(렌더는 세로 크롭)"를 이미 자백한다.
-- **폰트 크기 함정(미보정)**: `:112`는 ASS fontsize에 `previewScale`만 곱한다. libass는 요청 크기를
-  em 사각형이 아니라 FreeType `REAL_DIM`(= face.ascender − face.descender)에 맞추므로, 실렌더보다 크게 그린다.
+- **폰트 크기 함정(미보정)**: `:112`는 ASS fontsize에 `previewScale`만 곱한다. libass는 face.ascender/descender를
+  OS/2 `usWinAscent`/`usWinDescent`로 덮어쓴 뒤(`ass_font.c` `set_font_metrics` — 0.15.2 `:98-104`, master `:356-366`)
+  FreeType `REAL_DIM`(= face.ascender − face.descender)으로 크기를 요청하므로(`ass_face_set_size`), ASS 크기 1단위 =
+  winAscent+winDescent 픽셀이다. em이 아니라서 실렌더보다 크게 그린다 — Anton은 1.73배.
 
 **재료가 이미 클라이언트에 있다**
 
@@ -87,8 +89,9 @@ agent: web-dev
 **before/after 트리 전제**: 아래 before/after는 **현재 트리**(FEAT-35 미적용)를 전제한다. FEAT-35는
 `검토대기`일 뿐 아직 구현·인수되지 않았고 구현 순서가 확정되지 않았다. FEAT-36와 FEAT-35가 겹치는 파일은
 `ClipDraftCard.tsx` 하나이며, **두 계획이 만지는 줄이 서로소**라 어느 쪽을 먼저 구현해도 anchor가 흔들리지 않는다
-(FEAT-35: import `:14`·`nearestBoundary :62-79`·state `:96-97 아래`·`adjustStart/End :124-138`·프리뷰 버튼 `:319-331`·
-라벨/입력 `:336-410`. FEAT-36: props 인터페이스 `:45-56`·구조분해 `:81-92`·`CaptionStyleDialog` 호출 `:479-488`).
+(FEAT-35, 계획서 `f7e6e57` 기준: import 블록 2줄 추가·`nearestBoundary :62-79`·state `:96-97` 아래 추가·
+`adjustStart/End :124-138`·프리뷰 버튼 `:323-330`·입력 `:359-374`. FEAT-36: props 인터페이스 `:45-56`·구조분해 `:81-92`·
+`CaptionStyleDialog` 호출 `:479-488`).
 FEAT-36의 `ClipDraftCard` 변경은 **새 import가 필요 없어**(아래 스케치 참조) import 블록조차 건드리지 않는다.
 
 | 파일 | 변경 |
@@ -122,18 +125,21 @@ export const CAPTION_RENDER = {
   // top/bottom 세로 마진(PLAY_RES_Y 기준). middle은 중앙 정렬이라 마진 미사용.
   MARGINV: { top: 200, bottom: 260 }, // main.py:141-142
   SHADOW: 6.5, // main.py:369 / :562 new_style.shadow
-  // ⚠️ libass는 요청 크기를 em 사각형이 아니라 FreeType REAL_DIM
-  // (= face.ascender − face.descender)에 맞춘다(FT_SIZE_REQUEST_TYPE_REAL_DIM).
-  // 그래서 CSS font-size(px) = assFontSize × (unitsPerEm / realDim) × previewScale.
+  // ⚠️ libass는 face.ascender/descender를 OS/2 usWinAscent/usWinDescent로 덮어쓴 뒤
+  // (ass_font.c set_font_metrics — 0.15.2 :98-104, master :356-366; Ubuntu 22.04 ffmpeg가
+  // 링크하는 0.15.2도 동일) FreeType REAL_DIM(= ascender − descender)으로 크기를 요청한다
+  // (ass_face_set_size, FT_SIZE_REQUEST_TYPE_REAL_DIM). 즉 ASS fontsize 1 = (winAscent +
+  // winDescent) 픽셀. USE_TYPO_METRICS는 FreeType 기본값만 바꾸고 libass가 그 값을
+  // 덮어쓰므로 무관하다.
+  // 그래서 CSS font-size(px) = assFontSize × (unitsPerEm / (winAscent + winDescent)) × previewScale.
   // 아래 값은 main.py:70,74가 설치하는 실제 폰트 파일을 받아 OS/2·head 표를
   // 파싱해 확정했다(2026-09-07):
-  //   Anton-Regular.ttf   : unitsPerEm 2048, fsSelection 0x00c0(USE_TYPO_METRICS set)
-  //     → FreeType는 sTypo 사용: 2409 − (−674) = 3083.  (hhea도 2409/−674로 동일)
-  //     ※ winAscent+winDescent(2876+674=3550)가 아니다 — USE_TYPO_METRICS 때문.
-  //   NotoSansKR-Bold.otf : unitsPerEm 1000, fsSelection 0x0020(USE_TYPO_METRICS unset)
-  //     → FreeType는 hhea 사용: 1160 − (−288) = 1448.  (= winAscent+winDescent 1160+288)
+  //   Anton-Regular.ttf   : unitsPerEm 2048, usWinAscent 2876 + usWinDescent 674 = 3550
+  //     (sTypo·hhea는 2409/−674 = 3083이지만 libass가 쓰는 값이 아니다)
+  //   NotoSansKR-Bold.otf : unitsPerEm 1000, usWinAscent 1160 + usWinDescent 288 = 1448
+  //     (hhea 1160/−288과 동일)
   EM_SCALE: {
-    English: 2048 / 3083, // ≈ 0.664288  (Anton, 영어 클립)
+    English: 2048 / 3550, // ≈ 0.576901  (Anton, 영어 클립)
     Korean: 1000 / 1448, //  ≈ 0.690608  (Noto Sans KR, 한국어 클립)
   },
 } as const;
@@ -312,6 +318,16 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
     [words, clipStart, clipEnd, props.maxWords, props.uppercase],
   );
 
+  // 큐 목록은 ref로 읽는다. 재생 이펙트의 의존성에 cues를 넣으면 줄당 단어·대문자를
+  // 바꿀 때마다 재생이 클립 시작으로 되돌아간다. 스타일 변경은 현재 위치의 큐만 다시 고른다.
+  const cuesRef = useRef(cues);
+  useEffect(() => {
+    cuesRef.current = cues;
+    const video = videoRef.current;
+    if (!video) return;
+    setActiveText(pickActiveCue(cues, video.currentTime - clipStart)?.text ?? "");
+  }, [cues, clipStart]);
+
   // 클립 구간을 음소거로 반복 재생하며 timeupdate마다 현재 큐를 고른다.
   // timeupdate 주기(~250ms)만큼 큐 전환이 늦을 수 있다 — 메인 프리뷰
   // (ui/index.tsx:213-225)와 같은 한계다.
@@ -325,7 +341,9 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
     };
     const onTimeUpdate = () => {
       if (video.currentTime >= clipEnd) video.currentTime = clipStart; // 루프
-      setActiveText(pickActiveCue(cues, video.currentTime - clipStart)?.text ?? "");
+      setActiveText(
+        pickActiveCue(cuesRef.current, video.currentTime - clipStart)?.text ?? "",
+      );
     };
 
     video.addEventListener("loadedmetadata", seekToStart);
@@ -335,7 +353,7 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
       video.removeEventListener("loadedmetadata", seekToStart);
       video.removeEventListener("timeupdate", onTimeUpdate);
     };
-  }, [playUrl, clipStart, clipEnd, cues]);
+  }, [playUrl, clipStart, clipEnd]);
 
   const inset = getPreviewVerticalInset(props.position, PREVIEW_HEIGHT_PX);
   const fontPx = getPreviewFontPx(props.fontSize, language, PREVIEW_HEIGHT_PX);
@@ -377,7 +395,8 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
               textTransform: props.uppercase ? "uppercase" : "none",
               WebkitTextStroke: `${strokePx}px ${props.outlineColor}`,
               paintOrder: "stroke fill",
-              textShadow: `${shadowPx}px ${shadowPx}px 0 rgba(12,12,12,0.82)`,
+              // ASS backcolor (12,12,12,210): 알파 210/255는 투명도라 불투명도는 1 − 0.82 ≈ 0.18.
+              textShadow: `${shadowPx}px ${shadowPx}px 0 rgba(12,12,12,0.18)`,
             }}
           >
             {activeText}
@@ -409,7 +428,7 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
 `import type { TranscriptWord } from "~/fsd/features/clip-review";`를 상단 import에 추가한다.
 구조분해(`:81-86`)의 `previewWords`를 `playUrl, clipStart, clipEnd, words`로 교체한다.
 
-**로컬 환산 제거** — `:22` `PREVIEW_HEIGHT_PX`, `:24-29`(`ASS_PLAY_RES_Y` 주석+상수),
+**로컬 환산 제거** — `:21-22`(`PREVIEW_HEIGHT_PX` 주석+상수), `:24-29`(`ASS_PLAY_RES_Y` 주석+상수),
 `:40-49`(`POSITION_JUSTIFY_CLASS`), `:108`(`previewText`), `:110-117`(`previewScale`·`previewFontPx`·
 `previewStrokePx`·`justifyClass`)를 삭제한다 — 크기/외곽선/위치 환산은 이제 `model/caption-preview.ts`가 한다.
 `import CaptionPreviewPlayer from "./CaptionPreviewPlayer";`를 추가한다.
@@ -541,22 +560,30 @@ const notoSansKr = Noto_Sans_KR({
     >
 ```
 
-> next/font가 `Noto_Sans_KR({ subsets: ["latin"] })`를 거부하면(빌드 오류) `subsets`를 빼고
-> `preload: false`만 두는 형태로 물러난다 — 이는 빌드 타임 확인 사항이며 `apps/web` 안에서 닫힌다.
+> 서브셋·굵기는 설치된 next 15.5.7의 폰트 메타데이터
+> (`node_modules/next/dist/compiled/@next/font/dist/google/font-data.json`)를 파싱해 확인했다 —
+> Anton: weights `["400"]`, subsets `latin`·`latin-ext`·`vietnamese`; Noto Sans KR: weights `100`~`900`·`variable`,
+> subsets `cyrillic`·`latin`·`latin-ext`·`vietnamese`. 위 두 호출은 그대로 통과한다(한글 글리프는 Google Fonts의
+> unicode-range 슬라이스로 필요 시 내려온다).
 
 ## 테스트
 
 - **덮는 것** (`model/caption-preview.test.mjs`)
   - `buildCaptionCues`: 픽스처 단어 목록으로 —
-    ① 묶기 경계: max_word=3에 7단어 → 3+3+1 큐(마지막 잔여 flush, `main.py:344-345`).
+    ① 묶기 경계: max_word=3에 7단어 → 3+3+1 큐(마지막 잔여 flush, `main.py:344-345`). **두 번째 큐의 start가
+       4번째 단어의 start_rel임을 함께 단언한다** — flush 뒤 `curStart` 재설정을 빼도 텍스트 단언만으로는 살아남는다
+       (검증 라운드 1 돌연변이 생존).
     ② 큐 시각: 각 큐 start=첫 단어 start_rel·end=마지막 단어 end_rel(클립 상대), `clipStart=100`에서 원시 167.9 → 67.9.
-    ③ 범위 필터: `clipStart`/`clipEnd` 밖 단어 제외(`main.py:300-305`).
+    ③ 범위 필터: `clipStart`/`clipEnd` 밖 단어 제외(`main.py:300-305`). **`end === clipEnd`인 단어는 포함**
+       (`main.py:304` `<=` 경계 포함) — 없으면 `<`로 바꾼 돌연변이가 살아남는다(같은 라운드).
+    ※ 기대값은 `clipStart`를 뺀 뒤에도 정확히 표현되는 수로 쓴다(예: 100.5 − 100 = 0.5). `100.4 − 100`은
+       0.40000000000000568이라 `deepEqual`이 실패한다 — 백엔드 Python도 같은 부동소수이므로 구현 결함이 아니다.
     ④ 빈 단어(`" "`) 스킵, endRel<=0(zero-length at clipStart) 스킵.
     ⑤ uppercase=true → 텍스트 대문자(`main.py:384-385`), false → 원본.
     ⑥ max_word=1 → 단어당 한 큐.
   - `pickActiveCue`: 큐 안(start≤t<end)→해당 큐, 큐 사이 공백→null, 마지막 end 이후→null, 첫 start 이전→null,
     경계값 t==start→포함·t==end→다음/ null.
-  - `getPreviewFontPx`: EN 122·height 320 → `122 × 2048/3083 × (320/1920)` ≈ 13.50, KR 130 → `130 × 1000/1448 × (1/6)` ≈ 14.96,
+  - `getPreviewFontPx`: EN 122·height 320 → `122 × 2048/3550 × (320/1920)` ≈ 11.73, KR 130 → `130 × 1000/1448 × (1/6)` ≈ 14.96,
     하한 클램프(작은 fontSize→8), 언어 분기(Korean vs 그 외).
   - `getPreviewStrokePx`: `outline × (320/1920) × 2`(예: 3 → 1.0).
   - `getPreviewVerticalInset`: top → `{top: 200×1/6≈33.33, bottom:null}`, bottom → `{top:null, bottom:260×1/6≈43.33}`,
@@ -588,10 +615,14 @@ const notoSansKr = Noto_Sans_KR({
 - **큐 전환: timeupdate vs requestAnimationFrame** — rAF가 더 매끄럽지만(프레임마다), timeupdate(~250ms)는
   메인 프리뷰(`ui/index.tsx:213-225`)와 같은 패턴이고 리스너 정리가 단순하다. 미리보기 용도에 250ms 지연은
   허용 범위라 timeupdate를 택한다. 체감이 나쁘면 후속으로 rAF 전환.
-- **폰트 크기 보정 분모: winAscent+winDescent vs FreeType REAL_DIM** — source는 `winAscent+winDescent`를
-  가정했으나, 실제 폰트 파일을 파싱하니 Anton은 `USE_TYPO_METRICS`(fsSelection bit7)가 켜져 있어 FreeType가
-  sTypo(3083)를 쓴다 — winAsc+winDesc(3550)가 아니다. 두 폰트 모두 FreeType가 실제 쓰는 값(REAL_DIM)으로
-  분모를 잡았다(Anton 3083, Noto 1448). Noto는 두 값이 우연히 같다(1448).
+- **폰트 크기 보정 분모: winAscent+winDescent vs FreeType 기본 REAL_DIM** — 1차 계획은 Anton의
+  `USE_TYPO_METRICS`(fsSelection bit7) 때문에 FreeType가 sTypo(3083)를 쓴다고 보고 3083을 택했다. 검증 라운드 1에서
+  libass 소스로 뒤집혔다: libass는 FreeType 기본값을 쓰지 않고 `set_font_metrics`가 face.ascender/descender를
+  OS/2 win 값으로 덮어쓴 뒤 REAL_DIM을 요청한다(0.15.2·master 동일). 그래서 분모는 두 폰트 모두
+  winAscent+winDescent다(Anton 3550, Noto 1448). Noto는 hhea와 win이 같아 값이 바뀌지 않았다.
+- **재생 이펙트 의존성에서 `cues` 제외** — 1차 스케치는 `[playUrl, clipStart, clipEnd, cues]`였다. 그러면 줄당 단어나
+  대문자를 바꿀 때마다 이펙트가 다시 걸려 `seekToStart()`가 재생을 클립 시작으로 되돌린다. 큐는 ref로 읽고 재생
+  이펙트는 URL·구간에만 묶는다(검증 라운드 1).
 - **미리보기 텍스트 언어 vs 폰트** — 미리보기 텍스트는 항상 영어(한국어는 렌더 시 번역, `main.py:403`)지만
   폰트·EM_SCALE는 클립 언어로 고른다. 한국어 클립은 Noto Sans KR에 영어 원문을 얹어 크기·위치를 정확히
   맞추되(Latin 글리프로 렌더) 텍스트가 렌더와 다름을 문구로 알린다.
