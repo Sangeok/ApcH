@@ -124,7 +124,7 @@ export const CAPTION_RENDER = {
   PLAY_RES_Y: 1920, // main.py:354 subs.info["PlayResY"]
   // top/bottom 세로 마진(PLAY_RES_Y 기준). middle은 중앙 정렬이라 마진 미사용.
   MARGINV: { top: 200, bottom: 260 }, // main.py:141-142
-  SHADOW: 6.5, // main.py:369 / :562 new_style.shadow
+  SHADOW: 6.5, // main.py:369 new_style.shadow / :562 korean_style.shadow
   // ⚠️ libass는 face.ascender/descender를 OS/2 usWinAscent/usWinDescent로 덮어쓴 뒤
   // (ass_font.c set_font_metrics — 0.15.2 :98-104, master :356-366; Ubuntu 22.04 ffmpeg가
   // 링크하는 0.15.2도 동일) FreeType REAL_DIM(= ascender − descender)으로 크기를 요청한다
