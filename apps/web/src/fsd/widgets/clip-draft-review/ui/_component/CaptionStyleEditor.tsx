@@ -302,12 +302,13 @@ export default function CaptionStyleEditor({
           uppercase={effectiveUppercase}
           position={effectivePosition}
         />
-        {/* 못 닫는 근사 둘을 말한다: 크롭은 렌더 시 화자를 따라가 중앙 크롭과 다르고,
-            한국어는 렌더 시 번역되므로 여기선 영어 원문으로 보인다. */}
+        {/* 못 닫는 근사 둘을 말한다: 미리보기는 전체 프레임(resize 모드)을 보여주지만
+            실렌더는 화자를 따라 크롭하고, 한국어는 렌더 시 번역되므로 여기선 영어 원문이다. */}
         <p className="text-center text-[11px] text-muted-foreground">
-          Live preview on your video. The final clip crops to whoever is
-          speaking, so framing will differ. Korean clips are translated at
-          render time — the words here are the English source.
+          Live preview on your video — the whole frame is shown here. The final
+          clip crops to follow whoever is speaking, so framing will differ.
+          Korean clips are translated at render time — the words here are the
+          English source.
         </p>
       </div>
     </div>

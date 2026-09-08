@@ -39,6 +39,15 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-08
+- [x] BUG-13: 캡션 스타일 미리보기의 정중앙 고정 크롭이 원본 좌우를 잘라낸다 — 백엔드 resize 모드(블러 레터박스)로 교체
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review/ui/_component/CaptionPreviewPlayer.tsx
+  status: 완료
+  검증: 클린 패스 (2026-09-08, 독립 무편집 1사이클 — 위생 1건 반영, 구현 영향 0)
+  근거: 소유자가 FEAT-36 미리보기 실사용 중 발주 — 원본 좌우가 밀려 사람이 잘린다. 전제 재확인: 180×320 object-cover라 가운데 31.6%만 보이고, 백엔드 crop/resize 어느 모드와도 다르다. 미결 0건.
+  결과: object-cover 한 장을 블러배경(cover+scale-110)+전경 object-contain 두 장으로 교체·bgVideoRef 루프 재정렬·안내 문구 갱신. check EXIT0·test 123/0(회귀 가드 통과). 상세 web-dev/BUG-13
+
 ## 2026-09-07
 - [x] FEAT-36: 캡션 스타일 미리보기를 실제 영상 위 타이밍 오버레이로 — 렌더 없이 9:16 프레임에서 자막 큐 재생
   agent: web-dev
