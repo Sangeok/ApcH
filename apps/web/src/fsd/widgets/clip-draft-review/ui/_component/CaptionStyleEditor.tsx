@@ -1,5 +1,6 @@
 "use client";
 
+import type { TranscriptWord } from "~/fsd/features/clip-review";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -8,25 +9,19 @@ import {
   type CaptionStyle,
 } from "~/fsd/shared/config/constants";
 import { matchPresetId } from "../../model/caption-presets";
+import CaptionPreviewPlayer from "./CaptionPreviewPlayer";
 
 interface CaptionStyleEditorProps {
   language: string;
   // null = 언어별 기본값 (백엔드 하드코딩) 사용.
   value: CaptionStyle | null;
-  // 현재 구간에 포함되는 전사 단어 (미리보기 텍스트용).
-  previewWords: string[];
+  // 미리보기 플레이어가 쓰는 원본 영상 URL·클립 구간·구간 안 단어(타이밍 포함).
+  playUrl: string | null;
+  clipStart: number;
+  clipEnd: number;
+  words: TranscriptWord[];
   onChange: (style: CaptionStyle) => void;
 }
-
-// 미리보기 컨테이너의 높이. 렌더마다 다시 만들 이유가 없다.
-const PREVIEW_HEIGHT_PX = 320;
-
-/**
- * 백엔드 ASS 자막의 PlayResY (apps/backend main.py).
- * 미리보기 좌표는 전부 이 값 기준으로 축소한다 — 여기와 백엔드가 어긋나면
- * 편집기 미리보기와 실제 렌더 결과의 글자 크기가 달라진다.
- */
-const ASS_PLAY_RES_Y = 1920;
 
 const POSITION_LABELS: Record<
   (typeof CAPTION_STYLE_OPTIONS.POSITIONS)[number],
@@ -35,17 +30,6 @@ const POSITION_LABELS: Record<
   top: "Top",
   middle: "Middle",
   bottom: "Bottom",
-};
-
-// 위와 같은 3값 축이다. 중첩 삼항으로 두면 "middle"이 폴백에 암시돼
-// POSITIONS에 값을 추가해도 조용히 middle 스타일을 받는다.
-const POSITION_JUSTIFY_CLASS: Record<
-  (typeof CAPTION_STYLE_OPTIONS.POSITIONS)[number],
-  string
-> = {
-  top: "justify-start pt-6",
-  middle: "justify-center",
-  bottom: "justify-end pb-6",
 };
 
 function languageDefaultFontSize(language: string): number {
@@ -81,7 +65,10 @@ const EMPTY_STYLE: CaptionStyle = {
 export default function CaptionStyleEditor({
   language,
   value,
-  previewWords,
+  playUrl,
+  clipStart,
+  clipEnd,
+  words,
   onChange,
 }: CaptionStyleEditorProps) {
   // 저장된 값 위에 언어별 기본값을 얹은 "유효 스타일". 컨트롤과 미리보기가 이 값을 표시한다.
@@ -105,16 +92,6 @@ export default function CaptionStyleEditor({
   };
 
   const activePreset = matchPresetId(value);
-  const previewText = previewWords.slice(0, effectiveMaxWords).join(" ");
-
-  // 미리보기 컨테이너 높이 기준 좌표 환산.
-  const previewScale = PREVIEW_HEIGHT_PX / ASS_PLAY_RES_Y;
-  const previewFontPx = Math.max(10, Math.round(effectiveFontSize * previewScale));
-  // ASS 외곽선은 글리프 바깥으로 나가고 CSS 스트로크는 글리프 중앙을 기준으로
-  // 그려진다. 같은 두께로 보이려면 2배가 필요하다 (근사값).
-  const previewStrokePx = effectiveOutlineWidth * previewScale * 2;
-
-  const justifyClass = POSITION_JUSTIFY_CLASS[effectivePosition];
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -311,34 +288,26 @@ export default function CaptionStyleEditor({
       </div>
 
       <div className="flex flex-col gap-2">
-        <div
-          className={cn(
-            "relative mx-auto flex w-[180px] flex-col overflow-hidden rounded-lg bg-gradient-to-b from-slate-700 to-slate-900",
-            justifyClass,
-          )}
-          style={{ height: PREVIEW_HEIGHT_PX }}
-        >
-          <p
-            className="px-2 text-center font-bold leading-tight"
-            style={{
-              fontSize: previewFontPx,
-              color: effectiveColor,
-              textTransform: effectiveUppercase ? "uppercase" : "none",
-              WebkitTextStroke: `${previewStrokePx}px ${effectiveOutlineColor}`,
-              paintOrder: "stroke fill",
-              textShadow: "0 1px 4px rgba(0,0,0,0.9)",
-            }}
-          >
-            {previewText || "Caption preview"}
-          </p>
-        </div>
-        {/* 무엇이 다른지 말해야 한다. 캡션 좌표는 백엔드와 동일한 PlayResY 1920
-            기준으로 환산하므로 정확하고, 배경만 실제와 다르다 — 최종 클립은
-            프레임마다 화자를 따라가는 세로 크롭이다(main.py create_vertical_video). */}
+        <CaptionPreviewPlayer
+          playUrl={playUrl}
+          clipStart={clipStart}
+          clipEnd={clipEnd}
+          words={words}
+          language={language}
+          fontSize={effectiveFontSize}
+          color={effectiveColor}
+          outlineColor={effectiveOutlineColor}
+          outlineWidth={effectiveOutlineWidth}
+          maxWords={effectiveMaxWords}
+          uppercase={effectiveUppercase}
+          position={effectivePosition}
+        />
+        {/* 못 닫는 근사 둘을 말한다: 크롭은 렌더 시 화자를 따라가 중앙 크롭과 다르고,
+            한국어는 렌더 시 번역되므로 여기선 영어 원문으로 보인다. */}
         <p className="text-center text-[11px] text-muted-foreground">
-          Caption size, color, case and position are accurate; the outline is
-          approximate. The background is not — the final clip is cropped to
-          vertical and follows whoever is speaking.
+          Live preview on your video. The final clip crops to whoever is
+          speaking, so framing will differ. Korean clips are translated at
+          render time — the words here are the English source.
         </p>
       </div>
     </div>

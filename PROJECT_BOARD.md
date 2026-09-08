@@ -39,6 +39,29 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-07
+- [x] FEAT-36: 캡션 스타일 미리보기를 실제 영상 위 타이밍 오버레이로 — 렌더 없이 9:16 프레임에서 자막 큐 재생
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/shared/config/constants.ts + apps/web/src/app/layout.tsx
+  status: 완료
+  검증: 클린 패스 (2026-09-08, 무편집 4라운드 — 독립 1사이클, 위생 1건 반영)
+  근거: 소유자 발주 — 캡션 스타일을 실제 영상 위에서 보고 싶다. 전제 재확인: 편집기 미리보기는 그라데이션 상자·시간축 없음, 원본 플레이어와 단어별 전사(렌더와 같은 파일)는 이미 클라이언트에 있음. 미결 1건(FEAT-35).
+  결과: 미리보기를 9:16 오버레이로 교체(순수 caption-preview 모듈+테스트19·CaptionPreviewPlayer·폰트2 로드·상수 CAPTION_RENDER). check EXIT0·test 107/0(88→107). 상세 web-dev/FEAT-36
+- [x] FEAT-35: 클립 경계 편집 루프를 닫는다 — 경계 프리뷰 + 넛지 스냅 방향 + 시계 표기 입력
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/shared/lib/format-duration.ts
+  status: 완료
+  검증: 클린 패스 (2026-09-08, 독립 무편집 1라운드 — plan-verifier 3차, 2차 결함 2건 반영 후)
+  근거: 소유자가 검토 화면 실사용 중 발주 — Preview 결과와 Start/End 값이 대응되지 않는다. 전제 재확인: Preview는 구간 전체(30~90초) 재생이라 경계 확인 경로가 없고, 넛지는 단어 간격 1.0초 이상이면 no-op(재현 확인). 미결 0건.
+  결과: 프리뷰 3분할·방향 스냅·m:ss.s 입력 구현(순수모듈 3 신설). check EXIT0·test 104/0(+16). 상세 web-dev/FEAT-35
+- [x] FEAT-32: 클라이언트 Sentry 초기화 — 브라우저 오류가 현재 어떤 텔레메트리에도 도달하지 않음
+  agent: web-dev
+  area: apps/web/src/instrumentation.ts + apps/web/src/env.js + apps/web/next.config.js + apps/web/src/fsd/shared/observability
+  status: 완료
+  검증: 클린 패스 (2026-09-07, 무편집 6라운드)
+  근거: 소유자가 FEAT-34 배포 확인 후 지목("FEAT-32 진행"). 전제 재확인 — Sentry.init은 sentry.server.config.ts 하나뿐, 클라 진입점 0개, 에러 경계 5개가 console.error만 한다. DSN이 SENTRY_DSN(서버 스코프)이라 클라에서 못 읽는 것도 확인. 미결 0건.
+  결과: 클라 Sentry.init 신규+스크럽 순수모듈 추출(서버 위임·정규식 결함① 수정)·env·CSP·treeshake. check EXIT0·test 88/0(+11). 상세 web-dev/FEAT-32
+
 ## 2026-09-05
 - [x] FEAT-34: apps/web FSD 경계 자동 검출 도입 — 배럴·레이어 위반 재발을 사람 감사 대신 CI가 잡게
   agent: web-dev

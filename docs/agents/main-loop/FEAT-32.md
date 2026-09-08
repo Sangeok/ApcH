@@ -1,0 +1,300 @@
+# FEAT-32 — 메인 루프 기록
+
+## 필수 경로 확정 (2026-09-07)
+
+| 경로 | 채택 | 근거 |
+| --- | --- | --- |
+| 1 인용 전수 대조 | ○ | 전 항목 필수 |
+| 2 스케치 추출·실행 | ◎ | `scrub-event.ts`가 순수 모듈이라 돌려볼 수 있다 — 이 항목의 유일한 자동 검증 대상 |
+| 3 before/after | ○ | 기존 파일 3개 수정(env.js·sentry.server.config.ts·next.config.js) |
+| 4 전칭 여집합 | ○ | "Sentry.init은 하나뿐", "클라 진입점 0개", "에러 경계 5개" |
+| 5 돌연변이 | ◎ | 순수 함수 `scrubString`/`scrubEvent` 신설 — 명세가 회귀를 잡는지 |
+| 6 실제 사건 재생 | × | 외부 신호 해석이 없다(이벤트를 만들어 보내는 쪽이다) |
+| 7 음성 시험 | ○ | 스크럽 규칙이 실제로 막는지 |
+| 8 실물 렌더 | × | 화면 변경 없음 |
+| 9 구조적 아티팩트 | ○ | `env.js` 스키마·`next.config.js` CSP 헤더 |
+
+## 라운드 1 (편집) — 결함 1건, **보안 영향**
+
+### 결함 ① — 스크럽 정규식이 이스케이프된 따옴표에서 비밀을 통과시킨다
+
+**이 항목이 옮기려는 서버 원본 코드에 있던 결함이고, 실측으로 확인했다.**
+
+`SCRUB_RULES`의 경계는 `[^&\s"']+`인데, `scrubEvent`는 이벤트를 **JSON으로 직렬화한 뒤** 치환한다.
+값 안에 따옴표가 있으면 `JSON.stringify`가 `\"`로 이스케이프하고, 경계가 **백슬래시에서 멈추지
+않아** 닫는 따옴표까지 먹는다. 결과가 깨진 JSON → `JSON.parse` throw → catch가 **스크럽되지 않은
+원본을 그대로 반환**(fail-open).
+
+실측:
+```
+입력 이벤트: { message: 'boom X-Amz-Signature=abc"tail rest' }
+JSON        : {"message":"boom X-Amz-Signature=abc\"tail rest"}
+치환 후     : {"message":"boom X-Amz-Signature=[REDACTED]"tail rest"}   ← 깨진 JSON
+JSON.parse  : throw → catch → 원본 반환
+scrubEvent 결과 === 입력 객체 (동일 참조)
+→ 서명이 스크럽 없이 Sentry로 나간다
+```
+
+**계획서의 서술과 어긋나는 지점**: 계획서(와 서버 원본 주석)가 catch를 "SDK 정규화가 순환 참조·
+BigInt를 먼저 제거하므로 **사실상 죽은 경로**"라고 적었다. 그 근거는 맞지만 **이 경로는 살아
+있다** — 정규화는 문자열 *안*의 따옴표를 없애지 않는다.
+
+**수정과 검증**: 경계에 백슬래시를 추가(`[^&\s"'\]+`). 네 입력으로 대조 실측 —
+
+| 입력 | 현행 | `\` 추가 |
+| --- | --- | --- |
+| `X-Amz-Signature=abc"tail rest` | **깨진 JSON → fail-open(유출)** | 유효 · 스크럽 |
+| `?X-Amz-Signature=abc123&next=1` | 유효 · 스크럽 | 유효 · 스크럽 |
+| `X-Amz-Signature=abc def` | 유효 · 스크럽 | 유효 · 스크럽 |
+| `X-Amz-Signature=AKIA/2026/ap/s3/aws4_request` | 유효 · 스크럽 | 유효 · 스크럽 |
+
+**이 수정은 서버에도 적용된다** — 서버가 이 모듈에 위임하므로 같은 결함이 서버에서도 닫힌다.
+계획서 「테스트」에 이 회귀를 못박는 케이스와 음성 시험(경계에서 `\`를 빼면 테스트가 죽는지)을
+추가했다.
+
+### 통과한 것
+
+**경로 2 — 클라 진입점 확정을 SDK 소스로 검산**: 계획서가 `instrumentation-client.ts`로 확정한
+근거를 직접 읽었다. `node_modules/@sentry/nextjs/build/cjs/config/webpack.js:213`이
+`sentry.client.config`에 대해 "DEPRECATION WARNING … When using Turbopack `<file>` will no longer
+work"를 찍고, 같은 파일 `:343-348`의 `getInstrumentationClientFile`이 후보 넷을 탐색한다 —
+`["src","instrumentation-client.js"]`, **`["src","instrumentation-client.ts"]`**, 루트 둘. 이
+프로젝트는 `src/` 구조이고 dev가 `--turbo`라 계획서 판단이 맞다. 설치 버전도 **10.68.0** 확인.
+
+**경로 2 — 스크럽 추출이 서버 동작을 보존하는가**: 스케치를 그대로 옮겨 서버 원본 재현과 대조.
+정상 입력들(`&`·공백 경계, 슬래시 포함 값, 리터럴 치환)에서 **출력 동일**. 클라(리터럴 빈 배열)는
+엔드포인트 호스트를 유지 — 의도대로다.
+
+**경로 1 — 인용 대조**: `next.config.js:98`의 `connect-src`(sentry.io 없음), `:115-121`의
+`withSentryConfig` 옵션 셋, `sentry.server.config.ts:11-14`(SCRUB_RULES)·`:73`(`tracesSampleRate: 0`)·
+`:74`(`beforeSend`), `env.js:43`(`SENTRY_DSN` server 스코프), 에러 경계 5개 파일 — 전부 일치.
+
+**계획서가 브리핑 요구를 넘어선 지점(칭찬할 것)**: 내가 요구하지 않은 **CSP 문제**를 스스로
+찾았다. `connect-src`에 sentry.io가 없어 프로덕션에서 이벤트 POST가 차단되고, 그러면 검증 자체가
+성립하지 않는다. 이걸 놓쳤으면 "초기화했는데 왜 안 오지"로 한참 헤맸을 것이다.
+
+**결과**: 편집 라운드. 다음은 무편집 패스.
+
+## 라운드 2 (무편집) — 무소득
+
+1라운드 수정(경계에 백슬래시 추가)이 **다른 걸 깨지 않는지**와 **명세가 그 회귀를 잡는지**를 시험했다.
+
+**회귀 시험 — 일곱 케이스 전부 통과, 유출 0**
+
+| 케이스 | 결과 |
+| --- | --- |
+| 정상 URL(`&` 경계, 두 규칙 동시) | `[REDACTED]` 둘 |
+| **따옴표 값**(1라운드 결함) | `X-Amz-Signature=[REDACTED]\"tail` — 유효 JSON, 스크럽 |
+| 백슬래시 값 | `[REDACTED]\c end` — 값 안 백슬래시에서 잘리지만 **비밀은 안 샌다** |
+| 세 규칙 동시 | 셋 다 치환 |
+| 중첩(`exception.values[].value`) | 치환 |
+| 호스트 + 서명(리터럴 + 규칙) | `[PROCESS_VIDEO_ENDPOINT]` + `[REDACTED]` |
+| 스크럽 대상 없음 | 무변경 |
+
+**돌연변이 검사 — 명세가 회귀를 잡는다**
+
+계획서 「테스트」에 추가한 이스케이프 따옴표 케이스를 실행 가능한 형태로 옮기고 경계에서
+백슬래시를 뺀 돌연변이를 심었다.
+
+```
+original (boundary WITH backslash): PASS
+mutant   (backslash REMOVED)      : FAIL (fail-open, secret leaked)
+```
+
+**사멸.** 나중에 누가 정규식을 "정리"하면서 백슬래시를 빼면 테스트가 죽는다 — 명세가 장식이 아니다.
+
+**부수 관측(결함 아님)**: 값 안에 실제 백슬래시가 있으면(`abc\def`) 거기서 치환이 끊긴다. 원본
+경계도 따옴표·공백에서 같은 성질이었고, 남는 것은 서명의 **뒷부분 일부**이지 앞부분이 아니다 —
+`X-Amz-Signature=[REDACTED]\c` 형태라 서명값 자체는 복원 불가하다. 완전 방어가 아니라 심층
+방어라는 계획서 서술과 일관되므로 그대로 둔다.
+
+편집 없음·소득 없음 → `plan-verifier` 독립 패스 디스패치.
+
+## 라운드 3 (plan-verifier 독립 패스 1사이클) — 결함 3건, 전부 반영
+
+셋 다 문서 위생으로 분류됐고(구현을 틀리게 하는 것 0건) 내가 재현해 반영했다.
+
+**결함 ② (가장 실질적) — `environment` 기대값이 노출 경로에서 어긋난다.**
+계획서 「범위 밖 의존」이 "`NEXT_PUBLIC_VERCEL_ENV`를 노출하면 preview/production을 정확히
+가른다"고 적었는데, SDK 소스가 값에 **접두사를 붙인다**:
+
+```js
+// node_modules/@sentry/nextjs/build/cjs/common/getVercelEnv.js:4-5
+const vercelEnvVar = isClient ? process.env.NEXT_PUBLIC_VERCEL_ENV : process.env.VERCEL_ENV;
+return vercelEnvVar ? `vercel-${vercelEnvVar}` : void 0;
+```
+
+노출하면 클라는 `vercel-production`, 서버는 `sentry.server.config.ts:69`의
+`process.env.VERCEL_ENV ?? "development"`로 `production` — **서버·클라 태그가 비대칭**이 되어
+Sentry에서 한 환경으로 안 묶인다. 게다가 §검증 4단계가 "environment가 production인지" 확인하라고
+하니, 노출한 상태로 검증하면 **거짓 실패**가 난다.
+
+→ 「(선택) 노출」을 **「(선택 — 권장하지 않음)」**으로 바꾸고 「environment 값 주의」 절을 신설해
+두 경로의 값을 표로 못박았다. 기본(노출 안 함) 경로에서는 클라가 `NODE_ENV` 폴백으로 `production`이
+되어 서버와 일치한다 — 그래서 §검증 4단계 기대값은 그 경로 기준임을 명시했다.
+
+**결함 ③ — 인용 줄 범위 둘.** `getEndpointHost`는 `:17-23`이고 `:25`는 별개 심볼
+`const ENDPOINT_HOST = getEndpointHost();`다(계획서가 §4에서는 정확히 나눠 쓰는데 §현재 동작에서만
+`:17-25`로 뭉쳤다 — 내부 불일치). SDK `getDefaultIntegrations`는 `:85-103`이고 `:104-108`은 다른
+심볼이다. 둘 다 실측 확인 후 정정.
+
+**결함 ① — env.js 삽입 위치의 산문 vs 블록 불일치.** 산문은 `NEXT_PUBLIC_SITE_URL` **아래**,
+after-블록은 **위**에 놓는다. 검증자가 "키 순서는 t3-env·Zod 동작과 무관하며 어느 쪽이든 컴파일·
+실행이 동일"함을 스크래치패드에서 확인했다. after-블록이 실제 적용 대상이므로 **산문을 지우지 않고
+그대로 뒀다** — 블록이 진실이고, 산문은 위치 힌트일 뿐이라 구현자가 블록을 따르면 된다.
+
+**독립 패스가 통과시킨 것**: 인용 전수 대조 — 소스 인용 스물넷과 SDK 인용 일곱이 내용까지 일치
+(예외가 결함 ③ 둘). 스케치 실행 — 계획서에서 `scrub-event.ts`를 **바이트 그대로** 추출해
+(`od -c`로 정규식 경계가 `5c 5c`임을 확인) 프로젝트 strict 플래그로 `tsc --noEmit` 진단 0.
+before/after — before 블록 전부 `grep -Fxq`로 현재 트리와 verbatim 일치, after 적용본 둘이
+`node --check` 통과. 전칭 여집합 — `Sentry.init` 실호출 1건(`env.js:42`는 주석), 에러 경계 5개,
+클라 진입점 파일 0개, client 블록의 `NEXT_PUBLIC` 키 둘. **돌연변이 검사 — 6종 전부 사멸**
+(규칙 replace 제거·치환값 오염·literal을 replace로·catch를 rethrow로·Credential 규칙 제거·
+literal 루프 제거). **음성 시험 — 경계에서 `\`를 뺀 원본 정규식에 스펙을 돌리니 escaped-quote
+회귀 테스트가 사멸**하고 `Signature=abc`가 유출됨을 재현 — 라운드 1이 찾은 결함과 그 테스트의
+이빨을 독립 확인했다. 계획서 동작표 4행도 재현해 전부 일치.
+
+**결과**: 편집 라운드. 다음은 무편집 패스 + 새 독립 패스.
+
+---
+
+## 4라운드 — 메인 루프 무편집 패스 (2026-09-07)
+
+3라운드에서 **내가 새로 쓴 내용**(「environment 값 주의」절·`getVercelEnv` 인용 블록)은 아직 아무도
+검증하지 않았으므로 거기를 최우선 표적으로 삼았다.
+
+**통과한 것**
+
+- **경로 1(인용 전수)** — SDK 인용 재대조: `getVercelEnv.js:4-5` 축자 일치(`void 0`까지),
+  `client/index.js:54` environment 체인 일치, `getDefaultIntegrations` `:85-103`(`:104`가 다음 심볼),
+  `captureRouterTransitionStart` `:109`, 버전 `10.68.0`. 소스 인용도 재대조:
+  `sentry.server.config.ts` `:11-15`·`:17-23`·`:25`·`:27-39`(루프 `:30-32`, 엔드포인트 `:34-36`)·
+  `:57-63`(catch `:60-62`)·`:65`·`:69`·`:74`, `env.js` `:43`·`:52`·`:53`·`:54`·`:88`·`:90`·`:91`,
+  `next.config.js` `:60`·`:98`·`:115`, `instrumentation.ts` `:4`·`:5`·`:10`,
+  `use-report-boundary-error.ts` `:11-13`·`:15-17`·`:19`·`:24`, `observability/index.ts` `:1-8`,
+  `report-error.ts:1` — 전부 내용까지 일치.
+- **경로 3(before/after 기계 적용)** — before 블록 9개를 `grep -Fxq`로 현재 트리와 축자 대조, 9/9 일치.
+- **경로 4(전칭 여집합)** — `Sentry.init` 실호출 1건(`env.js:42`는 주석), 클라 진입점 **후보 8경로 전수
+  `ls`로 부재 확인**(`src/`·루트 × `instrumentation-client`·`sentry.client.config` × `.ts`/`.js`),
+  `useReportBoundaryError` 호출부 5건(+정의 1) — 파일 5개와 줄번호(`:13`×4, `global-error :12`)까지 일치.
+- **경로 9(구조적 아티팩트)** — 이 항목에서 처음 실행. 둘을 봤다.
+  ① `withSentryConfig`의 `webpack.treeshake.{removeTracing,removeDebugLogging}` 키가 **실재**하는지:
+  `webpack.js:556·559`가 그 키를 읽어 DefinePlugin에 심고, `:259`가 `webpack?.treeshake` 존재 시
+  `setupTreeshakingFromConfig`를 부른다. 타입 정의 `types.d.ts:92`에도 `treeshake?:`가 있다.
+  → 오타 키로 조용히 no-op이 될 위험 없음. `build` 스크립트가 `next build`(turbopack 플래그 없음)이라
+  webpack 경로가 맞다.
+  ② **FEAT-34 경계 검사기가 새 임포트를 잡는가** — 계획서가 다루지 않은 지점이라 직접 확인했다.
+  `readSourceFiles`가 `src/` 전체를 걷으므로 `src/instrumentation-client.ts`도 스캔 대상이다. 그러나
+  두 신규 임포트(`instrumentation-client.ts`·`sentry.server.config.ts` → `~/fsd/shared/observability/scrub-event`)는
+  둘 다 `srcLoc === null`(비-fsd 소스)이고, W4는 `tgtLoc.layer === "widgets"` 한정, W6은
+  `srcLoc !== null` 블록 안이며 `tgtLoc.layer !== "shared"`를 명시 제외한다. → **위반 0**.
+  기존 에러 경계 5개가 같은 slice를 깊은 경로로 임포트하고도 통과하는 것과 같은 이유다.
+  ③ 테스트 임포트 관용구 — 기존 `*.test.mjs` 14개가 전부 `from "./name.ts"` 형태이고 러너가
+  `tsx --test "src/**/*.test.mjs"`다. 계획서의 `from "./scrub-event.ts"`가 관용구와 일치.
+
+**결함 ㉮ (문서 위생) — 3라운드 편집이 마크다운을 깨뜨렸다.** `:14`의 백틱이 **홀수(31개)**였다:
+`...담는다)`가 `env.PROCESS_VIDEO_ENDPOINT`...`에서 떠도는 백틱이 뒤 심볼의 여는 백틱과 짝을 지어
+그 줄의 코드 스팬이 통째로 뒤집힌다. 하필 `getEndpointHost`/`:25`를 설명하는 자리다.
+→ 떠도는 백틱 제거(짝수 30). 파일 전체를 `awk`로 재검사해 홀수 줄 30개가 **전부 펜스(```)**이고
+15쌍으로 닫힘을 확인.
+
+**결함 ㉯ (문서 위생) — 인용 범위 off-by-one.** `webpack.js:553-573`이라 썼는데 `:573`은 마지막 if의
+닫는 중괄호이고 함수는 `:574`에서 닫힌다(`:575` 공백, `:576` exports). 3라운드 결함 ③(`getEndpointHost`
+`:17-23`)과 같은 부류다. → `:553-574`로 정정.
+
+**결과**: 편집 라운드(문서 위생 2건). 구현 영향 결함 0. 다음은 새 독립 패스.
+
+---
+
+## 5라운드 — 독립 패스 (2026-09-07)
+
+첫 디스패치가 세션 한도(429)로 경로 1 도중 끊겨 **같은 에이전트를 컨텍스트째 재개**했다(새로 띄우면
+이미 끝낸 인용 대조를 처음부터 다시 돈다). 브리핑 계약 위반 없음 — 판정 자격 있음. `git status`로
+무수정 준수도 직접 확인(트리에 세션 시작 시점의 둘 외 변화 없음).
+
+**결함 2건, 둘 다 문서 위생. 구현 영향 0건.**
+
+**결함 ㉠ — 전칭이 여집합에서 반증됨.** "`Sentry.init`은 **저장소 전체에서** 하나뿐"이라 썼는데
+`grep -rn "Sentry.init(" apps packages`가 **둘**을 낸다 — `apps/web/.../sentry.server.config.ts:65`와
+`apps/admin/.../sentry.server.config.ts:9`. 직접 확인해 보니 검증자가 잡은 것보다 실질적이다:
+admin은 **같은 Sentry 프로젝트**로 보내고 `initialScope: { tags: { app: "admin" } }`로만 구분한다.
+→ 「`apps/web` 안에서 하나뿐」으로 범위를 좁히고, admin의 존재·같은 프로젝트·태그 구분을 괄호로
+명시했다. **web 이벤트에 `app` 태그가 없는 비대칭**도 적어 뒀다(이 항목 범위 밖 — 후속 후보).
+
+**결함 ㉡ — env.js 산문↔블록 방향 불일치(재발).** 3라운드에서 같은 것이 지적됐고 그때 나는
+"블록이 진실이니 산문은 힌트로 둔다"며 **고치지 않았다**. 처음 보는 컨텍스트가 독립적으로 또
+지적했다 — 두 번 걸리면 그건 읽는 사람이 걸려 넘어진다는 뜻이다. → 산문을 블록에 맞췄다
+(「`client: {` 바로 아래 — 즉 `NEXT_PUBLIC_SITE_URL`(`:53`) **위**」 + 키 순서 무관 명시).
+
+**독립 패스가 통과시킨 것**: 인용 전수 대조 결함 0(소스·SDK 전부 내용까지). 스케치 추출·실행 —
+`\` 바이트 보존을 위해 heredoc 대신 node로 파일 생성, `tsc --noEmit --strict` EXIT 0, 명세대로 짠
+테스트 **10 pass / 0 fail**. before 블록 6개 `od -c` 바이트 대조 일치. 전칭 다섯 여집합 열거.
+**돌연변이 5종 전부 사멸**(경계 `\` 제거·규칙 루프 break·catch→null·split/join→replace·스크럽 무력화).
+음성 시험 — 경계 `\` 제거가 **정확히 회귀 테스트 하나만** 죽였고(계획서 `:244` 주장과 일치),
+`SECRETabc` 유출을 실측 재현. 구조적 검사 — env.js 키를 구조 파싱해 server 25 + client 2 =
+runtimeEnv 27 정합(누락·잉여 0), 편집 후 28로 정합 유지.
+
+## 6라운드 — 메인 루프 무편집 확인 패스 (2026-09-07)
+
+5라운드 편집 2건을 받은 뒤의 확인 패스. **자기 검토이지 독립 패스가 아니다.**
+
+① 새 인용 실측 — `apps/admin/.../sentry.server.config.ts:9` `Sentry.init({`, `:12`
+`initialScope: { tags: { app: "admin" } }` 일치. ② admin이 별도 Vercel 프로젝트임을
+`apps/admin/vercel.json` 실재와 `apps/web/CLAUDE.md:15`("별도 Vercel 프로젝트")로 확인.
+③ 「저장소 전체」 잔재 여집합 — 0건. ④ 백틱 균형 — 펜스 외 불균형 줄 0(내 편집이 백틱을 더했으므로
+재검사). ⑤ `env.js:52-54` 현재 트리 재확인 — 산문이 새로 주장하는 위치와 일치.
+
+**결과: 무편집 클린 패스.** 보드에 `검증:` 줄을 쓴다.
+
+## 경로 선정 판단 — 보드 정지 규칙의 신호가 켜졌다
+
+사이클 3(독립)·4(메인 루프)·5(독립)가 **연속 셋 다 문서 위생만** 냈다. 구현 영향 결함은
+사이클 3 이후 **0건**이다. 보드 안내 블록(`:21-23`)이 "문서 위생만 2사이클 연속이면 경로 선정이
+과했다는 신호"라 했으므로 신호는 이미 켜졌고, 규칙대로 판단을 여기 남긴다.
+
+**다음 항목에서 좁힐 것**: 경로 1(인용 전수)·3(before/after)은 **첫 사이클에만** 필수로 두고,
+2사이클부터는 **직전 사이클 이후 바뀐 줄에 한정**한다. 이 항목에서 3·4·5사이클이 낸 소득
+다섯 중 넷이 인용 범위·백틱·산문 방향 — 전부 경로 1/3의 반복 재독에서 나왔고, 반복 재독은
+계획서가 안 바뀐 부분까지 매번 다시 훑느라 새 소득 없이 사이클을 태웠다. 경로 2·5·7·9는
+**첫 사이클에서 이미 결정적 소득**(fail-open 유출, 돌연변이 6+5종 사멸)을 냈으므로 그대로 둔다.
+
+---
+
+## 인수 (2026-09-07)
+
+인수 조건 다섯을 직접 재현했다 — 보고를 받아쓰지 않았다.
+
+1. **변경 파일 ↔ 「고칠 파일」** — 정확히 6개(`scrub-event.{ts,test.mjs}`·`instrumentation-client.ts` 신규,
+   `env.js`·`sentry.server.config.ts`·`next.config.js` 수정). 계획서가 "건드리지 않는다"고 못박은
+   에러 경계 5개·`use-report-boundary-error.ts`는 `git status`에 없다.
+2. **diff ↔ 스케치** — 네 파일 전부 일치. 정규식 경계의 `\`는 `od -c`로 바이트 확인.
+3. **검증 명령 직접 재실행** — `npm test -w apps/web` **88 pass / 0 fail**,
+   `npm run check -w apps/web` **EXIT 0**(verify:fsd:test 11/11 · FSD 경계 통과 · lint 0 · tsc clean).
+   FSD 경계 통과는 6라운드에서 W4/W6 조건으로 예측한 그대로다.
+4. **백로그 제거** — `grep FEAT-32 TASK_BACKLOG.md` 0건.
+5. **상세 기록 실재** — `docs/agents/web-dev/FEAT-32.md` 71줄.
+
+**반송 3건 → 반영 확인**
+
+- **결과 154자** (150 초과, FEAT-31의 152자와 같은 실패) → **136자**.
+- **매달린 참조** — `scrub-event.ts:35`가 "서버 원본 주석의 한계 1과 동일"이라 가리키는데 dev가 그
+  원본을 삭제했다(`grep -c "한계" sentry.server.config.ts` = 0). 드리프트를 피하려던 삭제가
+  다른 드리프트를 만든 것이다 → 자기완결형으로 재작성, 여집합 0건 확인.
+- **지식 소실 둘** — 삭제된 주석에 딸려 나갔는데 **삭제된 함수가 아니라 지금도 유효한 계약**을
+  적은 것들이었다. `src/` 전수로 부재 확인 후 새 위치에 복원: ① 왕복 손실(`T => T`인데
+  undefined/함수/심볼 소실·Date는 문자열 — `scrubEvent`가 여전히 `JSON.parse(JSON.stringify)`라 유효),
+  ② 유지보수 지시(`ReportContext` 채널로 **새 종류의 비밀**이 들어오면 규칙 추가 — 추가 지점이
+  이제 이 모듈이므로 지시도 따라와야 한다).
+  반영 후 코드 라인 diff **0**(주석만) 확인, `check` EXIT 0 재확인.
+
+**메인 루프가 직접 처리한 것** — web-dev 쓰기 범위 밖이라 못 고치는 문서 드리프트:
+`apps/web/CLAUDE.md:69` 「14개 파일, 17 suite, 77개 테스트」 → 「15개 파일, 19 suite, 88개」,
+테스트 표에 `scrub-event.test.mjs` 행 추가. 표 행 수 15 = 실제 `*.test.mjs` 15개로 대조.
+
+**런북 8단계** — 「못 덮는 범위」 6줄을 `docs/release-checks.md`에 FEAT-32 절로 등재.
+전부 브라우저 실행·외부 콘솔 판정이라 `〔auto〕` 태그 대상이 아니다. 선행(사용자)인
+`NEXT_PUBLIC_SENTRY_DSN` 주입이 없으면 여섯 중 다섯이 성립하지 않음을 절 머리에 명시했다.
+
+**후속 후보(사용자 제시용)**: ① `use-report-boundary-error.ts`에 `Sentry.captureException` 배선
+(계획서 §대안이 도달 실측 뒤로 연기 — web 범위), ② web 이벤트에 `app` 태그 부재
+(admin은 `app: "admin"`을 다는데 web은 안 단다 — 같은 프로젝트라 구분이 비대칭).

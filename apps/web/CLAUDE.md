@@ -66,7 +66,7 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 14개 파일, 17 suite, 77개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 19개 파일, 29 suite, 123개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -74,7 +74,10 @@ npm test -w apps/web
 | `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키. `ANALYTICS_METADATA_KEYS_BY_EVENT`는 `as const satisfies Record<AnalyticsEventName, readonly string[]>`로 계약에 묶여 있어, 이벤트 이름 변경은 이제 컴파일 오류다. 이 테스트는 각 이벤트가 **어떤 키를 허용하는지**(값)를 지킨다 |
 | `shared/analytics/lib/normalize-path.test.mjs` | 경로 정규화 |
 | `widgets/clip-draft-review/model/selection-budget.test.mjs` | 클립 선택 예산 |
+| `widgets/clip-draft-review/model/caption-preview.test.mjs` | 캡션 스타일 미리보기의 큐 묶기(`apps/backend/main.py:287-345` 이식)·활성 큐 선택·px 환산. **묶기 규칙·범위 필터(`end === clipEnd` 포함)·`EM_SCALE` 분모는 백엔드 자막과 묶인 계약이다** — 어긋나면 미리보기가 실렌더와 다른 것을 보여주고, 사용자는 크레딧을 쓴 뒤에야 안다. 분모가 `usWinAscent+usWinDescent`인 이유는 libass가 FreeType 메트릭을 OS/2 win 값으로 덮어쓰기 때문이다(`set_font_metrics`) |
 | `widgets/clip-draft-review/model/caption-presets.test.mjs` | 캡션 프리셋이 `captionStyleSchema` 안에 있는지와 `matchPresetId`. **프리셋은 리터럴 값 묶음이라 범위를 벗어나도 타입은 통과하고, Apply 할 때 zod가 런타임에 거부한다.** position을 무시하는 매칭도 여기서만 잡힌다 — 무너지면 위치를 바꾼 순간 프리셋 칩이 꺼진다 |
+| `widgets/clip-draft-review/model/boundary-snap.test.mjs` | `snapToAdjacentBoundary`의 방향 스냅과 **no-op 회귀**. 이전 구현(`nearestBoundary`)은 "가장 가까운 경계"를 골라서, 인접 단어 간격이 1.0초 이상이면 ±0.5초 넛지가 원래 자리로 스냅해 **눌러도 값이 안 움직였다**(문장 첫 단어에 경계가 걸렸을 때 = 넛지를 가장 많이 쓸 순간). 케이스마다 죽이는 회귀가 정해져 있다 — 원시(비격자) 현재값은 `roundTenth(value)` 제거를(167.893도 167.9도 화면엔 `2:47.9`라 회귀가 눈에 안 보인다), forward 케이스의 "앞에 경계 둘 이상"은 `Math.min`→`Math.max`를, 폴백 케이스는 방향과 반올림을 지킨다. **forward 폴백의 `roundTenth`는 의도적으로 테스트하지 않는다** — 격자 360,001개 전수에서 `g+0.5`가 부정확한 경우가 0건이라 도달 가능한 입력으로 구별되지 않는 등가 변이다 |
+| `widgets/clip-draft-review/model/preview-range.test.mjs` | `getPreviewRange`의 Start/Full/End 프리뷰 창과 0 클램프. **pre/post-roll이 요점이다** — start부터 재생하면 무엇을 잘랐든 깔끔하게 들려 "말 중간이 잘렸는가"를 판정할 수 없다 |
 | `pages/dashboard/model/clip-count-budget.test.mjs` | 소스 재생 길이 → 구조적 클립 상한. `floor(D/30)` 경계, 옵션 최댓값(4) 클램프, 길이 미상(`null`·비유한·0 이하) 시 가드 없음(=4), 30초 미만 시 0. **`600초 → 4`는 회귀 테스트다** — 백로그가 FEAT-02의 원인으로 지목한 "10분 소스에 4개는 무리한 요청"이 사실이 아니고, 그 경우의 미달 생성은 `apps/backend` 하이라이트 탐지 문제임을 못박는다 |
 | `entities/uploaded-file/model/clip-generation-outcome.test.mjs` | 부분 클립 결과 판정과 폴링 조기 탈출 판정. **노트 코드 두 개는 `failureCode` 컬럼에 저장되는데 union 타입이 그 상수 자신에서 파생된다.** 값을 바꾸면 타입은 그대로 통과하고 이미 저장된 행만 조용히 인식되지 않는다. `clipsFound >= expectedClipCount → null` 경계도 타입이 못 잡는다 — 무너지면 완전 성공에도 "일부만 생성됨" 안내가 뜬다 |
 | `entities/clip/lib/clip-type-label.test.mjs` | `clipTypeLabel`의 라벨 매핑(`qa`→Q&A·`insight`→Insight·**모르는 값은 원본 그대로**·nullish/공백은 null). **백엔드가 `clipType`에 강제하는 enum이 없어**(`main.py:987`은 프롬프트의 요청일 뿐) 라벨이 미지의 값을 빈 칸으로 삼키지 않는 것을 잡는다 |
@@ -84,6 +87,8 @@ npm test -w apps/web
 | `widgets/clip-display/model/subtitle-status.test.mjs` | 번역 폴백 상태 → 사용자 안내 매핑. `"partial-fallback"`/`"full-fallback"`만 안내를 내고 `"ok"`·미지값·nullish/공백은 null(정상 자막에 경고를 붙이지 않는다), padded 상태값도 `trim()`으로 매핑된다. **매핑 키는 백엔드 `translation_fallback.py` 상태 상수와 묶는 wire 계약이라 어긋나면 안내가 조용히 꺼진다** — 타입이 아니라 이 테스트가 그 회귀를 막는다 |
 | `features/clip-review/model/transcript.test.mjs` | `parseTranscriptWords`의 분기 — 유효 배열 통과·타입 불일치/`null`/비객체 필터·비배열은 **`"Transcript payload was not an array"` 메시지로** throw. **메시지까지 단언하는 것이 요점이다**: 배열 가드를 지워도 비배열 입력은 `payload.filter is not a function`으로 throw하므로 "throw 여부"만 보는 테스트는 그 회귀를 통과시킨다(계획 검증에서 실제로 생존한 돌연변이) |
 | `shared/lib/format-date.test.mjs` | `formatDate`/`formatDateTime`가 런타임 로케일·타임존과 무관하게 고정 출력을 내는지 + 수출된 두 포매터의 `resolvedOptions()`가 로케일 `"en"`·타임존 `"UTC"` **완전 일치**인지. **골든 문자열만으로는 부족하다**: 러너 TZ가 UTC면(CI·Vercel) `timeZone` 옵션을 지운 회귀가 그대로 통과하므로 테스트가 임포트보다 **먼저** `process.env.TZ`를 비-UTC로 강제하고 동적 임포트한다. 로케일도 en 계열 CI에서 `"en-US"`가 같은 문자열을 내므로 `resolvedOptions().locale` 완전 일치가 필요하다 — 그래서 포매터 상수를 수출한다 |
+| `shared/lib/format-duration.test.mjs` | `parseClockToSeconds`의 파싱과 **거부**(무효 입력은 `null`이지 `NaN`이 아니다)와 `formatSecondsAsClock`의 포맷·패딩·음수 클램프. 무효 목록이 가드를 하나씩 짝지어 지킨다 — `"2:-5"`는 초 음수, `"-1:30"`은 분 음수, `"x:30"`·`"2:xy"`는 **콜론 경로의 유한성**(`"abc"`는 콜론이 없어 그 경로를 안 밟는다). 유한성 가드가 빠지면 파서가 `NaN`을 돌려주고 호출부의 `if (parsed !== null)`을 통과해 **초 state가 NaN으로 오염된다** |
+| `shared/observability/scrub-event.test.mjs` | `scrubString`/`scrubEvent`의 스크럽 계약 — X-Amz-Signature/Credential/Security-Token 정규식 치환, 경계(`&`·공백·따옴표·**백슬래시**), 리터럴 치환(서버가 넘기는 엔드포인트 호스트), 왕복 직렬화, fail-open. **정규식 경계에 `\`가 없으면 이스케이프된 따옴표가 섞인 이벤트가 깨진 JSON이 되어 `JSON.parse`가 던지고 catch가 원본을 그대로 반환한다 — 서명이 스크럽 없이 나간다**(FEAT-32 계획 검증에서 실측한 결함). 서버·클라 `beforeSend`가 같은 순수 함수를 쓰므로 이 테스트 하나가 양쪽 계약을 지킨다 |
 
 ## Architecture
 

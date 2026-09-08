@@ -443,6 +443,7 @@ export default function ClipDraftReviewSection({
               isApplyingToAll={isApplyingToAll}
               isOverlapping={overlappingDraftIds.has(draft.id)}
               isBudgetFull={budget.isFull}
+              playUrl={readyPlayUrl}
             />
           ))}
         </div>

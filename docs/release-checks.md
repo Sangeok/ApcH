@@ -22,35 +22,119 @@
 
 ---
 
+## FEAT-36 — 캡션 스타일 실영상 오버레이 미리보기 (web, 구현 2026-09-08)
+
+원천: `docs/agents/web-dev/FEAT-36.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
+게이트는 `npm run check` EXIT 0 · `npm test` **107/0**(+19)로 닫혔고, 큐 묶기·범위 필터·px 환산은
+순수 모듈 테스트 19건이 지킨다(백엔드 묶기 함수와의 차등 비교 300건도 계획 검증에서 통과).
+아래는 **브라우저 재생·시각 대조**가 필요해 Node 러너가 원리상 못 덮는 것들이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 미리보기는 로그인 뒤 검토 화면(`processing` 업로드)에서만 열리고
+판정이 전부 시각 대조라, 공개 프로덕션 응답 본문으로 닫을 수 있는 줄이 하나도 없다.
+
+**크레딧 없이 확인하는 법**: 이미 생성된 클립이 있으면 그 클립의 캡션과, 같은 업로드의 검토 화면에서
+**스타일을 바꾸지 않은 채로** 연 미리보기를 나란히 놓고 비교한다 — 기본 스타일끼리의 대조라 새로
+생성할 필요가 없다. 아래 셋째·넷째가 이 방법으로 닫힌다.
+
+- [ ] **미리보기가 실제로 재생되는지** — 검토 화면 카드의 「Caption style」을 열면 9:16 상자에 원본 영상이 흐르고, 클립 끝에서 시작으로 되돌아가 반복되는지. 마감 증거는 `확인(날짜, 화면 관측)`
+- [ ] **자막 큐가 타이밍에 맞게 전환되는지** — 말과 자막이 맞물리고, 큐 사이 공백에서 자막이 사라지는지. `timeupdate` 주기(~250ms)만큼의 지연은 정상이다(계획서가 선언한 한계)
+- [ ] **폰트 크기 환산이 실렌더와 맞는지 — 영어(Anton)** — 이 항목의 핵심 미확인 값. 미리보기 글자 크기 = ASS 122 × (2048/3550) × (320/1920) ≈ 11.7px가 실제 클립의 글자 크기와 **같은 비율**로 보이는지. 어긋나면 `CAPTION_RENDER.EM_SCALE.English` 분모가 틀린 것이다(libass가 OS/2 win 메트릭을 쓴다는 판정이 근거 — 소스로 확인했으나 실렌더로는 미확인)
+- [ ] **폰트 크기 환산이 실렌더와 맞는지 — 한국어(Noto Sans KR)** — 같은 대조를 한국어 클립으로. 분모 1448은 hhea와 win이 일치해 위험이 낮지만, 두 폰트가 서로 다른 경로로 확정됐으므로 각각 봐야 한다
+- [ ] **폰트가 실제로 적용되는지** — 미리보기 자막이 시스템 기본 산세리프가 아니라 Anton(영어)·Noto Sans KR(한국어)로 그려지는지. `next/font`가 `--font-anton`·`--font-noto-sans-kr`를 방출하지 못하면 조용히 폴백한다
+- [ ] **위치(top/middle/bottom)가 실렌더와 맞는지** — 세 위치를 눌러 미리보기 자막이 실제 클립의 세로 위치와 같은 자리로 가는지. marginv 200/260을 1/6로 환산한 값이다
+- [ ] **스타일을 바꿔도 재생이 처음으로 튀지 않는지** — 줄당 단어·대문자를 바꿀 때 재생 위치가 유지되는지. 계획 검증 라운드 1이 잡은 결함(`cues`를 이펙트 의존성에 두면 매번 리셋)의 회귀 확인이다
+- [ ] **원본 URL을 못 받았을 때의 화면** — presign이 느리거나 실패하면 검은 상자만 남고 안내 문구는 그대로 "Live preview on your video"라고 말한다. 게이트②에서 제기한 비차단 사항 — 실물에서 얼마나 거슬리는지 보고 문구·플레이스홀더 후속을 정한다
+
+**이 절이 닫힐 때 함께 판단할 후속 셋** — 계획서 「범위 밖 의존」이 남긴 후보다. **지금 백로그에
+등재하지 않는다**: 셋 다 "미리보기가 실물에서 얼마나 쓸 만한가"가 정해야 답이 나오는데 그 답이
+바로 위 여덟 줄이다. 등재해 두면 답도 없이 pm의 후보로 올라온다. 대신 판단 지점을 여기 못박는다 —
+이 절을 닫는 사람이 아래 셋을 함께 결정하고, 채택된 것만 `TASK_BACKLOG.md`에 올린다.
+(백로그의 FEAT-36 항목은 완료와 함께 지워졌으므로 이 문단이 그 후속의 유일한 보관처다.)
+
+- **(a) 렌더 후 재캡션** — 자막 넣기 직전의 세로 영상(`apps/backend/main.py:755`
+  `vertical_mp4_path`)은 지금 업로드되지 않고 버려진다. 보관하면 캡션 스타일 변경이 CPU ffmpeg
+  번인 몇 초로 끝나고, 이 항목이 **원리상 못 닫는 두 근사**(화자 추적 크롭·한국어 번역문)가 실물로
+  닫힌다. backend+web, S3 보관 비용과 크레딧 정책 결정이 딸린다. **판단 기준**: 위 셋째·넷째(크기
+  대조)와 여섯째(위치)가 어긋나거나, 중앙 크롭 근사가 실사용에서 오해를 부르면 착수한다.
+- **(b) 한국어 미리보기 번역** — 묶음 텍스트를 Gemini로 번역하는 서버 액션(초안 id + 줄당 단어 키로
+  캐시). 웹에 Gemini 클라이언트가 없어 키 위치에 따라 web/backend가 갈린다. **판단 기준**: 한국어
+  클립에서 영어 원문 표시가 스타일 판단을 방해하는지 — 크기·위치만 보는 용도면 불필요하다.
+- **(c) 메인 패널 재사용** — 같은 `CaptionPreviewPlayer`를 검토 화면 왼쪽 플레이어에도 써서 카드의
+  Preview가 저장된 스타일까지 입혀 보이게 한다. 컴포넌트가 이미 있어 가장 가볍다. **판단 기준**:
+  다이얼로그를 열지 않고도 스타일을 확인하고 싶어지는지.
+
+---
+
+## FEAT-35 — 클립 경계 편집 루프 (web, 구현 2026-09-08)
+
+원천: `docs/agents/web-dev/FEAT-35.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
+게이트는 `npm run check` EXIT 0 · `npm test` **123/0**(+16, FEAT-36 합류 후 병합 트리 실측)로 닫혔고,
+구간 계산·방향 스냅·시계 파싱은 순수 모듈 테스트 16건이 지킨다(계획 검증에서 돌연변이 18종 중
+17종 사멸, 나머지 1종은 도달 불가 등가 변이로 판정·기록).
+**마크업 계약은 이미 닫혔다** — 세 버튼·aria-label·입력 `type="text"`·시계 초기값(`167.893`→`2:47.9`)·
+옛 라벨 소거는 계획 검증에서 패치본을 `renderToStaticMarkup`으로 렌더해 확인했다.
+아래는 **브라우저 재생·입력 이벤트 순서**가 필요해 Node 러너가 원리상 못 덮는 것들이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 검토 화면(`review_pending` 업로드)에서만 열리고
+판정이 재생 동작·이벤트 순서라, 공개 프로덕션 응답 본문으로 닫을 수 있는 줄이 하나도 없다.
+
+- [ ] **경계 프리뷰가 실제로 그 창을 재생하는지** — 카드의 `Start`는 시작 **1.5초 전**부터 3.5초, `End`는 끝 3.5초 전부터 **1.5초 뒤**까지 재생하고 각각 그 지점에서 멈추는지. `timeupdate` 주기(~250ms)만큼의 오버슛은 정상이다(계획서가 선언한 한계). **pre-roll이 이 항목의 핵심이다** — 잘린 앞말이 들려야 "말 중간이 잘렸는가"를 판정할 수 있다. 마감 증거는 `확인(날짜, 화면 관측)`
+- [ ] **`Full`이 기존과 같은 전 구간 재생인지** — 회귀 확인. 구간 전체(30~90초)를 재생하고 끝에서 멈춘다
+- [ ] **넛지가 침묵 구간에서도 움직이는지** — 이 항목의 존재 이유다. 문장 첫 단어에 경계가 걸린 상태(직전 단어와 1.0초 이상 떨어진 곳)에서 `−`를 눌렀을 때 **값이 실제로 이전 단어 경계로 이동**하는지. 옛 구현은 여기서 조용히 아무 일도 안 했다. `+`도 대칭으로 확인
+- [ ] **입력 blur 커밋/복원** — `2:47.9` 형식으로 고쳐 포커스를 빼면 그 값이 반영되고, 읽을 수 없는 값(`abc`·`2:60`)을 넣고 빼면 **마지막 유효값으로 되돌아가는지**(빈 칸이나 `NaN`이 남지 않는지)
+- [ ] **편집 중 넛지 클릭의 이벤트 순서** — 입력에 타이핑한 채로 `−`/`+`를 누르면 mousedown→blur(커밋)→click 순서로 돌아 **넛지가 방금 커밋된 값에서** 움직이는지. 계획서가 추론으로만 세운 전제이고 순수 함수 밖이라 확인 대상이다. 어긋나면 넛지가 커밋 전 값에서 움직여 한 스텝을 잃는다
+
+---
+## FEAT-32 — 클라이언트 Sentry 초기화 (web, 구현 2026-09-07)
+
+원천: `docs/agents/web-dev/FEAT-32.md`의 「테스트로 못 덮은 범위」와 계획서 §검증. **배포 대기.**
+게이트는 `npm run check` EXIT 0 · `npm test` **88/0**(+11) · FSD 경계 통과로 닫혔고, 스크럽 계약은
+순수 모듈 테스트가 서버·클라 양쪽을 동시에 지킨다. 아래는 **브라우저·실제 네트워크·외부 대시보드**가
+필요해 Node 러너가 원리상 못 덮는 것들이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 전부 브라우저 실행·외부 콘솔 판정이라 프로덕션 응답 본문으로
+판정할 수 없다.
+
+**선행(사용자)**: Vercel Production·Preview 스코프에 `NEXT_PUBLIC_SENTRY_DSN`을 기존 `SENTRY_DSN`과
+**같은 DSN 값**으로 주입. 없으면 클라 init이 조용히 no-op이라 아래 넷이 전부 성립하지 않는다.
+(코드는 이 값 없이도 빌드·배포된다 — `.optional()`.)
+
+- [ ] **브라우저에서 init이 실제로 돌고 이벤트가 도달하는지** — 이 항목의 본체. 프로덕션(a-pch.com) 콘솔에서 `setTimeout(() => { throw new Error("apch-sentry-client-smoke https://x.s3/y?X-Amz-Signature=SHOULD_BE_REDACTED"); })`로 에러 경계에 안 잡히는 오류를 유도하고, Sentry Issues에 뜨는지 확인. 마감 증거는 `확인(날짜, Sentry 이슈 링크/스크린샷)`
+- [ ] **unhandledrejection 경로** — `Promise.reject(new Error("apch-sentry-rejection-smoke"))`가 같은 경로로 도달하는지. C-27이 남긴 버려진 프라미스 넷이 이 경로로 잡힌다
+- [ ] **CSP가 이벤트 POST를 막지 않는지** — devtools Network에서 `*.ingest.*.sentry.io` POST가 200이고 콘솔에 `Refused to connect ... connect-src` 위반이 없는지. `connect-src`에 `https://*.sentry.io`를 새로 넣었고 CSP는 프로덕션에서만 적용되므로 배포 실물에서만 닫힌다
+- [ ] **스크럽이 실동작하는지** — 위 스모크 이벤트의 Sentry 본문에서 서명값이 `X-Amz-Signature=[REDACTED]`로 마스킹됐는지. 테스트는 순수 함수를 덮지만 **SDK 정규화 뒤 실제 `beforeSend` 경로**를 통과하는 것은 실물에서만 확인된다
+- [ ] **environment 태그가 `production`인지** — 클라는 `NEXT_PUBLIC_VERCEL_ENV`를 노출하지 않는 기본 경로라 SDK가 `NODE_ENV` 폴백으로 채운다. 노출하면 `vercel-production`이 되어 서버(`production`)와 비대칭이 되므로, 값이 `vercel-` 접두를 달고 있으면 그 변수가 어딘가에 주입된 것이다
+- [ ] **`webpack.treeshake`가 실제 번들에서 tracing을 걷어냈는지** — 옵션 키가 SDK에 실재함은 인수 시 확인했으나(`webpack.js:556·559`), 산출물 크기 변화는 배포 빌드에서만 관측된다. 미달이어도 기능 결함은 아니다(번들 크기만)
+
+---
+
 ## FEAT-34 — FSD 경계 자동 검출 도입 (web, 구현 2026-09-06)
 
-원천: `docs/agents/web-dev/FEAT-34.md`의 「테스트로 못 덮은 범위」. 커밋 `9275ccd`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+원천: `docs/agents/web-dev/FEAT-34.md`의 「테스트로 못 덮은 범위」. 커밋 `9275ccd`. **배포 완료(2026-09-07, PR #113 머지 `f2825a5`).**
 사용자 가시 동작 변화가 **없는** 항목이다(CI 검사 도입 + 선행 정리 5건의 임포트 경로 교체). 게이트는 `verify:fsd` EXIT 0 · 셀프테스트 **11/11** · `npm run check` EXIT 0 · `npm test` **77/0** · `npm run build` EXIT 0으로 통과했고, 감시 지점 둘의 검출은 메인 루프가 인수 시 위반을 심어 직접 실증했다(W5·W4 각 EXIT 1, 되돌리면 통과).
 **`〔auto〕` 태그를 붙이지 않는다**: 아래는 저장소 상태·CI 동작이라 admin base의 프로덕션 응답으로 판정할 수 없다.
 
-- [ ] **선행 정리 5건의 런타임 무회귀(배포 실물)**: 임포트를 배럴 경유로 바꾼 다섯 곳이 실제로 동작한다 — `/pricing`(PLAN_TIERS 렌더), `/dashboard`(업로드 큐·목록 쿼리 옵션), 대시보드의 복구 초안 카드(삭제·재개 훅), 그리고 stale reconcile 경로(`PROCESSING_STALE_POLICY`). `tsc`·`build`가 모듈 해석을 보장하지만 런타임 흐름은 실물에서만 확인된다
+- [x] **선행 정리 5건의 런타임 무회귀(배포 실물)** — 확인(2026-09-07, 프로덕션 Playwright). `/pricing`: **PLAN_TIERS 렌더** — Free `$0`·「3 credits on signup」, Pro `$9.99`·`/month`·「30 credits / month」·「Yearly: $99.99/yr」. `/dashboard`: 큐·목록 쿼리 옵션 경유 화면 정상(591 Credits·Upload/My Clips 탭·업로드 패널), **콘솔 오류 0**. 남은 둘은 조건부라 미관측 — 복구 초안 카드는 이 계정에 초안이 없어 `null` 렌더, stale reconcile은 정체된 업로드가 있어야 돈다(둘 다 배럴 임포트만 바뀌었고 `tsc`가 해석을 보장)
 - [ ] **CI에서 실제로 도는지**: 배포 파이프라인이나 다음 `npm run check` 실행에서 `verify:fsd:test && verify:fsd`가 앞단으로 돌고, 위반이 생기면 배포 전에 막힌다. 로컬에서는 확인했으나 CI 환경(다른 Node·경로 구분자)에서의 첫 실행은 관측 대상
 
 ---
 
 ## FEAT-33 — widgets Public API 배럴 + import 경로 위생 (web, 구현 2026-09-05)
 
-원천: `docs/agents/web-dev/FEAT-33.md`의 「테스트로 못 덮은 범위」. 커밋 `ac7808c`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+원천: `docs/agents/web-dev/FEAT-33.md`의 「테스트로 못 덮은 범위」. 커밋 `ac7808c`. **배포 완료(2026-09-07, PR #113 머지 `f2825a5`).**
 사용자 가시 동작 변화가 **없는** 항목이다(배럴 신설 + import specifier 교체, 컴포넌트 본문 무변경). 게이트는 `npm run check` EXIT 0 · `npm test` 77/0 · `npm run build` EXIT 0으로 통과했고, 경계가 실제로 생겼는지는 기계 검증 세 숫자로 판정했다 — 메인 루프가 인수 시 직접 재현: widgets 배럴 `find` **7**, 위젯 세그먼트 직접 참조 grep **0**, billing 슬라이스 자기참조 grep **0**.
 **`〔auto〕` 태그를 붙이지 않는다**: 아래는 로그인 뒤 화면을 포함한 육안 렌더 확인이라 admin base의 루틴이 판정할 수 없다.
 
-- [ ] **배럴 경유 마운트 무회귀(육안)**: 배럴로 임포트 경로가 바뀐 컴포넌트가 실제로 렌더된다 — `/`(SiteFooter·PublicHeader), `(public-marketing)` 라우트 다섯(SiteFooter·PublicHeader), `/login`(LoginForm), `/dashboard`(DashboardHeader·UploadedFileList), `/dashboard/uploads/<id>`(ClipDisplay·ClipDraftReviewSection), `/dashboard/billing`(billing 자기참조 3건이 상대경로로 바뀐 화면). `npm test`는 DOM이 없어 렌더를 못 덮고 `tsc`·`build`가 모듈 해석만 보장한다
+- [x] **배럴 경유 마운트 무회귀(육안)** — 확인(2026-09-07, 프로덕션). `/`·`/features`·`/guides` 200(SiteFooter·PublicHeader), `/login` 200(LoginForm), `/dashboard` 렌더(DashboardHeader·탭·업로드 패널), `/dashboard/uploads/<id>` 렌더(ClipDisplay — 처리 타임라인 4단계·Generated clips·Visible clips), `/dashboard/billing` 렌더(Pro·Active·Sep 26, 2026·결제 이력 — billing 자기참조 3건이 상대경로로 바뀐 화면). 콘솔 오류 0
 - [x] **경계가 유지되는지(감시 지점)** — 대체(FEAT-34). 이제 강제된다: `npm run check`가 `verify:fsd`를 앞세우고(`package.json:10`), 규칙 **W4**(비-fsd 소스 → widgets 내부)와 **W6**(fsd 소스 → 크로스 슬라이스 딥 임포트)가 이 회귀를 잡는다. 메인 루프가 인수 시 직접 재현 — `src/app/dashboard/loading.tsx`에 `~/fsd/widgets/clip-display/ui` 임포트를 심으니 `[W4] widget internals require the slice barrel` **EXIT 1**, 되돌리니 `FSD boundary check passed.` EXIT 0. 사람이 grep을 돌릴 필요가 없어졌다
 
 ---
 
 ## FEAT-31 — 엔티티 배럴 다섯의 런타임 분할 (web, 구현 2026-09-04)
 
-원천: `docs/agents/web-dev/FEAT-31.md`의 「테스트로 못 덮은 범위」. 커밋 `a3d85c2`. **배포 대기** — `dev`에 있고 `main` 합류 전.
+원천: `docs/agents/web-dev/FEAT-31.md`의 「테스트로 못 덮은 범위」. 커밋 `a3d85c2`. **배포 완료(2026-09-07, PR #113 머지 `f2825a5`).**
 사용자 가시 동작 변화가 **없는** 항목이다(순수 배럴 재배선, DB 접근 코드 무변경). 게이트는 `npm run check` EXIT 0 · `npm test` 77/0 · `npm run build` EXIT 0으로 통과했고, 분할 효과는 프로브 빌드로 실증했다 — 메인 루프가 인수 시 직접 재현: 다섯 barrel을 `"use client"`에서 동시 임포트해 `✓ Compiled successfully`, 라우트 목록에 `/barrel-probe` 등재. 분할 **전** 같은 조건은 `server-only` 위반으로 exit 1이었다(계획 검증 1라운드 실측).
 **`〔auto〕` 태그를 붙이지 않는다**: 아래는 로그인 뒤 흐름이거나 코드 상태 감시라 admin base의 루틴이 판정할 수 없다.
 
-- [ ] **서버 경로 무회귀(배포 실물)**: 임포터 13개가 닿는 흐름이 배포 후에도 동작한다 — 홈(`getHomeUserProfile`)·대시보드 레이아웃(`getDashboardHeaderUser`)·분석 이벤트 수집·업로드 처리 디스패치·완료 시 크레딧 차감·Polar 웹훅 4종(주문 생성·구독 활성/갱신/해지)·빌링 화면. `tsc`가 임포트 경로를 보장하지만 **런타임 흐름 자체는 실물에서만 확인된다**
+- [ ] **서버 경로 무회귀(배포 실물)**: 임포터 13개가 닿는 흐름
+  - 절반 확인(2026-09-07, 프로덕션): 홈(`getHomeUserProfile` — `/` 200)·대시보드 레이아웃(`getDashboardHeaderUser` — 헤더에 591 Credits·아바타 렌더)·빌링(`getBillingUserSnapshot`·`findSubscriptionByUserId` — Pro/Active/갱신일/결제 이력 5건 렌더). **남은 것**: 분석 이벤트 수집·업로드 디스패치·크레딧 차감·Polar 웹훅 4종 — 실제 업로드 주행과 결제 이벤트가 있어야 돈다
 - [x] **회귀 방어선 부재(감시 지점)** — 대체(FEAT-34). 규칙 **W5**가 배럴 **정의**를 보므로 **임포터 유무와 무관하게** 잡는다 — 잠복할 수 없다. 메인 루프가 인수 시 직접 재현 — `entities/user/index.ts`에 `export { getUserPolarCustomerId } from "./api";`를 심으니 `[W5] entity client barrel must not re-export server-only ./api; use server.ts` **EXIT 1**, 되돌리니 EXIT 0. `npm run check`에 배선돼 있어 사람이 기억할 필요가 없다
 
 ---

@@ -50,6 +50,8 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
+    // Sentry (Vercel Production/Preview 스코프에 SENTRY_DSN과 동일 DSN 값을 주입. 없으면 client init이 no-op)
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
     NEXT_PUBLIC_SUBSCRIPTION_ENABLED: z
       .string()
@@ -87,6 +89,7 @@ export const env = createEnv({
     AUTH_URL: process.env.AUTH_URL,
     SENTRY_DSN: process.env.SENTRY_DSN,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_SUBSCRIPTION_ENABLED: process.env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED,
   },
