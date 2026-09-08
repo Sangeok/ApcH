@@ -35,6 +35,7 @@ interface CaptionPreviewPlayerProps {
 export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
   const { playUrl, clipStart, clipEnd, words, language } = props;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
   const [activeText, setActiveText] = useState("");
 
   const cues = useMemo(
@@ -58,25 +59,40 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
   // (ui/index.tsx:213-225)와 같은 한계다.
   useEffect(() => {
     const video = videoRef.current;
+    const bgVideo = bgVideoRef.current;
     if (!video || playUrl === null) return;
 
-    const seekToStart = () => {
+    // 전경·배경 두 <video>를 같은 클립 구간에서 재생한다. 배경은 블러라 프레임 단위
+    // 정합이 보이지 않으므로, 매 timeupdate(~250ms)마다 seek하지 않고(그러면 배경이
+    // 끊긴다) 루프 경계에서만 clipStart로 재정렬한다. 사이 구간은 둘 다 1.0×로 흐른다.
+    const startFg = () => {
       video.currentTime = clipStart;
       void video.play();
     };
+    const startBg = () => {
+      if (!bgVideo) return;
+      bgVideo.currentTime = clipStart;
+      void bgVideo.play();
+    };
     const onTimeUpdate = () => {
-      if (video.currentTime >= clipEnd) video.currentTime = clipStart; // 루프
+      if (video.currentTime >= clipEnd) {
+        video.currentTime = clipStart; // 루프
+        startBg(); // 배경도 같은 시점으로 재정렬
+      }
       setActiveText(
         pickActiveCue(cuesRef.current, video.currentTime - clipStart)?.text ?? "",
       );
     };
 
-    video.addEventListener("loadedmetadata", seekToStart);
+    video.addEventListener("loadedmetadata", startFg);
     video.addEventListener("timeupdate", onTimeUpdate);
-    if (video.readyState >= 1) seekToStart();
+    bgVideo?.addEventListener("loadedmetadata", startBg);
+    if (video.readyState >= 1) startFg();
+    if (bgVideo && bgVideo.readyState >= 1) startBg();
     return () => {
-      video.removeEventListener("loadedmetadata", seekToStart);
+      video.removeEventListener("loadedmetadata", startFg);
       video.removeEventListener("timeupdate", onTimeUpdate);
+      bgVideo?.removeEventListener("loadedmetadata", startBg);
     };
   }, [playUrl, clipStart, clipEnd]);
 
@@ -94,14 +110,26 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
       style={{ width: PREVIEW_WIDTH_PX, height: PREVIEW_HEIGHT_PX }}
     >
       {playUrl !== null && (
-        // 크롭은 렌더 시 화자 추적이라 여기선 중앙 크롭(object-cover)으로 근사.
-        <video
-          ref={videoRef}
-          src={playUrl}
-          muted
-          playsInline
-          className="h-full w-full object-cover"
-        />
+        // 백엔드 resize 모드(main.py:245-262) 재현: 블러 배경(cover + 살짝 확대) 위에
+        // 원본 전체(contain, 레터박스)를 얹는다. 얼굴이 잡히면 실렌더는 화자 x 크롭
+        // (crop 모드, main.py:265-275)이라 이와 다르다 — 아래 안내가 그 한계를 말한다.
+        <>
+          <video
+            ref={bgVideoRef}
+            src={playUrl}
+            muted
+            playsInline
+            aria-hidden
+            className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg"
+          />
+          <video
+            ref={videoRef}
+            src={playUrl}
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        </>
       )}
       <div
         className={cn(
