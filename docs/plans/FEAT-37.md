@@ -6,7 +6,7 @@ agent: web-dev
 
 - `language`(문자열)는 검토 화면까지 온전히 전파된다. `pages/upload-detail/ui/index.tsx:42`에서 구조분해되고, `:117` `isUnderReview`일 때 `:118-124`에서 `<ClipDraftReviewSection … language={language} />`로 넘어간다.
 - `widgets/clip-draft-review/ui/index.tsx:40`에서 프롭 타입은 `language: string`이며, `:433-448`의 `clipDrafts.map`에서 각 `<ClipDraftCard … language={language} />`(`:438`)로 다시 전달된다.
-- 그 `language`가 현재 쓰이는 곳은 **카드 → 캡션 스타일 다이얼로그 하나뿐이다.** `ClipDraftCard.tsx:54`에서 프롭으로 받아 `:507`에서 `<CaptionStyleDialog … language={language} />`로만 넘긴다. 검토 화면 헤더·카드 본문 어디에도 언어 관련 문구가 없다.
+- 그 `language`가 현재 쓰이는 곳은 **카드 → 캡션 스타일 다이얼로그 하나뿐이다.** `ClipDraftCard.tsx:53`(`language: string;`)에서 프롭으로 받아 `:507`에서 `<CaptionStyleDialog … language={language} />`로만 넘긴다. 검토 화면 헤더·카드 본문 어디에도 언어 관련 문구가 없다.
 - 검토 화면 헤더(`ui/index.tsx`)는 `:238` `<p …>Review clip plan</p>`(eyebrow) → `:243-267` h2 「N of M clips picked」+레일 → `:271-277` 「N moments suggested … Each clip uses 1 credit; you have X.」 → `:285-304` Fill/Clear 버튼 순이다. 번역 안내 줄은 없다.
 - 카드 본문의 전사 미리보기는 영어 원문이다. `ClipDraftCard.tsx:113` `const previewText = wordsInRange.map((word) => word.word).join(" ");`이고 `:472-476`에서 라벨 없이 `<p className="bg-muted mt-2 line-clamp-3 rounded p-2 text-xs">{previewText}</p>`로만 렌더된다.
 - "렌더 때 번역된다"는 설명은 저장소 전체에서 **「Caption style」 다이얼로그 안 11px 회색 한 줄뿐이다** — `CaptionStyleEditor.tsx:307-312`, 그 중 `:310-311` `Korean clips are translated at render time — the words here are the English source.`. 이 다이얼로그는 `ClipDraftCard.tsx:498` `setIsStyleDialogOpen(true)`로만 열리고 기본값이 닫힘(`:92` `useState<boolean>(false)`)이라, 열지 않으면 볼 수 없다.
