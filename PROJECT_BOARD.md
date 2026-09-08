@@ -43,7 +43,7 @@
 - [ ] FEAT-37: 한국어 업로드 검토 화면에 「자막은 렌더 때 번역된다」 안내 — 영어 전사를 번역 실패로 오독하지 않게
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 발주 — Korean 업로드 검토 화면이 영어라 번역 실패로 오독. 전제 재확인: DB language=Korean·clip 0개·렌더 미시도, 번역은 렌더 단계, 안내는 다이얼로그 11px 한 줄뿐. 미결 0건.
 - [x] BUG-13: 캡션 스타일 미리보기의 정중앙 고정 크롭이 원본 좌우를 잘라낸다 — 백엔드 resize 모드(블러 레터박스)로 교체
   agent: web-dev
