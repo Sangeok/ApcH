@@ -29,6 +29,7 @@ import {
   REVIEW_ANALYTICS_PATH,
   useClipDraftReview,
 } from "../model/use-clip-draft-review";
+import { reviewLanguageNotice } from "../model/review-language-notice";
 import AddCustomClipPanel from "./_component/AddCustomClipPanel";
 import ClipDraftCard from "./_component/ClipDraftCard";
 
@@ -230,6 +231,7 @@ export default function ClipDraftReviewSection({
 
   const clipNoun = selectedCount === 1 ? "clip" : "clips";
   const creditNoun = selectedCount === 1 ? "credit" : "credits";
+  const languageNotice = reviewLanguageNotice(language);
 
   return (
     <section className="bg-card rounded-xl border">
@@ -275,6 +277,16 @@ export default function ClipDraftReviewSection({
               : "Swap one out to change your pick. "}
             {`Each clip uses 1 credit; you have ${currentUserCredits}.`}
           </p>
+          {/* 번역은 렌더 단계에서만 일어나므로(apps/backend/main.py:837/840) 검토
+              화면은 영어 원문을 보여준다. 유일한 기존 안내(CaptionStyleEditor
+              :310-311)는 기본 닫힘 다이얼로그 안 11px라 소유자조차 못 봤다 — 항상
+              보이는 헤더에 두되, 주변 muted 산문에 묻히지 않게 bg-muted 박스로
+              구분한다. English일 때 languageNotice === null이라 렌더되지 않는다. */}
+          {languageNotice && (
+            <p className="text-foreground bg-muted mt-2 rounded-md px-3 py-2 text-xs">
+              {languageNotice}
+            </p>
+          )}
           {/* 예산을 바꾸는 버튼이므로 예산 표시 옆에 둔다. 카드 목록 안에 두면
               목록을 스크롤하는 순간 함께 화면 밖으로 나간다.
               draft 개수는 목표와 무관하다 — 백엔드는 2배를 "요청"할 뿐이고

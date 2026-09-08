@@ -22,6 +22,19 @@
 
 ---
 
+## FEAT-37 — 한국어 검토 화면의 「자막은 렌더 때 번역된다」 안내 (web, 구현 2026-09-09)
+
+원천: `docs/agents/web-dev/FEAT-37.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
+게이트는 `npm run check` EXIT 0 · `npm test` **130/0**(+7)으로 닫혔고, 문구·표시 조건은 순수 모듈 테스트 7건이 지킨다
+(인수 시 출하 테스트에 변이 10종을 심어 **10/10 사멸**). 마크업 계약(Korean에서 헤더 안내·카드 라벨 존재, English/null에서 부재, 골든 문구)은
+계획 검증에서 `renderToStaticMarkup` 3분기로 닫혔다. 아래는 **실제 페이지 흐름·시각 배치**라 러너가 못 덮는 것들이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 `review_pending` 업로드의 검토 화면에서만 보인다.
+
+- [ ] **Korean 업로드의 검토 화면 헤더에 안내가 실제로 보이는가** — 「N moments suggested … credits」 문단 바로 아래 `bg-muted` 박스로 `Subtitles will be translated to Korean when you generate. This review shows the English transcript.` 이 뜨는지. `language` 프롭이 page→section으로 실제 흘러가는 런타임 값의 확인이기도 하다. 프로덕션 업로드 `cmtsreci00001l104g6imnufl`(Korean, review_pending)이 그대로 확인 대상이다. 마감 증거는 `확인(날짜, 화면 관측)`
+- [ ] **카드마다 「English transcript」 라벨이 본문 위에 붙는가** — 7장 전부, 본문 박스 스타일은 종전과 같고 `mt-2` 간격만 바깥 div로 옮겨진 상태
+- [ ] **English 업로드에선 둘 다 안 보이는가** — 회귀 확인. 영어 업로드 검토 화면에 안내 박스도 라벨도 없어야 한다
+
+---
 ## BUG-13 — 캡션 미리보기 크롭을 백엔드 resize 모드(블러 레터박스)로 (web, 구현 2026-09-08)
 
 원천: `docs/agents/web-dev/BUG-13.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**

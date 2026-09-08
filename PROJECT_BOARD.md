@@ -40,6 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-08
+- [x] FEAT-37: 한국어 업로드 검토 화면에 「자막은 렌더 때 번역된다」 안내 — 영어 전사를 번역 실패로 오독하지 않게
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review
+  status: 완료
+  검증: 클린 패스 (2026-09-09, 독립 무편집 1사이클 — 결함 0, 1차 실행은 세션 한도로 무판정)
+  근거: 소유자 발주 — Korean 업로드 검토 화면이 영어라 번역 실패로 오독. 전제 재확인: DB language=Korean·clip 0개·렌더 미시도, 번역은 렌더 단계, 안내는 다이얼로그 11px 한 줄뿐. 미결 0건.
+  결과: 순수모듈 review-language-notice+테스트7 신설, 헤더 안내①·카드 라벨② English transcript를 비영어일 때만. 기존 다이얼로그 문구 유지③. check EXIT0·test 130/0(123→130). 상세 web-dev/FEAT-37
 - [x] BUG-13: 캡션 스타일 미리보기의 정중앙 고정 크롭이 원본 좌우를 잘라낸다 — 백엔드 resize 모드(블러 레터박스)로 교체
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review/ui/_component/CaptionPreviewPlayer.tsx

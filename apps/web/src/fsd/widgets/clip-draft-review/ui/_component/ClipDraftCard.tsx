@@ -22,6 +22,7 @@ import type {
 } from "../../model/use-clip-draft-review";
 import { getPreviewRange } from "../../model/preview-range";
 import { snapToAdjacentBoundary } from "../../model/boundary-snap";
+import { showsEnglishSourceForTranslation } from "../../model/review-language-notice";
 import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
@@ -111,6 +112,7 @@ export default function ClipDraftCard({
   );
 
   const previewText = wordsInRange.map((word) => word.word).join(" ");
+  const showsEnglishSource = showsEnglishSourceForTranslation(language);
 
   const adjustStart = (direction: "back" | "forward") => {
     const next = snapToAdjacentBoundary(
@@ -470,9 +472,20 @@ export default function ClipDraftCard({
       )}
 
       {previewText && (
-        <p className="bg-muted mt-2 line-clamp-3 rounded p-2 text-xs">
-          {previewText}
-        </p>
+        <div className="mt-2">
+          {/* previewText는 영어 원문이다(:113). 헤더 안내가 스크롤로 벗어나도
+              카드마다 이 라벨이 "지금 이 텍스트가 영어 원문"임을 되짚는다.
+              헤더 안내와 같은 조건(비영어)일 때만 — 영어 업로드에선 이 텍스트가
+              곧 최종 자막이라 라벨이 군말이 된다. */}
+          {showsEnglishSource && (
+            <p className="text-muted-foreground mb-1 text-[11px] font-medium">
+              English transcript
+            </p>
+          )}
+          <p className="bg-muted line-clamp-3 rounded p-2 text-xs">
+            {previewText}
+          </p>
+        </div>
       )}
 
       {/* 카드를 "내용"과 "부가 조작"으로 가른다. Before는 컨테이너 없는 ghost
