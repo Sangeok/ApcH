@@ -43,7 +43,7 @@
 - [ ] BUG-13: 캡션 스타일 미리보기의 정중앙 고정 크롭이 원본 좌우를 잘라낸다 — 백엔드 resize 모드(블러 레터박스)로 교체
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review/ui/_component/CaptionPreviewPlayer.tsx
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-08, 독립 무편집 1사이클 — 위생 1건 반영, 구현 영향 0)
   근거: 소유자가 FEAT-36 미리보기 실사용 중 발주 — 원본 좌우가 밀려 사람이 잘린다. 전제 재확인: 180×320 object-cover라 가운데 31.6%만 보이고, 백엔드 crop/resize 어느 모드와도 다르다. 미결 0건.
 
