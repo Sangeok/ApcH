@@ -180,7 +180,7 @@ after:
   }, [playUrl, clipStart, clipEnd]);
 ```
 
-전경(`videoRef`)이 자막을 몬다(`onTimeUpdate`가 유일하게 `setActiveText`를 호출). 배경은 자기
+전경(`videoRef`)이 자막을 몬다 — `setActiveText` 호출부는 `:53`(큐 동기 이펙트)과 `:69`(`onTimeUpdate`) 두 곳이고 둘 다 전경의 `currentTime`을 읽으며, 배경(`bgVideo`)은 자막을 건드리지 않는다. 배경은 자기
 `loadedmetadata`에서 시작하고 루프 경계에서 재정렬되므로 늦게 로드돼도 시작한다.
 
 ### ③ CaptionPreviewPlayer.tsx — 렌더의 `<video>` 블록(`:96-105`)을 두 장으로
