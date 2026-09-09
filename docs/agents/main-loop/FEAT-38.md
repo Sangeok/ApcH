@@ -54,3 +54,34 @@
 편집으로 새로 들어간 인용만 경로 1로 재대조: `route.ts:15` · `analytics/ui/index.tsx:196` · `metadata.test.mjs:38` · `add_analytics_events/migration.sql:9` · `schema.prisma:43·59·60` 전부 내용까지 일치.
 
 **소득 0 → `plan-verifier` 독립 무편집 패스 디스패치 자격 획득.** 클린 패스 판정은 그쪽 결과로만 한다(자기 라운드의 무소득은 트리거지 판정이 아니다).
+
+## 라운드 4 (무편집) — 경로 7 음성 시험, 무소득
+
+라운드 3에서 **경로 7을 빠뜨린 것을 발견**했다(◎ 본체로 지정해놓고 실행하지 않음). 목록 소진이 독립 패스 디스패치의 전제라 되돌아가 실행했다.
+
+**시험 설계**: `packages/db/src/analytics-contract.ts`에 이벤트 이름 2개만 추가하고 `metadata.ts`의 허용 키는 **일부러 누락**시킨 뒤, 계획서가 주장하는 두 방어선이 정말 걸리는지 본다. 실행 후 `git checkout --`로 복원.
+
+**결과 — 양쪽 다 걸렸다. 주장은 참이다.**
+
+- 컴파일(`npm run typecheck -w apps/web`):
+  `src/fsd/shared/analytics/lib/metadata.ts(59,12): error TS1360: ... is missing the following properties from type 'Record<...>': settings_viewed, settings_defaults_saved`
+  추가로 `metadata.ts(83,23): error TS7053` — `allowedKeys` 인덱싱이 `any`로 무너진다.
+- 런타임(`npm test -w apps/web`):
+  `not ok 10 - 모든 이벤트 이름에 metadata 정의가 있다` / `error: 'metadata 정의 누락: settings_viewed'` / `# pass 129  # fail 1`
+
+**복원 확인**: `git status --short packages/db/` 무출력 + `grep -c "settings_viewed" packages/db/src/analytics-contract.ts` = 0.
+
+계획서 수정 없음 → 준비 상태가 리셋되지 않는다.
+
+## 필수 경로 소진 현황
+
+| 경로 | 실행 라운드 | 결과 |
+| --- | --- | --- |
+| 1 인용 전수 | 1, 3 | 위생 1건 교정, 3라운드 재대조 일치 |
+| 2 스케치 추출·실행 | 2 | 결함 없음 (방출 SQL이 계획서와 일치) |
+| 3 before/after | 1 | **구현 영향 1건** 교정 (테스트 삽입 위치) |
+| 4 전칭 여집합 | 2 | 위생 1건 (소비자 4곳 열거로 전환) |
+| 7 음성 시험 | 4 | 결함 없음 (두 방어선 모두 실증) |
+| 9 구조적 아티팩트 | 1, 2 | **구현 영향 1건**(migrate dev 위험) + 드리프트 발견 + JSONB 확인 |
+
+여섯 경로 전부 소진. 마지막 두 라운드(3·4)가 무편집·무소득 → `plan-verifier` 디스패치.
