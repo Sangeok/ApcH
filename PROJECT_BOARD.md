@@ -43,12 +43,12 @@
 - [ ] BUG-09: 「Manage Subscription」이 프로덕션에서 500 — 고객 포털이 열리지 않는다
   agent: web-dev
   area: apps/web/src/app/api/portal/route.ts + apps/web/src/fsd/shared/api/polar.ts
-  status: 승인대기
+  status: 계획지시
   근거: 유료 고객 결제 포털이 프로덕션 500 — 이틀 간격 재현된 결제 경로 결함. 미결 0건. 신규 FEAT-38~42 체인보다 실사용 영향이 커 우선 선정.
 - [ ] FEAT-38: 사용자 기본값 스키마 — User 컬럼 4개 + UploadedFile.captionStyle + analytics 이벤트 2개 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + packages/db/src/analytics-contract.ts + apps/web/src/fsd/shared/analytics/lib/metadata.ts
-  status: 승인대기
+  status: 계획지시
   근거: FEAT-39·42 두 항목의 선행이자 선행 없음. 사용자 기본값 설정 기능 전체를 여는 관문이라 체인 중 가장 먼저 착수. 담당은 쓰기범위상 main-loop.
 
 ## 2026-09-08
