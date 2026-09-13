@@ -43,7 +43,7 @@
 - [ ] FEAT-43: 클립 후보의 hook·payoff를 업로드 언어로 생성 — Korean 검토 화면에서 구간을 영어 요약만 보고 고르지 않게
   agent: backend-dev
   area: apps/backend/main.py + apps/backend/(신설 순수 모듈)
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). Korean 검토 카드의 hook·payoff가 영어라 구간 선택이 막힌다. 미결 2건(BUG-09·FEAT-38) 위 병렬은 소유자 결정, backend 단독이라 파일 겹침 없음.
 
 ## 2026-09-09
