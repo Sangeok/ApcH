@@ -35,3 +35,72 @@ BUG-09(web)·FEAT-38(packages/db·web)과 파일이 겹치지 않는다.
   모드는 웹이 돌려준 hook·payoff를 쓰므로 호출하지 않는다.
 - **못 덮는 범위.** Gemini 출력의 실제 언어·구간 선택 품질은 unittest로 못 덮는다 — 배포 후
   같은 영상 English/Korean 대조가 원장 등재 대상이 된다.
+
+## 필수 경로 확정 (2026-09-13)
+
+계획서(`docs/plans/FEAT-43.md`)가 `검토대기`가 된 시점(커밋 `7f7196a`)에 카탈로그에서 확정했다.
+메인 루프의 편집 라운드와 `plan-verifier`의 독립 패스가 같은 목록을 쓴다.
+
+| 경로 | 채택 | 근거 |
+| --- | --- | --- |
+| 1 인용 전수 대조 | ○ | 전 항목 필수. main.py 인용 30여 곳 + 웹 3 + 테스트 선례 1 |
+| 2 스케치 추출·실행 | ○ | 신규 모듈 스케치(템플릿 생략부는 main.py 실물로 채워 조립) + 가드 테스트 스케치 |
+| 3 before/after 기계 적용 | ○ | main.py before 블록 넷(`:936-1010`·`:1082`·`:1149`·`:78`). 조립 후 `py_compile`·AST로 시그니처·호출 인자 확인 |
+| 4 전칭 여집합 열거 | ○ | "호출부는 정확히 둘", "`Transcript:\n`은 한 곳뿐", "English/빈/미지는 전부 바이트 동일", "웹 전 소비처는 불투명 문자열" |
+| 5 돌연변이 검사 | ○ | 순수 함수 둘 신설 |
+| 6 실제 사건 재생 | ✗ | 외부 신호 해석이 바뀌지 않는다 — Gemini 응답 파싱(`main.py:1084-1102`)·`validate_moments`(`:113`, start/end만 읽음)·웹 `toNullableString`(`modal-contract.ts:111`, 타입만 검사) 무변경. 바뀌는 것은 문자열 필드의 언어뿐 |
+| 7 음성 시험 | ○ | 불변식 둘에 기댄다 — frozen 템플릿(빼면 템플릿 변형이 사는가), 이미지 등록 가드(등록을 빼면 실패하는가) |
+| 8 실물 렌더 | ✗ | 화면 변경 없음 |
+| 9 구조적 아티팩트 | ✗ | schema·config·생성 파일 변경 없음. Modal 이미지 정의는 코드이며 경로 3·7이 덮는다 |
+
+## 라운드 1 (2026-09-13, 메인 루프 편집 라운드)
+
+하니스: 스크래치패드 `feat43/harness.py`(저장소는 읽기만). 계획서 코드 블록을 추출해 템플릿 생략부를
+`main.py:937-1005` 실물로 채워 모듈을 조립하고, before 블록 대조·기계 적용·돌연변이 12종을 돌린다.
+
+**하니스 자기 결함 1건 (판정 전 교정)**: 1차 실행이 FAIL 23을 냈는데, 대부분 하니스가 CRLF 워킹카피
+(`git ls-files --eol`: `i/lf w/crlf`)를 `\n`으로 쪼개 줄마다 `\r`이 남은 탓이었다. Python 토크나이저가
+리터럴 안 CRLF를 LF로 정규화함을 하니스 안에서 실증(`compile(b'x = """a\r\nb\r\n"""')` → `"a\nb\n"`)한 뒤
+정규화해 재실행 — FAIL 3.
+
+**결과 (재실행)**
+- 경로 1: `main.py` 인용 32곳·웹 3곳·테스트 선례 1곳 내용 일치. **불일치 1**: 스케치 주석의 ":981-983의 straight quote" — 실제 `"` 문자가 있는 줄은 `:978-980`.
+- 경로 3: before 블록 넷 전부 현재 트리와 일치, 기계 적용 후 `py_compile` 통과, AST상 `identify_moments(self, transcript, target_count, language)`·호출 2곳이 3번째 인자로 `language`를 넘김, `prompt_template` 잔존 0.
+- 경로 2: 조립 모듈 import = `{json}`. `MOMENT_PROMPT_TEMPLATE == main.py 템플릿`. English·`""`·Spanish·Japanese·`None`·`korean`·` Korean`·기본 인자 **8가지 전부 현재 조립식과 완전 일치**. Korean은 앵커 앞 삽입과 일치.
+- 경로 4: `identify_moments(` 출현 = def 1 + 호출 2(apps/backend 전 `.py`). `Transcript:`는 main.py 전체에서 1회. 웹 소비처는 이전 대화에서 전수 열거(`modal-contract.ts`·`functions.ts`·`entities/clip`·`entities/clip-draft`·`ClipDraftCard`·`ClipCard`·`clip-rationale`), apps/admin 0건. **`add_local_python_source`에 `moment_prompt` 없음, 계획서 언급 없음.**
+- 경로 5: 테스트 명세 10건을 스케치에 실행 → 전부 통과. 돌연변이 12종: 8 사멸(M1~M8), M11(replace count 제거)은 앵커 1회라 **등가**, **M9(type까지 번역)·M10(언어명 누락)·M12(Japanese로 바뀜) 생존**.
+- 경로 7: 템플릿 줄 삭제(M8)를 잡는 테스트는 4(frozen)뿐 — 1은 모듈 자신의 상수와 비교해 템플릿 변형을 못 잡는다. frozen 테스트가 하중을 받는 단언임을 확인.
+- 부수 확인: 기존 테스트·픽스처 중 프롬프트 문구를 복사한 것 없음(골든 파일 낡음 해당 없음).
+
+**결함 3건 → 계획서에 일괄 반영**
+
+| # | 결함 | 구분 | 반영 |
+| --- | --- | --- | --- |
+| B1 | 새 모듈이 Modal 이미지 등록(`main.py:78`)에 없다 — 배포 시 컨테이너 시작 `ModuleNotFoundError`, analyze·render·auto 전면 장애. unittest·py_compile은 못 잡음 | **구현 영향** | 「현재 동작」 사실 추가, 「고칠 파일」 ④, before/after 블록, 가드 테스트 `test_modal_image_sources.py`(케이스 12), 못 덮는 범위 (d) |
+| B2 | 지시문 문구를 고정하는 단언이 없다 — 틀린 지시문 3종이 게이트 통과 | **구현 영향** | 골든 `EXPECTED_KOREAN_DIRECTIVE` + 케이스 11. 케이스 8은 필드 정의 줄 보존으로 이름·범위를 명확히 하고, 4에 "유일한 방어" 근거 추가 |
+| H1 | 인용 줄 범위 `:981-983` → `:978-980` | 문서 위생 | 스케치 주석 교정 |
+
+함께 반영(결함 아님): "바이트"가 Python 문자열 값 기준임을 명시(CRLF 워킹카피 오판 방지), 구현이 만드는
+문서 인용 드리프트 목록(`apps/backend/CLAUDE.md:120`·`apps/web/CLAUDE.md:84` — 인수 시 메인 루프 처리).
+
+## 라운드 2 (2026-09-13, 메인 루프 무편집 라운드)
+
+라운드 1 편집본을 파일에서 다시 읽고(회상 아님) 하니스 `feat43/harness2.py`로 필수 경로 전부를 재실행.
+계획서 편집 0.
+
+- 경로 1: `main.py` 인용 34곳(신규 `:78`·`:939` 포함) + `:978-980` 따옴표 줄 + 외부 인용 8곳
+  (웹 3·테스트 선례 1·드리프트 대상 `apps/backend/CLAUDE.md:120`·`apps/web/CLAUDE.md:84`·웹 주석 2) +
+  백로그 FEAT-41 내용 인용 — 전부 일치.
+- 경로 3: python 블록 12개. before 다섯(`:936-1010`·`:1082`·`:1149`·`:78`·import) 일치, `:78` after는
+  `"moment_prompt"` 추가만. 기계 적용 후 `py_compile` 통과·시그니처·호출 인자 확인. **줄 이동 주장 실측**:
+  호출부 `1082→1011`·`1149→1078`·`1190→1119`(−71), `identify_moments` `936→937`·`:650→651`(+1).
+- 경로 2: import `{json}`, 템플릿 동일, 8가지 언어 값 바이트 동일, 골든 == 스케치 지시문, 예시 블록이 실제
+  Korean 프롬프트의 부분 문자열.
+- 경로 5: 테스트 명세 11건 스케치에서 전부 통과. 돌연변이 13종 — 12 사멸, M11(등가) 생존.
+  **라운드 1 생존 셋(M9·M10·M12) + 신규 M13(start/end 줄 삭제) 전부 t11이 사멸.**
+- 경로 7: 가드 테스트를 스크래치 백엔드 복제(실제 형제 `.py` 이름 + CRLF `main.py`)에서 실행 —
+  현재 main.py `OK` · 적용본(등록 포함) `OK` · **적용본(등록 누락) `FAILED`** · 형제 파일 0개 `FAILED`(정규식 붕괴 방어).
+  M8(템플릿 줄 삭제)은 t4만 잡음 — frozen 단언 하중 재확인.
+- 트리: `git status` — 변경은 계획서·이 기록뿐(+ 세션 전부터 있던 `apps/web/.claude/settings.local.json`·`nul`).
+
+**판정: 무소득.** 메인 루프 무소득 라운드는 트리거이지 판정이 아니므로 `plan-verifier` 독립 패스를 디스패치한다.
