@@ -135,3 +135,48 @@ BUG-09(web)·FEAT-38(packages/db·web)과 파일이 겹치지 않는다.
 
 승인 시 소유자에게 고지한 것: 배포(`PYTHONUTF8=1`)와 배포 후 English/Korean 대조는 소유자 몫, 기분석 업로드는
 영어 잔존, 미결 3건(FEAT-38 게이트② 대기·BUG-09 검증 중)과 파일 겹침 없음.
+
+## 인수 (2026-09-14)
+
+backend-dev 보고: 완료, unittest 67·py_compile 0. 인수 조건 다섯을 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`: `apps/backend/main.py`(M) + `moment_prompt.py`·`test_moment_prompt.py`·`test_modal_image_sources.py`(신규) = 계획서 넷과 정확히 일치. 그 밖엔 보드·백로그·보고서(규정된 쓰기)뿐 |
+| 2 | diff ↔ 스케치 | `main.py` diff = import 1줄 · `:79` 등록에 `"moment_prompt"` · `identify_moments` 시그니처+본문 2줄 · 호출부 2곳 `language` — 스케치와 줄 단위 일치. 신규 모듈의 스케치 대비 차이는 주석 두 곳(출처 줄범위 `937-1004` 표기, 앵커 주석의 줄번호 일반화)뿐이고 보고서가 공개함. **`git show HEAD:apps/backend/main.py`의 원본 리터럴을 직접 추출해 대조**: 모듈 상수 `True`(2601자) · 테스트 frozen 사본 `True` · English 프롬프트 == 원본 조립식 `True` |
+| 3 | 검증 명령 재실행 | `python -m unittest discover -s apps/backend -p "test_*.py"` → `Ran 67 tests ... OK`(기존 55 + 12) · `py_compile` EXIT 0 |
+| 4 | 백로그 제거 | `git diff TASK_BACKLOG.md` = FEAT-43 블록 4줄 삭제만 |
+| 5 | 상세 기록 실재 | `docs/agents/backend-dev/FEAT-43.md` 존재(고친 파일 전수·스케치 차이·실제 출력·못 덮은 범위). 보드 `결과` 145자 |
+
+테스트 파일이 명세보다 강한 곳(결함 아님): 미지 언어에 `"français"`·`"korean"` 추가, TARGET_COUNT 케이스가
+`"Return exactly 8 moments if possible."` 문장 자체를 단언, ensure_ascii 케이스가 `\\uc548` 부재까지 단언.
+
+### 계획서의 거짓 전칭 — 인수에서 발견
+
+계획서 「범위 밖 의존」의 "이 영향을 받는 인용은 둘이다"가 틀렸다. 메인 루프가 라운드 1에서 드리프트를 열거할 때
+grep을 `main\.py:(9[4-9]\d|1\d{3})`로 **삭제 구간 아래만** 돌렸기 때문이다 — 같은 문장이 "`:44-936`이 1줄 밀린다"고
+적어 놓고도 그 구간을 열거하지 않았다. 독립 패스(경로 1)는 계획서가 지목한 두 인용이 서술대로 낡았음만 확인했고,
+구현자도 같은 목록을 보고서에 옮겼다 — 셋 다 여집합을 보지 않았다. 구현에는 영향 없음(문서 인용만).
+
+인수 때 `main\.py:\d+` 전역 grep(`docs/plans`·`docs/agents`·`docs/proposals` 이력 제외)으로 열거한 결과와 처리:
+
+| 부류 | 위치 | 원인 | 처리 |
+| --- | --- | --- | --- |
+| 메인 루프 소유 문서 | `apps/backend/CLAUDE.md` 10곳(`:119·120·135·138·140·146·147`) | FEAT-43 이동 | **교정** — 새 줄을 앵커로 실측: `110-111`·`1040-1042`·`1118-1120`·`158`·`292-298`·`408-414`·`361`·`556`·`134-138`·`141-144`. 같은 편집에서 `moment_prompt.py`와 이미지 등록 함정 두 줄 추가 |
+| 〃 | `apps/web/CLAUDE.md:77`(`287-345→288-346`)·`:84`(`main.py:987→moment_prompt.py:69`) | FEAT-43 이동(84는 선재 드리프트 겸) | **교정** |
+| 〃 | `TASK_BACKLOG.md` FEAT-41(`1186→1115`·`46→47`·`51→52`·`157→158`) | FEAT-43 이동 | **교정**(내용 인용이 있어 재탐색은 가능했음) |
+| 〃 | `docs/release-checks.md` FEAT-36 후속 (a)의 `main.py:755→756` | FEAT-43 이동 | **교정**(열린 절의 상태 문장) |
+| 에이전트 정의 | `.claude/agents/backend-dev.md:154`(`:136`, 실제는 이전부터 `:157`→이제 `:158`) · `feature-scout.md:64·122·166·174`(`:519-526`·`:26-41`·`:585`·`:792`) | **선재 드리프트** — FEAT-43 전부터 낡음 | 미교정 — 백로그 후보로 소유자에게 제시 |
+| 워크스페이스 코드 주석 | `apps/web/src` 20곳(`caption-preview.ts` 10·`caption-preview.test.mjs` 2·`constants.ts` 4·`layout.tsx` 2·`CaptionPreviewPlayer.tsx` 2·`clip-draft-review/ui/index.tsx` 2·`review-language-notice.ts` 1 — 일부 중복 계수) · `apps/backend/translation_fallback.py:21·45` · `packages/db/prisma/schema.prisma:116` + 생성 클라이언트 사본 4곳 | FEAT-43 이동(+1) + 일부 선재 | 미교정 — web-dev 범위이고, `schema.prisma` 주석은 생성 클라이언트 재생성이 따른다. 줄번호 대신 함수명·내용 앵커로 바꾸는 항목을 백로그 후보로 소유자에게 제시 |
+| 이 항목 신규 파일 | `moment_prompt.py:12`·`test_moment_prompt.py:5·103`의 `main.py:937-1004`·`:1006-1009` | 이동 **전** 출처를 가리키는 역사적 서술 | 유지 |
+
+### 배포 확인 원장 등재
+
+`docs/release-checks.md` 최상단에 FEAT-43 절 — 보고서 「못 덮은 범위」 (a)(b)(d)를 세 줄로. (c) 호출부 배선은
+인수 조건 2의 diff 대조로 이미 닫혔으므로 등재하지 않는다. `〔auto〕` 태그 없음(로그인 뒤 화면·Modal 결과로만 판정).
+컨테이너 import 줄을 절의 첫 줄에 두고 "가장 먼저 본다"고 적었다 — 실패 시 전 모드 장애라서.
+
+### 범위 밖 의존 → 백로그 후보
+
+계획서 「범위 밖 의존」은 "없음"이었다. 인수에서 새로 나온 후보는 위 표의 미교정 두 부류(에이전트 정의의 선재
+드리프트, 워크스페이스 코드 주석의 줄번호 인용). 소유자 승인 전에는 등재하지 않는다.

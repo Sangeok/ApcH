@@ -22,6 +22,18 @@
 
 ---
 
+## FEAT-43 — 클립 후보 hook·payoff를 업로드 언어로 생성 (backend, 구현 2026-09-14)
+
+원천: `docs/agents/backend-dev/FEAT-43.md`의 「못 덮은 범위」 (a)(b)(d). **배포 대기** — `modal deploy`(`PYTHONUTF8=1`)는 소유자 몫.
+게이트는 unittest **67/0**(+12)·`py_compile` 0으로 닫혔고, English 프롬프트 바이트 불변은 인수 시 `HEAD` 원본 리터럴과 직접 대조해 재확인했다
+(모듈 상수·테스트 frozen 사본 모두 2601자 일치). 아래는 Gemini 실출력과 Modal 컨테이너가 필요해 러너가 못 덮는 것들이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 검토 화면과 Modal 실행 결과에서만 판정된다.
+
+- [ ] **배포 후 첫 처리에서 컨테이너가 `moment_prompt`를 import하는가** — `modal deploy` 직후 아무 업로드 한 건이 `ModuleNotFoundError` 없이 analyze(또는 auto) 단계를 지나는지. 실패하면 analyze·render·auto 전 모드가 멈추므로 **이 절에서 가장 먼저** 본다. `test_modal_image_sources.py`가 등록 누락은 텍스트로 막지만 실제 import 성공은 여기서만 닫힌다. 마감 증거는 `확인(날짜, Modal 로그 또는 업로드 상태 관측)`
+- [ ] **Korean 업로드의 검토 카드 hook·payoff가 한국어로 나오는가** — `review_pending` 검토 화면 카드의 굵은 제목(hook)과 설명(payoff)이 자연스러운 한국어인지, 종류 라벨은 그대로 `Q&A`/`Insight`인지(`type`이 번역되지 않았는지). 전사 본문과 FEAT-37의 헤더 안내·「English transcript」 라벨은 영어 그대로가 정상이다. **새로 분석한 업로드만 해당** — 기분석 업로드는 영어로 남는다(백필 없음)
+- [ ] **같은 영상을 English·Korean으로 분석했을 때 고른 구간이 크게 다르지 않은가** — 시작·끝이 대체로 겹치는지. English 프롬프트는 바이트 동일이라 English 쪽 차이는 Gemini 비결정성 범위여야 하고, Korean 쪽은 지시문 추가가 구간 선택을 흔들지 않았는지를 본다
+
+---
 ## FEAT-37 — 한국어 검토 화면의 「자막은 렌더 때 번역된다」 안내 (web, 구현 2026-09-09)
 
 원천: `docs/agents/web-dev/FEAT-37.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
@@ -79,7 +91,7 @@
 이 절을 닫는 사람이 아래 셋을 함께 결정하고, 채택된 것만 `TASK_BACKLOG.md`에 올린다.
 (백로그의 FEAT-36 항목은 완료와 함께 지워졌으므로 이 문단이 그 후속의 유일한 보관처다.)
 
-- **(a) 렌더 후 재캡션** — 자막 넣기 직전의 세로 영상(`apps/backend/main.py:755`
+- **(a) 렌더 후 재캡션** — 자막 넣기 직전의 세로 영상(`apps/backend/main.py:756`
   `vertical_mp4_path`)은 지금 업로드되지 않고 버려진다. 보관하면 캡션 스타일 변경이 CPU ffmpeg
   번인 몇 초로 끝나고, 이 항목이 **원리상 못 닫는 두 근사**(화자 추적 크롭·한국어 번역문)가 실물로
   닫힌다. backend+web, S3 보관 비용과 크레딧 정책 결정이 딸린다. **판단 기준**: 위 셋째·넷째(크기
