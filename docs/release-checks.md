@@ -24,12 +24,12 @@
 
 ## FEAT-43 — 클립 후보 hook·payoff를 업로드 언어로 생성 (backend, 구현 2026-09-14)
 
-원천: `docs/agents/backend-dev/FEAT-43.md`의 「못 덮은 범위」 (a)(b)(d). **배포 대기** — `modal deploy`(`PYTHONUTF8=1`)는 소유자 몫.
+원천: `docs/agents/backend-dev/FEAT-43.md`의 「못 덮은 범위」 (a)(b)(d). **배포됨 — 2026-09-14 08:06 KST**, 소유자 승인으로 메인 루프가 실행(`PYTHONUTF8=1 …\apch-backend\Scripts\python.exe -m modal deploy main.py`, 5.9초, EXIT 0).
 게이트는 unittest **67/0**(+12)·`py_compile` 0으로 닫혔고, English 프롬프트 바이트 불변은 인수 시 `HEAD` 원본 리터럴과 직접 대조해 재확인했다
 (모듈 상수·테스트 frozen 사본 모두 2601자 일치). 아래는 Gemini 실출력과 Modal 컨테이너가 필요해 러너가 못 덮는 것들이다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 검토 화면과 Modal 실행 결과에서만 판정된다.
 
-- [ ] **배포 후 첫 처리에서 컨테이너가 `moment_prompt`를 import하는가** — `modal deploy` 직후 아무 업로드 한 건이 `ModuleNotFoundError` 없이 analyze(또는 auto) 단계를 지나는지. 실패하면 analyze·render·auto 전 모드가 멈추므로 **이 절에서 가장 먼저** 본다. `test_modal_image_sources.py`가 등록 누락은 텍스트로 막지만 실제 import 성공은 여기서만 닫힌다. 마감 증거는 `확인(날짜, Modal 로그 또는 업로드 상태 관측)`
+- [x] **배포된 컨테이너가 `moment_prompt`를 import하는가** — 확인(2026-09-14, 실측 — 배포 출력의 마운트에 `PythonPackage:moment_prompt` 포함 · 배포 직후 `process_video`에 잘못된 토큰으로 POST → **401**(모듈 import 실패였다면 컨테이너 기동 실패) · 응답 시점 활성 컨테이너는 하나이고 시작 08:06으로 배포 이후). 관측한 것은 GPU 없는 디스패처 컨테이너다. GPU 워커(`AiPodcastClipper`)도 같은 이미지에서 같은 `main.py`를 모듈 수준에서 import하므로 같은 결과로 판정했다 — 워커 기동 자체는 아래 둘째 줄의 첫 실제 처리에서 함께 관측된다
 - [ ] **Korean 업로드의 검토 카드 hook·payoff가 한국어로 나오는가** — `review_pending` 검토 화면 카드의 굵은 제목(hook)과 설명(payoff)이 자연스러운 한국어인지, 종류 라벨은 그대로 `Q&A`/`Insight`인지(`type`이 번역되지 않았는지). 전사 본문과 FEAT-37의 헤더 안내·「English transcript」 라벨은 영어 그대로가 정상이다. **새로 분석한 업로드만 해당** — 기분석 업로드는 영어로 남는다(백필 없음)
 - [ ] **같은 영상을 English·Korean으로 분석했을 때 고른 구간이 크게 다르지 않은가** — 시작·끝이 대체로 겹치는지. English 프롬프트는 바이트 동일이라 English 쪽 차이는 Gemini 비결정성 범위여야 하고, Korean 쪽은 지시문 추가가 구간 선택을 흔들지 않았는지를 본다
 

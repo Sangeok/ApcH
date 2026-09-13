@@ -184,3 +184,20 @@ grep을 `main\.py:(9[4-9]\d|1\d{3})`로 **삭제 구간 아래만** 돌렸기 �
 **소유자 결정(2026-09-14)**: 메인 루프 추천안 채택("진행") — 두 부류를 한 항목 **FEAT-44**로 등재. 줄번호 재정렬이
 아니라 함수명·코드 내용 앵커로 교체, `schema.prisma` 주석은 제외(다음 스키마 변경 항목에서), 담당 main-loop,
 FEAT-40과 동시 진행 금지. 런북 9단계 `doc-auditor`는 이 항목 단위로 돌리지 않고 사이클 종료(`main` 합류) 시 일괄로 미룬다.
+
+## 배포 (2026-09-14)
+
+소유자가 "너가 배포 못해?"에 이어 절차·위험(활성 작업 1, 되돌리기 경로)을 고지받고 "진행"으로 승인 — 메인 루프가 실행.
+
+- 사전 확인(읽기 전용): 메모리 절차대로 venv `C:\Users\hamso\venvs\apch-backend`의 `python -m modal` 사용 · `modal app list` →
+  `ai-podcast-clipper` `deployed`, Tasks 1(= `process_video` 디스패처의 `min_containers=1` 상주 컨테이너) · 배포 직전
+  `git status -- apps/backend` 청결(= 커밋 `e511fe7` 그대로).
+- 배포: `PYTHONUTF8=1 …\python.exe -m modal deploy main.py`(cwd `apps/backend`) → `✓ App deployed in 5.917s!`, EXIT 0.
+  마운트 `PythonPackage:s3_upload_policy, translation_fallback, temp_cleanup_policy, error_callback, moment_prompt`.
+  엔드포인트 URL 불변(`https://sangeok--ai-podcast-clipper-process-video.modal.run`).
+- import 실측: `process_video`(`@app.function` GPU 없음·`min_containers=1`, 토큰 불일치 시 spawn 전에 401)에 잘못된
+  토큰·유효한 형태의 바디로 POST(08:07:19) → **401**. 부작용 없음(spawn 전 거부), GPU 비용 없음. 이어 `modal container list`
+  → 활성 컨테이너 1개, 시작 08:06(배포 이후). 원장 FEAT-43 첫 줄을 이 증거로 닫았다. GPU 워커 기동은 직접 관측하지 않았고
+  같은 이미지·같은 모듈이라 동일 판정 — 워커는 첫 실제 처리(원장 둘째 줄)에서 함께 관측된다.
+- 되돌리기 경로(미사용): FEAT-43 이전 `main.py`(커밋 `3f55401`)로 재배포.
+- 남은 원장 두 줄(한국어 hook·payoff, English/Korean 구간 대조)은 실제 업로드가 필요 — 소유자 몫.
