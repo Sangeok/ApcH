@@ -128,3 +128,15 @@
 `git status --short` = `M apps/web/.claude/settings.local.json` + `?? nul` — 세션 시작 스냅샷과 동일. 하니스는 전부 스크래치패드에만.
 
 **판정: 클린 패스.** 보드에 `검증:` 줄을 기록했다. 다음은 게이트②이며 **소유자만 연다.**
+
+## 게이트② (2026-09-14)
+
+소유자가 `검토대기` → `구현승인` 개방(세션 지시 "수행해"). 직전에 FEAT-38이 무엇인지 설명받았고, 게이트②를 열어도
+마이그레이션 **적용**은 그 명령 직전에 별도 승인을 받는다는 점을 고지받았다.
+
+개방 직전 앵커 대조: `git log 70dfd75..HEAD -- docs/plans/FEAT-38.md packages/db/prisma packages/db/src/analytics-contract.ts
+apps/web/src/fsd/shared/analytics apps/web/src/app/api/analytics apps/admin/src/fsd/entities/analytics-event` 무출력, 같은 경로
+워킹트리 청결 — 클린 패스 이후 계획서·대상 파일 변경 없음. 재검증 불요. 그 사이 커밋은 FEAT-43(`apps/backend`·문서)뿐이다.
+
+담당은 main-loop이므로 구현도 메인 루프가 한다. **`npm run db:generate -w @repo/db`(= `prisma migrate dev`)는 실행하지 않는다** —
+계획서 「마이그레이션 히스토리 드리프트」.
