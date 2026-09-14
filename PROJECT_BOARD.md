@@ -43,7 +43,7 @@
 - [ ] FEAT-41: 렌더 요청에 요청 단위 `caption_style`을 받아 Auto 경로에도 사용자 캡션 기본값이 먹게 한다
   agent: backend-dev
   area: apps/backend/main.py + apps/backend/(신설 순수 모듈)
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 설계 결함 1건을 소유자 결정으로 반영)
   근거: FEAT-38이 마이그레이션 대기로 막혀 그 체인(FEAT-39·42)은 착수 불가. FEAT-41은 선행 없이 독립적으로 진행 가능한 유일한 backend 항목이라 선정.
 
