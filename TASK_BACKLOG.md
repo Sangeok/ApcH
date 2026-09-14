@@ -7,10 +7,6 @@
 
 ## Backend / Pipeline
 
-- [ ] **FEAT-41**: 렌더 요청에 **요청 단위** `caption_style`을 받아 Auto 경로에도 사용자 캡션 기본값이 먹게 한다
-  - area: apps/backend/main.py + apps/backend/(신설 순수 모듈)
-  - source: 2026-09-09 소유자와의 설계 대화(FEAT-38·39·40·42와 한 묶음. 결정 근거 전문은 그 항목들과 공유). **관측 1**: 캡션 스타일은 **moment마다** 붙는 필드다 — `main.py:1115` `caption_style=moment.get("caption_style"),`가 유일한 주입 지점이고, 웹의 wire 타입도 `inngest/client.ts:23` `caption_style?: RenderCaptionStyle | null;`로 `RenderMoment` 안에 있다. `ProcessVideoRequest`(`main.py:47` `class ProcessVideoRequest(BaseModel):`)에는 요청 단위 캡션 필드가 없다. **관측 2**: 그래서 **Auto 경로는 캡션 스타일을 구조적으로 받을 수 없다.** `mode`가 `"auto"`(`main.py:52` `mode: str = "auto"`)일 때 moment는 Gemini가 만들고 웹은 그 리스트에 개입하지 못하므로 `moment.get("caption_style")`이 항상 `None`이 되어 백엔드 언어 기본값(EN 122/5/1.1, KR 130/3/1.3)으로만 렌더된다. **관측 3**: 값 해석기는 이미 순수하고 관대하다 — `main.py:158` `def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_word: int, default_marginv: int, default_outline: float) -> dict:`가 `dict | None`을 받아 잘못된/누락된 값을 조용히 언어 기본값으로 대체한다. **요구**: ① `ProcessVideoRequest`에 요청 단위 `caption_style` 추가(선택 필드, 기본 `None`). ② 클립 루프의 주입을 폴백으로 바꾼다 — `moment.caption_style`(검토 화면의 클립별 편집) → `request.caption_style`(업로드 시점 스냅샷) → 언어 기본값. **단 요청 단위 스냅샷으로의 폴백은 auto 모드 전용이다**(2026-09-14 소유자 결정, 계획 검증에서 제기): render에서 moment 스타일 부재는 커스텀 클립·「Reset style」의 "언어 기본값"이고 검토 미리보기도 그렇게 그리므로, render는 moment 스타일만 쓰고 없으면 언어 기본값이다. 근거 `docs/agents/main-loop/FEAT-41.md`. ③ 검증 로직 추가는 불필요하다 — `resolve_caption_style`이 이미 범위 밖 값을 기본값으로 접는다. **담당·게이트**: backend-dev의 검증 게이트는 stdlib `unittest`인데 `main.py`는 torch/modal을 임포트해 그 러너로 못 돈다. 그래서 **폴백 선택 로직을 torch 없는 순수 모듈로 빼야 테스트가 돈다** — 저장소 안 선례가 넷 있다(`translation_fallback.py`·`s3_upload_policy.py`·`temp_cleanup_policy.py`·`error_callback.py`와 각각의 `test_*.py`). **선행 없음.** 다른 네 항목과 독립이라 언제 돌려도 된다. **배포 순서 제약**: 이 항목이 **FEAT-42보다 먼저 배포되어야 한다.** 백엔드가 필드를 모르면 웹이 보낸 스타일이 조용히 무시된다(pydantic이 미지 필드를 버린다) — 깨지지는 않지만 "설정했는데 안 먹는다"가 된다. 배포는 `PYTHONUTF8=1` 필요(이 머신에서 modal deploy가 cp949로 크래시).
-
 ## Credit / Billing
 
 - [ ] **FEAT-01**: Credit System 마무리 (현재 개발 중 상태)

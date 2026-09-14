@@ -40,12 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-14
-- [ ] FEAT-41: 렌더 요청에 요청 단위 `caption_style`을 받아 Auto 경로에도 사용자 캡션 기본값이 먹게 한다
+- [x] FEAT-41: 렌더 요청에 요청 단위 `caption_style`을 받아 Auto 경로에도 사용자 캡션 기본값이 먹게 한다
   agent: backend-dev
   area: apps/backend/main.py + apps/backend/(신설 순수 모듈)
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 설계 결함 1건을 소유자 결정으로 반영)
   근거: FEAT-38이 마이그레이션 대기로 막혀 그 체인(FEAT-39·42)은 착수 불가. FEAT-41은 선행 없이 독립적으로 진행 가능한 유일한 backend 항목이라 선정.
+  결과: 순수모듈 caption_style_source+테스트12 신설, main.py에 요청단위 caption_style 필드·auto전용 폴백 배선(주입점·호출부2·이미지등록). unittest 79/0·py_compile 0. 상세 backend-dev/FEAT-41
 
 ## 2026-09-13
 - [x] FEAT-43: 클립 후보의 hook·payoff를 업로드 언어로 생성 — Korean 검토 화면에서 구간을 영어 요약만 보고 고르지 않게

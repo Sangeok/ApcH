@@ -42,6 +42,7 @@ from temp_cleanup_policy import (
 )
 from error_callback import build_error_callback_payload
 from moment_prompt import build_moment_prompt
+from caption_style_source import select_caption_style
 
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
@@ -60,6 +61,11 @@ class ProcessVideoRequest(BaseModel):
     output_prefix: str | None = None
     callback_url: str | None = None
     uploaded_file_id: str | None = None
+    # 요청 단위 캡션 스타일 스냅샷(업로드 시점). auto 모드 전용 폴백이다 —
+    # auto는 moment별 caption_style이 없어 이 값이 언어 기본값 위에 얹힌다.
+    # render는 이 값을 쓰지 않는다(클립별 스타일만, 부재 = 언어 기본값).
+    # 선택·기본 None → 웹이 아직 안 보내면 기존 동작과 동일(FEAT-42가 auto 디스패치에 싣는다).
+    caption_style: dict | None = None
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -76,7 +82,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True)
-    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt"))
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -947,7 +953,7 @@ class AiPodcastClipper:
 
     # 실제 영상 처리 (비동기 실행, 완료/실패 시 callback)
     @modal.method()
-    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None, mode: str = "auto", moments: list | None = None, transcript_s3_key: str | None = None):
+    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None, mode: str = "auto", moments: list | None = None, transcript_s3_key: str | None = None, request_caption_style: dict | None = None):
         import requests as req
 
         clip_results = []
@@ -1112,7 +1118,7 @@ class AiPodcastClipper:
                         self.gemini_client,
                         language,
                         output_prefix,
-                        caption_style=moment.get("caption_style"),
+                        caption_style=select_caption_style(moment.get("caption_style"), request_caption_style, mode),
                     )
 
                     clip_result["clipType"] = moment.get("type")
@@ -1200,6 +1206,7 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             mode=request.mode,
             moments=request.moments,
             transcript_s3_key=request.transcript_s3_key,
+            request_caption_style=request.caption_style,
         )
         return {"status": "accepted", "call_id": call.object_id}
     else:
@@ -1215,6 +1222,7 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             mode=request.mode,
             moments=request.moments,
             transcript_s3_key=request.transcript_s3_key,
+            request_caption_style=request.caption_style,
         )
 
 
