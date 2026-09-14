@@ -1,8 +1,6 @@
-export interface TranscriptWord {
-  start: number;
-  end: number;
-  word: string;
-}
+import type { TranscriptWord } from "~/fsd/shared/lib/transcript";
+
+export type { TranscriptWord };
 
 // 백엔드 transcribe_video가 저장한 단어 단위 JSON을 검증·필터한다. 배열이 아니면
 // 던진다(빈 배열로 접으면 실패가 "단어 스냅이 조용히 꺼진 화면"으로만 나타난다).

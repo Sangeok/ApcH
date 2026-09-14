@@ -13,7 +13,7 @@ import {
 } from "~/fsd/shared/ui/atoms/dialog";
 import type { TranscriptWord } from "~/fsd/features/clip-review";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
-import CaptionStyleEditor from "./CaptionStyleEditor";
+import { CaptionStyleEditor } from "~/fsd/features/caption-style";
 
 interface CaptionStyleDialogProps {
   open: boolean;

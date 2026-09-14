@@ -1,4 +1,4 @@
-import type { TranscriptWord } from "~/fsd/features/clip-review";
+import type { TranscriptWord } from "~/fsd/shared/lib/transcript";
 import { CAPTION_RENDER, type CaptionStyle } from "~/fsd/shared/config/constants";
 
 export interface CaptionCue {

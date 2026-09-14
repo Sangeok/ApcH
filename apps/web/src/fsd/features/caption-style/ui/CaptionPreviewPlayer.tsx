@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { TranscriptWord } from "~/fsd/features/clip-review";
+import type { TranscriptWord } from "~/fsd/shared/lib/transcript";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
 import { cn } from "~/fsd/shared/lib/utils";
 import {
@@ -11,7 +11,7 @@ import {
   getPreviewStrokePx,
   getPreviewVerticalInset,
   pickActiveCue,
-} from "../../model/caption-preview";
+} from "../model/caption-preview";
 
 const PREVIEW_HEIGHT_PX = 320;
 const PREVIEW_WIDTH_PX = 180; // 9:16

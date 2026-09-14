@@ -16,7 +16,7 @@ import {
 } from "~/fsd/features/clip-review";
 import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
-import { matchPresetId } from "./caption-presets";
+import { matchPresetId } from "~/fsd/features/caption-style";
 
 export type { TranscriptWord };
 
