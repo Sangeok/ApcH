@@ -257,9 +257,9 @@ export async function saveUploadDefaults(input: {
 export {};
 ```
 
-### `pages/settings/ui/index.tsx` (신규 — `SettingsView`, 클라이언트)
+### `pages/settings/ui/index.tsx` (신규 — `SettingsView`, 클라이언트, 전체)
 
-`initialDefaults: ResolvedUploadDefaults`를 받아 세 옵션 드롭다운 + 저장/초기화 버튼을 그린다. 드롭다운 마크업은 `UploadPodcast.tsx:216-288`의 세 `DropdownMenu` 블록(언어·클립 수·생성 모드) 패턴을 그대로 따른다. 핵심 로직·문구만 코드로 적는다.
+`initialDefaults: ResolvedUploadDefaults`를 받아 세 옵션 드롭다운 + 저장/초기화 버튼을 그린다. 드롭다운 마크업은 `UploadPodcast.tsx:216-288`의 세 `DropdownMenu` 블록(언어·클립 수·생성 모드) 패턴을 따른다. 트리거 표시(`{language}`, `{clipCount} clip(s)`, `Review first`/`Auto`)도 같다. 화면을 실제로 렌더해 검증할 수 있도록 마크업까지 전부 적는다.
 
 ```tsx
 "use client";
@@ -276,7 +276,20 @@ import {
   SUPPORTED_LANGUAGES,
 } from "~/fsd/shared/config/constants";
 import { DEFAULT_REVIEW_BEFORE_GENERATE, type ResolvedUploadDefaults } from "~/fsd/entities/user";
-// Card·DropdownMenu·Button atoms — UploadPodcast.tsx:3-15·20과 같은 경로
+import { Button } from "~/fsd/shared/ui/atoms/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/fsd/shared/ui/atoms/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/fsd/shared/ui/atoms/dropdown-menu";
 
 interface SettingsViewProps {
   initialDefaults: ResolvedUploadDefaults;
@@ -329,7 +342,93 @@ export default function SettingsView({ initialDefaults }: SettingsViewProps) {
     });
   };
 
-  // ... Card + 세 드롭다운(UploadPodcast.tsx:216-288 패턴) + 두 버튼 ...
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Upload defaults</CardTitle>
+        <CardDescription>
+          These options are pre-selected each time you upload. You can still
+          change them for a single upload.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-x-2">
+          <p className="mt-1.5 text-sm font-medium">Subtitle language</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                {language}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.value}
+                  onClick={() => setLanguage(lang.value)}
+                  className="cursor-pointer"
+                >
+                  {lang.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="flex gap-x-2">
+          <p className="mt-1.5 text-sm font-medium">Number of clips</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                {clipCount} {clipCount === 1 ? "clip" : "clips"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {CLIP_COUNT_OPTIONS.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => setClipCount(option.value)}
+                  className="cursor-pointer"
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="flex gap-x-2">
+          <p className="mt-1.5 text-sm font-medium">Generation</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                {reviewBeforeGenerate ? "Review first" : "Auto"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onClick={() => setReviewBeforeGenerate(false)}
+                className="cursor-pointer"
+              >
+                Auto (generate immediately)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setReviewBeforeGenerate(true)}
+                className="cursor-pointer"
+              >
+                Review first (edit clips before generating)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="flex gap-x-2">
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save defaults"}
+          </Button>
+          <Button variant="outline" onClick={handleReset} disabled={isSaving}>
+            Reset to system defaults
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 ```
 
