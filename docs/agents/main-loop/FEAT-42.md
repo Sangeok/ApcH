@@ -125,3 +125,30 @@ web-dev 계획서 `88d9c06` — **①②만**(설정 캡션 섹션·업로드 �
   - URL 준비됨 → 라이브 안내.
 
 원복 후 `apps/web/src` 변경 0(남은 것은 무관한 `settings.local.json`·`nul`). → `plan-verifier` 1사이클 디스패치(브리핑은 항목ID, 계획서 경로, 필수 경로 목록만).
+
+## plan-verifier 1사이클 (2026-09-15) — 결함 0건, 실행하지 못한 경로 없음 → 클린 패스
+
+- **브리핑**: 항목ID, 계획서 경로, 필수 경로 1·2·3·4·5·7·8만 전달했다. 검증자가 계약 준수를 확인했다.
+- **경로별 증거 실질**
+  - 1: 인용 전수 일치. 검토 UI 경로(`index.tsx:100-101,458`·`ClipDraftCard.tsx:521-522`·`CaptionStyleDialog.tsx:71-79,74,87`)와 낡을 주석(`schema.prisma:59,186`) 포함.
+  - 2: 실제 `buildCaptionCues`로 계획서 리터럴 4종, `autoRequestCaptionStyle` 계약 3가지 통과. 스키마 이관 문구가 `z` 임포트를 명시하지 않는 점은 "본문 변경 없이 옮긴다"가 함의하고 check가 즉시 잡는다고 보아 결함으로 분류하지 않았다.
+  - 3: before 앵커 전부 바이트 일치(`functions.ts:371-372`, 플레이어 `:141`·`:155`, 편집기 `:307-312` 등).
+  - 4: `defaultCaptionStyle` 0건, `uploadedFile.create(` 한 곳, `clipDraft.create(Many)?(` 두 곳(둘 다 현재 시드 없음), `schema.prisma`의 `clip-review` 참조 `:59·:186`뿐 → 「범위 밖 의존」 열거 완전.
+  - 5: 돌연변이 8종 전부 사멸. `firstCueText` 둘째·마지막 큐, `buildCaptionCues` 경계·대문자, 샘플 축소 포함.
+  - 7: W2·W6 규칙 로직으로 shared 이관 근거 확인. `sanitizeAnalyticsMetadata` 음성 시험 — `preset`은 허용 키 목록에서 빼면 떨어지고, 실제 목록(`metadata.ts:63`)에 있다.
+  - 8: sample 분기를 `renderToStaticMarkup`으로 렌더. sample=true면 첫 큐가 정적 마크업에 나오고, sample=false·playUrl=null이면 캡션이 없다(기존 동작 유지). 안내 분기도 정확히 갈린다. 7/7.
+  - 보강: `ClipDraftCreateManyInput.captionStyle` 타입을 파싱해 `CaptionStyle` 무캐스트 대입 통과를 확인했다.
+- **[실행하지 못한 경로]**: 없음.
+- **트리 청결 직접 확인**(`git status`): `apps/web/src`·`docs`·`packages` 변경 0. 남은 것은 무관한 `settings.local.json`·`nul`.
+- **판정**: 독립 무편집 무소득 패스 1회 → **클린 패스**. 보드에 `검증:` 줄을 기록했고 status는 `검토대기` 그대로다(게이트② `구현승인`은 소유자만 연다).
+- **반영된 결함 분류**
+  - 구현 영향 3: A 검토 다이얼로그 동작 변경, B 그려지는 첫 큐 미검증·첫 페인트 공백, C 원본 input 저장.
+  - 검증 가능성 1: D 캡션 카드 마크업 명시.
+  - 위생 1: E 인용·수·표기.
+
+**인수 때 메인 루프 몫**
+- 백로그 등재: ③ 검토 다이얼로그 "내 기본으로 저장"·Reset을 스냅샷으로·스냅샷 데이터 흐름·커스텀 클립 시드 재판정.
+- `apps/web/CLAUDE.md`: 테스트 표에 `inngest/caption-style-request.test.mjs`·`features/caption-style/model/sample-captions.test.mjs` 두 행, 테스트 수 145 → 154 예상.
+- `packages/db/prisma/schema.prisma:59·186` 주석의 `captionStyleSchema` 경로는 다음 스키마 변경 항목(FEAT-47)과 함께 교정한다. 백로그 FEAT-47 요구 ③에 덧붙인다.
+- `docs/release-checks.md`: FEAT-42 절 등재. FEAT-41 절 `:68`·`:69`는 FEAT-42 배포 뒤 마감.
+- 보드 area에 남은 `CaptionStyleDialog.tsx`는 분할로 이 계획이 건드리지 않는다. 인수 때 변경 파일 대조의 기준은 계획서 「고칠 파일」이다.
