@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-15
+- [ ] FEAT-42: 캡션 스타일 기본값 본체 — 설정 화면 캡션 섹션 · 업로드 스냅샷 · 드래프트 시드 · 디스패치 페이로드 · 검토 화면 인라인 저장
+  agent: web-dev
+  area: apps/web/src/fsd/pages/settings + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/widgets/clip-draft-review/ui/_component/CaptionStyleDialog.tsx + apps/web/src/inngest
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-38·39·40 완료, 배포 선행 FEAT-41 Modal 배포됨. 기본값 체인의 마지막 — 캡션 스타일 기본값이 렌더까지 닿게 한다.
+
 ## 2026-09-14
 - [x] FEAT-39: 설정 화면 + 업로드 기본값(언어·클립 수·생성 모드) — 이 항목이 끝나면 배포 가능하고 가치가 난다
   agent: web-dev
