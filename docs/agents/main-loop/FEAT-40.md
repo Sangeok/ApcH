@@ -114,3 +114,40 @@
 **인덱스 주의(이후 커밋 절차)**: `git mv`는 rename을 인덱스에 스테이징한다. 보드 전이 커밋은 `git mv` **전에** 끝내고, 이동 뒤의 문서 전용
 커밋은 반드시 경로 지정 커밋(`git commit -- <paths>`)으로 해 스테이징된 rename이 딸려 들어가지 않게 한다. rename과 임포트 편집은 구현 커밋
 하나로 함께 들어간다.
+
+### 이동 선행 (메인 루프)
+
+보드 전이 커밋(`c281a51`) 뒤 인덱스가 비었음을 확인하고, `features/caption-style/{ui,model}`을 만든 다음 `git mv` 6건을 수행했다.
+`git diff --cached -M --name-status` → 여섯 줄 전부 `R100`, 스테이징 개수 6. 커밋하지 않은 채 web-dev를 디스패치했다(브리핑: 인덱스·워킹트리를
+바꾸는 git 명령 금지, B-3은 새 경로로 대조, 옮긴 `caption-presets.ts`·테스트 둘은 열지 않음, FEAT-38 보류 변경 제외, 기준선 131).
+
+## 인수 (2026-09-14)
+
+web-dev 보고: 완료, check 통과 · test 131/131. 인수 조건 다섯을 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`: 스테이징 rename 6(여전히 전부 `R100`) + 신규 2(`shared/lib/transcript.ts`·`features/caption-style/index.ts`) + 임포트 편집 6(`clip-review/model/transcript.ts`, 옮겨진 `caption-preview.ts`·`CaptionPreviewPlayer.tsx`·`CaptionStyleEditor.tsx`, `CaptionStyleDialog.tsx`, `use-clip-draft-review.ts`) — 계획서 열한 행과 일치. 그 밖엔 보드·백로그·보고서와 FEAT-38 보류 변경뿐 |
+| 2 | diff ↔ 스케치 | 워킹트리 diff = 스케치 임포트 교체 여덟 줄 그대로(그 밖의 줄·`main.py:NNN` 주석 변화 0), 신규 두 파일 내용이 스케치 블록과 일치. **기계적 기준**: 불변 3파일 `git rev-parse HEAD:<옛>` == `git rev-parse :<새>` 전부 True, `git diff --quiet -- <새>` 전부 종료코드 0, 옛 6경로 전부 부재 |
+| 3 | 검증 명령 재실행 | `npm run check -w apps/web` → `FSD boundary check passed.` · `✔ No ESLint warnings or errors` · tsc 오류 0 · EXIT 0. `npm test -w apps/web` → `# tests 131 # suites 31 # pass 131 # fail 0` |
+| 4 | 백로그 제거 | `git diff TASK_BACKLOG.md` = FEAT-40 블록 삭제만 |
+| 5 | 상세 기록 실재 | `docs/agents/web-dev/FEAT-40.md` 존재(rename 6을 메인 루프 수행으로 표기·신규 2·편집 6·blob id 값·검증·못 덮은 범위). 보드 `결과` 131자 |
+
+**구현 커밋** `d56bf93`: `git add`를 FEAT-40 경로로만 지정한 뒤 스테이징 집합에 FEAT-38 파일이 없는지 가드하고 커밋. `git show --stat -M` —
+rename 6(불변 셋 100%, 임포트 편집 셋 98%) + 신규 2 + 수정 4 + 보고서.
+
+### 문서 갱신 (계획서 「범위 밖 의존」 다섯 + 추가 발견)
+
+- `apps/web/CLAUDE.md`: 테스트 표 두 행 경로 → `features/caption-style/model/...`, FSD 레이어 표 `features/` 행에 `caption-style` 추가. 테스트 개수 문장은 이동으로 불변이라 그대로.
+- `TASK_BACKLOG.md`: FEAT-38 source의 `caption-preview.test.mjs` 경로 교정, FEAT-44 area에 `apps/web/src/fsd/features/caption-style` 추가 + 동시 진행 금지 문장에 "FEAT-40 완료, 대상 세 파일은 새 경로" 덧붙임. FEAT-42 source는 파일명·새 슬라이스명만 인용해 교정 불요.
+- **FEAT-38 보류 변경의 `packages/db/prisma/schema.prisma` 주석**(라운드 1에서 발견)도 새 경로로 고치고 `npm run db:generate:client -w @repo/db`로 생성 클라이언트를 재생성했다 — FEAT-38은 커밋 전이라 여기서 맞춰 두면 FEAT-38 커밋이 옛 경로를 싣지 않는다. 그 편차는 FEAT-38 기록에 적었다.
+- 치환은 스크립트로 했고 각 원문이 파일에 정확히 1회인지 단언한 뒤 바꿨다(줄끝 보존).
+
+### 배포 확인 원장 등재
+
+`docs/release-checks.md` 최상단에 FEAT-40 절 — 한 줄: 배포 후 검토 화면 캡션 스타일 다이얼로그(프리셋 칩·조절·미리보기·Apply·Apply to all·저장 뒤 칩 유지)가
+이전과 똑같이 동작하는가. `〔auto〕` 없음.
+
+### 커밋 절차
+
+이동 뒤 문서 커밋은 **경로 지정 커밋**으로 한다 — FEAT-38 보류 변경이 워킹트리에 있고, 앞으로도 rename 스테이징이 남는 경우를 막는 규칙(게이트② 절)을 그대로 따른다.

@@ -22,6 +22,15 @@
 
 ---
 
+## FEAT-40 — 캡션 편집기를 features/caption-style 슬라이스로 이동 (web, 구현 2026-09-14)
+
+원천: `docs/agents/web-dev/FEAT-40.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **131/131**(인수 시 메인 루프 재실행) · 옮긴 테스트 둘과 `caption-presets.ts`의 blob id가 이동 전과 동일(rename 100%). 파일 위치만 옮긴 리팩터링이라 사용자 화면은 바뀌지 않아야 한다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 검토 화면에서만 판정된다.
+
+- [ ] **검토 화면의 캡션 스타일 다이얼로그가 이전과 똑같이 동작하는가** — `review_pending` 업로드에서 클립 카드의 캡션 스타일을 열면 프리셋 칩·크기/색/위치 조절·영상 위 자막 미리보기가 이전처럼 보이고, Apply·Apply to all이 저장되며, 저장 뒤에도 선택한 프리셋 칩이 켜져 있는지(`matchPresetId`가 새 슬라이스 barrel로 옮겨진 경로다). 달라진 게 보이면 결함이다
+
+---
 ## FEAT-41 — 요청 단위 caption_style 폴백, auto 전용 (backend, 구현 2026-09-14)
 
 원천: `docs/agents/backend-dev/FEAT-41.md`의 「테스트로 못 덮은 범위」. **배포 대기** — `modal deploy`는 소유자 승인 사항이다.
