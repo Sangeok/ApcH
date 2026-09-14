@@ -132,3 +132,32 @@ export async function decrementUserCreditsFloorZero(
     WHERE "id" = ${userId}
   `;
 }
+
+export async function getUserUploadDefaults(userId: string) {
+  return db.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: {
+      defaultLanguage: true,
+      defaultClipCount: true,
+      defaultReviewBeforeGenerate: true,
+    },
+  });
+}
+
+export async function updateUserUploadDefaults(
+  userId: string,
+  values: {
+    defaultLanguage: string | null;
+    defaultClipCount: number | null;
+    defaultReviewBeforeGenerate: boolean | null;
+  },
+) {
+  return db.user.update({
+    where: { id: userId },
+    data: {
+      defaultLanguage: values.defaultLanguage,
+      defaultClipCount: values.defaultClipCount,
+      defaultReviewBeforeGenerate: values.defaultReviewBeforeGenerate,
+    },
+  });
+}

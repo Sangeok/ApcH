@@ -30,10 +30,9 @@ import {
   UPLOAD_CONFIG,
   SUPPORTED_LANGUAGES,
   CLIP_COUNT_OPTIONS,
-  DEFAULT_LANGUAGE,
-  DEFAULT_CLIP_COUNT,
   CLIP_DURATION_LIMITS,
 } from "~/fsd/shared/config/constants";
+import type { ResolvedUploadDefaults } from "~/fsd/entities/user";
 import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
 
 function readVideoDurationSeconds(file: File): Promise<number | null> {
@@ -62,17 +61,22 @@ type UploadOptionsPayload = {
 
 interface UploadPodcastProps {
   onOptimisticAdd: (file: UploadedFileSummary) => void;
+  defaults: ResolvedUploadDefaults;
 }
 
-export default function UploadPodcast({ onOptimisticAdd }: UploadPodcastProps) {
+export default function UploadPodcast({
+  onOptimisticAdd,
+  defaults,
+}: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
-  const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
-  const [clipCount, setClipCount] = useState<number>(DEFAULT_CLIP_COUNT);
+  const [language, setLanguage] = useState<string>(defaults.language);
+  const [clipCount, setClipCount] = useState<number>(defaults.clipCount);
   const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
   // 드롭마다 증가시키는 요청 번호. 늦게 도착한 이전 파일의 측정 결과를 버리는 데 쓴다.
   const durationRequestId = useRef(0);
-  const [reviewBeforeGenerate, setReviewBeforeGenerate] =
-    useState<boolean>(false);
+  const [reviewBeforeGenerate, setReviewBeforeGenerate] = useState<boolean>(
+    defaults.reviewBeforeGenerate,
+  );
   const { upload, isUploading } = useUploadPodcast({
     onOptimisticAdd,
     onSuccess: () => setFiles([]),

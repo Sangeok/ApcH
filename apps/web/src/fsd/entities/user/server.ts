@@ -8,8 +8,10 @@ export {
   getDashboardHeaderUser,
   getHomeUserProfile,
   getUserPolarCustomerId,
+  getUserUploadDefaults,
   incrementUserCredits,
   incrementUserCreditsAndSetPolarCustomerId,
   resolvePolarCustomerUserId,
   updateUserPolarCustomerId,
+  updateUserUploadDefaults,
 } from "./api";
