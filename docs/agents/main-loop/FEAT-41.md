@@ -131,3 +131,34 @@ Modal 배포는 별도 승인이며, FEAT-42보다 먼저 배포돼야 한다"�
 
 디스패치 시 담당에게 알릴 것: 워킹트리에 커밋 보류 중인 FEAT-38 변경(`packages/db`·`apps/web` analytics·`docs/agents/main-loop/FEAT-38.md`)이
 있다. backend 게이트(`unittest`·`py_compile`)와 무관하지만 `git diff --name-only`에 나타나므로 자기 수정 목록에서 제외한다.
+
+## 인수 (2026-09-14)
+
+backend-dev 보고: 완료, unittest 79 · py_compile 0. 인수 조건 다섯을 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`에서 FEAT-41 변경 = `apps/backend/caption_style_source.py`(신규)·`test_caption_style_source.py`(신규)·`main.py`(M) — 계획서 셋과 일치. 그 밖엔 보드·백로그·`docs/agents/backend-dev/FEAT-41.md`와 디스패치 전부터 있던 FEAT-38 보류 변경뿐 |
+| 2 | diff ↔ 스케치 | 신규 모듈 = 계획서 스케치 블록과 **바이트 동일**(추출 비교 `True`). `main.py` diff = 여섯 편집 그대로(import · 요청 필드+주석 · 이미지 등록 · 시그니처 말미 · 주입 줄 `select_caption_style(moment.get("caption_style"), request_caption_style, mode)` · spawn/remote 두 호출부). 테스트 12메서드가 명세 10케이스를 덮는다. **실제 테스트 파일에 돌연변이 10종**(mode 게이트 제거·폴백 모드 render·우선순위 뒤집기·키 병합·빈 dict 부재 취급·truthy·`{}` 반환·요청 무시·`mode != "analyze"`·비-dict 요청) → 전부 `FAILED` |
+| 3 | 검증 명령 재실행 | `python -m unittest discover -s apps/backend -p "test_*.py"` → `Ran 79 tests ... OK` · `py_compile` EXIT 0 |
+| 4 | 백로그 제거 | `git diff TASK_BACKLOG.md` = FEAT-41 블록 삭제만(Backend / Pipeline 절이 비었다) |
+| 5 | 상세 기록 실재 | `docs/agents/backend-dev/FEAT-41.md` 존재. 보드 `결과` 147자 |
+
+### 문서 인용 드리프트 — 이번엔 인수 시점에 전역 열거로 처리
+
+`main.py` 상단에 6줄(import 1 + 요청 필드 주석·필드 5)이 들어가 그 아래 인용이 +6 밀렸다. FEAT-43 교훈대로 `main\.py:\d+`를
+살아 있는 문서 전역에서 열거하고, 새 줄번호는 **오프셋 계산이 아니라 앵커 grep으로** 확정했다.
+
+- `apps/backend/CLAUDE.md` 10곳: `116-117`(MAX/MIN) · `85`(이미지 등록) · `164`(`resolve_caption_style`) · `298-304`/`414-420`(언어별 기본값 블록) ·
+  `367`/`562`(폰트) · `140-144`(ALIGNMENT) · `147-150`(MARGINV) · `1046-1048`(analyze 페이로드) · `1124-1126`(clip_result). 같은 편집에서
+  `caption_style_source.py`의 선택 규칙(클립 스타일 우선, auto만 요청 스냅샷, render 부재 = 언어 기본값) 한 줄 추가.
+- `apps/web/CLAUDE.md:77` `288-346` → `294-352`(`def create_subtitles_with_ffmpeg`·마지막 `subtitles.append`).
+- `docs/release-checks.md` FEAT-36 후속 (a) `main.py:756` → `762`(`vertical_mp4_path`).
+- 미교정(FEAT-44 범위): 에이전트 정의 인용 · 백로그 FEAT-44 관측의 줄번호(줄 내용 동반 인용이라 재탐색 가능).
+
+치환은 스크립트로 했고 각 원문이 파일에 정확히 1회인지 단언한 뒤 바꿨다(줄끝 보존).
+
+### 배포 확인 원장 등재
+
+`docs/release-checks.md` 최상단에 FEAT-41 절 — ① 배포 컨테이너 import + 기존 렌더 불변(지금 확인 가능), ② auto가 요청 스냅샷으로
+렌더(FEAT-42 뒤), ③ render의 스타일 없는 클립이 언어 기본값(FEAT-42 뒤, 소유자 결정 위반 감시). `〔auto〕` 없음.
