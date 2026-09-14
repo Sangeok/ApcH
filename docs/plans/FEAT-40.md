@@ -36,12 +36,12 @@ FSD 경계 검출기(`apps/web/scripts/verify-fsd-boundaries.mjs`, `npm run chec
 | --- | --- |
 | `src/fsd/shared/lib/transcript.ts` `(신규)` | `TranscriptWord` 인터페이스(3필드)를 여기로 내린다 |
 | `src/fsd/features/caption-style/index.ts` `(신규)` | 새 슬라이스 barrel — `CaptionStyleEditor`·`matchPresetId`만 공개 |
-| `src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx` `(신규, git mv 이동)` | `widgets/.../ui/_component/CaptionStyleEditor.tsx`에서 이동 + 임포트 3줄만 재배선 |
-| `src/fsd/features/caption-style/ui/CaptionPreviewPlayer.tsx` `(신규, git mv 이동)` | `widgets/.../ui/_component/CaptionPreviewPlayer.tsx`에서 이동 + 임포트 2줄만 재배선 |
-| `src/fsd/features/caption-style/model/caption-preview.ts` `(신규, git mv 이동)` | `widgets/.../model/caption-preview.ts`에서 이동 + 임포트 1줄만 재배선 |
-| `src/fsd/features/caption-style/model/caption-presets.ts` `(신규, git mv 이동)` | `widgets/.../model/caption-presets.ts`에서 이동 — **내용 무변경** |
-| `src/fsd/features/caption-style/model/caption-preview.test.mjs` `(신규, git mv 이동)` | `widgets/.../model/caption-preview.test.mjs`에서 이동 — **내용 무변경** |
-| `src/fsd/features/caption-style/model/caption-presets.test.mjs` `(신규, git mv 이동)` | `widgets/.../model/caption-presets.test.mjs`에서 이동 — **내용 무변경** |
+| `src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx` `(이동 — git mv는 메인 루프가 선행)` | `widgets/.../ui/_component/CaptionStyleEditor.tsx`에서 이동 + 임포트 2줄만 재배선 |
+| `src/fsd/features/caption-style/ui/CaptionPreviewPlayer.tsx` `(이동 — git mv는 메인 루프가 선행)` | `widgets/.../ui/_component/CaptionPreviewPlayer.tsx`에서 이동 + 임포트 2줄만 재배선 |
+| `src/fsd/features/caption-style/model/caption-preview.ts` `(이동 — git mv는 메인 루프가 선행)` | `widgets/.../model/caption-preview.ts`에서 이동 + 임포트 1줄만 재배선 |
+| `src/fsd/features/caption-style/model/caption-presets.ts` `(이동 — git mv는 메인 루프가 선행)` | `widgets/.../model/caption-presets.ts`에서 이동 — **내용 무변경** |
+| `src/fsd/features/caption-style/model/caption-preview.test.mjs` `(이동 — git mv는 메인 루프가 선행)` | `widgets/.../model/caption-preview.test.mjs`에서 이동 — **내용 무변경** |
+| `src/fsd/features/caption-style/model/caption-presets.test.mjs` `(이동 — git mv는 메인 루프가 선행)` | `widgets/.../model/caption-presets.test.mjs`에서 이동 — **내용 무변경** |
 | `src/fsd/features/clip-review/model/transcript.ts` | `TranscriptWord` 인터페이스를 shared 임포트+재수출로 교체. `parseTranscriptWords`는 그대로 |
 | `src/fsd/widgets/clip-draft-review/ui/_component/CaptionStyleDialog.tsx` | `:16` `CaptionStyleEditor` 임포트를 새 슬라이스 barrel로 |
 | `src/fsd/widgets/clip-draft-review/model/use-clip-draft-review.ts` | `:19` `matchPresetId` 임포트를 새 슬라이스 barrel로 |
@@ -59,7 +59,7 @@ FSD 경계 검출기(`apps/web/scripts/verify-fsd-boundaries.mjs`, `npm run chec
 
 ## 구현 스케치
 
-이동은 `git mv <옛경로> <새경로>`로 한다(파일시스템 이동을 스테이징해 rename 추적을 보존 → 「테스트」 절의 기계적 인수 기준을 그대로 만족). 그 다음 아래 임포트 줄만 Edit한다. **본문·주석·`main.py:NNN` 줄번호 인용은 한 글자도 바꾸지 않는다**(줄번호 인용 교정은 FEAT-44의 몫이며, 여기서 건드리면 "테스트 diff는 경로 변경뿐" 기준이 깨진다).
+**이동(`git mv <옛경로> <새경로>` 6건)은 게이트② 개방 직후 메인 루프가 수행하고 커밋하지 않은 채 넘긴다** — web-dev 정의 파일이 Bash를 읽기·검증 전용으로 묶어 파일 이동·삭제를 할 수 없기 때문이다(「범위 밖 의존」 끝 문단). `git mv`는 blob을 그대로 두고 경로만 스테이징해 rename 추적을 보존한다. web-dev는 옮겨진 새 경로에서 아래 임포트 줄만 Edit한다 — B-3의 「현재 동작」 대조도 새 경로의 같은 줄로 한다(이동은 내용을 바꾸지 않는다). **본문·주석·`main.py:NNN` 줄번호 인용은 한 글자도 바꾸지 않는다**(줄번호 인용 교정은 FEAT-44의 몫이며, 여기서 건드리면 "테스트 diff는 경로 변경뿐" 기준이 깨진다).
 
 **신규 `src/fsd/shared/lib/transcript.ts`** — 현재 `features/clip-review/model/transcript.ts:1-5`의 인터페이스를 그대로 옮긴다:
 
@@ -118,7 +118,7 @@ export function parseTranscriptWords(payload: unknown): TranscriptWord[] {
 
 (`ui/_component/` → `ui/`로 한 계단 얕아져 `../../model` → `../model`. `~/fsd/shared/...`·`react` 임포트는 무변경.)
 
-**`caption-style/ui/CaptionStyleEditor.tsx`** (이동 후) — 임포트 3줄 교체:
+**`caption-style/ui/CaptionStyleEditor.tsx`** (이동 후) — 임포트 2줄 교체:
 
 ```
 - import type { TranscriptWord } from "~/fsd/features/clip-review";
@@ -128,14 +128,9 @@ export function parseTranscriptWords(payload: unknown): TranscriptWord[] {
 - import { matchPresetId } from "../../model/caption-presets";
 + import { matchPresetId } from "../model/caption-presets";
 ```
-```
-- import CaptionPreviewPlayer from "./CaptionPreviewPlayer";
-+ import CaptionPreviewPlayer from "./CaptionPreviewPlayer";
-```
+`:12` `import CaptionPreviewPlayer from "./CaptionPreviewPlayer";`는 두 파일이 같은 `ui/`로 함께 옮겨지므로 **무변경**이다. `~/fsd/shared/...` 임포트도 무변경.
 
-(마지막 줄은 두 파일이 같은 `ui/`로 함께 이동하므로 실제로는 무변경 — 확인용으로만 적는다. `~/fsd/shared/...` 임포트도 무변경.)
-
-**`caption-style/model/caption-presets.ts`·`caption-preview.test.mjs`·`caption-presets.test.mjs`** (이동 후) — 임포트가 절대경로(`~/fsd/shared/...`, `~/fsd/features/clip-review/model/schemas`) 또는 같은 폴더 상대경로(`./caption-preview.ts`·`./caption-presets.ts`)뿐이라 **한 줄도 바꾸지 않는다.** `git mv`만 하고 Edit하지 않는다.
+**`caption-style/model/caption-presets.ts`·`caption-preview.test.mjs`·`caption-presets.test.mjs`** (이동 후) — 임포트가 절대경로(`~/fsd/shared/...`, `~/fsd/features/clip-review/model/schemas`) 또는 같은 폴더 상대경로(`./caption-preview.ts`·`./caption-presets.ts`)뿐이라 **한 줄도 바꾸지 않는다.** 메인 루프의 `git mv` 뒤 Edit하지 않는다.
 
 **`widgets/clip-draft-review/ui/_component/CaptionStyleDialog.tsx`** — `:16` 교체(default → named barrel 임포트):
 
@@ -160,9 +155,9 @@ export function parseTranscriptWords(payload: unknown): TranscriptWord[] {
 - **덮는 것**: 이동한 순수 모델의 계약은 함께 옮긴 `caption-preview.test.mjs`·`caption-presets.test.mjs`가 그대로 지킨다. 새 로직이 없으므로 새 테스트는 없다. `parseTranscriptWords`의 회귀 방어는 `features/clip-review/model/transcript.test.mjs`가 제자리에서 계속 지킨다.
 
 - **기계적 인수 기준(백로그·main-loop 요구)** — 옮긴 테스트 2개의 diff가 **경로 변경뿐**임을 다음으로 확인한다. 두 테스트 파일은 임포트가 절대경로 또는 같은 폴더 상대경로뿐이라 내용이 바이트 불변이므로:
-  - `git status`/`git diff -M --find-renames --stat`에서 두 테스트가 **rename 100%**(삽입·삭제 0)로 잡혀야 한다.
-  - 직접 바이트 대조: `git show HEAD:apps/web/src/fsd/widgets/clip-draft-review/model/caption-preview.test.mjs | diff - apps/web/src/fsd/features/caption-style/model/caption-preview.test.mjs` → 출력 없음. `caption-presets.test.mjs`도 동일.
-  - 이동한 **비테스트** 파일 중 `caption-presets.ts`도 같은 방식으로 바이트 불변(rename 100%)이어야 한다. `caption-preview.ts`·`CaptionPreviewPlayer.tsx`·`CaptionStyleEditor.tsx`는 위 스케치에 적은 임포트 줄만 diff에 나타나야 하고 그 밖의 줄(특히 `main.py:NNN` 주석)은 변화가 없어야 한다.
+  - 메인 루프의 `git mv` 직후 `git diff --cached -M --name-status`에서 여섯 이동이 모두 `R100`으로 잡힌다(`git mv`는 blob을 그대로 두고 경로만 스테이징한다). 뒤이은 web-dev의 임포트 편집은 워킹트리에만 있으므로 이 스테이징 결과는 바뀌지 않는다.
+  - 내용 대조는 **blob id로** 한다: `git rev-parse HEAD:apps/web/src/fsd/widgets/clip-draft-review/model/caption-preview.test.mjs`와 `git rev-parse :apps/web/src/fsd/features/caption-style/model/caption-preview.test.mjs`(스테이징된 새 경로)가 같고, `git diff --quiet -- apps/web/src/fsd/features/caption-style/model/caption-preview.test.mjs`가 종료코드 0이어야 한다(워킹트리≡인덱스). `caption-presets.test.mjs`도 동일. **워킹카피를 `git show HEAD:… | diff -`로 대조하지 않는다** — 이 저장소는 `core.autocrlf=true`라 `caption-presets.ts`·`caption-presets.test.mjs`의 워킹카피는 CRLF, HEAD blob은 LF여서 내용이 같아도 모든 줄이 다르다고 나온다(계획 검증에서 실측).
+  - 이동한 **비테스트** 파일 중 `caption-presets.ts`도 같은 blob id 대조로 내용 불변이어야 한다. `caption-preview.ts`·`CaptionPreviewPlayer.tsx`·`CaptionStyleEditor.tsx`는 위 스케치에 적은 임포트 줄만 diff에 나타나야 하고 그 밖의 줄(특히 `main.py:NNN` 주석)은 변화가 없어야 한다.
 
 - **동작 무변경의 증거**:
   - `npm run check -w apps/web` 통과(그 안 `verify:fsd`가 새 슬라이스 경계 — W2 없음·W6 barrel 경유·W7 임포트 해석 — 을 기계 검증).
@@ -174,16 +169,17 @@ export function parseTranscriptWords(payload: unknown): TranscriptWord[] {
 
 담당 범위(`apps/web/src`) 안에서 전부 처리된다 — 코드 이동·재배선을 막는 `packages/db`·다른 워크스페이스 의존은 없다.
 
-다만 web-dev가 쓸 수 없는 문서 넷이 옛 경로/슬라이스 목록을 담고 있어, **이동 후 메인 루프가 인수 때 갱신해야 한다**(여기서는 목록만 남긴다):
+다만 web-dev가 쓸 수 없는 문서 인용 다섯이 옛 경로/슬라이스 목록을 담고 있어, **이동 후 메인 루프가 인수 때 갱신해야 한다**(여기서는 목록만 남긴다):
 
 1. `apps/web/CLAUDE.md` 테스트 목록 표 — 두 행의 경로가 `widgets/clip-draft-review/model/caption-preview.test.mjs`·`...caption-presets.test.mjs`에서 `features/caption-style/model/...`로 바뀐다.
 2. `apps/web/CLAUDE.md` FSD 레이어 표(`features/` 행) — 슬라이스 목록에 `caption-style` 추가.
 3. `apps/web/CLAUDE.md` 테스트 개수 문장("20개 파일, 31 suite, 130개 테스트") — 파일 개수·테스트 개수는 이동으로 불변이라 그대로 두어도 되지만, 경로가 옮겨진 사실과의 정합은 메인 루프 판단.
 4. `TASK_BACKLOG.md` — FEAT-42의 `source`가 `CaptionPreviewPlayer.tsx:53/:63/:112`·`features/caption-style 상수`를, FEAT-44의 `area`·인용이 `caption-preview.ts`·`caption-preview.test.mjs`·`CaptionPreviewPlayer.tsx`의 옛 경로를 가리킨다. FEAT-44는 "FEAT-40과 동시 진행 금지, 먼저 끝난 쪽 결과를 기준으로 삼는다"라 재-grep 시 새 경로를 잡지만, 백로그 인용 경로의 드리프트는 메인 루프가 인지할 사항.
+5. `TASK_BACKLOG.md` — FEAT-38의 `source`도 `widgets/clip-draft-review/model/caption-preview.test.mjs`를 계약 근거로 인용한다(같은 이유로 인수 때 메인 루프가 경로 갱신).
 
 `docs/plans`·`docs/agents`의 옛 경로 인용은 작성 시점 기록이라 갱신 대상이 아니다(`docs/agents/README.md` 「감사 대상이 아니다」와 FEAT-44 제외 규칙과 같은 이유).
 
-또 하나 구현 단계에서 짚을 것: 파일 이동에는 옛 6개 파일의 **삭제**가 따른다(`git mv`가 수행). 이는 데이터·워킹트리를 파괴하는 금지 명령(`db:*`·`git reset --hard`·`npm install`)과 성격이 다른, 리팩터링 자체의 일부다. 만약 구현 시 `git mv` 사용이 막히면 그 지점을 `보류`로 남긴다.
+**파일 이동은 메인 루프가 한다.** 이동에는 옛 6개 파일의 삭제가 따르는데, web-dev 정의 파일(`.claude/agents/web-dev.md:53`)이 Bash를 읽기·검증 전용으로 묶어 web-dev는 `git mv`도 파일 삭제도 할 수 없다. 그래서 게이트② 개방 직후 메인 루프가 「고칠 파일」의 이동 6건을 `git mv`로 수행하고(커밋하지 않음) web-dev에 넘긴다 — 절차의 분담일 뿐 변경 내용은 이 계획서 그대로다.
 
 ## 대안
 
