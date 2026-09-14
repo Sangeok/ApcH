@@ -100,3 +100,28 @@ web-dev 계획서 `88d9c06` — **①②만**(설정 캡션 섹션·업로드 �
 - E: 인용 `:54`→`:53`, "수정 14"→13, functions.ts (A)를 주석이 아닌 before/after 코드로.
 
 원복은 `restore42.mjs`. 원복 후 `apps/web/src` 변경 0.
+
+## 2라운드 (2026-09-15, 메인 루프 — 무편집, 무소득)
+
+편집한 계획서(`50aef78`)를 다시 적용·실행했다. 이번에는 편집 뒤 모양에 맞춘 하니스를 썼고, 계획서는 고치지 않았다.
+하니스 자체 결함 두 번은 계획서와 무관하다 — pair 파서가 `(A) … — before (:371-372)` 표지를 못 읽음, 돌연변이 S3·S4 앵커가 새 들여쓰기와 어긋남. 둘 다 하니스만 고쳐 재실행했다.
+
+- **경로 1**: 편집으로 새로 생긴 인용을 대조했고 전부 일치했다.
+  - `widgets/clip-draft-review/ui/index.tsx:100-101`·`:458`, `ClipDraftCard.tsx:522`, `CaptionStyleDialog.tsx:71-79`·`:74`
+  - `CaptionPreviewPlayer.tsx:7-14`·`:19-33`·`:47-97`·`:105`·`:141`·`:155`
+  - `CaptionStyleEditor.tsx:14-24`·`:65-73`·`:291-304`·`:305-312`
+  - `pages/settings/ui/index.tsx:73-82`·`:85-169` — 하니스가 `:85-169`이 `<Card>`로 시작하고 `</Card>`로 끝나는지도 가드한다.
+- **경로 2·3**: 신규 5, 수정 13을 적용했다.
+  - before 조각 넷은 트리와 **바이트 일치**: 플레이어 `:141`·`:155`, 편집기 `:307-312`, functions.ts `:371-372`.
+  - `npm run check -w apps/web` **EXIT 0**(verify:fsd 통과, ESLint 0), `npx tsc --noEmit` **0**, `npm test -w apps/web` **154/154**(계획서 기대 수와 일치).
+- **경로 4**: 편집이 새 전칭을 들이지 않았다. A는 "검토 다이얼로그는 `sample`을 넘기지 않는다"다. 편집기 소비자는 `CaptionStyleDialog.tsx:71`과 새 설정 화면 둘뿐이다(1라운드 소비자 열거).
+- **경로 5**: 돌연변이 12종.
+  - A1~A4, S1~S4, S6~S8 사멸. S8 = `firstSampleCueText`가 `firstCueText`를 거치지 않고 둘째 큐.
+  - 생존은 S5 하나(KR 샘플 9→8단어) — 명세 "≥8"대로 의도된 생존이다.
+- **경로 7**: W2(settings→clip-review 스키마)·W6(pages→caption-style 내부)·W6(upload→entities/user/api)는 exit 1로 검출됐고, 대조군은 exit 0이다.
+- **경로 8**:
+  - 설정 화면 정적 렌더에 첫 큐 `Style your captions the way`(English, Anton)가 보인다. 저장값 Korean·maxWordsPerLine 3이면 `지금 자막 스타일을`(Noto Sans KR), 저장 색 `#FFE45E`가 적용된다.
+  - 검토 다이얼로그 편집기 `playUrl=null`(로딩) → 샘플 안내 없음, 라이브 안내 그대로, 클립 단어 고정 표시 없음(기존과 같다).
+  - URL 준비됨 → 라이브 안내.
+
+원복 후 `apps/web/src` 변경 0(남은 것은 무관한 `settings.local.json`·`nul`). → `plan-verifier` 1사이클 디스패치(브리핑은 항목ID, 계획서 경로, 필수 경로 목록만).
