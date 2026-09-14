@@ -21,7 +21,8 @@ agent: web-dev
 라우트 보호는 이미 `/dashboard` 하위 전체를 덮는다.
 
 - `middleware.ts:11-13`의 `matcher: ["/dashboard/:path*", "/login"]`이 `/dashboard/settings`를 포섭한다.
-- `config.edge.ts:11` `PROTECTED_ROUTES = ["/dashboard"]`이고, `authorized` 콜백(`:32-36`)은 `nextUrl.pathname.startsWith(route)`로 판정하므로 `/dashboard/settings`도 미인증 시 로그인으로 리다이렉트된다. `middleware.test.mjs:16-20`의 `matchesPattern`이 `/dashboard/:path*`가 `/dashboard` 접두사를 덮음을 이미 보장한다 — **미들웨어·PROTECTED_ROUTES 변경 불필요**. 추가로 `app/dashboard/layout.tsx:20-24`(레이아웃 가드)와 새 라우트의 `auth()` 리다이렉트가 이중·삼중으로 막는다.
+- `config.edge.ts:11` `PROTECTED_ROUTES = ["/dashboard"]`이고, `authorized` 콜백(`:32-36`)은 `nextUrl.pathname.startsWith(route)`로 판정하므로 `/dashboard/settings`도 미인증 시 로그인으로 리다이렉트된다 — **미들웨어·PROTECTED_ROUTES 변경 불필요**.
+- 단, 이 포섭의 근거는 `middleware.ts:12`의 실제 패턴 `/dashboard/:path*`이지 테스트가 아니다. `middleware.test.mjs:16-20`의 `matchesPattern`은 `PROTECTED_ROUTES`의 접두사 `/dashboard` **자체**가 matcher에 포섭되는지만 검사해서, matcher를 정확 경로 `"/dashboard"`로 좁혀도(하위 `/dashboard/settings` 미포섭) 통과한다(계획 검증에서 실측: pass 3/3). 추가로 `app/dashboard/layout.tsx:20-24`(레이아웃 가드)와 새 라우트의 `auth()` 리다이렉트가 이중·삼중으로 막는다.
 
 ## 문제
 
@@ -154,11 +155,9 @@ export function normalizeUploadDefaults(input: {
     return null;
   }
 
-  return {
-    defaultLanguage: defaultLanguage as string | null,
-    defaultClipCount: defaultClipCount as number | null,
-    defaultReviewBeforeGenerate: defaultReviewBeforeGenerate as boolean | null,
-  };
+  // 위 세 거부 분기가 각 값을 이미 string|null·number|null·boolean|null로 좁혔다.
+  // 여기에 `as` 단언을 붙이면 no-unnecessary-type-assertion 에러로 lint가 실패한다.
+  return { defaultLanguage, defaultClipCount, defaultReviewBeforeGenerate };
 }
 ```
 
@@ -277,7 +276,7 @@ import {
   SUPPORTED_LANGUAGES,
 } from "~/fsd/shared/config/constants";
 import { DEFAULT_REVIEW_BEFORE_GENERATE, type ResolvedUploadDefaults } from "~/fsd/entities/user";
-// Card·DropdownMenu·Button atoms — UploadPodcast.tsx:3-15 와 같은 경로
+// Card·DropdownMenu·Button atoms — UploadPodcast.tsx:3-15·20과 같은 경로
 
 interface SettingsViewProps {
   initialDefaults: ResolvedUploadDefaults;
@@ -433,20 +432,20 @@ interface DashboardViewProps {
 `~/fsd/entities/user/server`에서 `getUserUploadDefaults`, `~/fsd/entities/user`에서 `resolveUploadDefaults`를 임포트한다. `Promise.all`(`:25-29`)에 읽기를 하나 더 넣는다:
 
 ```tsx
-// before (:25)
-const [uploadedFiles, recoverableDrafts, activeQueue] = await Promise.all([
-  listUploadedFileSummariesByUserId(session.user.id),
-  listRecoverableUploadDraftsByUserId(session.user.id),
-  listActiveUploadedFileQueueStateByUserId(session.user.id),
-]);
-// after — userDefaults 추가
-const [uploadedFiles, recoverableDrafts, activeQueue, userDefaults] =
-  await Promise.all([
+// before (:25-29)
+  const [uploadedFiles, recoverableDrafts, activeQueue] = await Promise.all([
     listUploadedFileSummariesByUserId(session.user.id),
     listRecoverableUploadDraftsByUserId(session.user.id),
     listActiveUploadedFileQueueStateByUserId(session.user.id),
-    getUserUploadDefaults(session.user.id),
   ]);
+// after — userDefaults 추가
+  const [uploadedFiles, recoverableDrafts, activeQueue, userDefaults] =
+    await Promise.all([
+      listUploadedFileSummariesByUserId(session.user.id),
+      listRecoverableUploadDraftsByUserId(session.user.id),
+      listActiveUploadedFileQueueStateByUserId(session.user.id),
+      getUserUploadDefaults(session.user.id),
+    ]);
 ```
 
 `DashboardView`(`:32-38`)에 `uploadDefaults={resolveUploadDefaults(userDefaults)}` 추가. 읽기는 SSR에서 await되므로 클라이언트 로딩 상태가 없고, null(미설정) 컬럼은 `resolveUploadDefaults`가 시스템 기본으로 떨어뜨린다. 사용자 행이 없어 읽기가 throw하면 기존 대시보드 에러 경계가 처리한다(폼을 조용히 막지 않는다).
@@ -480,7 +479,7 @@ if (pathname === "/dashboard/settings") {
 
 - **덮는 것** (`entities/user/model/upload-defaults.test.mjs`, Node 내장 러너):
   - `resolveUploadDefaults`: 전부 null → 시스템 기본(`English`/`3`/`false`); 유효 저장값(`Korean`/`2`/`true`) → 그대로; 범위 밖 클립 수(`5`) → `DEFAULT_CLIP_COUNT`(3); 미지원 언어(`"French"`) → `DEFAULT_LANGUAGE`(English); `reviewBeforeGenerate` null → false, true → true.
-  - `normalizeUploadDefaults`: 전부 null → 전부 null(비우기 통과); 유효 구체값 → 동일; 범위 밖 클립 수(`5`) → null(거부); 미지원 언어 → null; 문자열 클립 수(`"3"`) → null(타입 거부); 비-boolean 생성 모드 → null.
+  - `normalizeUploadDefaults`: 전부 null → 전부 null(비우기 통과); 유효 구체값 → 동일; 범위 밖 클립 수(`5`) → null(거부); 미지원 언어 → null; 문자열 클립 수(`"3"`) → null(타입 거부); 비-boolean 생성 모드 → null; **필드 누락(`undefined`) → null(거부) — 세 필드 각각**. 누락 케이스가 없으면 `!== null`을 `!= null`로 바꾼 구현이 나머지 케이스를 전부 통과한다 — 누락 필드가 검증을 통과해 Prisma `update`가 그 컬럼을 조용히 건너뛰는 부분 갱신이 된다(계획 검증 돌연변이 실측).
 - **못 덮는 범위**(현재 러너로 확인 불가 — DOM·React·DB·라우팅 없음, 배포 후 수동 확인):
   - 설정 화면 실제 렌더·드롭다운 선택·저장 토스트, 저장이 `User` 컬럼에 반영, 저장 뒤 대시보드 업로드 폼이 새 기본값으로 초기화되는지.
   - `settings_viewed`·`settings_defaults_saved` 계측 행이 실제로 기록되는지(admin 분석).
