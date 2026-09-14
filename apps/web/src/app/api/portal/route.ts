@@ -1,40 +1,38 @@
-import { CustomerPortal } from "@polar-sh/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
-import { env } from "~/env";
 import { getUserPolarCustomerId } from "~/fsd/entities/user/server";
-import { POLAR_SERVER } from "~/fsd/shared/api/polar";
+import { getPolarClient, POLAR_SERVER } from "~/fsd/shared/api/polar";
+import { reportError } from "~/fsd/shared/observability";
 import { auth } from "~/server/auth";
 
-const portalHandler = CustomerPortal({
-  accessToken: env.POLAR_ACCESS_TOKEN,
-  getCustomerId: async () => {
-    const session = await auth();
-    if (!session?.user?.id) {
-      throw new Error("Unauthorized customer portal request");
-    }
-
-    const customerId = await getUserPolarCustomerId(session.user.id);
-    if (customerId === null) {
-      throw new Error("User has no Polar customer id");
-    }
-
-    return customerId;
-  },
-  server: POLAR_SERVER,
-});
-
 export async function GET(req: NextRequest) {
-  // 포털 핸들러에 빈 문자열을 넘기면 Polar가 불투명한 오류를 돌려준다.
-  // 로그인·고객 등록 여부를 여기서 먼저 판정해 사용자에게 갈 곳을 준다.
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
+  const userId = session.user.id;
 
-  const customerId = await getUserPolarCustomerId(session.user.id);
+  const customerId = await getUserPolarCustomerId(userId);
   if (customerId === null) {
     return NextResponse.redirect(new URL("/dashboard/billing", req.url));
   }
 
-  return portalHandler(req);
+  try {
+    const { customerPortalUrl } = await getPolarClient().customerSessions.create(
+      { customerId },
+    );
+    return NextResponse.redirect(customerPortalUrl);
+  } catch (error) {
+    // 라이브러리 CustomerPortal은 이 예외를 console.error + NextResponse.error()
+    // (본문 없는 500)로 삼킨다. 직접 감싸 Sentry에 server·customerId를 실어 보내면
+    // 다음 발생이 스스로 진단된다(소유자가 지금 Vercel 로그에서 파는 값).
+    reportError(error, {
+      origin: "portal.customerSession",
+      userId,
+      server: POLAR_SERVER,
+      customerId,
+    });
+    return NextResponse.redirect(
+      new URL("/dashboard/billing?portal=error", req.url),
+    );
+  }
 }

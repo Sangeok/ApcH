@@ -49,12 +49,13 @@
   결과: 순수모듈 moment_prompt+테스트11·모달등록가드1 신설, identify_moments에 language 배선(호출부2·이미지등록). English 바이트불변. unittest 67/0·py_compile 0. 상세 backend-dev/FEAT-43
 
 ## 2026-09-09
-- [ ] BUG-09: 「Manage Subscription」이 프로덕션에서 500 — 고객 포털이 열리지 않는다
+- [x] BUG-09: 「Manage Subscription」이 프로덕션에서 500 — 고객 포털이 열리지 않는다
   agent: web-dev
   area: apps/web/src/app/api/portal/route.ts + apps/web/src/fsd/shared/api/polar.ts
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 문서 위생 3건 반영)
   근거: 유료 고객 결제 포털이 프로덕션 500 — 이틀 간격 재현된 결제 경로 결함. 미결 0건. 신규 FEAT-38~42 체인보다 실사용 영향이 커 우선 선정.
+  결과: 포털 위임을 customerSessions.create 직접 호출+try/catch로 교체(실패 Sentry 보고→?portal=error 리다이렉트+토스트). check EXIT0·test131/0. 상세 web-dev/BUG-09
 - [ ] FEAT-38: 사용자 기본값 스키마 — User 컬럼 4개 + UploadedFile.captionStyle + analytics 이벤트 2개 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + packages/db/src/analytics-contract.ts + apps/web/src/fsd/shared/analytics/lib/metadata.ts

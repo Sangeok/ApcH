@@ -5,7 +5,7 @@ import { env } from "~/env";
 export default async function BillingRoute({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string }>;
+  searchParams: Promise<{ success?: string; portal?: string }>;
 }) {
   const params = await searchParams;
   const result = await getBillingData();
@@ -23,6 +23,7 @@ export default async function BillingRoute({
       data={result.data}
       productIds={getProductIds()}
       hasReturnedFromCheckout={params.success === "true"}
+      hadPortalError={params.portal === "error"}
       isSubscriptionEnabled={env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED}
     />
   );
