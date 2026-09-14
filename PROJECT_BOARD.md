@@ -52,7 +52,7 @@
 - [ ] BUG-09: 「Manage Subscription」이 프로덕션에서 500 — 고객 포털이 열리지 않는다
   agent: web-dev
   area: apps/web/src/app/api/portal/route.ts + apps/web/src/fsd/shared/api/polar.ts
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 문서 위생 3건 반영)
   근거: 유료 고객 결제 포털이 프로덕션 500 — 이틀 간격 재현된 결제 경로 결함. 미결 0건. 신규 FEAT-38~42 체인보다 실사용 영향이 커 우선 선정.
 - [ ] FEAT-38: 사용자 기본값 스키마 — User 컬럼 4개 + UploadedFile.captionStyle + analytics 이벤트 2개 (마이그레이션 1회)
