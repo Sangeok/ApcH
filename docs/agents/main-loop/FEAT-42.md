@@ -42,3 +42,61 @@
   현재 기준선: `npm test -w apps/web` **145**. 새 테스트 파일의 `apps/web/CLAUDE.md` 표 행은 메인 루프가 인수 때 추가한다.
 - **못 덮는 범위.** 정지 미리보기의 시각 정합, 설정 저장 → 새 업로드 → auto 렌더 자막이 기본값으로 나오는지, 검토 화면 시드는 배포 후 확인이다.
   `docs/release-checks.md` FEAT-41 절의 「auto가 요청 스냅샷으로 …」 줄이 FEAT-42 배포 뒤에야 닫힌다는 점을 계획서 「못 덮는 범위」와 연결한다.
+
+## 계획서 수령 (2026-09-15)
+
+web-dev 계획서 `88d9c06` — **①②만**(설정 캡션 섹션·업로드 스냅샷·드래프트 시드·auto 요청 페이로드), ③(검토 다이얼로그 인라인 저장·Reset 스냅샷화)은 분할해 「범위 밖 의존」으로 넘겼다. 수정 14 / 신규 5, 전부 `apps/web`.
+보드 `계획지시` → `검토대기`를 같은 커밋으로 푸시했다. 인수 때 할 일: ③을 백로그에 등재, `schema.prisma:59·186` 주석 경로 드리프트 교정.
+
+## 검증 필수 경로 확정 (2026-09-15, 카탈로그 `docs/plans/verification-paths.md`)
+
+- **1 인용 전수 대조** — 모든 항목.
+- **2 스케치 추출·실행** — 신규 5 + 수정 14. 실제 트리에 적용해 `npm run check -w apps/web`·`npm test -w apps/web`, 끝나면 원복.
+- **3 before/after 기계 적용** — 기존 파일 수정 14.
+- **4 전칭 여집합 열거** — "`defaultCaptionStyle` 읽기·쓰기 0건", "모든 드래프트가 `captionStyle: null`", `captionStyleSchema`·`createUploadDraft`·`findCurrentProcessingAttemptContext` 소비자 전수, "caption_style을 싣지 않는다".
+  직렬화 모양·계약 층위(요청 단위 `caption_style` 키·모양이 백엔드 `ProcessVideoRequest`와 맞는지, undefined 키 생략)도 여기서 본다.
+- **5 돌연변이 검사** — 순수 함수 `autoRequestCaptionStyle`·`firstSampleCueText` 신설.
+- **7 음성 시험** — shared의 W2·W6 면제, W8(`Prisma` 값 임포트) 등 FSD 경계 주장에 기댄다.
+- **8 실물 렌더** — 설정 화면 캡션 섹션, `CaptionPreviewPlayer` 정지 분기, `CaptionStyleEditor` 안내 분기.
+- 6(외부 신호를 해석하지 않는다 — 요청을 보낼 뿐이고 그 계약은 4에서 본다)·9(schema·config·생성 파일 변경 없음) 트리거 없음.
+
+## 1라운드 (2026-09-15, 메인 루프 — 결함 5건, 일괄 편집)
+
+하니스는 스크래치패드 `feat42/`에 있다(`apply42.mjs`·`mutate42.mjs`·`neg42.mjs`·`render42.mjs`·`restore42.mjs`). 계획서 코드 블록 13개를 뽑아 실제 트리에 적용했다(신규 5, 수정 13).
+산문·주석으로만 지시한 부분은 하니스가 조립했다. 설정 화면 캡션 카드 마크업, `/* :46-60 그대로 */` 자리, functions.ts (A)의 주석 코드, 임포트 병합이 그것이다.
+
+- **경로 1 (인용)**: 인용 전부 다시 읽었다. 불일치는 `ui/CaptionPreviewPlayer.tsx:54` `if (!video) return;`(실제 `:53`) 하나다. 규모 서술 "수정 14"는 표(13행)와 어긋난다(**결함 E**).
+- **경로 2 (스케치 실행)**: `npm run check -w apps/web` EXIT 0(verify:fsd 통과·ESLint 0), `npx tsc --noEmit` 0, `npm test -w apps/web` **154/154** = 145 + 명세 9.
+  컴파일·린트는 통과했다. 결함은 아래 렌더·돌연변이에서 나왔다.
+- **경로 3 (before/after)**: 기준 줄 앵커가 모두 트리에서 한 번씩만 일치했다.
+  - `CaptionPreviewPlayer.tsx:49-55` · `CaptionStyleEditor.tsx:307-312` · `schemas.ts:46-60,62-73` · `uploaded-file/api:105-121` · `upload/api:240-247` · `functions.ts:921-936`
+  - (A)는 주석 스케치라 기계 적용이 아니라 해석이 필요했다(**결함 E**에 포함).
+- **경로 4 (여집합·계약)**
+  - `createUploadDraft` 호출부는 `upload/api/index.ts:240` 하나, `findCurrentProcessingAttemptContext` 소비자는 `functions.ts:237,705` 둘이다. 셀렉트 한 줄 추가가 안전하다.
+  - `captionStyleSchema`는 정의 1곳과 `clip-review` 배럴 재수출, `caption-presets.test.mjs:7` 딥 임포트로만 쓰인다(재수출 유지로 무변경).
+  - `defaultCaptionStyle` 참조 0, `createClipDraftsBulk` 호출부 하나(`:921`).
+  - 요청 계약: 백엔드 `main.py:68` `caption_style: dict | None = None`, `caption_style_source.py` `select_caption_style`은 auto에서만 dict 요청 스타일을 쓴다. 키 이름과 camelCase 필드가 render moment 스타일과 같다.
+  - **여집합에서 드러난 결함**: `playUrl === null`은 설정 화면만의 신호가 아니다. 검토 화면 `widgets/clip-draft-review/ui/index.tsx:100-101`이 원본 URL 로딩·실패 동안 null을 넘기고, `:458` → `ClipDraftCard.tsx:522` → `CaptionStyleDialog.tsx:74`로 편집기까지 간다(**결함 A**).
+  - 저장 선례: `saveClipDraftEdit`은 `validated.data`를 쓴다(`clip-review/api/index.ts:68-69`). 계획서 `saveDefaultCaptionStyle`은 `safeParse` 뒤 원본 `input`을 써서, 조작된 요청의 여분 키가 저장·스냅샷·Modal 페이로드로 흘러간다(**결함 C**). 「대안」의 "write-time 검증이 이미 방어" 논거도 이 때문에 성립하지 않았다.
+- **경로 5 (돌연변이)**: 명세 9케이스에 12종을 심었다.
+  - `autoRequestCaptionStyle` A1~A4 전부 사멸. 샘플 S1~S4·S6·S7 사멸.
+  - S5(KR 샘플 9→8단어) 생존 — 명세가 "≥8"이라 의도대로다.
+  - **P1(플레이어 정지 분기를 `cues[1]`로) 생존** — `firstSampleCueText`는 테스트만 쓰는 사본이고, 실제로 그리는 플레이어의 `cues[0]?.text`는 어떤 테스트도 지키지 않는다(**결함 B**).
+- **경로 7 (음성)**: 모두 exit 1로 검출됐고, 대조군(계획서 경로 그대로)은 exit 0이다.
+  - W2 — `features/settings/api`가 `clip-review/model/schemas`를 임포트 → `[W2]`·`[W6]`
+  - W6 — `pages/settings`가 `caption-style/model/sample-captions`를 직접 임포트
+  - W6 — `features/upload/api`가 `entities/user/api`를 직접 임포트
+- **경로 8 (렌더)** — `renderToStaticMarkup`, 서버 전용·Next 런타임·드롭다운만 스텁.
+  - 설정 화면 문구: "Default caption style"·설명·"Save caption style"·"Reset to language default"·프리셋·"This is a sample." 모두 나왔다. 라이브 안내는 없다. 저장된 Bold Yellow 초기값이 프리셋 활성으로 보인다.
+  - **정지 미리보기의 첫 큐 텍스트("Style your captions the way"·"지금 자막 스타일을")가 정적 HTML에 없다** — 이펙트의 setState로 그리기 때문이다. 첫 페인트가 빈 미리보기이고 경로 8로 확인할 수 없다(**결함 B**와 한 묶음).
+  - **검토 다이얼로그 편집기를 `playUrl=null`(로딩)로 렌더하니 "This is a sample." 안내가 나오고 라이브 안내가 사라졌다** — 게이트① "기존 검토 화면 미리보기의 동작은 바뀌지 않아야 한다" 위반이다(**결함 A** 실측). URL이 준비된 경우는 라이브 안내 그대로다.
+- **경로 8·2의 검증 가능성**: 캡션 카드 마크업이 주석으로만 적혀 독립 검증자가 렌더할 대상이 없다(FEAT-39 1사이클 무판정과 같은 모양)(**결함 D**).
+
+**일괄 편집 1회** (계획서):
+- A: 정지 샘플 모드를 `playUrl === null`에서 추론하지 않고 명시 `sample` prop으로. 편집기 기본 false, 검토 다이얼로그 무변경. 「현재 동작」에 검토 화면 null 경로, 「대안」에 기각 근거.
+- B: 플레이어 이펙트는 손대지 않고 렌더 중 `firstCueText(cues)`로 첫 큐를 계산. `firstSampleCueText`가 같은 함수를 거치게 해 테스트가 그려지는 경로를 지킨다. 「테스트」에 근거와 기대 수 154.
+- C: 서버 액션이 `parsed.data`를 저장.
+- D: 설정 화면 반환 구조(기존 카드를 `space-y-6` 래퍼 첫 자식으로)와 캡션 카드 JSX 전체.
+- E: 인용 `:54`→`:53`, "수정 14"→13, functions.ts (A)를 주석이 아닌 before/after 코드로.
+
+원복은 `restore42.mjs`. 원복 후 `apps/web/src` 변경 0.

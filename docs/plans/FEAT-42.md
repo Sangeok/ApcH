@@ -10,7 +10,7 @@ agent: web-dev
 > - ③(다이얼로그 "내 기본으로 저장" + Reset을 스냅샷으로)은 ①②가 만든 스냅샷·시드 위에 얹는
 >   순수 추가라 뒤로 미뤄도 ①②의 가치(설정→새 업로드→auto 렌더에 기본값 적용, 검토 시드 프리필)가
 >   온전하다. 그리고 ③은 검토 UI에 스냅샷을 흘려보내는 새 데이터 흐름을 요구해 표면이 별도다.
-> - 규모: ①②만으로도 신규 5 · 수정 14다. ③까지 한 계획에 넣으면 검증·구현이 한 항목에 과적된다.
+> - 규모: ①②만으로도 신규 5 · 수정 13이다. ③까지 한 계획에 넣으면 검증·구현이 한 항목에 과적된다.
 >
 > ③의 범위는 「범위 밖 의존」에 적는다(같은 워크스페이스지만 이 계획이 다루지 않는 뒤 절반 —
 > 메인 루프가 인수 때 백로그에 등재한다; web-dev는 항목을 추가할 수 없다). 이 계획의 구현은
@@ -26,10 +26,15 @@ agent: web-dev
 **캡션 편집기 재사용.** `features/caption-style`(FEAT-40이 옮김)의 `CaptionStyleEditor`는
 `ui/CaptionStyleEditor.tsx:65`에서 `language`·`value`·`playUrl`·`clipStart`·`clipEnd`·`words`를 받아
 왼쪽 컨트롤 + 오른쪽 `CaptionPreviewPlayer`(`:291`)를 그린다. `CaptionPreviewPlayer`는 `playUrl === null`이면
-두 이펙트가 early-return하고(`ui/CaptionPreviewPlayer.tsx:54` `if (!video) return;`(영상 미렌더로 `videoRef.current`가
+두 이펙트가 early-return하고(`ui/CaptionPreviewPlayer.tsx:53` `if (!video) return;`(영상 미렌더로 `videoRef.current`가
 null), `:63` `if (!video || playUrl === null) return;`) `activeText`가 `""`로 남아 **검은 상자만** 그린다
 (영상 태그도 `:112` `{playUrl !== null && (`로 가려진다). 미리보기 밑에는 `ui/CaptionStyleEditor.tsx:307-312`의
 라이브 영상 전제 안내("Live preview on your video …the words here are the English source.")가 고정으로 붙는다.
+
+**`playUrl === null`은 설정 화면만의 신호가 아니다.** 검토 화면은 원본 영상 URL이 준비되기 전과 실패했을 때도 null을 넘긴다 —
+`widgets/clip-draft-review/ui/index.tsx:100-101` `const readyPlayUrl =` · `playUrlState.status === "ready" ? playUrlState.url : null;`이
+`:458` `playUrl={readyPlayUrl}` → `ClipDraftCard.tsx:522` `playUrl={playUrl}` → `CaptionStyleDialog.tsx:74` `playUrl={playUrl}`로 편집기까지 그대로 간다.
+그래서 정지 샘플 모드는 `playUrl`로 추론하지 않고 명시 prop(`sample`)으로 켠다.
 
 **검증 스키마의 위치.** `ClipDraft.captionStyle`/`UploadedFile.captionStyle`/`User.defaultCaptionStyle` JSON의 유일한
 검증기 `captionStyleSchema`는 `features/clip-review/model/schemas.ts:13`에 있다. 배럴 `features/clip-review/index.ts:6`이
@@ -70,11 +75,11 @@ Modal에 POST한다. auto/render 본문은 `:365-376`이고 **`caption_style`을
 | `src/fsd/shared/config/caption-style-schema.ts` `(신규)` | `captionStyleSchema`·`type CaptionStyleInput`을 여기로 이관(3개 컬럼 공용 검증기를 하위 레이어에 둬 W2 회피) |
 | `src/fsd/features/clip-review/model/schemas.ts` | `captionStyleSchema` 로컬 정의를 지우고 shared에서 임포트+재수출(배럴·기존 소비자 무변경). `updateClipDraftSchema`·`addCustomClipDraftSchema`는 그대로 |
 | `src/fsd/shared/config/constants.ts` | `captionStyleSchema` 위치를 가리키는 주석(`:112`) 한 줄을 새 경로로 갱신 (주석 전용) |
-| `src/fsd/features/caption-style/model/sample-captions.ts` `(신규)` | 정지 미리보기용 샘플 단어(영/한 각 1벌)·창 상수·`firstSampleCueText` 순수 함수. FEAT-49가 재사용 |
+| `src/fsd/features/caption-style/model/sample-captions.ts` `(신규)` | 정지 미리보기용 샘플 단어(영/한 각 1벌)·창 상수·`firstCueText`(플레이어가 그리는 첫 큐)·`firstSampleCueText` 순수 함수. FEAT-49가 재사용 |
 | `src/fsd/features/caption-style/model/sample-captions.test.mjs` `(신규)` | `firstSampleCueText`/샘플 단어 계약 테스트 |
 | `src/fsd/features/caption-style/index.ts` | 배럴에 `sampleCaptionWords`·`SAMPLE_CAPTION_CLIP_END` 수출(pages/settings가 public entry로 쓴다) |
-| `src/fsd/features/caption-style/ui/CaptionPreviewPlayer.tsx` | `playUrl === null`이면 첫 큐를 고정으로 그리는 정지 분기 추가(타이머 없음) |
-| `src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx` | 미리보기 밑 안내를 `playUrl === null`(정지=샘플)과 라이브로 분기. **라이브 문장 텍스트는 그대로**(FEAT-45 몫) |
+| `src/fsd/features/caption-style/ui/CaptionPreviewPlayer.tsx` | `sample` prop(기본 false)이 true면 첫 큐(`firstCueText`)를 **렌더 중에** 계산해 고정으로 그린다. 이펙트는 손대지 않는다(검토 경로 무변경, 타이머 없음) |
+| `src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx` | `sample?: boolean` prop(기본 false) 추가 — 플레이어로 넘기고 미리보기 밑 안내를 샘플/라이브로 분기. **라이브 문장 텍스트는 그대로**(FEAT-45 몫). 검토 다이얼로그는 이 prop을 넘기지 않아 무변경 |
 | `src/fsd/entities/user/api/index.ts` | `getUserDefaultCaptionStyle`·`updateUserDefaultCaptionStyle` 추가(`import type { Prisma }`→값 임포트로 `Prisma.JsonNull` 사용) |
 | `src/fsd/entities/user/server.ts` | 위 두 함수 재수출 |
 | `src/fsd/features/settings/api/index.ts` | `saveDefaultCaptionStyle` 서버 액션 추가(shared `captionStyleSchema` 검증, null=비우기) |
@@ -117,7 +122,7 @@ export function autoRequestCaptionStyle(
 
 ```ts
 import type { TranscriptWord } from "~/fsd/shared/lib/transcript";
-import { buildCaptionCues } from "./caption-preview";
+import { buildCaptionCues, type CaptionCue } from "./caption-preview";
 
 // 정지 미리보기 창(초). 아래 샘플 단어 전부를 포함(마지막 end 8.9 < 10).
 export const SAMPLE_CAPTION_CLIP_END = 10;
@@ -139,20 +144,27 @@ export function sampleCaptionWords(language: string): TranscriptWord[] {
   return toWords(language === "Korean" ? KR_WORDS : EN_WORDS);
 }
 
-// 정지 미리보기가 그리는 텍스트 = 첫 큐. maxWords·uppercase 효과가 곧바로 보인다.
+// 정지 샘플 미리보기가 그리는 텍스트 = 첫 큐. CaptionPreviewPlayer의 sample 분기가 이 함수를 쓴다.
+export function firstCueText(cues: readonly CaptionCue[]): string {
+  return cues[0]?.text ?? "";
+}
+
+// 샘플 단어 → 정지 미리보기 텍스트. maxWords·uppercase 효과가 곧바로 보인다.
+// 플레이어와 같은 firstCueText를 거치므로, 테스트가 실제로 그려지는 첫 큐 선택까지 지킨다.
 export function firstSampleCueText(
   language: string,
   maxWords: number,
   uppercase: boolean,
 ): string {
-  const cues = buildCaptionCues(
-    sampleCaptionWords(language),
-    0,
-    SAMPLE_CAPTION_CLIP_END,
-    maxWords,
-    uppercase,
+  return firstCueText(
+    buildCaptionCues(
+      sampleCaptionWords(language),
+      0,
+      SAMPLE_CAPTION_CLIP_END,
+      maxWords,
+      uppercase,
+    ),
   );
-  return cues[0]?.text ?? "";
 }
 ```
 
@@ -282,14 +294,17 @@ const uploadDraft = await createUploadDraft({
 `import type { CaptionStyle } from "~/fsd/shared/config/constants";`), 두 지점 배선:
 
 ```ts
-// (A) processVideo auto/render 본문 (:365-376) 안, transcript_s3_key 줄 옆에 추가:
-//   mode: shouldRenderSelectedMoments ? "render" : "auto",
-//   moments: shouldRenderSelectedMoments ? moments : undefined,
-//   caption_style: autoRequestCaptionStyle(
-//     shouldRenderSelectedMoments,
-//     context.captionStyle as CaptionStyle | null, // 렌더 경로(:111)와 같은 캐스트
-//   ),
-// JSON.stringify가 undefined 키를 떨어뜨리므로 render·null 스냅샷에선 키가 생략된다.
+// (A) processVideo auto/render 본문 (:365-376) — before (:371-372)
+            mode: shouldRenderSelectedMoments ? "render" : "auto",
+            moments: shouldRenderSelectedMoments ? moments : undefined,
+// after — moments 줄 바로 아래에 네 줄 추가
+            mode: shouldRenderSelectedMoments ? "render" : "auto",
+            moments: shouldRenderSelectedMoments ? moments : undefined,
+            // JSON.stringify가 undefined 키를 떨어뜨리므로 render·null 스냅샷에선 키가 생략된다.
+            caption_style: autoRequestCaptionStyle(
+              shouldRenderSelectedMoments,
+              context.captionStyle as CaptionStyle | null, // 렌더 경로(entities/clip-draft/api :111)와 같은 캐스트
+            ),
 
 // (B) analyzeVideo persist-clip-drafts (:920-936) — 스냅샷을 각 드래프트에 시드:
 const snapshotStyle = context.captionStyle as CaptionStyle | null;
@@ -331,12 +346,16 @@ export async function saveDefaultCaptionStyle(
   if (!authResult.success) return authResult;
 
   // null = 언어 기본값으로 비우기(검증 안 함). 값이 있으면 write-time 단일 검증.
+  // 원본 input이 아니라 파싱 결과를 쓴다 — z.object는 모르는 키를 결과에서 떨구므로 조작된 요청이 붙인
+  // 여분 키가 저장·스냅샷·Modal 페이로드로 흘러가지 않는다(saveClipDraftEdit도 validated.data를 쓴다).
+  let style: CaptionStyle | null = null;
   if (input !== null) {
     const parsed = captionStyleSchema.safeParse(input);
     if (!parsed.success) return failure("Invalid caption style");
+    style = parsed.data;
   }
 
-  await updateUserDefaultCaptionStyle(authResult.data.userId, input);
+  await updateUserDefaultCaptionStyle(authResult.data.userId, style);
   revalidatePath("/dashboard/settings");
   return success();
 }
@@ -370,10 +389,10 @@ export {
 } from "./model/sample-captions";
 ```
 
-`pages/settings/ui/index.tsx` — `SettingsViewProps`에 `initialCaptionStyle: CaptionStyle | null` 추가,
-`captionStyle` state 도입, 기존 "Upload defaults" 카드(`:85-169`) 아래에 캡션 카드를 추가한다.
-카드 구조·Card/Button 원자는 기존 카드(`:85-169`)를 그대로 따르고, 미리보기는 `CaptionStyleEditor`에
-`playUrl={null}`·샘플 words를 넘긴다. 언어는 페이지의 `language` state를 따라 폰트·샘플·기본 크기가 함께 바뀐다:
+`pages/settings/ui/index.tsx` — `SettingsViewProps`에 `initialCaptionStyle: CaptionStyle | null`을 추가하고 구조분해에도 넣는다.
+`captionStyle` state와 두 핸들러는 기존 `handleReset`(`:73-82`) 뒤, `return` 앞에 둔다. 반환은 기존 `<Card>`(`:85-169`)를
+그대로 `<div className="space-y-6">`의 첫 자식으로 옮기고 둘째 자식으로 캡션 카드를 둔다. 미리보기는 `CaptionStyleEditor`에
+`sample`·`playUrl={null}`·샘플 words를 넘긴다. 언어는 페이지의 `language` state를 따라 폰트·샘플·기본 크기가 함께 바뀐다:
 
 ```tsx
 // import 추가:
@@ -418,57 +437,109 @@ const handleResetCaption = () => {
   });
 };
 
-// 새 Card (기존 Card 마크업 :85-169 패턴):
-//   CardTitle: "Default caption style"
-//   CardDescription: "New uploads start with this caption style. You can still
-//                     change it per clip while reviewing."
-//   <CaptionStyleEditor
-//     language={language}                         // 페이지 언어 state
-//     value={captionStyle}
-//     playUrl={null}
-//     clipStart={0}
-//     clipEnd={SAMPLE_CAPTION_CLIP_END}
-//     words={sampleCaptionWords(language)}
-//     onChange={setCaptionStyle}
-//   />
-//   Buttons: "Save caption style" (disabled={isSaving}), "Reset to language default"
+// 반환 — 기존 Card(:85-169)를 첫 자식으로 옮기고 캡션 카드를 둘째로:
+return (
+  <div className="space-y-6">
+    {/* 기존 "Upload defaults" <Card> … </Card> (:85-169) 한 글자도 바꾸지 않고 여기로 */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Default caption style</CardTitle>
+        <CardDescription>
+          New uploads start with this caption style. You can still change it
+          per clip while reviewing.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <CaptionStyleEditor
+          language={language}
+          value={captionStyle}
+          sample
+          playUrl={null}
+          clipStart={0}
+          clipEnd={SAMPLE_CAPTION_CLIP_END}
+          words={sampleCaptionWords(language)}
+          onChange={setCaptionStyle}
+        />
+        <div className="flex gap-x-2">
+          <Button onClick={handleSaveCaption} disabled={isSaving}>
+            Save caption style
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleResetCaption}
+            disabled={isSaving}
+          >
+            Reset to language default
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
 ```
 
-`features/caption-style/ui/CaptionPreviewPlayer.tsx` — cues 이펙트(`:50-55`)에 정지 분기:
+`features/caption-style/ui/CaptionPreviewPlayer.tsx` — 정지 샘플 분기. **이펙트 두 개(`:47-97`)는 손대지 않는다** —
+검토 화면 경로가 바이트 그대로 남고, 샘플 모드에선 `playUrl === null`이라 두 이펙트가 이미 아무것도 하지 않는다.
+첫 큐는 이펙트의 setState가 아니라 렌더 중에 계산한다 — 첫 페인트부터 보이고, 정적 렌더로도 확인된다:
 
 ```tsx
-// after:
-const cuesRef = useRef(cues);
-useEffect(() => {
-  cuesRef.current = cues;
-  // 정지 미리보기(설정 화면): 영상이 없으면 첫 큐를 고정으로 그린다. 타이머 없음.
-  if (playUrl === null) {
-    setActiveText(cues[0]?.text ?? "");
-    return;
-  }
-  const video = videoRef.current;
-  if (!video) return;
-  setActiveText(pickActiveCue(cues, video.currentTime - clipStart)?.text ?? "");
-}, [cues, clipStart, playUrl]);
+// import 추가 (:7-14 바로 아래): import { firstCueText } from "../model/sample-captions";
+
+// props 인터페이스(:19-33)의 `position: CaptionStyle["position"];` 다음 줄에 추가:
+  // 설정 화면의 정지 샘플 미리보기. true면 영상 없이 첫 큐를 고정으로 그린다.
+  // playUrl === null로 추론하지 않는다 — 검토 화면은 URL 로딩·실패 동안에도 null을 넘긴다.
+  sample?: boolean;
+
+// `const centered = …`(:105) 바로 아래에 추가:
+  const displayText = props.sample === true ? firstCueText(cues) : activeText;
+
+// before (:141)
+        {activeText !== "" && (
+// after
+        {displayText !== "" && (
+
+// before (:155)
+            {activeText}
+// after
+            {displayText}
 ```
 
-`features/caption-style/ui/CaptionStyleEditor.tsx` — 미리보기 밑 안내(`:305-312`)를 정지/라이브로 분기.
+`features/caption-style/ui/CaptionStyleEditor.tsx` — `sample` prop을 받아 플레이어로 넘기고, 미리보기 밑 안내(`:305-312`)를
+샘플/라이브로 분기한다. 검토 다이얼로그(`CaptionStyleDialog.tsx:71-79`)는 이 prop을 넘기지 않으므로 무변경이다.
 **라이브 `<p>`의 텍스트는 한 글자도 바꾸지 않는다**(FEAT-45가 그 문장을 고칠 예정):
 
 ```tsx
-// after (구조만; 라이브 문장은 현행 :307-312 그대로):
-{playUrl === null ? (
-  <p className="text-center text-[11px] text-muted-foreground">
-    This is a sample. Your clips use your own video and words — here you&apos;re
-    setting the size, color, position, and words per line.
-  </p>
-) : (
-  <p className="text-center text-[11px] text-muted-foreground">
-    Live preview on your video — the whole frame is shown here. The final clip
-    crops to follow whoever is speaking, so framing will differ. Korean clips are
-    translated at render time — the words here are the English source.
-  </p>
-)}
+// props 인터페이스(:14-24)의 `onChange: (style: CaptionStyle) => void;` 다음 줄에 추가:
+  // 설정 화면의 정지 샘플 미리보기. 검토 다이얼로그는 넘기지 않는다(기본 false).
+  sample?: boolean;
+
+// 구조분해(:65-73)의 `onChange,` 다음 줄에 추가:
+  sample = false,
+
+// <CaptionPreviewPlayer …>(:291-304)의 `position={effectivePosition}` 다음 줄에 추가:
+          sample={sample}
+
+// before (:307-312)
+        <p className="text-center text-[11px] text-muted-foreground">
+          Live preview on your video — the whole frame is shown here. The final
+          clip crops to follow whoever is speaking, so framing will differ.
+          Korean clips are translated at render time — the words here are the
+          English source.
+        </p>
+// after
+        {sample ? (
+          <p className="text-center text-[11px] text-muted-foreground">
+            This is a sample. Your clips use your own video and words — here
+            you&apos;re setting the size, color, position, and words per line.
+          </p>
+        ) : (
+          <p className="text-center text-[11px] text-muted-foreground">
+            Live preview on your video — the whole frame is shown here. The final
+            clip crops to follow whoever is speaking, so framing will differ.
+            Korean clips are translated at render time — the words here are the
+            English source.
+          </p>
+        )}
 ```
 
 ## 테스트
@@ -480,7 +551,11 @@ useEffect(() => {
   - `src/fsd/features/caption-style/model/sample-captions.test.mjs` (신규) — `firstSampleCueText`: 위 리터럴
     4종(영 maxWords 5·대문자, 한 maxWords 3·8), Korean 결과가 비-ASCII(한국어), maxWords 8이 8단어 큐를 내
     샘플이 ≥8단어임을 보장(누가 샘플을 줄이면 실패). `buildCaptionCues`(이미 `caption-preview.test.mjs`가 계약)를
-    재사용하므로 이 테스트는 **샘플 데이터→화면 텍스트** 연결만 지킨다.
+    재사용하므로 이 테스트는 **샘플 데이터→화면 텍스트** 연결만 지킨다. `firstSampleCueText`는 플레이어의 샘플 분기와
+    **같은 `firstCueText`**를 거치므로, 첫 큐 선택 규칙을 바꾸면 이 테스트가 실패한다(계획 검증 돌연변이 실측: 플레이어가 자체 식
+    `cues[0]?.text`를 쓰던 초안에선 그 식을 바꿔도 모든 테스트가 통과했다). 플레이어가 그 함수를 실제로 부르는지는 러너가 못 보므로
+    「못 덮는 범위」의 렌더 확인 몫이다.
+  - 기대 테스트 수: 기준선 145 + 신규 9(요청 3 · 샘플 6) = **154**.
   - 회귀: `caption-presets.test.mjs`(재수출 경로 유지로 무변경 통과), `caption-preview.test.mjs`(큐 계약 불변).
 - **못 덮는 범위**(Node 러너에 DOM·DB·외부 I/O 없음):
   - 설정 화면 캡션 섹션 렌더·정지 미리보기의 시각 정합(폰트/크기/위치가 실렌더와 근사한지), 언어 토글 시
@@ -529,3 +604,9 @@ useEffect(() => {
 - **정지 미리보기 컴포넌트 분리.** (기각) 새 `CaptionStaticPreview`. (채택) `CaptionPreviewPlayer` 재사용 —
   프레임/폰트/위치 계산이 실렌더와 동일해야 정합이 서고, `playUrl === null`이면 영상 이펙트가 이미 early-return해
   타이머가 안 생긴다. 정지 분기 한 곳만 더하면 된다.
+- **정지 모드 신호.** (기각) `playUrl === null`로 추론 — 검토 화면은 원본 URL 로딩·실패 동안에도 null을 넘기므로
+  (`widgets/clip-draft-review/ui/index.tsx:100-101`), 그 순간 검토 다이얼로그의 안내가 "This is a sample."로 바뀌고
+  라이브 안내가 사라진다(계획 검증에서 정적 렌더로 실측). (채택) 명시 `sample` prop — 검토 다이얼로그는 넘기지 않는다.
+- **첫 큐를 그리는 방법.** (기각) cues 이펙트에서 `setActiveText(cues[0]…)` — 첫 페인트가 빈 미리보기이고,
+  정적 렌더로 확인되지 않으며(계획 검증 실측: 정적 HTML에 첫 큐 텍스트 없음), 검토 경로가 쓰는 이펙트를 바꾼다.
+  (채택) 렌더 중 `firstCueText(cues)` 계산.
