@@ -43,7 +43,7 @@
 - [ ] FEAT-40: 캡션 편집기를 `features/caption-style` 슬라이스로 이동 — 동작 무변경 순수 리팩터링
   agent: web-dev
   area: apps/web/src/fsd/features/caption-style (신설) + apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/clip-review/model/transcript.ts + apps/web/src/fsd/shared
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건 반영)
   근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-42의 선행이자 선행 없음 — 설정 화면에서 캡션 편집기를 재사용하기 위한 순수 이동. FEAT-44와 동시 진행 금지.
 - [x] FEAT-41: 렌더 요청에 요청 단위 `caption_style`을 받아 Auto 경로에도 사용자 캡션 기본값이 먹게 한다
