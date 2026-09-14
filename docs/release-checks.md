@@ -24,7 +24,7 @@
 
 ## FEAT-39 — 설정 화면 + 업로드 기본값(언어·클립 수·생성 모드) (web, 구현 2026-09-14)
 
-원천: `docs/agents/web-dev/FEAT-39.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+원천: `docs/agents/web-dev/FEAT-39.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 00:05 KST**, PR #118 `main` 합류(`cd01537`) → Vercel `Production – apc-h` success.
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **145/145**(인수 시 메인 루프 재실행, 131→145 — 신규 `upload-defaults.test.mjs` 14). 컬럼이 실제로 읽히고 쓰이는지와 이벤트 두 개의 기록은 아래 FEAT-38 절 「(FEAT-39 배포 후)」 줄이 맡고, 이 절은 화면 흐름을 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면에서만 판정되고, 미인증 리다이렉트 줄도 release-verify 루틴이 admin 호스트만 조회해(`scripts/release-verify/run.mjs` `ADMIN_BASE_URL` 기본값 `https://admin.a-pch.com`) web 라우트를 판정하지 못한다.
 
@@ -32,13 +32,13 @@
 - [ ] **저장한 기본값이 업로드 폼의 초기값이 되는가** — 설정에서 예컨대 `Korean`·`2 clips`·`Review first`로 저장 → 토스트 `Defaults saved` → 새로고침해도 설정 화면이 그 값 → 대시보드에서 파일을 고르면 옵션 행이 그 값으로 시작하는지. 폼에서 이번 업로드만 바꿔도 설정 화면 값은 그대로여야 한다
 - [ ] **초기화가 시스템 기본으로 되돌리는가** — `Reset to system defaults` 뒤 설정 화면과 업로드 폼이 `English`·`3 clips`·`Auto`로 돌아가는지
 - [ ] **클립 수 기본값이 짧은 영상에서 기존대로 내려가는가** — 기본값을 `4 clips`로 저장하고 60초 영상을 고르면 `2 clips`로 하향되는지(`getMaxFeasibleClipCount`의 `floor(D/30)` 클램프가 사용자 기본값 초기값에도 적용)
-- [ ] **로그아웃 상태로 `/dashboard/settings`를 열면 로그인으로 가는가** — 미인증 접근이 `/login`으로 리다이렉트되는지(`middleware.ts` matcher `/dashboard/:path*` · 대시보드 레이아웃 가드 · 라우트의 `auth()`)
+- [x] **로그아웃 상태로 `/dashboard/settings`를 열면 로그인으로 가는가** — 미인증 접근이 `/login`으로 리다이렉트되는지(`middleware.ts` matcher `/dashboard/:path*` · 대시보드 레이아웃 가드 · 라우트의 `auth()`) — 확인(2026-09-15, 실측 — 배포 뒤 쿠키 없이 `curl https://a-pch.com/dashboard/settings` → **307** `https://a-pch.com/login?callbackUrl=https%3A%2F%2Fa-pch.com%2Fdashboard%2Fsettings`. 단서: matcher가 FEAT-39 이전부터 이 경로를 덮어 **보호 동작의 증거이지 새 라우트 반영의 증거는 아니다** — 반영은 Production 배포 sha `cd01537`로 판정)
 
 ---
 
 ## FEAT-38 — 사용자 기본값 스키마 · analytics 이벤트 2개 (db+web 계약, 구현·마이그레이션 2026-09-14)
 
-원천: 계획서 `docs/plans/FEAT-38.md` 「못 덮는 범위」. **마이그레이션은 적용됨** — 소유자 지시("마이그레이션하자")로 메인 루프가 `packages/db`에서 `node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate deploy` 실행. **코드(재생성한 Prisma 클라이언트·analytics 계약)는 배포 대기** — web은 `main` 합류 뒤 반영된다.
+원천: 계획서 `docs/plans/FEAT-38.md` 「못 덮는 범위」. **마이그레이션은 적용됨** — 소유자 지시("마이그레이션하자")로 메인 루프가 `packages/db`에서 `node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate deploy` 실행. **코드(재생성한 Prisma 클라이언트·analytics 계약)도 배포됨 — 2026-09-15 00:05 KST**, PR #118 `main` 합류(`cd01537`) → Vercel `Production – apc-h`·`Production – apch-admin` 둘 다 success.
 게이트는 `npm run check --workspaces --if-present` EXIT 0 · web test **131/131** · admin test **334/334**(인수 시 재실행). 이 항목은 저장소와 계약만 만들고 소비자는 FEAT-39·FEAT-42다.
 **`〔auto〕` 태그를 붙이지 않는다**: DB 실측과 로그인 뒤 화면으로만 판정된다.
 
@@ -49,7 +49,7 @@
 ---
 ## FEAT-40 — 캡션 편집기를 features/caption-style 슬라이스로 이동 (web, 구현 2026-09-14)
 
-원천: `docs/agents/web-dev/FEAT-40.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+원천: `docs/agents/web-dev/FEAT-40.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 00:05 KST**, PR #118 `main` 합류(`cd01537`) → Vercel `Production – apc-h` success.
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **131/131**(인수 시 메인 루프 재실행) · 옮긴 테스트 둘과 `caption-presets.ts`의 blob id가 이동 전과 동일(rename 100%). 파일 위치만 옮긴 리팩터링이라 사용자 화면은 바뀌지 않아야 한다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 검토 화면에서만 판정된다.
 
@@ -58,19 +58,20 @@
 ---
 ## FEAT-41 — 요청 단위 caption_style 폴백, auto 전용 (backend, 구현 2026-09-14)
 
-원천: `docs/agents/backend-dev/FEAT-41.md`의 「테스트로 못 덮은 범위」. **배포 대기** — `modal deploy`는 소유자 승인 사항이다.
+원천: `docs/agents/backend-dev/FEAT-41.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 00:00 KST**, 소유자 지시("배포 수행")로 메인 루프가 실행(`PYTHONUTF8=1 …\apch-backend\Scripts\python.exe -m modal deploy main.py`, 6.7초, EXIT 0, 마운트에 `PythonPackage:caption_style_source` 포함, 엔드포인트 URL 불변). 배포 직전 unittest **79 OK** · `py_compile` 0 재실행.
 게이트는 unittest **79/0**(+12) · `py_compile` 0(인수 시 메인 루프 재실행). 인수 때 신규 모듈이 계획 스케치와 바이트 동일함과, 실제 테스트 파일에 돌연변이 10종을 심어 전부 실패함을 확인했다.
 **이 항목만으로는 사용자 체감 변화가 없다** — 웹이 요청 단위 스타일을 보내기 시작하는 것은 FEAT-42라, 둘째·셋째 줄은 FEAT-42 배포 뒤에만 닫힌다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 생성 결과 영상과 Modal 실행에서만 판정된다.
 
 - [ ] **배포된 컨테이너가 `caption_style_source`를 import하고 기존 렌더가 그대로인가** — 배포 직후 `process_video`에 잘못된 토큰으로 POST → 401(FEAT-43 원장 첫 줄과 같은 확인) + 배포 뒤 첫 실제 처리(auto·render 아무거나)의 캡션이 이전과 같은지. 웹이 아직 요청 필드를 보내지 않으므로 달라지면 결함이다
+  - import 절반 확인(2026-09-15, 실측 — 배포 출력 마운트에 `PythonPackage:caption_style_source` · 잘못된 토큰으로 `process_video`에 유효한 형태의 바디 POST(00:02:04) → **401** `Incorrect bearer token` · `modal container list` 활성 컨테이너 1, 시작 00:01로 배포 이후). 남은 것: 배포 뒤 첫 실제 처리의 캡션이 이전과 같은지
 - [ ] **(FEAT-42 배포 후) auto 생성 클립이 요청 단위 스냅샷 스타일로 렌더되는가** — 설정한 기본 캡션(색·크기·위치)이 검토 없이 생성한 클립에 그대로 적용되는지
 - [ ] **(FEAT-42 배포 후) render에서 스타일 없는 클립은 언어 기본값으로 렌더되는가** — 검토 화면에서 커스텀 클립을 추가하거나 한 클립을 「Reset style」로 되돌린 뒤 생성하면, 그 클립이 미리보기대로 언어 기본값인지. 요청 스냅샷 스타일이 새어 나오면 소유자 결정(2026-09-14, render는 클립 스타일만) 위반이다
 
 ---
 ## BUG-09 — 고객 포털 실패를 Sentry 보고 + 결제 페이지 안내로 (web, 구현 2026-09-14)
 
-원천: `docs/agents/web-dev/BUG-09.md`의 「테스트로 못 덮은 범위」 1~3. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+원천: `docs/agents/web-dev/BUG-09.md`의 「테스트로 못 덮은 범위」 1~3. **배포됨 — 2026-09-15 00:05 KST**, PR #118 `main` 합류(`cd01537`) → Vercel `Production – apc-h` success.
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **131/0**(인수 시 메인 루프 재실행). **이 항목은 500의 원인을 고치지 않는다** —
 원인은 계획서 「소유자 확인 항목」(Vercel `POLAR_SERVER`·`POLAR_ACCESS_TOKEN` 환경 정합 / Polar에 `polarCustomerId` 존재 여부)이 가른다. 그래서 셋째 줄은 원인 수정 뒤에만 닫힌다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인한 유료 계정의 화면과 Sentry 콘솔에서만 판정된다.
@@ -95,7 +96,7 @@
 ---
 ## FEAT-37 — 한국어 검토 화면의 「자막은 렌더 때 번역된다」 안내 (web, 구현 2026-09-09)
 
-원천: `docs/agents/web-dev/FEAT-37.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
+원천: `docs/agents/web-dev/FEAT-37.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포됨** — PR #116 `main` 합류(2026-09-09)로 Vercel 프로덕션 반영. (원장 표기는 2026-09-15에 갱신 — 구현 커밋이 `origin/main` 첫 부모 경로의 그 머지에 처음 포함됨을 `git merge-base --is-ancestor`로 대조)
 게이트는 `npm run check` EXIT 0 · `npm test` **130/0**(+7)으로 닫혔고, 문구·표시 조건은 순수 모듈 테스트 7건이 지킨다
 (인수 시 출하 테스트에 변이 10종을 심어 **10/10 사멸**). 마크업 계약(Korean에서 헤더 안내·카드 라벨 존재, English/null에서 부재, 골든 문구)은
 계획 검증에서 `renderToStaticMarkup` 3분기로 닫혔다. 아래는 **실제 페이지 흐름·시각 배치**라 러너가 못 덮는 것들이다.
@@ -108,7 +109,7 @@
 ---
 ## BUG-13 — 캡션 미리보기 크롭을 백엔드 resize 모드(블러 레터박스)로 (web, 구현 2026-09-08)
 
-원천: `docs/agents/web-dev/BUG-13.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
+원천: `docs/agents/web-dev/BUG-13.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포됨** — PR #115 `main` 합류(2026-09-08)로 Vercel 프로덕션 반영. (원장 표기는 2026-09-15에 갱신 — 구현 커밋이 `origin/main` 첫 부모 경로의 그 머지에 처음 포함됨을 `git merge-base --is-ancestor`로 대조)
 게이트는 `npm run check` EXIT 0 · `npm test` **123/0**(새 테스트 0 — 순수 함수 무변경, 기존 `caption-preview.test.mjs` 19 it이 회귀 가드)로 닫혔다.
 **마크업 계약은 이미 닫혔다** — `<video>` 두 장·배경 `aria-hidden`+`scale-110 object-cover blur-lg`·전경 `object-contain`·자막 오버레이가
 두 video 뒤(DOM 순서=페인트 순서)·`playUrl=null` 시 `<video>` 0장은 계획 검증에서 `renderToStaticMarkup`으로 12/12 확인했고,
@@ -124,7 +125,7 @@
 ---
 ## FEAT-36 — 캡션 스타일 실영상 오버레이 미리보기 (web, 구현 2026-09-08)
 
-원천: `docs/agents/web-dev/FEAT-36.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
+원천: `docs/agents/web-dev/FEAT-36.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포됨** — PR #114 `main` 합류(2026-09-08)로 Vercel 프로덕션 반영. (원장 표기는 2026-09-15에 갱신 — 구현 커밋이 `origin/main` 첫 부모 경로의 그 머지에 처음 포함됨을 `git merge-base --is-ancestor`로 대조)
 게이트는 `npm run check` EXIT 0 · `npm test` **107/0**(+19)로 닫혔고, 큐 묶기·범위 필터·px 환산은
 순수 모듈 테스트 19건이 지킨다(백엔드 묶기 함수와의 차등 비교 300건도 계획 검증에서 통과).
 아래는 **브라우저 재생·시각 대조**가 필요해 Node 러너가 원리상 못 덮는 것들이다.
@@ -166,7 +167,7 @@
 
 ## FEAT-35 — 클립 경계 편집 루프 (web, 구현 2026-09-08)
 
-원천: `docs/agents/web-dev/FEAT-35.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
+원천: `docs/agents/web-dev/FEAT-35.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포됨** — PR #114 `main` 합류(2026-09-08)로 Vercel 프로덕션 반영. (원장 표기는 2026-09-15에 갱신 — 구현 커밋이 `origin/main` 첫 부모 경로의 그 머지에 처음 포함됨을 `git merge-base --is-ancestor`로 대조)
 게이트는 `npm run check` EXIT 0 · `npm test` **123/0**(+16, FEAT-36 합류 후 병합 트리 실측)로 닫혔고,
 구간 계산·방향 스냅·시계 파싱은 순수 모듈 테스트 16건이 지킨다(계획 검증에서 돌연변이 18종 중
 17종 사멸, 나머지 1종은 도달 불가 등가 변이로 판정·기록).
@@ -185,7 +186,7 @@
 ---
 ## FEAT-32 — 클라이언트 Sentry 초기화 (web, 구현 2026-09-07)
 
-원천: `docs/agents/web-dev/FEAT-32.md`의 「테스트로 못 덮은 범위」와 계획서 §검증. **배포 대기.**
+원천: `docs/agents/web-dev/FEAT-32.md`의 「테스트로 못 덮은 범위」와 계획서 §검증. **배포됨** — PR #114 `main` 합류(2026-09-08)로 Vercel 프로덕션 반영. (원장 표기는 2026-09-15에 갱신 — 구현 커밋이 `origin/main` 첫 부모 경로의 그 머지에 처음 포함됨을 `git merge-base --is-ancestor`로 대조)
 게이트는 `npm run check` EXIT 0 · `npm test` **88/0**(+11) · FSD 경계 통과로 닫혔고, 스크럽 계약은
 순수 모듈 테스트가 서버·클라 양쪽을 동시에 지킨다. 아래는 **브라우저·실제 네트워크·외부 대시보드**가
 필요해 Node 러너가 원리상 못 덮는 것들이다.
