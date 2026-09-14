@@ -109,3 +109,19 @@
 - E: Button 인용 `:3-15` → `:3-15·20`.
 
 원복은 `restore.mjs`. 편집이 있었으므로 준비 상태가 리셋됐다 → 2라운드 무편집 재실행.
+
+## 2라운드 (2026-09-14, 메인 루프 — 무편집, 무소득)
+
+편집한 계획서(`0e25125`)를 1라운드와 같은 하니스로 처음부터 다시 적용·실행했다. 계획서는 고치지 않았다.
+
+- **경로 1**: 편집으로 새로 생긴 인용 `middleware.ts:12`(`matcher: ["/dashboard/:path*", "/login"]`), `app/dashboard/page.tsx:25-29`, `UploadPodcast.tsx:3-15·20`(`Button`은 `:20`) 일치.
+  나머지 인용은 1라운드 대조 뒤 트리 변경이 없다(`apps/web/src` 커밋 무변경).
+- **경로 2**: 신규 6, 수정 8 적용. `npm run check -w apps/web` **EXIT 0**(verify:fsd 통과, ESLint 경고·에러 0, tsc 0), `npm test -w apps/web` **143/143**(131 + 명세 12).
+- **경로 3**: `app/dashboard/page.tsx` Promise.all before가 이제 **바이트 일치 1회**(들여쓰기 보정 0회). 나머지 before도 1라운드와 같이 일치.
+- **경로 4**: 1라운드 열거 뒤 해당 트리 변경 없음. 편집이 새 전칭을 들이지 않았다(C는 반대로 전칭을 좁혔다).
+- **경로 5**: 돌연변이 23종, 생존 4(R8·R9·N10·N11 — 전부 등가). N4~N6은 새 누락 케이스로 사멸.
+- **경로 7**: W5·W6·W8·W1 위반 모두 exit 1로 검출, 대조군 exit 0. middleware 접두사 상실은 검출되고, 정확 경로로 좁히는 경우는 통과 — 계획서가 이제 이 한계를 그대로 적는다.
+- **경로 8**: 렌더 실패 0(`SettingsView` 초기값·문구, 헤더 `Settings` 순서, `UploadPodcast` 렌더, 라우트 이벤트 매핑).
+
+원복 후 `git status` 결과: `apps/web/src` 변경 0. 남은 것은 무관한 `apps/web/.claude/settings.local.json`과 `nul`뿐이다(둘 다 이 작업 전부터 있었다).
+메인 루프 라운드가 무소득이 됐으므로 `plan-verifier` 독립 무편집 패스를 디스패치한다. 브리핑은 항목ID, 계획서 경로, 필수 경로 목록만 담는다.
