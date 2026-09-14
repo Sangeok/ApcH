@@ -22,6 +22,19 @@
 
 ---
 
+## BUG-09 — 고객 포털 실패를 Sentry 보고 + 결제 페이지 안내로 (web, 구현 2026-09-14)
+
+원천: `docs/agents/web-dev/BUG-09.md`의 「테스트로 못 덮은 범위」 1~3. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **131/0**(인수 시 메인 루프 재실행). **이 항목은 500의 원인을 고치지 않는다** —
+원인은 계획서 「소유자 확인 항목」(Vercel `POLAR_SERVER`·`POLAR_ACCESS_TOKEN` 환경 정합 / Polar에 `polarCustomerId` 존재 여부)이 가른다. 그래서 셋째 줄은 원인 수정 뒤에만 닫힌다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인한 유료 계정의 화면과 Sentry 콘솔에서만 판정된다.
+원장 C-49(미로그인 → `/login`, 미고객 → `/dashboard/billing`)는 이 구현이 두 가드를 그대로 두므로 계속 유효하며 열린 채 둔다.
+
+- [ ] **포털 실패가 이제 진단 정보와 함께 Sentry에 도달하는가** — 배포 후 「Manage Subscription」을 한 번 누르면(원인이 그대로라면 실패한다) Sentry에 태그 `origin: portal.customerSession` 이벤트가 컨텍스트 `server`(`sandbox`|`production`)·`customerId`·`userId`와 함께 남는지. **그 이벤트의 예외 메시지가 후보 (a) 인증 계열(401/403)인지 (b) not-found 계열(404)인지를 가른다** — 계획서 소유자 확인 항목 1을 대신한다. 마감 증거는 `확인(날짜, Sentry 이벤트 관측)`
+- [ ] **실패 시 본문 없는 500 대신 결제 페이지로 돌아와 안내를 보는가** — `/dashboard/billing?portal=error`로 돌아와 토스트 `Couldn't open the subscription portal. Please try again in a moment.`이 한 번 뜨고, 주소창의 `?portal=error`가 사라지며, 새로고침해도 토스트가 다시 뜨지 않는지
+- [ ] **원인을 바로잡은 뒤 포털이 실제로 열리는가** — 위 이벤트로 (a)/(b)를 판정해 소유자가 Vercel 환경변수 또는 Polar 고객 데이터를 고친 뒤, 「Manage Subscription」이 Polar 고객 포털로 이동하는지. 원장 C-02(이관 BUG-09)의 원래 기대("프로덕션 Polar 포털을 연다")가 여기서 닫힌다
+
+---
 ## FEAT-43 — 클립 후보 hook·payoff를 업로드 언어로 생성 (backend, 구현 2026-09-14)
 
 원천: `docs/agents/backend-dev/FEAT-43.md`의 「못 덮은 범위」 (a)(b)(d). **배포됨 — 2026-09-14 08:06 KST**, 소유자 승인으로 메인 루프가 실행(`PYTHONUTF8=1 …\apch-backend\Scripts\python.exe -m modal deploy main.py`, 5.9초, EXIT 0).

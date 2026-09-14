@@ -170,3 +170,27 @@ try {
 디스패치 시 주의로 담당에게 알릴 것: 워킹트리에 **커밋 보류 중인 FEAT-38 변경**(`apps/web/src/fsd/shared/analytics/lib/metadata.ts`·
 `metadata.test.mjs` 포함, 마이그레이션 적용 대기)이 있다. BUG-09 구현자의 변경이 아니며 건드리지 않는다. 테스트 수는 그 변경 때문에
 기준선이 131이다.
+
+## 인수 (2026-09-14)
+
+web-dev 보고: 완료, check EXIT 0 · test 131/0. 인수 조건 다섯을 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`에서 BUG-09 변경 = `src/app/api/portal/route.ts`·`src/app/dashboard/billing/page.tsx`·`src/fsd/features/billing/ui/BillingPage.tsx` — 계획서 셋과 정확히 일치. 그 밖엔 보드·백로그·`docs/agents/web-dev/BUG-09.md`(규정된 쓰기)와 **디스패치 전부터 있던** FEAT-38 보류 변경뿐(파일 목록 동일) |
+| 2 | diff ↔ 스케치 | `route.ts` = 스케치 after 전문 그대로(임포트 5줄·가드·try/catch·`reportError` 컨텍스트 네 키·`?portal=error` 리다이렉트). `page.tsx` = 스케치 두 줄. `BillingPage.tsx` = prop·구조분해·일회성 이펙트(조건 `!hadPortalError \|\| portalErrorShownRef.current`, 토스트 문구 글자 일치, `router.replace("/dashboard/billing")`, deps `[hadPortalError, router]`). 스케치 대비 차이 — 보고서가 공개한 prop JSDoc·이펙트 주석, 그리고 **보고서에 없던 한 가지**: `portalErrorShownRef`를 이펙트 바로 위가 아니라 기존 `trackedCheckoutSuccessRef` 옆(컴포넌트 상단)에 선언. 분기 순서·조건·리터럴·문구 넷 중 어디에도 해당하지 않고 동작 동일 — 결함 아님. 토스트 문자열은 prettier 줄바꿈만 다름 |
+| 3 | 검증 명령 재실행 | `npm run check -w apps/web` → `FSD boundary check passed.` · `✔ No ESLint warnings or errors` · `tsc --noEmit` 오류 0 · EXIT 0. `npm test -w apps/web` → `# tests 131 # pass 131 # fail 0`(새 테스트 없음 — 계획서 「덮는 것: 없음」과 일치) |
+| 4 | 백로그 제거 | `git diff TASK_BACKLOG.md` = BUG-09 블록 삭제만 |
+| 5 | 상세 기록 실재 | `docs/agents/web-dev/BUG-09.md` 존재(구현 전 현재 동작 대조·고친 파일 셋·스케치 차이·검증·못 덮은 범위·범위 밖 의존). 보드 `결과` 150자 이내 |
+
+### 배포 확인 원장 등재
+
+`docs/release-checks.md` 최상단에 BUG-09 절 — 보고서 「못 덮은 범위」 1~3을 세 줄로(Sentry 이벤트 도달 · 실패 시 리다이렉트+토스트 ·
+원인 수정 뒤 포털 개방). `〔auto〕` 없음(로그인 화면·Sentry 콘솔 판정). 첫 줄이 **소유자 확인 항목 1(예외 성격)을 대신**하도록 적었다 —
+배포 뒤 한 번 누르는 것만으로 (a)/(b) 판정 재료가 생긴다. C-49는 가드 유지로 유효, 열린 채 둔다. C-02는 이미 `이관(BUG-09)`으로 닫혀 있다.
+
+### 범위 밖 의존 → 소유자에게 제시할 것
+
+- **(소유자 작업, 백로그 항목 아님)** Vercel `POLAR_SERVER`·`POLAR_ACCESS_TOKEN` 환경 정합 확인·수정(후보 a) / Polar 고객 데이터 재연결(후보 b).
+- **(백로그 후보, 조건부)** `polar.ts:12`·`env.js:30`의 `POLAR_SERVER` 폴백 제거(production 필수화) — 계획서가 "(a) 확정 + 별도 승인"으로 미뤘다.
+  (a)로 판정되기 전에는 등재를 권하지 않는다.
