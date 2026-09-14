@@ -132,3 +132,29 @@ try {
 경로 8이 잡을 위험 — 임포트 해석·prop 모양 — 은 라운드 2 경로 2의 `check -w apps/web`(lint + `tsc --noEmit`, 스케치 적용 상태)가 덮었고,
 바뀌는 UI는 `useEffect`의 토스트라 `renderToStaticMarkup`이 애초에 관측하지 못한다. 그래서 **브리핑의 필수 경로는 1·2·3·4로 한다.**
 경로 8의 실제 검증(토스트·리다이렉트)은 계획서 「못 덮는 범위」대로 배포 후 수동 확인이며 원장 등재 대상이다.
+
+## 라운드 4 (2026-09-14, 독립 패스 #1 — plan-verifier)
+
+브리핑은 계약 셋(항목ID·계획서 경로·경로 1·2·3·4 카탈로그 발췌)뿐. 검증자가 계약 준수를 스스로 확인했다(세션 환경 스냅샷의
+최근 커밋 제목은 디스패처 브리핑이 아니라고 판단하고, 그것에 검증을 좁히지 않았다고 명시).
+
+**보고: 결함 0건.** 필수 경로 넷 전부 실행, 실행 못 한 경로 없음.
+- 경로 1: 인용 약 28건 내용 대조 전부 일치 — 라이브러리 `@polar-sh/nextjs/dist/index.js:93-108` try/catch, SDK 선언,
+  `src/sentry.server.config.ts:15-17·19-29`, `src/instrumentation.ts:10`, `9dd6dfb` 포함.
+- 경로 2: after 블록의 신규 임포트 전부 해소(`polar.ts:12·14`, `shared/observability` 배럴, `entities/user/server` 배럴),
+  `customerSessions.create(request: CustomerSessionCustomerIDCreate | …)`에 `{ customerId }` 단독 유효, `customerPortalUrl: string`,
+  `reportError` 컨텍스트가 `ReportContext`에 대입 가능, 제거 임포트 미사용 확인. **실행 방식 주의**: 검증자는 저장소 무편집 제약 때문에
+  독립 `tsc` 대신 실제 `.d.ts` 선언 대조로 수행했다. 실제 컴파일·lint는 메인 루프 라운드 2가 스케치를 트리에 임시 적용한 상태로
+  `check -w apps/web` 전체를 돌려 EXIT 0을 확인했으므로, 두 증거를 합쳐 경로 2를 소진한 것으로 판정한다.
+- 경로 3: 계획서가 스스로 선언한 "구조 표시 before + 전문 교체"가 실측과 부합, after 전문의 완결성 확인.
+- 경로 4: `src/app` 테스트 0건(전체 20) · Sentry 도달 경로 둘(`onRequestError` 미발화·console 통합 부재) 모두 막힘 · scrub 규칙이
+  `X-Amz-*` 셋 + 엔드포인트 리터럴뿐 · **포털 흐름 참조 전수**(`api/portal`·`portalHandler`·`customerSessions`·`hadPortalError`·
+  `portal=error`) → `route.ts`와 `SubscriptionStatus.tsx:105` 둘뿐이라 3파일 범위가 완전 · `9dd6dfb` 회귀 판정 논리 성립.
+
+**트리 검산**(메인 루프 직접): 패스 종료 후 `git status --short`가 디스패치 직전 스냅샷과 동일 — 커밋 보류 중인 FEAT-38 변경
+(`git diff --ignore-cr-at-eol --numstat` 수치까지 동일), `apps/web/.claude/settings.local.json`, `nul`. BUG-09 대상 경로 청결.
+검증자 무수정 준수 확인.
+
+**판정: 클린 패스.** 정지 규칙 계수 0(전 라운드 결함이 문서 위생뿐이고 독립 패스 0건). 보드에 `검증:` 줄 기록.
+다음은 게이트②이며 소유자만 연다. 게이트② 결정에 필요한 사실: 구현은 **관측(Sentry 보고)과 사용자 안내(리다이렉트+토스트)**만
+바꾸고 500의 원인은 고치지 않는다 — 원인 수정은 계획서 「소유자 확인 항목」의 Vercel 환경변수·Polar 고객 데이터 확인이 필요하다.
