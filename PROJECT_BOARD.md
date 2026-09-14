@@ -44,6 +44,7 @@
   agent: web-dev
   area: apps/web/src/app/dashboard/settings + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx + apps/web/src/fsd/entities/user
   status: 검토대기
+  검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건·위생 3건 반영, 앞 사이클은 경로 8 미실행으로 무판정)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-38이 오늘 완료(프로덕션 마이그레이션 적용). 업로드마다 다시 고르던 세 옵션을 기본값으로 — 체인에서 처음 가치가 나는 항목.
 - [x] FEAT-40: 캡션 편집기를 `features/caption-style` 슬라이스로 이동 — 동작 무변경 순수 리팩터링
   agent: web-dev

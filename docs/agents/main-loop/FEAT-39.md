@@ -158,3 +158,29 @@
 - **경로 8**: 계획서 마크업 그대로 렌더. 문구·초기값 트리거·캡션 섹션 부재·헤더 순서·라우트 이벤트 매핑 전부 통과(실패 0).
 
 원복 후 `apps/web/src` 변경 0. → `plan-verifier` 2사이클 디스패치(브리핑은 1사이클과 동일, 직전 결과는 주지 않음).
+
+## plan-verifier 2사이클 (2026-09-14) — 결함 0건, 실행하지 못한 경로 없음 → 클린 패스
+
+- **브리핑**: 1사이클과 같다(항목ID, 계획서 경로, 필수 경로 1·2·3·4·5·7·8). 검증자가 계약 준수를 확인했다.
+- **경로별 증거 실질**
+  - 1: 인용 전수 일치. 새 `middleware.ts:12`, `app/dashboard/page.tsx:25-29`, 원장 FEAT-39 줄 포함.
+  - 2: `upload-defaults.ts` 추출본을 strict 설정으로 tsc EXIT 0(단언 없는 반환이 대입 가능). 실제 `analyzeFsdBoundaries`를 신규·변경 파일 합성 집합에 돌려 위반 0.
+  - 3: before 전부 바이트 일치, after는 가산이며 prop 체인이 일관. `DEFAULT_*` 제거 뒤 남은 상수 사용 확인.
+  - 4: 세 컬럼 참조 0, 이벤트 발신 0, 신규 슬라이스 부재, `entities/user/api` 함수 10개 전수에서 세 컬럼 미사용.
+  - 5: 돌연변이 8종 전부 사멸. 대조군 — 누락 케이스를 뺀 명세에서는 `!= null` 돌연변이가 생존한다.
+  - 7: `normalizeUploadDefaults`의 가드 제거 돌연변이가 명세 실패로 드러남. 라우트 보호는 계획서 서술대로(테스트의 한계를 명시).
+  - 8: React 19.2 `renderToStaticMarkup`으로 `SettingsView`를 렌더했다. English/3/false → `English`·`3 clips`·`Auto`, Korean/2/true → `Korean`·`2 clips`·`Review first`, 단수 `1 clip`, 버튼 문구 방출.
+- **[실행하지 못한 경로]**: 없음.
+- **트리 청결 직접 확인**(보고가 아니라 `git status`): `apps/web/src`·`docs`·`packages` 변경 0. 남은 것은 이 작업 전부터 있던 `apps/web/.claude/settings.local.json`(WebFetch 권한 1줄 — 이 세션 작성분 아님)과 `nul`뿐.
+- **판정**: 독립 무편집 무소득 패스 1회 → **클린 패스**(보드 정지 규칙). 보드에 `검증:` 줄을 기록했고 status는 `검토대기` 그대로다 — 게이트② `구현승인`은 소유자만 연다.
+- **반영된 결함 분류**
+  - 구현 영향 2: A(스케치대로 쓰면 `check`가 lint 에러로 실패), B(누락 필드 거부를 고정하는 테스트 부재).
+  - 위생 3: C(라우트 보호 근거 서술), D(before 들여쓰기), E(인용 줄).
+  - 그 외: 검증 가능성 보강 1(`SettingsView` 마크업 명시 — 1사이클 무판정의 원인).
+
+**인수 때 메인 루프 몫**(web-dev 쓰기 범위 밖):
+- `apps/web/CLAUDE.md`
+  - 테스트 표에 `entities/user/model/upload-defaults.test.mjs` 행 추가, 테스트 수 문구 갱신(기준선 131 → 143 예상).
+  - FSD 레이어 표 `pages`·`features`에 `settings` 추가.
+  - 「서버 액션」 목록에 `features/settings/api/index.ts` 추가.
+- `docs/release-checks.md`: FEAT-39 절 등재, FEAT-38 절 "(FEAT-39 배포 후)" 줄은 배포 뒤 함께 마감.
