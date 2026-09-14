@@ -13,7 +13,7 @@ agent: web-dev
 - `getUserPolarCustomerId`는 DB의 `polarCustomerId ?? null`을 돌려준다 — `entities/user/api/index.ts:33-40`. 즉 `route.ts:39`에 도달한 시점의 `customerId`는 **비어 있지 않다.**
 - `portalHandler`가 위임받아 하는 일(라이브러리 소스 `node_modules/@polar-sh/nextjs/dist/index.js`, `customerPortal.ts` 구획): `config.getCustomerId(req)`로 id를 받고 `polar.customerSessions.create({ returnUrl, customerId })`를 **try/catch로 감싼다.** 던지면 `console.error(error)` 후 `return NextResponse.error()`. `NextResponse.error()`는 **본문 없는 500**이다 — 관측(`status=500`·본문 길이 0)과 정확히 일치한다.
 - `POLAR_SERVER`는 `shared/api/polar.ts:12` `env.POLAR_SERVER ?? "sandbox"`. `env.POLAR_SERVER`는 `env.js:30` `z.enum(["sandbox", "production"]).optional()`라 **미설정이면 조용히 `"sandbox"`로 떨어진다.**
-- 예외는 `console.error(error)`로만 남는다. `sentry.server.config.ts`의 `Sentry.init`에는 `integrations`(console 캡처)가 없다 — 그래서 이 예외는 **Vercel 원시 함수 로그에만** 남고 **Sentry에는 도달하지 않는다.** 소유자가 로그를 직접 파야 하는 이유가 이것이다.
+- 예외는 `console.error(error)`로만 남는다. `src/sentry.server.config.ts`의 `Sentry.init`(`:19-29`)에는 `integrations`(console 캡처)가 없고, `src/instrumentation.ts:10` `export const onRequestError = Sentry.captureRequestError;`는 **라우트가 놓친(미처리) 예외만** 받는데 이 예외는 라이브러리가 catch해 `NextResponse.error()`로 바꾼다 — 그래서 이 예외는 **Vercel 원시 함수 로그에만** 남고 **Sentry에는 도달하지 않는다.** 소유자가 로그를 직접 파야 하는 이유가 이것이다.
 - 회귀 후보 커밋 `9dd6dfb`: 이 라우트의 `server: "sandbox"`(하드코딩)를 `server: POLAR_SERVER`로 바꾸고, `polar.ts`의 지역 `polarServer`를 `export const POLAR_SERVER`로 올렸다(`git show 9dd6dfb` 확인). 체크아웃 라우트도 같은 `POLAR_SERVER`를 쓴다(`checkout/route.ts:19`).
 - 저장소 안 선례: `cancelSubscription`이 같은 Polar SDK 호출을 우리가 직접 try/catch로 감싸 관측·사용자 안내를 붙인다 — `billing/api/index.ts:66-97` (`getPolarClient()` → `try` → 실패 시 `reportError(error, { origin, userId })` → `failure(...)`). `reportError`는 `console.error`를 유지한 채 `Sentry.captureException`을 붙이고 절대 던지지 않는다(`report-error.ts:83-99`, `import "server-only"`).
 
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
 ```
 
 - `getPolarClient().customerSessions.create({ customerId })`는 라이브러리가 부르던 것과 동일한 SDK 호출이다(라이브러리 소스: `polar.customerSessions.create({ returnUrl, customerId })`, `{ customerPortalUrl }` 반환). `returnUrl`은 현재 라우트가 설정하지 않으므로(`:8-24`에 `returnUrl` 없음) 생략해 **성공 동작을 그대로 보존**한다.
-- `reportError` 컨텍스트에 `server: POLAR_SERVER`(`"sandbox" | "production"`)와 `customerId`를 담는다 — 후보 (a)/(b)를 가르는 두 정보가 이벤트에 붙는다. `customerId`는 Polar 고객 식별자(비밀 아님)이고 `scrubEvent`는 AWS 서명만 지우므로 그대로 전송된다.
+- `reportError` 컨텍스트에 `server: POLAR_SERVER`(`"sandbox" | "production"`)와 `customerId`를 담는다 — 후보 (a)/(b)를 가르는 두 정보가 이벤트에 붙는다. `customerId`는 Polar 고객 식별자(비밀 아님)이고, 서버 `beforeSend`의 `scrubEvent`가 치환하는 것은 AWS 서명 셋(`scrub-event.ts:16-19` `X-Amz-Signature`·`X-Amz-Credential`·`X-Amz-Security-Token`)과 Modal 엔드포인트 호스트 리터럴(`src/sentry.server.config.ts:15-17`)뿐이라 그대로 전송된다.
 
 **`page.tsx`** — before/after (바뀌는 줄만):
 ```ts

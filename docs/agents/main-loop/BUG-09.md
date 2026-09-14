@@ -86,3 +86,49 @@ try {
 ## 트리 청결 검산
 
 `git status --short` = `M apps/web/.claude/settings.local.json` + `?? nul` — 세션 시작 스냅샷과 동일. 임시 적용 3파일 전부 복원 확인.
+
+## 라운드 2 (2026-09-14, 편집) — 문서 위생 2건, 구현 영향 0
+
+라운드 1이 계획서를 고쳤으므로 준비 상태가 리셋된 채였다. 라운드 1 이후 계획서·대상 파일 변경 없음
+(`git log 62eb865..HEAD -- apps/web/src/app/api/portal apps/web/src/fsd/shared/api apps/web/src/fsd/features/billing apps/web/src/env.js docs/plans/BUG-09.md` 무출력).
+워킹트리엔 커밋 보류 중인 FEAT-38 변경이 있다 — 아래 경로 2의 임시 적용·복원은 BUG-09 세 파일로만 한정했다.
+
+- **경로 1 (인용 전수)**: 계획서를 파일에서 다시 읽어 전 인용을 내용까지 대조 — `route.ts:8-24·9·23·26-40·27-28·30-32·34-37·39`,
+  `page.tsx:8·22·25`, `BillingPage.tsx:20-26·28-33·53·63-69`, `polar.ts:12`(+`getPolarClient` 수출), `report-error.ts:12·83-99·95-98`,
+  `shared/observability/index.ts`의 `reportError` 수출, `entities/user/api/index.ts:33-40`, `SubscriptionStatus.tsx:105`, `env.js:30`,
+  `checkout/route.ts:19`, `billing/api/index.ts:66-97·76-88`, 라이브러리 `@polar-sh/nextjs/dist/index.js` `customerId` 분기 try/catch
+  (`:100-109`), SDK `customersession.d.ts:24` `customerPortalUrl: string`·`customersessioncustomeridcreate.d.ts:17` `returnUrl?`,
+  `git show 9dd6dfb`(`server: "sandbox"` → `server: POLAR_SERVER`, `polarServer` → `export const POLAR_SERVER`) — 전부 일치.
+  **불일치 1(위생)**: 계획서의 `sentry.server.config.ts`는 `apps/web/` 루트에 없고 `apps/web/src/sentry.server.config.ts`다.
+- **경로 4 (전칭 여집합)**: `src/app` 아래 테스트 파일 0개(`src` 전체 20개) · `<BillingPage` 소스 호출부 `page.tsx:22` 하나(나머지는 완료 제안서) ·
+  "Sentry 미도달"의 여집합으로 `src/instrumentation.ts`를 열거 — `:10` `onRequestError = Sentry.captureRequestError`는 **미처리** 예외만
+  받고 이 예외는 라이브러리가 catch하므로 주장은 참(계획서엔 이 근거가 빠져 있었다). **불일치 2(위생)**: "`scrubEvent`는 AWS 서명만
+  지운다"는 전칭이 불완전 — 서버 `beforeSend`가 `scrubEvent(event, ENDPOINT_REPLACEMENTS)`로 Modal 엔드포인트 호스트 리터럴도 치환한다
+  (`src/sentry.server.config.ts:15-17·28`). 결론(Polar 고객 id는 그대로 전송)은 유지 — 구현 영향 0.
+- **경로 3 (before/after)**: `page.tsx` before 두 줄 바이트 일치. `route.ts` before는 계획서가 명시한 구조 표시(라운드 1 반영분).
+- **경로 2 (스케치 추출·실행)**: after 세 곳(route.ts 전문·page.tsx 두 줄·BillingPage prop/구조분해/effect)을 실제 트리에 임시 적용하고
+  **`npm run check -w apps/web` 전체**를 돌렸다(라운드 1은 `typecheck`만 — lint·FSD 경계가 빠져 있었다) → `FSD boundary check passed.` ·
+  `✔ No ESLint warnings or errors` · `tsc --noEmit` 오류 0 · **EXIT 0**. `finally`에서 세 파일만 `git checkout --`, 복원 후
+  `git status`에서 세 파일 부재·FEAT-38 변경 전부 유지 확인.
+- **경로 8 (실물 렌더)**: 라운드 1과 같은 이유로 실행 불가(`~/` 별칭·클라이언트 의존 그래프, 효과는 마크업에 안 나타남). 경로 2의 lint·tsc 통과가 임포트·prop 모양을 덮는다.
+
+**반영(일괄 편집)**: 계획서 「현재 동작」의 Sentry 줄에 `src/` 경로·`Sentry.init` 줄범위·`instrumentation.ts:10`의 미처리 예외 한정 근거 추가,
+「구현 스케치」의 scrub 문장을 AWS 서명 셋 + 엔드포인트 호스트 리터럴로 정정. **계획서를 고쳤으므로 준비 상태 리셋 → 라운드 3 무편집.**
+
+## 라운드 3 (2026-09-14, 무편집) — 무소득
+
+- 계획서를 파일에서 전문 재독(회상 아님). `git diff docs/plans/BUG-09.md` = 2줄 변경, `--word-diff`로 **산문 두 문장만** 바뀌고
+  코드 블록 변경 0 확인 → 라운드 2 경로 2(스케치 임시 적용 + `check -w apps/web` EXIT 0)의 대상이 그대로다.
+- 대상 코드 불변: `git status --short -- apps/web/src/app/api/portal apps/web/src/app/dashboard/billing apps/web/src/fsd/features/billing
+  apps/web/src/fsd/shared/api apps/web/src/fsd/shared/observability apps/web/src/sentry.server.config.ts apps/web/src/instrumentation.ts` 무출력.
+- 편집으로 새로 들어간 인용을 줄 단위로 재독: `src/sentry.server.config.ts:15-17`(`ENDPOINT_REPLACEMENTS`)·`:19-29`(`Sentry.init`, `integrations` 없음)·`:28`(`beforeSend`),
+  `src/instrumentation.ts:10` `export const onRequestError = Sentry.captureRequestError;`(계획서 인용과 글자 일치), `scrub-event.ts:16-19`(`X-Amz-*` 셋) — 전부 일치.
+- **판정: 무소득** → `plan-verifier` 독립 패스 디스패치 자격.
+
+### 독립 패스 브리핑의 필수 경로 — 경로 8 제외 판단
+
+필수 경로 확정표는 경로 8을 ○로 올렸으나 라운드 1·2 모두 **실행 불가**였다(`~/` 별칭·클라이언트 의존 그래프). 검증자 계약상 실행 못 한
+경로가 있는 보고는 무소득 보고가 될 수 없어(`plan-verifier.md` 절차 2), 경로 8을 넣으면 이 항목은 구조적으로 클린 패스가 불가능해진다.
+경로 8이 잡을 위험 — 임포트 해석·prop 모양 — 은 라운드 2 경로 2의 `check -w apps/web`(lint + `tsc --noEmit`, 스케치 적용 상태)가 덮었고,
+바뀌는 UI는 `useEffect`의 토스트라 `renderToStaticMarkup`이 애초에 관측하지 못한다. 그래서 **브리핑의 필수 경로는 1·2·3·4로 한다.**
+경로 8의 실제 검증(토스트·리다이렉트)은 계획서 「못 덮는 범위」대로 배포 후 수동 확인이며 원장 등재 대상이다.
