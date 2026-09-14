@@ -66,7 +66,7 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 20개 파일, 31 suite, 130개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 21개 파일, 33 suite, 145개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -80,6 +80,7 @@ npm test -w apps/web
 | `widgets/clip-draft-review/model/preview-range.test.mjs` | `getPreviewRange`의 Start/Full/End 프리뷰 창과 0 클램프. **pre/post-roll이 요점이다** — start부터 재생하면 무엇을 잘랐든 깔끔하게 들려 "말 중간이 잘렸는가"를 판정할 수 없다 |
 | `widgets/clip-draft-review/model/review-language-notice.test.mjs` | Korean 검토 화면의 헤더 안내와 카드 「English transcript」 라벨 판정. `reviewLanguageNotice`가 비영어에만 골든 문구를 내고(English·nullish/공백은 null, trim 존재, 허용목록이 아니라 "English 아님"으로 판정해 언어 추가를 자동 커버), `showsEnglishSourceForTranslation ≡ reviewLanguageNotice !== null`로 헤더 안내와 카드 라벨이 **반드시 같은 조건으로** 켜짐을 잡는다. **골든 문자열은 사용자에게 보이는 카피라 정확값이 계약이다** — 한국어 업로드가 렌더 전엔 영어 전사만 보여 소유자조차 번역 실패로 오독한 것(FEAT-37)이 이 문구가 존재하는 이유다 |
 | `pages/dashboard/model/clip-count-budget.test.mjs` | 소스 재생 길이 → 구조적 클립 상한. `floor(D/30)` 경계, 옵션 최댓값(4) 클램프, 길이 미상(`null`·비유한·0 이하) 시 가드 없음(=4), 30초 미만 시 0. **`600초 → 4`는 회귀 테스트다** — 백로그가 FEAT-02의 원인으로 지목한 "10분 소스에 4개는 무리한 요청"이 사실이 아니고, 그 경우의 미달 생성은 `apps/backend` 하이라이트 탐지 문제임을 못박는다 |
+| `entities/user/model/upload-defaults.test.mjs` | 사용자 업로드 기본값의 해석·정규화. `resolveUploadDefaults`는 null·지원 목록 밖 저장값(목록이 줄어든 뒤의 옛 값)을 시스템 기본(`English`/`3`/`false`)으로 떨어뜨리고, `normalizeUploadDefaults`는 서버 액션 입력의 범위 밖·잘못된 타입·**필드 누락**을 null로 거부한다. **누락 필드 거부가 요점이다** — `!== null`을 `!= null`로 바꾼 구현은 `undefined`를 통과시켜 Prisma `update`가 그 컬럼을 조용히 건너뛰는 부분 갱신이 되는데, 나머지 케이스는 전부 통과한다(FEAT-39 계획 검증의 돌연변이 실측) |
 | `entities/uploaded-file/model/clip-generation-outcome.test.mjs` | 부분 클립 결과 판정과 폴링 조기 탈출 판정. **노트 코드 두 개는 `failureCode` 컬럼에 저장되는데 union 타입이 그 상수 자신에서 파생된다.** 값을 바꾸면 타입은 그대로 통과하고 이미 저장된 행만 조용히 인식되지 않는다. `clipsFound >= expectedClipCount → null` 경계도 타입이 못 잡는다 — 무너지면 완전 성공에도 "일부만 생성됨" 안내가 뜬다 |
 | `entities/clip/lib/clip-type-label.test.mjs` | `clipTypeLabel`의 라벨 매핑(`qa`→Q&A·`insight`→Insight·**모르는 값은 원본 그대로**·nullish/공백은 null). **백엔드가 `clipType`에 강제하는 enum이 없어**(`apps/backend/moment_prompt.py:69` `"type": <"qa" | "insight">,`는 프롬프트의 요청일 뿐) 라벨이 미지의 값을 빈 칸으로 삼키지 않는 것을 잡는다 |
 | `widgets/clip-display/model/clip-rationale.test.mjs` | 최종 클립 카드의 선택 근거 존재 판정. `hasClipRationale`은 비공백이 하나라도 있으면 true — 세 근거가 전부 비면 카드 블록 자체가 렌더되지 않는다 |
@@ -99,9 +100,9 @@ npm test -w apps/web
 
 | 레이어 | 슬라이스 |
 |---|---|
-| `pages/` | about, ai-podcast-clipper, changelog, compare, contact, dashboard, features, guides, home, how-it-works, podcast-to-shorts, pricing, product-tour, security, upload-detail, youtube-shorts-generator |
+| `pages/` | about, ai-podcast-clipper, changelog, compare, contact, dashboard, features, guides, home, how-it-works, podcast-to-shorts, pricing, product-tour, security, settings, upload-detail, youtube-shorts-generator |
 | `widgets/` | clip-display, clip-draft-review, dashboard-header, login-form, site-footer, site-header, uploaded-file-list |
-| `features/` | auth, billing, caption-style, clip, clip-review, handle-order-*, handle-subscription-*, upload |
+| `features/` | auth, billing, caption-style, clip, clip-review, handle-order-*, handle-subscription-*, settings, upload |
 | `entities/` | analytics-event, clip, clip-draft, order, processing-dispatch, subscription, uploaded-file, user |
 | `shared/` | analytics, api, config, lib, observability, ui |
 
@@ -120,6 +121,7 @@ npm test -w apps/web
 features/billing/api/index.ts            결제·체크아웃
 features/clip/api/index.ts               클립 조회·삭제·URL 생성
 features/clip-review/api/index.ts        생성 전 클립 검토
+features/settings/api/index.ts           사용자 업로드 기본값 저장
 features/upload/api/index.ts             업로드 준비·확정·처리 스케줄링
 ```
 

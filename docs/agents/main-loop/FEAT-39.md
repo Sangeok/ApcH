@@ -184,3 +184,40 @@
   - FSD 레이어 표 `pages`·`features`에 `settings` 추가.
   - 「서버 액션」 목록에 `features/settings/api/index.ts` 추가.
 - `docs/release-checks.md`: FEAT-39 절 등재, FEAT-38 절 "(FEAT-39 배포 후)" 줄은 배포 뒤 함께 마감.
+
+## 게이트② (2026-09-14)
+
+- 소유자가 세션에서 「구현승인」을 지시했다. 보드 FEAT-39 행의 `status: 검토대기` → `구현승인` 한 줄만 바꾸고 `검증:` 줄은 남겼다(전진 전이라 지우지 않는다).
+- 커밋 전 `git diff -U0 PROJECT_BOARD.md`로 변경이 그 한 줄뿐임을, `git rev-list --left-right --count dev...origin/dev`가 `0 0`임을 확인 → `bb9b95f` 커밋·푸시.
+- 디스패치 전 FEAT-39 검증을 돌린 다른 로컬 세션이 idle임을 확인했다(이중 디스패치 방지). web-dev를 B단계로 디스패치하며 워킹트리의 남의 변경(`apps/web/.claude/settings.local.json` 수정·루트 `nul` 미추적)을 건드리지 말고 커밋·푸시하지 말라고 브리핑했다.
+
+## 인수 (2026-09-14)
+
+web-dev 보고: 완료, check EXIT 0 · test 145/0. 인수 조건 다섯을 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status --short`: 수정 8(`app/dashboard/page.tsx`·`entities/user/api/index.ts`·`entities/user/index.ts`·`entities/user/server.ts`·`UploadPodcast.tsx`·`pages/dashboard/ui/index.tsx`·`AnalyticsTracker.tsx`·`dashboard-header/ui/index.tsx`) + 신규 6(`entities/user/model/upload-defaults.ts`·`upload-defaults.test.mjs`·`features/settings/api/index.ts`·`features/settings/index.ts`·`pages/settings/ui/index.tsx`·`app/dashboard/settings/page.tsx`) — 계획서 열네 행과 정확히 일치. 그 밖엔 보드·백로그·보고서, 그리고 세션 전부터 있던 `settings.local.json`·`nul` |
+| 2 | diff ↔ 스케치 | 신규 여섯 파일 전문과 수정 여덟의 `git diff`를 스케치와 대조 — 분기 순서·조건·리터럴 값·사용자에게 보이는 문구 모두 동일. 유일한 차이는 `SettingsView`의 `~/fsd/entities/user` 임포트를 여러 줄로 포맷한 것(보고서 「스케치 대비 차이」와 일치) |
+| 3 | 검증 명령 재실행 | `npm run check -w apps/web` → verify:fsd:test `# pass 11` · `FSD boundary check passed.` · `✔ No ESLint warnings or errors` · EXIT 0. `npm test -w apps/web` → `# tests 145 # suites 33 # pass 145 # fail 0` |
+| 4 | 백로그 제거 | `grep -c FEAT-39 TASK_BACKLOG.md` = 0 |
+| 5 | 상세 기록 실재 | `docs/agents/web-dev/FEAT-39.md` 108줄 — B-3 대조, 파일 전수, 스케치 대비 차이, 검증, 테스트 14, 못 덮은 범위, CLAUDE.md 행 제안. 보드 `결과` 요약이 이를 가리킨다 |
+
+**위생 관찰 (차단 아님, 고치지 않음)**
+- `entities/user/model/upload-defaults.ts:15` 주석 `/** 생성 모드 시스템 기본값. UploadPodcast의 초기 false(:75)와 같은 값이다. */` — 이번 구현이 그 `false`를 `defaults.reviewBeforeGenerate`로 바꿔, 주석이 가리키는 코드가 사라졌다. 승인된 스케치 문구 그대로라 구현 결함은 아니다. 다음에 이 파일을 만지는 항목에서 고친다.
+- web-dev 보고서의 파일 전수가 "신규 8"이라 적고 실제로는 6개를 나열하며, 번호 10에 `pages/settings/ui/index.tsx`를 중복 기재한다(총 14는 맞다). append-only 기록이라 고치지 않는다.
+
+**범위 밖 의존**: 계획서 「없음」 — 사용자에게 제시할 백로그 후보 없음.
+
+### 문서 갱신
+
+- `apps/web/CLAUDE.md`
+  - 테스트 개수 `20개 파일, 31 suite, 130개 테스트` → `21개 파일, 33 suite, 145개 테스트`. `git ls-files`로 `src/**/*.test.mjs` 21개를 셌다. 기준선 131조차 반영되지 않은 채였다.
+  - 테스트 표에 `entities/user/model/upload-defaults.test.mjs` 행(누락 필드 거부가 요점인 이유 포함).
+  - FSD 레이어 표 `pages/`·`features/` 행에 `settings`, 「서버 액션」 목록에 `features/settings/api/index.ts`.
+- `docs/release-checks.md`: FEAT-39 절 다섯 줄 — 헤더 진입·저장값이 업로드 폼 초기값이 되는지·초기화·짧은 영상 클램프·미인증 리다이렉트. `〔auto〕` 없음 — 루틴이 admin 호스트만 조회한다(`scripts/release-verify/run.mjs` `ADMIN_BASE_URL`). 컬럼 읽기·쓰기와 이벤트 기록은 기존 FEAT-38 절 「(FEAT-39 배포 후)」 줄이 맡는다.
+
+### 커밋
+
+- 구현 커밋: FEAT-39 경로(web 14 + 보드·백로그·web-dev 보고서)만 지정해 스테이징하고, 남의 변경이 섞이지 않았는지 스테이징 집합을 확인한 뒤 커밋.
+- 인수 문서 커밋: `apps/web/CLAUDE.md`·`docs/release-checks.md`·이 기록.

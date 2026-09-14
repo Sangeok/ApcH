@@ -22,6 +22,20 @@
 
 ---
 
+## FEAT-39 — 설정 화면 + 업로드 기본값(언어·클립 수·생성 모드) (web, 구현 2026-09-14)
+
+원천: `docs/agents/web-dev/FEAT-39.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **145/145**(인수 시 메인 루프 재실행, 131→145 — 신규 `upload-defaults.test.mjs` 14). 컬럼이 실제로 읽히고 쓰이는지와 이벤트 두 개의 기록은 아래 FEAT-38 절 「(FEAT-39 배포 후)」 줄이 맡고, 이 절은 화면 흐름을 맡는다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면에서만 판정되고, 미인증 리다이렉트 줄도 release-verify 루틴이 admin 호스트만 조회해(`scripts/release-verify/run.mjs` `ADMIN_BASE_URL` 기본값 `https://admin.a-pch.com`) web 라우트를 판정하지 못한다.
+
+- [ ] **헤더 메뉴에서 설정 화면으로 가고, 화면이 열리는가** — 대시보드 우상단 메뉴에 `Settings`가 `Billing` 위에 있고, 누르면 `/dashboard/settings`에 「Upload defaults」 카드·드롭다운 셋(`Subtitle language`·`Number of clips`·`Generation`)·`Save defaults`·`Reset to system defaults`가 보이는지. 기본값을 저장한 적 없는 계정은 `English`·`3 clips`·`Auto`로 시작해야 한다
+- [ ] **저장한 기본값이 업로드 폼의 초기값이 되는가** — 설정에서 예컨대 `Korean`·`2 clips`·`Review first`로 저장 → 토스트 `Defaults saved` → 새로고침해도 설정 화면이 그 값 → 대시보드에서 파일을 고르면 옵션 행이 그 값으로 시작하는지. 폼에서 이번 업로드만 바꿔도 설정 화면 값은 그대로여야 한다
+- [ ] **초기화가 시스템 기본으로 되돌리는가** — `Reset to system defaults` 뒤 설정 화면과 업로드 폼이 `English`·`3 clips`·`Auto`로 돌아가는지
+- [ ] **클립 수 기본값이 짧은 영상에서 기존대로 내려가는가** — 기본값을 `4 clips`로 저장하고 60초 영상을 고르면 `2 clips`로 하향되는지(`getMaxFeasibleClipCount`의 `floor(D/30)` 클램프가 사용자 기본값 초기값에도 적용)
+- [ ] **로그아웃 상태로 `/dashboard/settings`를 열면 로그인으로 가는가** — 미인증 접근이 `/login`으로 리다이렉트되는지(`middleware.ts` matcher `/dashboard/:path*` · 대시보드 레이아웃 가드 · 라우트의 `auth()`)
+
+---
+
 ## FEAT-38 — 사용자 기본값 스키마 · analytics 이벤트 2개 (db+web 계약, 구현·마이그레이션 2026-09-14)
 
 원천: 계획서 `docs/plans/FEAT-38.md` 「못 덮는 범위」. **마이그레이션은 적용됨** — 소유자 지시("마이그레이션하자")로 메인 루프가 `packages/db`에서 `node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate deploy` 실행. **코드(재생성한 Prisma 클라이언트·analytics 계약)는 배포 대기** — web은 `main` 합류 뒤 반영된다.
