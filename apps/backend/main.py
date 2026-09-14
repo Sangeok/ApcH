@@ -41,6 +41,8 @@ from temp_cleanup_policy import (
     should_cleanup_temp_dir,
 )
 from error_callback import build_error_callback_payload
+from moment_prompt import build_moment_prompt
+from caption_style_source import select_caption_style
 
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
@@ -59,6 +61,11 @@ class ProcessVideoRequest(BaseModel):
     output_prefix: str | None = None
     callback_url: str | None = None
     uploaded_file_id: str | None = None
+    # 요청 단위 캡션 스타일 스냅샷(업로드 시점). auto 모드 전용 폴백이다 —
+    # auto는 moment별 caption_style이 없어 이 값이 언어 기본값 위에 얹힌다.
+    # render는 이 값을 쓰지 않는다(클립별 스타일만, 부재 = 언어 기본값).
+    # 선택·기본 None → 웹이 아직 안 보내면 기존 동작과 동일(FEAT-42가 auto 디스패치에 싣는다).
+    caption_style: dict | None = None
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -75,7 +82,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True)
-    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback"))
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -933,80 +940,8 @@ class AiPodcastClipper:
 
         return json.dumps(segments)
 
-    def identify_moments(self, transcript: list, target_count: int = 6) -> str:
-        prompt_template = """You are a viral short-form video editor specializing in podcast content.
-
-You will receive a word-level podcast transcript with timestamps.
-Identify the MOST ENGAGING moments suitable for a short-form clip.
-
-# What Makes a Great Clip
-
-A great clip must have ALL of the following:
-1. STRONG HOOK (first 5 seconds): Starts with a surprising claim,
-   a compelling question, a counterintuitive statement, or a story
-   already in progress. Do NOT start with small talk, filler words,
-   or topic transitions.
-2. COMPLETE PAYOFF: Ends at a natural conclusion — a full answer
-   delivered, an insight fully stated, a story arc completed.
-   The viewer must feel satisfied, not cut off.
-3. HIGH CONTENT DENSITY: Every second contains value.
-   Avoid long pauses, filler phrases ("um", "like", "you know"),
-   or tangential side-comments that dilute the core message.
-
-# Eligible Moment Types
-
-Find moments from EITHER of these categories:
-- Q&A: A sharp question followed by a compelling, complete answer.
-  Include a few sentences of context before the question if needed.
-- Insight or Revelation: A speaker delivers a counterintuitive point,
-  surprising fact, contrarian opinion, or "the real reason is..."
-  moment. The moment must be fully stated with context and conclusion.
-
-# Duration Rules
-
-- Minimum: 30 seconds
-- Target: 50 to 90 seconds
-- Maximum: 90 seconds
-- If a compelling moment runs slightly over 90 seconds, skip it.
-  Do NOT trim mid-sentence.
-
-# Hard Constraints
-
-- Clips must NOT overlap with each other.
-- Only use timestamps that exist verbatim in the input. Do not invent
-  or interpolate timestamps.
-- Do NOT start a clip with greetings ("Hello", "Hi", "Welcome"),
-  filler words used as connectors ("Um", "So", "Anyway", "Like"),
-  or topic transitions ("Moving on", "Next", "Let’s talk about").
-- Do NOT end a clip mid-sentence. The clip must end at the last word
-  of a complete sentence.
-- Do NOT include the first word of the next sentence after the ending.
-
-# Output Format
-
-Return a JSON array ordered from MOST ENGAGING to LEAST ENGAGING.
-Each element:
-{
-  "start": <number, seconds from transcript>,
-  "end": <number, seconds from transcript>,
-  "type": <"qa" | "insight">,
-  "hook": <one sentence: why the first 5 seconds hook viewers>,
-  "payoff": <one sentence: what value the viewer gets at the end>
-}
-
-Return exactly TARGET_COUNT moments if possible.
-If fewer genuine moments exist, return only valid ones.
-Return [] if no suitable moments exist.
-
-Output must be valid JSON parseable by Python json.loads().
-No code fences. No markdown. No explanations.
-
-Transcript:
-"""
-        prompt = (
-            prompt_template.replace("TARGET_COUNT", str(target_count))
-            + json.dumps(transcript, ensure_ascii=False)
-        )
+    def identify_moments(self, transcript: list, target_count: int = 6, language: str = "English") -> str:
+        prompt = build_moment_prompt(transcript, target_count, language)
         response = self.gemini_client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
@@ -1018,7 +953,7 @@ Transcript:
 
     # 실제 영상 처리 (비동기 실행, 완료/실패 시 callback)
     @modal.method()
-    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None, mode: str = "auto", moments: list | None = None, transcript_s3_key: str | None = None):
+    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None, mode: str = "auto", moments: list | None = None, transcript_s3_key: str | None = None, request_caption_style: dict | None = None):
         import requests as req
 
         clip_results = []
@@ -1079,7 +1014,7 @@ Transcript:
 
                 # 후보 추출 (기존 auto 경로의 파싱 로직과 동일)
                 print("Identifying moments for clips...")
-                identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2)
+                identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2, language)
 
                 raw = identified_moments_raws.strip()
                 if raw.startswith("```"):
@@ -1146,7 +1081,7 @@ Transcript:
                 else:
                     # 2. Identify moments for clips (기존 auto 경로와 동일)
                     print("Identifying moments for clips...")
-                    identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2)
+                    identified_moments_raws = self.identify_moments(transcript_segments, clip_count * 2, language)
 
                     raw = identified_moments_raws.strip()
                     if raw.startswith("```"):
@@ -1183,7 +1118,7 @@ Transcript:
                         self.gemini_client,
                         language,
                         output_prefix,
-                        caption_style=moment.get("caption_style"),
+                        caption_style=select_caption_style(moment.get("caption_style"), request_caption_style, mode),
                     )
 
                     clip_result["clipType"] = moment.get("type")
@@ -1271,6 +1206,7 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             mode=request.mode,
             moments=request.moments,
             transcript_s3_key=request.transcript_s3_key,
+            request_caption_style=request.caption_style,
         )
         return {"status": "accepted", "call_id": call.object_id}
     else:
@@ -1286,6 +1222,7 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             mode=request.mode,
             moments=request.moments,
             transcript_s3_key=request.transcript_s3_key,
+            request_caption_style=request.caption_style,
         )
 
 

@@ -39,18 +39,53 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-14
+- [x] FEAT-39: 설정 화면 + 업로드 기본값(언어·클립 수·생성 모드) — 이 항목이 끝나면 배포 가능하고 가치가 난다
+  agent: web-dev
+  area: apps/web/src/app/dashboard/settings + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx + apps/web/src/fsd/entities/user
+  status: 완료
+  검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건·위생 3건 반영, 앞 사이클은 경로 8 미실행으로 무판정)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-38이 오늘 완료(프로덕션 마이그레이션 적용). 업로드마다 다시 고르던 세 옵션을 기본값으로 — 체인에서 처음 가치가 나는 항목.
+  결과: 순수모듈 upload-defaults(resolve/normalize)+테스트14 신설, 설정화면·서버액션·라우트·헤더링크·계측 배선, 업로드 초기값 상수→기본값 prop. check EXIT0·test 145/0(131→145). 상세 web-dev/FEAT-39
+- [x] FEAT-40: 캡션 편집기를 `features/caption-style` 슬라이스로 이동 — 동작 무변경 순수 리팩터링
+  agent: web-dev
+  area: apps/web/src/fsd/features/caption-style (신설) + apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/clip-review/model/transcript.ts + apps/web/src/fsd/shared
+  status: 완료
+  검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건 반영)
+  근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-42의 선행이자 선행 없음 — 설정 화면에서 캡션 편집기를 재사용하기 위한 순수 이동. FEAT-44와 동시 진행 금지.
+  결과: 신규 2개(shared/lib/transcript·caption-style/index)+임포트 8줄 재배선, rename 6건은 메인루프 git mv. check 통과·test 131/131, 옮긴 테스트·presets blob 불변.
+- [x] FEAT-41: 렌더 요청에 요청 단위 `caption_style`을 받아 Auto 경로에도 사용자 캡션 기본값이 먹게 한다
+  agent: backend-dev
+  area: apps/backend/main.py + apps/backend/(신설 순수 모듈)
+  status: 완료
+  검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 설계 결함 1건을 소유자 결정으로 반영)
+  근거: FEAT-38이 마이그레이션 대기로 막혀 그 체인(FEAT-39·42)은 착수 불가. FEAT-41은 선행 없이 독립적으로 진행 가능한 유일한 backend 항목이라 선정.
+  결과: 순수모듈 caption_style_source+테스트12 신설, main.py에 요청단위 caption_style 필드·auto전용 폴백 배선(주입점·호출부2·이미지등록). unittest 79/0·py_compile 0. 상세 backend-dev/FEAT-41
+
+## 2026-09-13
+- [x] FEAT-43: 클립 후보의 hook·payoff를 업로드 언어로 생성 — Korean 검토 화면에서 구간을 영어 요약만 보고 고르지 않게
+  agent: backend-dev
+  area: apps/backend/main.py + apps/backend/(신설 순수 모듈)
+  status: 완료
+  검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건 반영)
+  근거: 소유자 직접 발주(게이트① 세션 지시). Korean 검토 카드의 hook·payoff가 영어라 구간 선택이 막힌다. 미결 2건(BUG-09·FEAT-38) 위 병렬은 소유자 결정, backend 단독이라 파일 겹침 없음.
+  결과: 순수모듈 moment_prompt+테스트11·모달등록가드1 신설, identify_moments에 language 배선(호출부2·이미지등록). English 바이트불변. unittest 67/0·py_compile 0. 상세 backend-dev/FEAT-43
+
 ## 2026-09-09
-- [ ] BUG-09: 「Manage Subscription」이 프로덕션에서 500 — 고객 포털이 열리지 않는다
+- [x] BUG-09: 「Manage Subscription」이 프로덕션에서 500 — 고객 포털이 열리지 않는다
   agent: web-dev
   area: apps/web/src/app/api/portal/route.ts + apps/web/src/fsd/shared/api/polar.ts
-  status: 검토대기
+  status: 완료
+  검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 문서 위생 3건 반영)
   근거: 유료 고객 결제 포털이 프로덕션 500 — 이틀 간격 재현된 결제 경로 결함. 미결 0건. 신규 FEAT-38~42 체인보다 실사용 영향이 커 우선 선정.
-- [ ] FEAT-38: 사용자 기본값 스키마 — User 컬럼 4개 + UploadedFile.captionStyle + analytics 이벤트 2개 (마이그레이션 1회)
+  결과: 포털 위임을 customerSessions.create 직접 호출+try/catch로 교체(실패 Sentry 보고→?portal=error 리다이렉트+토스트). check EXIT0·test131/0. 상세 web-dev/BUG-09
+- [x] FEAT-38: 사용자 기본값 스키마 — User 컬럼 4개 + UploadedFile.captionStyle + analytics 이벤트 2개 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + packages/db/src/analytics-contract.ts + apps/web/src/fsd/shared/analytics/lib/metadata.ts
-  status: 검토대기
+  status: 완료
   검증: 클린 패스 (2026-09-09, 독립 무편집 1사이클 — 결함 0, 1차는 브리핑 계약 위반으로 무판정)
   근거: FEAT-39·42 두 항목의 선행이자 선행 없음. 사용자 기본값 설정 기능 전체를 여는 관문이라 체인 중 가장 먼저 착수. 담당은 쓰기범위상 main-loop.
+  결과: 프로덕션 마이그레이션 적용(5컬럼, migrate status up to date)·스키마·이벤트2·metadata 키·테스트1·클라이언트 재생성. check 0·web 131·admin 334. 상세 main-loop/FEAT-38
 
 ## 2026-09-08
 - [x] FEAT-37: 한국어 업로드 검토 화면에 「자막은 렌더 때 번역된다」 안내 — 영어 전사를 번역 실패로 오독하지 않게

@@ -23,6 +23,10 @@ function getRouteEventName(pathname: string): AnalyticsEventName | null {
     return "billing_viewed";
   }
 
+  if (pathname === "/dashboard/settings") {
+    return "settings_viewed";
+  }
+
   if (pathname.startsWith("/dashboard")) {
     return null;
   }

@@ -41,4 +41,18 @@ describe("sanitizeAnalyticsMetadata", () => {
       undefined,
     );
   });
+
+  it("keeps source and preset for settings_defaults_saved, dropping the rest", () => {
+    // 이 이벤트는 User만 바꾼다. clip_review_caption_style_edited로 재사용하면
+    // 그쪽 appliedToAll 집계가 오염되므로 별 이벤트로 두고, 그 사실을
+    // 허용 키 목록이 지킨다.
+    assert.deepEqual(
+      sanitizeAnalyticsMetadata("settings_defaults_saved", {
+        source: "review_dialog",
+        preset: "bold-yellow",
+        uploadedFileId: "should-be-dropped",
+      }),
+      { source: "review_dialog", preset: "bold-yellow" },
+    );
+  });
 });

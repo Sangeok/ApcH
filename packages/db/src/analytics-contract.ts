@@ -35,6 +35,8 @@ export const ANALYTICS_EVENT_NAMES = [
   "billing_cta_clicked",
   "checkout_started",
   "checkout_returned_success",
+  "settings_viewed",
+  "settings_defaults_saved",
   "page_exited",
 ] as const;
 

@@ -22,6 +22,77 @@
 
 ---
 
+## FEAT-39 — 설정 화면 + 업로드 기본값(언어·클립 수·생성 모드) (web, 구현 2026-09-14)
+
+원천: `docs/agents/web-dev/FEAT-39.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **145/145**(인수 시 메인 루프 재실행, 131→145 — 신규 `upload-defaults.test.mjs` 14). 컬럼이 실제로 읽히고 쓰이는지와 이벤트 두 개의 기록은 아래 FEAT-38 절 「(FEAT-39 배포 후)」 줄이 맡고, 이 절은 화면 흐름을 맡는다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면에서만 판정되고, 미인증 리다이렉트 줄도 release-verify 루틴이 admin 호스트만 조회해(`scripts/release-verify/run.mjs` `ADMIN_BASE_URL` 기본값 `https://admin.a-pch.com`) web 라우트를 판정하지 못한다.
+
+- [ ] **헤더 메뉴에서 설정 화면으로 가고, 화면이 열리는가** — 대시보드 우상단 메뉴에 `Settings`가 `Billing` 위에 있고, 누르면 `/dashboard/settings`에 「Upload defaults」 카드·드롭다운 셋(`Subtitle language`·`Number of clips`·`Generation`)·`Save defaults`·`Reset to system defaults`가 보이는지. 기본값을 저장한 적 없는 계정은 `English`·`3 clips`·`Auto`로 시작해야 한다
+- [ ] **저장한 기본값이 업로드 폼의 초기값이 되는가** — 설정에서 예컨대 `Korean`·`2 clips`·`Review first`로 저장 → 토스트 `Defaults saved` → 새로고침해도 설정 화면이 그 값 → 대시보드에서 파일을 고르면 옵션 행이 그 값으로 시작하는지. 폼에서 이번 업로드만 바꿔도 설정 화면 값은 그대로여야 한다
+- [ ] **초기화가 시스템 기본으로 되돌리는가** — `Reset to system defaults` 뒤 설정 화면과 업로드 폼이 `English`·`3 clips`·`Auto`로 돌아가는지
+- [ ] **클립 수 기본값이 짧은 영상에서 기존대로 내려가는가** — 기본값을 `4 clips`로 저장하고 60초 영상을 고르면 `2 clips`로 하향되는지(`getMaxFeasibleClipCount`의 `floor(D/30)` 클램프가 사용자 기본값 초기값에도 적용)
+- [ ] **로그아웃 상태로 `/dashboard/settings`를 열면 로그인으로 가는가** — 미인증 접근이 `/login`으로 리다이렉트되는지(`middleware.ts` matcher `/dashboard/:path*` · 대시보드 레이아웃 가드 · 라우트의 `auth()`)
+
+---
+
+## FEAT-38 — 사용자 기본값 스키마 · analytics 이벤트 2개 (db+web 계약, 구현·마이그레이션 2026-09-14)
+
+원천: 계획서 `docs/plans/FEAT-38.md` 「못 덮는 범위」. **마이그레이션은 적용됨** — 소유자 지시("마이그레이션하자")로 메인 루프가 `packages/db`에서 `node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate deploy` 실행. **코드(재생성한 Prisma 클라이언트·analytics 계약)는 배포 대기** — web은 `main` 합류 뒤 반영된다.
+게이트는 `npm run check --workspaces --if-present` EXIT 0 · web test **131/131** · admin test **334/334**(인수 시 재실행). 이 항목은 저장소와 계약만 만들고 소비자는 FEAT-39·FEAT-42다.
+**`〔auto〕` 태그를 붙이지 않는다**: DB 실측과 로그인 뒤 화면으로만 판정된다.
+
+- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-09-14, 실측 — `migrate deploy` "All migrations have been successfully applied." · 이어서 `migrate status` "Database schema is up to date!" · `db pull --print` 인트로스펙션으로 `User.defaultLanguage String?`·`defaultClipCount Int?`·`defaultReviewBeforeGenerate Boolean?`·`defaultCaptionStyle Json?`·`UploadedFile.captionStyle Json?` 존재)
+- [ ] **(web 배포 후) 새 Prisma 클라이언트로 기존 화면이 그대로인가** — 대시보드·업로드·업로드 상세·결제·검토 화면이 오류 없이 열리는지. 컬럼이 클라이언트보다 먼저 DB에 들어갔으므로 `User`·`UploadedFile` 조회가 깨지면 안 된다
+- [ ] **(FEAT-39 배포 후) 새 컬럼이 실제로 읽히고 쓰이며 이벤트 두 개가 기록되는가** — 설정 화면 저장이 `User` 기본값 컬럼에 반영되고, admin 분석에 `settings_viewed`·`settings_defaults_saved` 행이 생기는지. FEAT-39가 첫 소비자라 그 절에서 함께 닫힌다
+
+---
+## FEAT-40 — 캡션 편집기를 features/caption-style 슬라이스로 이동 (web, 구현 2026-09-14)
+
+원천: `docs/agents/web-dev/FEAT-40.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **131/131**(인수 시 메인 루프 재실행) · 옮긴 테스트 둘과 `caption-presets.ts`의 blob id가 이동 전과 동일(rename 100%). 파일 위치만 옮긴 리팩터링이라 사용자 화면은 바뀌지 않아야 한다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 검토 화면에서만 판정된다.
+
+- [ ] **검토 화면의 캡션 스타일 다이얼로그가 이전과 똑같이 동작하는가** — `review_pending` 업로드에서 클립 카드의 캡션 스타일을 열면 프리셋 칩·크기/색/위치 조절·영상 위 자막 미리보기가 이전처럼 보이고, Apply·Apply to all이 저장되며, 저장 뒤에도 선택한 프리셋 칩이 켜져 있는지(`matchPresetId`가 새 슬라이스 barrel로 옮겨진 경로다). 달라진 게 보이면 결함이다
+
+---
+## FEAT-41 — 요청 단위 caption_style 폴백, auto 전용 (backend, 구현 2026-09-14)
+
+원천: `docs/agents/backend-dev/FEAT-41.md`의 「테스트로 못 덮은 범위」. **배포 대기** — `modal deploy`는 소유자 승인 사항이다.
+게이트는 unittest **79/0**(+12) · `py_compile` 0(인수 시 메인 루프 재실행). 인수 때 신규 모듈이 계획 스케치와 바이트 동일함과, 실제 테스트 파일에 돌연변이 10종을 심어 전부 실패함을 확인했다.
+**이 항목만으로는 사용자 체감 변화가 없다** — 웹이 요청 단위 스타일을 보내기 시작하는 것은 FEAT-42라, 둘째·셋째 줄은 FEAT-42 배포 뒤에만 닫힌다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 생성 결과 영상과 Modal 실행에서만 판정된다.
+
+- [ ] **배포된 컨테이너가 `caption_style_source`를 import하고 기존 렌더가 그대로인가** — 배포 직후 `process_video`에 잘못된 토큰으로 POST → 401(FEAT-43 원장 첫 줄과 같은 확인) + 배포 뒤 첫 실제 처리(auto·render 아무거나)의 캡션이 이전과 같은지. 웹이 아직 요청 필드를 보내지 않으므로 달라지면 결함이다
+- [ ] **(FEAT-42 배포 후) auto 생성 클립이 요청 단위 스냅샷 스타일로 렌더되는가** — 설정한 기본 캡션(색·크기·위치)이 검토 없이 생성한 클립에 그대로 적용되는지
+- [ ] **(FEAT-42 배포 후) render에서 스타일 없는 클립은 언어 기본값으로 렌더되는가** — 검토 화면에서 커스텀 클립을 추가하거나 한 클립을 「Reset style」로 되돌린 뒤 생성하면, 그 클립이 미리보기대로 언어 기본값인지. 요청 스냅샷 스타일이 새어 나오면 소유자 결정(2026-09-14, render는 클립 스타일만) 위반이다
+
+---
+## BUG-09 — 고객 포털 실패를 Sentry 보고 + 결제 페이지 안내로 (web, 구현 2026-09-14)
+
+원천: `docs/agents/web-dev/BUG-09.md`의 「테스트로 못 덮은 범위」 1~3. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **131/0**(인수 시 메인 루프 재실행). **이 항목은 500의 원인을 고치지 않는다** —
+원인은 계획서 「소유자 확인 항목」(Vercel `POLAR_SERVER`·`POLAR_ACCESS_TOKEN` 환경 정합 / Polar에 `polarCustomerId` 존재 여부)이 가른다. 그래서 셋째 줄은 원인 수정 뒤에만 닫힌다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인한 유료 계정의 화면과 Sentry 콘솔에서만 판정된다.
+원장 C-49(미로그인 → `/login`, 미고객 → `/dashboard/billing`)는 이 구현이 두 가드를 그대로 두므로 계속 유효하며 열린 채 둔다.
+
+- [ ] **포털 실패가 이제 진단 정보와 함께 Sentry에 도달하는가** — 배포 후 「Manage Subscription」을 한 번 누르면(원인이 그대로라면 실패한다) Sentry에 태그 `origin: portal.customerSession` 이벤트가 컨텍스트 `server`(`sandbox`|`production`)·`customerId`·`userId`와 함께 남는지. **그 이벤트의 예외 메시지가 후보 (a) 인증 계열(401/403)인지 (b) not-found 계열(404)인지를 가른다** — 계획서 소유자 확인 항목 1을 대신한다. 마감 증거는 `확인(날짜, Sentry 이벤트 관측)`
+- [ ] **실패 시 본문 없는 500 대신 결제 페이지로 돌아와 안내를 보는가** — `/dashboard/billing?portal=error`로 돌아와 토스트 `Couldn't open the subscription portal. Please try again in a moment.`이 한 번 뜨고, 주소창의 `?portal=error`가 사라지며, 새로고침해도 토스트가 다시 뜨지 않는지
+- [ ] **원인을 바로잡은 뒤 포털이 실제로 열리는가** — 위 이벤트로 (a)/(b)를 판정해 소유자가 Vercel 환경변수 또는 Polar 고객 데이터를 고친 뒤, 「Manage Subscription」이 Polar 고객 포털로 이동하는지. 원장 C-02(이관 BUG-09)의 원래 기대("프로덕션 Polar 포털을 연다")가 여기서 닫힌다
+
+---
+## FEAT-43 — 클립 후보 hook·payoff를 업로드 언어로 생성 (backend, 구현 2026-09-14)
+
+원천: `docs/agents/backend-dev/FEAT-43.md`의 「못 덮은 범위」 (a)(b)(d). **배포됨 — 2026-09-14 08:06 KST**, 소유자 승인으로 메인 루프가 실행(`PYTHONUTF8=1 …\apch-backend\Scripts\python.exe -m modal deploy main.py`, 5.9초, EXIT 0).
+게이트는 unittest **67/0**(+12)·`py_compile` 0으로 닫혔고, English 프롬프트 바이트 불변은 인수 시 `HEAD` 원본 리터럴과 직접 대조해 재확인했다
+(모듈 상수·테스트 frozen 사본 모두 2601자 일치). 아래는 Gemini 실출력과 Modal 컨테이너가 필요해 러너가 못 덮는 것들이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 검토 화면과 Modal 실행 결과에서만 판정된다.
+
+- [x] **배포된 컨테이너가 `moment_prompt`를 import하는가** — 확인(2026-09-14, 실측 — 배포 출력의 마운트에 `PythonPackage:moment_prompt` 포함 · 배포 직후 `process_video`에 잘못된 토큰으로 POST → **401**(모듈 import 실패였다면 컨테이너 기동 실패) · 응답 시점 활성 컨테이너는 하나이고 시작 08:06으로 배포 이후). 관측한 것은 GPU 없는 디스패처 컨테이너다. GPU 워커(`AiPodcastClipper`)도 같은 이미지에서 같은 `main.py`를 모듈 수준에서 import하므로 같은 결과로 판정했다 — 워커 기동 자체는 아래 둘째 줄의 첫 실제 처리에서 함께 관측된다
+- [ ] **Korean 업로드의 검토 카드 hook·payoff가 한국어로 나오는가** — `review_pending` 검토 화면 카드의 굵은 제목(hook)과 설명(payoff)이 자연스러운 한국어인지, 종류 라벨은 그대로 `Q&A`/`Insight`인지(`type`이 번역되지 않았는지). 전사 본문과 FEAT-37의 헤더 안내·「English transcript」 라벨은 영어 그대로가 정상이다. **새로 분석한 업로드만 해당** — 기분석 업로드는 영어로 남는다(백필 없음)
+- [ ] **같은 영상을 English·Korean으로 분석했을 때 고른 구간이 크게 다르지 않은가** — 시작·끝이 대체로 겹치는지. English 프롬프트는 바이트 동일이라 English 쪽 차이는 Gemini 비결정성 범위여야 하고, Korean 쪽은 지시문 추가가 구간 선택을 흔들지 않았는지를 본다
+
+---
 ## FEAT-37 — 한국어 검토 화면의 「자막은 렌더 때 번역된다」 안내 (web, 구현 2026-09-09)
 
 원천: `docs/agents/web-dev/FEAT-37.md`의 「못 덮은 범위」와 계획서 「테스트」. **배포 대기.**
@@ -79,7 +150,7 @@
 이 절을 닫는 사람이 아래 셋을 함께 결정하고, 채택된 것만 `TASK_BACKLOG.md`에 올린다.
 (백로그의 FEAT-36 항목은 완료와 함께 지워졌으므로 이 문단이 그 후속의 유일한 보관처다.)
 
-- **(a) 렌더 후 재캡션** — 자막 넣기 직전의 세로 영상(`apps/backend/main.py:755`
+- **(a) 렌더 후 재캡션** — 자막 넣기 직전의 세로 영상(`apps/backend/main.py:762`
   `vertical_mp4_path`)은 지금 업로드되지 않고 버려진다. 보관하면 캡션 스타일 변경이 CPU ffmpeg
   번인 몇 초로 끝나고, 이 항목이 **원리상 못 닫는 두 근사**(화자 추적 크롭·한국어 번역문)가 실물로
   닫힌다. backend+web, S3 보관 비용과 크레딧 정책 결정이 딸린다. **판단 기준**: 위 셋째·넷째(크기

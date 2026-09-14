@@ -74,6 +74,10 @@ export default function DashboardHeader({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">Settings</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
                 <Link href="/dashboard/billing">Billing</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

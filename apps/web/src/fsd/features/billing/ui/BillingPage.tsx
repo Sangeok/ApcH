@@ -22,6 +22,8 @@ interface BillingPageProps {
   productIds: ProductIds;
   /** 체크아웃에서 돌아온 진입인지. 배너·폴링·계측 셋을 함께 켠다 */
   hasReturnedFromCheckout: boolean;
+  /** 고객 포털 열기가 실패해 `?portal=error`로 되돌아온 진입인지. 실패 토스트를 한 번 띄운다 */
+  hadPortalError: boolean;
   isSubscriptionEnabled: boolean;
 }
 
@@ -29,6 +31,7 @@ export function BillingPage({
   data,
   productIds,
   hasReturnedFromCheckout,
+  hadPortalError,
   isSubscriptionEnabled,
 }: BillingPageProps) {
   const router = useRouter();
@@ -37,6 +40,7 @@ export function BillingPage({
   const [isActivatingSubscription, setIsActivatingSubscription] =
     useState(false);
   const trackedCheckoutSuccessRef = useRef(false);
+  const portalErrorShownRef = useRef(false);
 
   // Poll for subscription data when redirected from checkout but data not yet available
   useEffect(() => {
@@ -76,6 +80,17 @@ export function BillingPage({
       dedupeKey: "checkout_returned_success",
     });
   }, [hasReturnedFromCheckout]);
+
+  // 고객 포털 열기 실패(`/api/portal` catch → `?portal=error`)를 한 번만 알린다.
+  // router.replace로 쿼리를 지워 새로고침 때 재발화하지 않게 한다.
+  useEffect(() => {
+    if (!hadPortalError || portalErrorShownRef.current) return;
+    portalErrorShownRef.current = true;
+    toast.error(
+      "Couldn't open the subscription portal. Please try again in a moment.",
+    );
+    router.replace("/dashboard/billing");
+  }, [hadPortalError, router]);
 
   const currentTier = data.subscription?.planTier ?? null;
 

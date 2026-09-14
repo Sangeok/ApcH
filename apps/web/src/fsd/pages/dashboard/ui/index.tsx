@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useOptimistic, useRef } from "react";
 import { env } from "~/env";
+import type { ResolvedUploadDefaults } from "~/fsd/entities/user";
 import {
   type ActiveUploadedFileQueueState,
   isOptimisticUploadId,
@@ -40,6 +41,7 @@ interface DashboardViewProps {
   recoverableDrafts: RecoverableUploadDraftSummary[];
   /** 서버 컴포넌트가 읽어 준 큐 상태. refetch가 돌려주는 것과 같은 형태다 */
   initialActiveQueue: ActiveUploadedFileQueueState;
+  uploadDefaults: ResolvedUploadDefaults;
 }
 
 export default function DashboardView({
@@ -47,6 +49,7 @@ export default function DashboardView({
   uploadedFiles,
   recoverableDrafts,
   initialActiveQueue,
+  uploadDefaults,
 }: DashboardViewProps) {
   const router = useRouter();
 
@@ -119,7 +122,10 @@ export default function DashboardView({
         </TabsList>
 
         <TabsContent value="upload" className="space-y-6">
-          <UploadPodcast onOptimisticAdd={addOptimisticFile} />
+          <UploadPodcast
+            onOptimisticAdd={addOptimisticFile}
+            defaults={uploadDefaults}
+          />
           <RecoverableUploadDrafts drafts={recoverableDrafts} />
           <QueueStatus
             uploadedFiles={queueStatusFiles}

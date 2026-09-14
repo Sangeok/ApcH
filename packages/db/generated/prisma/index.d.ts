@@ -4154,10 +4154,12 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     credits: number | null
+    defaultClipCount: number | null
   }
 
   export type UserSumAggregateOutputType = {
     credits: number | null
+    defaultClipCount: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -4169,6 +4171,9 @@ export namespace Prisma {
     credits: number | null
     polarCustomerId: string | null
     image: string | null
+    defaultLanguage: string | null
+    defaultClipCount: number | null
+    defaultReviewBeforeGenerate: boolean | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -4180,6 +4185,9 @@ export namespace Prisma {
     credits: number | null
     polarCustomerId: string | null
     image: string | null
+    defaultLanguage: string | null
+    defaultClipCount: number | null
+    defaultReviewBeforeGenerate: boolean | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -4191,16 +4199,22 @@ export namespace Prisma {
     credits: number
     polarCustomerId: number
     image: number
+    defaultLanguage: number
+    defaultClipCount: number
+    defaultReviewBeforeGenerate: number
+    defaultCaptionStyle: number
     _all: number
   }
 
 
   export type UserAvgAggregateInputType = {
     credits?: true
+    defaultClipCount?: true
   }
 
   export type UserSumAggregateInputType = {
     credits?: true
+    defaultClipCount?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -4212,6 +4226,9 @@ export namespace Prisma {
     credits?: true
     polarCustomerId?: true
     image?: true
+    defaultLanguage?: true
+    defaultClipCount?: true
+    defaultReviewBeforeGenerate?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -4223,6 +4240,9 @@ export namespace Prisma {
     credits?: true
     polarCustomerId?: true
     image?: true
+    defaultLanguage?: true
+    defaultClipCount?: true
+    defaultReviewBeforeGenerate?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -4234,6 +4254,10 @@ export namespace Prisma {
     credits?: true
     polarCustomerId?: true
     image?: true
+    defaultLanguage?: true
+    defaultClipCount?: true
+    defaultReviewBeforeGenerate?: true
+    defaultCaptionStyle?: true
     _all?: true
   }
 
@@ -4332,6 +4356,10 @@ export namespace Prisma {
     credits: number
     polarCustomerId: string | null
     image: string | null
+    defaultLanguage: string | null
+    defaultClipCount: number | null
+    defaultReviewBeforeGenerate: boolean | null
+    defaultCaptionStyle: JsonValue | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -4362,6 +4390,10 @@ export namespace Prisma {
     credits?: boolean
     polarCustomerId?: boolean
     image?: boolean
+    defaultLanguage?: boolean
+    defaultClipCount?: boolean
+    defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyle?: boolean
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     uploadedFiles?: boolean | User$uploadedFilesArgs<ExtArgs>
@@ -4381,6 +4413,10 @@ export namespace Prisma {
     credits?: boolean
     polarCustomerId?: boolean
     image?: boolean
+    defaultLanguage?: boolean
+    defaultClipCount?: boolean
+    defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyle?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -4392,6 +4428,10 @@ export namespace Prisma {
     credits?: boolean
     polarCustomerId?: boolean
     image?: boolean
+    defaultLanguage?: boolean
+    defaultClipCount?: boolean
+    defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyle?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -4403,9 +4443,13 @@ export namespace Prisma {
     credits?: boolean
     polarCustomerId?: boolean
     image?: boolean
+    defaultLanguage?: boolean
+    defaultClipCount?: boolean
+    defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyle?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "polarCustomerId" | "image", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "polarCustomerId" | "image" | "defaultLanguage" | "defaultClipCount" | "defaultReviewBeforeGenerate" | "defaultCaptionStyle", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -4439,6 +4483,10 @@ export namespace Prisma {
       credits: number
       polarCustomerId: string | null
       image: string | null
+      defaultLanguage: string | null
+      defaultClipCount: number | null
+      defaultReviewBeforeGenerate: boolean | null
+      defaultCaptionStyle: Prisma.JsonValue | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -4877,6 +4925,10 @@ export namespace Prisma {
     readonly credits: FieldRef<"User", 'Int'>
     readonly polarCustomerId: FieldRef<"User", 'String'>
     readonly image: FieldRef<"User", 'String'>
+    readonly defaultLanguage: FieldRef<"User", 'String'>
+    readonly defaultClipCount: FieldRef<"User", 'Int'>
+    readonly defaultReviewBeforeGenerate: FieldRef<"User", 'Boolean'>
+    readonly defaultCaptionStyle: FieldRef<"User", 'Json'>
   }
     
 
@@ -5541,6 +5593,7 @@ export namespace Prisma {
     language: number
     targetClipCount: number
     reviewBeforeGenerate: number
+    captionStyle: number
     reviewAttempt: number
     reviewReadyAt: number
     transcriptS3Key: number
@@ -5632,6 +5685,7 @@ export namespace Prisma {
     language?: true
     targetClipCount?: true
     reviewBeforeGenerate?: true
+    captionStyle?: true
     reviewAttempt?: true
     reviewReadyAt?: true
     transcriptS3Key?: true
@@ -5744,6 +5798,7 @@ export namespace Prisma {
     language: string
     targetClipCount: number
     reviewBeforeGenerate: boolean
+    captionStyle: JsonValue | null
     reviewAttempt: number | null
     reviewReadyAt: Date | null
     transcriptS3Key: string | null
@@ -5788,6 +5843,7 @@ export namespace Prisma {
     language?: boolean
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
+    captionStyle?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
@@ -5818,6 +5874,7 @@ export namespace Prisma {
     language?: boolean
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
+    captionStyle?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
@@ -5844,6 +5901,7 @@ export namespace Prisma {
     language?: boolean
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
+    captionStyle?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
@@ -5870,13 +5928,14 @@ export namespace Prisma {
     language?: boolean
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
+    captionStyle?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
     userId?: boolean
   }
 
-  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "reviewBeforeGenerate" | "reviewAttempt" | "reviewReadyAt" | "transcriptS3Key" | "userId", ExtArgs["result"]["uploadedFile"]>
+  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "reviewBeforeGenerate" | "captionStyle" | "reviewAttempt" | "reviewReadyAt" | "transcriptS3Key" | "userId", ExtArgs["result"]["uploadedFile"]>
   export type UploadedFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
@@ -5918,6 +5977,7 @@ export namespace Prisma {
       language: string
       targetClipCount: number
       reviewBeforeGenerate: boolean
+      captionStyle: Prisma.JsonValue | null
       reviewAttempt: number | null
       reviewReadyAt: Date | null
       transcriptS3Key: string | null
@@ -6367,6 +6427,7 @@ export namespace Prisma {
     readonly language: FieldRef<"UploadedFile", 'String'>
     readonly targetClipCount: FieldRef<"UploadedFile", 'Int'>
     readonly reviewBeforeGenerate: FieldRef<"UploadedFile", 'Boolean'>
+    readonly captionStyle: FieldRef<"UploadedFile", 'Json'>
     readonly reviewAttempt: FieldRef<"UploadedFile", 'Int'>
     readonly reviewReadyAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly transcriptS3Key: FieldRef<"UploadedFile", 'String'>
@@ -15050,7 +15111,11 @@ export namespace Prisma {
     password: 'password',
     credits: 'credits',
     polarCustomerId: 'polarCustomerId',
-    image: 'image'
+    image: 'image',
+    defaultLanguage: 'defaultLanguage',
+    defaultClipCount: 'defaultClipCount',
+    defaultReviewBeforeGenerate: 'defaultReviewBeforeGenerate',
+    defaultCaptionStyle: 'defaultCaptionStyle'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -15075,6 +15140,7 @@ export namespace Prisma {
     language: 'language',
     targetClipCount: 'targetClipCount',
     reviewBeforeGenerate: 'reviewBeforeGenerate',
+    captionStyle: 'captionStyle',
     reviewAttempt: 'reviewAttempt',
     reviewReadyAt: 'reviewReadyAt',
     transcriptS3Key: 'transcriptS3Key',
@@ -15300,20 +15366,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Float'
-   */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float[]'
-   */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -15324,6 +15376,20 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
   /**
    * Deep Input Types
@@ -15490,6 +15556,10 @@ export namespace Prisma {
     credits?: IntFilter<"User"> | number
     polarCustomerId?: StringNullableFilter<"User"> | string | null
     image?: StringNullableFilter<"User"> | string | null
+    defaultLanguage?: StringNullableFilter<"User"> | string | null
+    defaultClipCount?: IntNullableFilter<"User"> | number | null
+    defaultReviewBeforeGenerate?: BoolNullableFilter<"User"> | boolean | null
+    defaultCaptionStyle?: JsonNullableFilter<"User">
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     uploadedFiles?: UploadedFileListRelationFilter
@@ -15508,6 +15578,10 @@ export namespace Prisma {
     credits?: SortOrder
     polarCustomerId?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
+    defaultLanguage?: SortOrderInput | SortOrder
+    defaultClipCount?: SortOrderInput | SortOrder
+    defaultReviewBeforeGenerate?: SortOrderInput | SortOrder
+    defaultCaptionStyle?: SortOrderInput | SortOrder
     accounts?: AccountOrderByRelationAggregateInput
     sessions?: SessionOrderByRelationAggregateInput
     uploadedFiles?: UploadedFileOrderByRelationAggregateInput
@@ -15529,6 +15603,10 @@ export namespace Prisma {
     password?: StringNullableFilter<"User"> | string | null
     credits?: IntFilter<"User"> | number
     image?: StringNullableFilter<"User"> | string | null
+    defaultLanguage?: StringNullableFilter<"User"> | string | null
+    defaultClipCount?: IntNullableFilter<"User"> | number | null
+    defaultReviewBeforeGenerate?: BoolNullableFilter<"User"> | boolean | null
+    defaultCaptionStyle?: JsonNullableFilter<"User">
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     uploadedFiles?: UploadedFileListRelationFilter
@@ -15547,6 +15625,10 @@ export namespace Prisma {
     credits?: SortOrder
     polarCustomerId?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
+    defaultLanguage?: SortOrderInput | SortOrder
+    defaultClipCount?: SortOrderInput | SortOrder
+    defaultReviewBeforeGenerate?: SortOrderInput | SortOrder
+    defaultCaptionStyle?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -15566,6 +15648,10 @@ export namespace Prisma {
     credits?: IntWithAggregatesFilter<"User"> | number
     polarCustomerId?: StringNullableWithAggregatesFilter<"User"> | string | null
     image?: StringNullableWithAggregatesFilter<"User"> | string | null
+    defaultLanguage?: StringNullableWithAggregatesFilter<"User"> | string | null
+    defaultClipCount?: IntNullableWithAggregatesFilter<"User"> | number | null
+    defaultReviewBeforeGenerate?: BoolNullableWithAggregatesFilter<"User"> | boolean | null
+    defaultCaptionStyle?: JsonNullableWithAggregatesFilter<"User">
   }
 
   export type UploadedFileWhereInput = {
@@ -15590,6 +15676,7 @@ export namespace Prisma {
     language?: StringFilter<"UploadedFile"> | string
     targetClipCount?: IntFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
+    captionStyle?: JsonNullableFilter<"UploadedFile">
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
@@ -15619,6 +15706,7 @@ export namespace Prisma {
     language?: SortOrder
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
+    captionStyle?: SortOrderInput | SortOrder
     reviewAttempt?: SortOrderInput | SortOrder
     reviewReadyAt?: SortOrderInput | SortOrder
     transcriptS3Key?: SortOrderInput | SortOrder
@@ -15651,6 +15739,7 @@ export namespace Prisma {
     language?: StringFilter<"UploadedFile"> | string
     targetClipCount?: IntFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
+    captionStyle?: JsonNullableFilter<"UploadedFile">
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
@@ -15680,6 +15769,7 @@ export namespace Prisma {
     language?: SortOrder
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
+    captionStyle?: SortOrderInput | SortOrder
     reviewAttempt?: SortOrderInput | SortOrder
     reviewReadyAt?: SortOrderInput | SortOrder
     transcriptS3Key?: SortOrderInput | SortOrder
@@ -15713,6 +15803,7 @@ export namespace Prisma {
     language?: StringWithAggregatesFilter<"UploadedFile"> | string
     targetClipCount?: IntWithAggregatesFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolWithAggregatesFilter<"UploadedFile"> | boolean
+    captionStyle?: JsonNullableWithAggregatesFilter<"UploadedFile">
     reviewAttempt?: IntNullableWithAggregatesFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableWithAggregatesFilter<"UploadedFile"> | string | null
@@ -16501,6 +16592,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
@@ -16519,6 +16614,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
@@ -16537,6 +16636,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
@@ -16555,6 +16658,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
@@ -16573,6 +16680,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type UserUpdateManyMutationInput = {
@@ -16584,6 +16695,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -16595,6 +16710,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type UploadedFileCreateInput = {
@@ -16616,6 +16735,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -16644,6 +16764,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -16672,6 +16793,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16700,6 +16822,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16728,6 +16851,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -16753,6 +16877,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16777,6 +16902,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17703,6 +17829,34 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type BoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
   export type AccountListRelationFilter = {
     every?: AccountWhereInput
     some?: AccountWhereInput
@@ -17777,10 +17931,15 @@ export namespace Prisma {
     credits?: SortOrder
     polarCustomerId?: SortOrder
     image?: SortOrder
+    defaultLanguage?: SortOrder
+    defaultClipCount?: SortOrder
+    defaultReviewBeforeGenerate?: SortOrder
+    defaultCaptionStyle?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
     credits?: SortOrder
+    defaultClipCount?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -17792,6 +17951,9 @@ export namespace Prisma {
     credits?: SortOrder
     polarCustomerId?: SortOrder
     image?: SortOrder
+    defaultLanguage?: SortOrder
+    defaultClipCount?: SortOrder
+    defaultReviewBeforeGenerate?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -17803,10 +17965,14 @@ export namespace Prisma {
     credits?: SortOrder
     polarCustomerId?: SortOrder
     image?: SortOrder
+    defaultLanguage?: SortOrder
+    defaultClipCount?: SortOrder
+    defaultReviewBeforeGenerate?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
     credits?: SortOrder
+    defaultClipCount?: SortOrder
   }
 
   export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -17837,6 +18003,40 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type BoolFilter<$PrismaModel = never> = {
@@ -17883,6 +18083,7 @@ export namespace Prisma {
     language?: SortOrder
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
+    captionStyle?: SortOrder
     reviewAttempt?: SortOrder
     reviewReadyAt?: SortOrder
     transcriptS3Key?: SortOrder
@@ -18081,29 +18282,6 @@ export namespace Prisma {
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
   }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type UploadedFileScalarRelationFilter = {
     is?: UploadedFileWhereInput
@@ -18200,32 +18378,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type ProcessingDispatchUploadedFileIdAttemptCompoundUniqueInput = {
@@ -18604,6 +18756,10 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type NullableBoolFieldUpdateOperationsInput = {
+    set?: boolean | null
   }
 
   export type AccountUpdateManyWithoutUserNestedInput = {
@@ -19203,6 +19359,11 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type NestedBoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+
   export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -19242,6 +19403,37 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedBoolFilter<$PrismaModel = never> = {
@@ -19288,29 +19480,6 @@ export namespace Prisma {
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
   }
-  export type NestedJsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type UserCreateWithoutAccountsInput = {
     id?: string
@@ -19321,6 +19490,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
     clips?: ClipCreateNestedManyWithoutUserInput
@@ -19338,6 +19511,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
     clips?: ClipUncheckedCreateNestedManyWithoutUserInput
@@ -19371,6 +19548,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
     clips?: ClipUpdateManyWithoutUserNestedInput
@@ -19388,6 +19569,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
     clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
@@ -19405,6 +19590,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
     clips?: ClipCreateNestedManyWithoutUserInput
@@ -19422,6 +19611,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
     clips?: ClipUncheckedCreateNestedManyWithoutUserInput
@@ -19455,6 +19648,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
     clips?: ClipUpdateManyWithoutUserNestedInput
@@ -19472,6 +19669,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
     clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
@@ -19561,6 +19762,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -19588,6 +19790,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -19852,6 +20055,7 @@ export namespace Prisma {
     language?: StringFilter<"UploadedFile"> | string
     targetClipCount?: IntFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
+    captionStyle?: JsonNullableFilter<"UploadedFile">
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
@@ -20140,6 +20344,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     clips?: ClipCreateNestedManyWithoutUserInput
@@ -20157,6 +20365,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     clips?: ClipUncheckedCreateNestedManyWithoutUserInput
@@ -20277,6 +20489,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     clips?: ClipUpdateManyWithoutUserNestedInput
@@ -20294,6 +20510,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
@@ -20321,6 +20541,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20348,6 +20569,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20370,6 +20592,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
@@ -20387,6 +20613,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
@@ -20430,6 +20660,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20457,6 +20688,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20485,6 +20717,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
@@ -20502,6 +20738,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
@@ -20529,6 +20769,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20556,6 +20797,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20599,6 +20841,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20626,6 +20869,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20653,6 +20897,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20680,6 +20925,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20723,6 +20969,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20750,6 +20997,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20767,6 +21015,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
@@ -20784,6 +21036,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
@@ -20817,6 +21073,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
@@ -20834,6 +21094,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
@@ -20851,6 +21115,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
@@ -20868,6 +21136,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
@@ -20901,6 +21173,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
@@ -20918,6 +21194,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
@@ -20935,6 +21215,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
@@ -20952,6 +21236,10 @@ export namespace Prisma {
     credits?: number
     polarCustomerId?: string | null
     image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
@@ -20985,6 +21273,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
@@ -21002,6 +21294,10 @@ export namespace Prisma {
     credits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
@@ -21050,6 +21346,7 @@ export namespace Prisma {
     language?: string
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -21177,6 +21474,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21204,6 +21502,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21231,6 +21530,7 @@ export namespace Prisma {
     language?: StringFieldUpdateOperationsInput | string
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null

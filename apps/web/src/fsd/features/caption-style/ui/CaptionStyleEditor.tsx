@@ -1,6 +1,6 @@
 "use client";
 
-import type { TranscriptWord } from "~/fsd/features/clip-review";
+import type { TranscriptWord } from "~/fsd/shared/lib/transcript";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -8,7 +8,7 @@ import {
   CAPTION_STYLE_PRESETS,
   type CaptionStyle,
 } from "~/fsd/shared/config/constants";
-import { matchPresetId } from "../../model/caption-presets";
+import { matchPresetId } from "../model/caption-presets";
 import CaptionPreviewPlayer from "./CaptionPreviewPlayer";
 
 interface CaptionStyleEditorProps {

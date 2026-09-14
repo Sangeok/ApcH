@@ -55,6 +55,12 @@ export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
   billing_cta_clicked: ["tier", "billingInterval"],
   checkout_started: ["tier", "billingInterval"],
   checkout_returned_success: [],
+  settings_viewed: [],
+  // source는 "settings_page" | "review_dialog". 기본값을 어디서 저장하는지가
+  // FEAT-42의 인라인 저장 진입점이 실제로 쓰이는지에 답한다.
+  // preset은 matchPresetId의 결과(프리셋 id | "custom" | "default")로
+  // clip_review_caption_style_edited의 동명 키와 같은 의미다.
+  settings_defaults_saved: ["source", "preset"],
   page_exited: ["dwellTimeMs"],
 } as const satisfies Record<AnalyticsEventName, readonly string[]>;
 

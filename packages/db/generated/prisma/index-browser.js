@@ -152,7 +152,11 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   credits: 'credits',
   polarCustomerId: 'polarCustomerId',
-  image: 'image'
+  image: 'image',
+  defaultLanguage: 'defaultLanguage',
+  defaultClipCount: 'defaultClipCount',
+  defaultReviewBeforeGenerate: 'defaultReviewBeforeGenerate',
+  defaultCaptionStyle: 'defaultCaptionStyle'
 };
 
 exports.Prisma.UploadedFileScalarFieldEnum = {
@@ -174,6 +178,7 @@ exports.Prisma.UploadedFileScalarFieldEnum = {
   language: 'language',
   targetClipCount: 'targetClipCount',
   reviewBeforeGenerate: 'reviewBeforeGenerate',
+  captionStyle: 'captionStyle',
   reviewAttempt: 'reviewAttempt',
   reviewReadyAt: 'reviewReadyAt',
   transcriptS3Key: 'transcriptS3Key',
