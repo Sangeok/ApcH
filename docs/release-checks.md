@@ -22,6 +22,17 @@
 
 ---
 
+## FEAT-38 — 사용자 기본값 스키마 · analytics 이벤트 2개 (db+web 계약, 구현·마이그레이션 2026-09-14)
+
+원천: 계획서 `docs/plans/FEAT-38.md` 「못 덮는 범위」. **마이그레이션은 적용됨** — 소유자 지시("마이그레이션하자")로 메인 루프가 `packages/db`에서 `node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate deploy` 실행. **코드(재생성한 Prisma 클라이언트·analytics 계약)는 배포 대기** — web은 `main` 합류 뒤 반영된다.
+게이트는 `npm run check --workspaces --if-present` EXIT 0 · web test **131/131** · admin test **334/334**(인수 시 재실행). 이 항목은 저장소와 계약만 만들고 소비자는 FEAT-39·FEAT-42다.
+**`〔auto〕` 태그를 붙이지 않는다**: DB 실측과 로그인 뒤 화면으로만 판정된다.
+
+- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-09-14, 실측 — `migrate deploy` "All migrations have been successfully applied." · 이어서 `migrate status` "Database schema is up to date!" · `db pull --print` 인트로스펙션으로 `User.defaultLanguage String?`·`defaultClipCount Int?`·`defaultReviewBeforeGenerate Boolean?`·`defaultCaptionStyle Json?`·`UploadedFile.captionStyle Json?` 존재)
+- [ ] **(web 배포 후) 새 Prisma 클라이언트로 기존 화면이 그대로인가** — 대시보드·업로드·업로드 상세·결제·검토 화면이 오류 없이 열리는지. 컬럼이 클라이언트보다 먼저 DB에 들어갔으므로 `User`·`UploadedFile` 조회가 깨지면 안 된다
+- [ ] **(FEAT-39 배포 후) 새 컬럼이 실제로 읽히고 쓰이며 이벤트 두 개가 기록되는가** — 설정 화면 저장이 `User` 기본값 컬럼에 반영되고, admin 분석에 `settings_viewed`·`settings_defaults_saved` 행이 생기는지. FEAT-39가 첫 소비자라 그 절에서 함께 닫힌다
+
+---
 ## FEAT-40 — 캡션 편집기를 features/caption-style 슬라이스로 이동 (web, 구현 2026-09-14)
 
 원천: `docs/agents/web-dev/FEAT-40.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 Vercel 프로덕션에 반영된다.

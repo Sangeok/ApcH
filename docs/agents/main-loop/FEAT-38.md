@@ -140,3 +140,84 @@ apps/web/src/fsd/shared/analytics apps/web/src/app/api/analytics apps/admin/src/
 
 담당은 main-loop이므로 구현도 메인 루프가 한다. **`npm run db:generate -w @repo/db`(= `prisma migrate dev`)는 실행하지 않는다** —
 계획서 「마이그레이션 히스토리 드리프트」.
+
+## 구현 (2026-09-14, 메인 루프)
+
+### 고친 파일 (전수) — 계획서 「고칠 파일」 다섯과 일치
+
+| # | 파일 | 변경 |
+| --- | --- | --- |
+| 1 | `packages/db/prisma/schema.prisma` | `User` 4컬럼(`defaultLanguage String?`·`defaultClipCount Int?`·`defaultReviewBeforeGenerate Boolean?`·`defaultCaptionStyle Json?`), `UploadedFile.captionStyle Json?` |
+| 2 | `packages/db/prisma/migrations/20260909000000_user_default_settings/migration.sql` | 신규 — 계획서 SQL 전문 그대로(수기) |
+| 3 | `packages/db/src/analytics-contract.ts` | `settings_viewed`·`settings_defaults_saved` (`page_exited` 앞) |
+| 4 | `apps/web/src/fsd/shared/analytics/lib/metadata.ts` | `settings_viewed: []`·`settings_defaults_saved: ["source", "preset"]` + 주석 |
+| 5 | `apps/web/src/fsd/shared/analytics/lib/metadata.test.mjs` | 케이스 1개, `:43`과 `:44` 사이 |
+
+부수: `packages/db/generated/prisma/` 7파일 재생성(`npm run db:generate:client -w @repo/db` = `prisma generate`, DB 미접속, EXIT 0).
+`git diff --ignore-cr-at-eol --numstat` 7파일 전부 실내용 변경(`index.d.ts` +383/−83 등) — CRLF 찌꺼기 0, 계획서 예고대로 커밋 대상.
+
+구현 직전 before 블록 네 개(`schema.prisma:51-52`·`:81-82`, `analytics-contract.ts:37-39`, `metadata.ts:57-59`, 테스트 `:43`/`:44`)를
+파일에서 읽어 현재 트리와 일치 확인. 최신 마이그레이션 디렉터리 `20260826000000` → 새 이름 충돌 없음.
+
+### 스케치 대비 차이
+
+- `schema.prisma` `User` 주석 한 줄: 스케치 `// Json 블롭 한 칸으로 묶지 않은 이유는 아래 「대안」(A) 참조.` →
+  `… docs/plans/FEAT-38.md 「대안」(A) 참조.` 스키마 파일에는 「대안」 절이 없어 원문대로면 가리키는 곳이 없다. 생성 클라이언트가
+  스키마 사본을 품으므로 **generate 전에** 고쳤다. 코드·값·분기 변화 없음.
+
+### 게이트 (실제 출력)
+
+- `npm run check --workspaces` → **EXIT 1**, 원인은 `@repo/db`에 `check` 스크립트가 없는 것(`npm error Missing script: "check"`).
+  계획서 명령의 결함이지 이 구현의 실패가 아니다 — 루트 `package.json:9`의 `"check": "npm run check --workspaces --if-present"`가
+  저장소의 정식 형태다. `npm run check --workspaces --if-present` → **EXIT 0**: admin·web 각각 `verify:fsd:test`·`verify:fsd`
+  통과, `✔ No ESLint warnings or errors`, `tsc --noEmit` 오류 없음(두 `satisfies` 결합 통과).
+- `npm test -w apps/web` → `# tests 131 # pass 131 # fail 0`(130 → +1).
+- `npm test -w apps/admin` → `# tests 334 # pass 334 # fail 0`.
+
+### 마이그레이션 — 적용 전 상태 · 계획서 명령의 결함 · 적용 보류
+
+- **계획서의 `npm run db:migrate`는 이 저장소에서 그대로 돌지 않는다.** `packages/db`에서 실행되는 Prisma CLI가 루트 `.env`를
+  읽지 못한다 — `npx prisma migrate status` 실측 `P1012 Environment variable not found: DATABASE_URL_UNPOOLED`. 루트
+  `package.json:12`의 `db:migrate`는 위임만 하고, `packages/db`엔 `prisma.config.*`도 `.env`도 없다. 루트 `.env`에는 두 변수가
+  있다(이름만 확인). 해법: 루트 `release-verify` 스크립트(`package.json:14`)와 같은 방식으로 `node --env-file=<루트 .env>
+  node_modules/prisma/build/index.js …`. 계획서 검증은 이 명령을 실행해 보지 않았다(적용은 승인 사항이라) — 표 밖 결함.
+- 적용 전 `migrate status`(읽기 전용): 대상 `neondb` @ `ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`, `9 migrations found`,
+  미적용 `20260909000000_user_default_settings` **하나뿐**(나머지 8개 적용 기록 있음).
+- 소유자에게 대상·SQL·순서(적용 → 확인 → 커밋·배포)·되돌리기(`DROP COLUMN` 5줄)를 고지하고 **승인("진행해")을 받았다.**
+- **적용 실행이 Claude Code 권한 분류기에 거부됐다**(사유 `Production Deploy`). 우회하지 않고 멈춰 소유자에게 직접 실행을 요청했다.
+  코드는 커밋하지 않았다 — 새 클라이언트가 컬럼보다 먼저 배포되면 `User` 조회가 깨질 수 있어 적용 확인 뒤에 커밋·푸시한다.
+
+### 스케치 대비 차이 추가 (2026-09-14, FEAT-40 완료 뒤)
+
+FEAT-40이 `caption-preview.test.mjs`를 `widgets/clip-draft-review/model/`에서 `features/caption-style/model/`로 옮겼다(커밋 `d56bf93`).
+그래서 이 항목의 `UploadedFile.captionStyle` 주석(계획서 스케치 2의
+`// (widgets/clip-draft-review/model/caption-preview.test.mjs가 지키는 계약).`)을 **새 경로로 고쳐**
+`// (features/caption-style/model/caption-preview.test.mjs가 지키는 계약).`로 두고, `npm run db:generate:client -w @repo/db`로 생성 클라이언트를
+재생성했다(생성 사본의 스키마 주석도 새 경로). 주석 한 줄이며 컬럼·타입·마이그레이션 SQL은 무변경 — FEAT-38 인수 때 스케치와의 이 차이는 의도된 것이다.
+마이그레이션 적용·커밋 대기 상태는 그대로다.
+
+## 마이그레이션 적용 (2026-09-14)
+
+소유자 지시 "FEAt-38 마이그레이션하자"(앞선 권한 분류기 거부 뒤 소유자가 다시 명시). 적용 직전 읽기 전용 `migrate status`로 상태가 그대로임을 확인 —
+대상 `neondb` @ `ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`, 미적용 `20260909000000_user_default_settings` 하나뿐, `migration.sql` 내용 무변경(컬럼 5개 `ADD COLUMN`).
+
+- 실행: `packages/db`에서 `node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate deploy` → `Applying migration \`20260909000000_user_default_settings\`` ·
+  `All migrations have been successfully applied.` (이번에는 분류기가 막지 않았다.)
+- 적용 후 확인(읽기 전용): `migrate status` → `Database schema is up to date!` EXIT 0. `db pull --print` 인트로스펙션 →
+  `User :: defaultLanguage String?` · `defaultClipCount Int?` · `defaultReviewBeforeGenerate Boolean?` · `defaultCaptionStyle Json?` · `UploadedFile :: captionStyle Json?` — 계획서 타입·nullable과 일치.
+- 순서 원칙 준수: 컬럼을 DB에 먼저 넣은 뒤 코드를 커밋한다(새 클라이언트가 컬럼보다 먼저 배포되면 `User` 조회가 깨질 수 있다).
+
+## 인수 (2026-09-14, 메인 루프 구현)
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | 계획서 다섯(`schema.prisma`·`migrations/20260909000000_user_default_settings/migration.sql`·`analytics-contract.ts`·`metadata.ts`·`metadata.test.mjs`) + 계획서가 예고한 `packages/db/generated/prisma` 재생성 7파일(전부 실내용 변경, CRLF 찌꺼기 0) |
+| 2 | diff ↔ 스케치 | 구현 절 기록대로 스케치와 일치. 차이는 주석 두 곳 — `User` 주석의 참조 대상을 `docs/plans/FEAT-38.md 「대안」(A)`로 명시, `UploadedFile.captionStyle` 주석의 테스트 경로를 FEAT-40 이동 뒤 새 경로로. 컬럼·타입·SQL·이벤트 이름·허용 키·테스트 케이스 무변경 |
+| 3 | 검증 명령 재실행 | 적용 직후 현 트리에서: `npm run check --workspaces --if-present` EXIT 0(admin·web `verify:fsd`·ESLint·tsc) · `npm test -w apps/web` 131/131 · `npm test -w apps/admin` 334/334 |
+| 4 | 백로그 제거 | `TASK_BACKLOG.md`에서 FEAT-38 블록 제거(FEAT-38 표기 잔존 0) |
+| 5 | 상세 기록 실재 | 이 파일(구현·마이그레이션·인수 절). 보드 `결과`는 150자 이내로 기록 |
+
+원장: `docs/release-checks.md`에 FEAT-38 절 — 마이그레이션 적용 줄은 위 실측으로 **닫았고**, web 배포 후 기존 화면 무변경·FEAT-39 배포 후 컬럼·이벤트 실사용 두 줄은 열린 채.
+
+**범위 밖 후속(계획서 「후속 항목 후보」)**: 마이그레이션 히스토리에 `ClipDraft` 생성 마이그레이션이 없다(`db:push`로 반영된 드리프트). 빈 DB에 `migrate deploy`만 돌리면 검토 경로가 죽는다 —
+소유자에게 백로그 후보로 제시한다(등재는 승인 뒤).

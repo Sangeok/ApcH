@@ -72,12 +72,13 @@
   검증: 클린 패스 (2026-09-14, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 문서 위생 3건 반영)
   근거: 유료 고객 결제 포털이 프로덕션 500 — 이틀 간격 재현된 결제 경로 결함. 미결 0건. 신규 FEAT-38~42 체인보다 실사용 영향이 커 우선 선정.
   결과: 포털 위임을 customerSessions.create 직접 호출+try/catch로 교체(실패 Sentry 보고→?portal=error 리다이렉트+토스트). check EXIT0·test131/0. 상세 web-dev/BUG-09
-- [ ] FEAT-38: 사용자 기본값 스키마 — User 컬럼 4개 + UploadedFile.captionStyle + analytics 이벤트 2개 (마이그레이션 1회)
+- [x] FEAT-38: 사용자 기본값 스키마 — User 컬럼 4개 + UploadedFile.captionStyle + analytics 이벤트 2개 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + packages/db/src/analytics-contract.ts + apps/web/src/fsd/shared/analytics/lib/metadata.ts
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-09, 독립 무편집 1사이클 — 결함 0, 1차는 브리핑 계약 위반으로 무판정)
   근거: FEAT-39·42 두 항목의 선행이자 선행 없음. 사용자 기본값 설정 기능 전체를 여는 관문이라 체인 중 가장 먼저 착수. 담당은 쓰기범위상 main-loop.
+  결과: 프로덕션 마이그레이션 적용(5컬럼, migrate status up to date)·스키마·이벤트2·metadata 키·테스트1·클라이언트 재생성. check 0·web 131·admin 334. 상세 main-loop/FEAT-38
 
 ## 2026-09-08
 - [x] FEAT-37: 한국어 업로드 검토 화면에 「자막은 렌더 때 번역된다」 안내 — 영어 전사를 번역 실패로 오독하지 않게

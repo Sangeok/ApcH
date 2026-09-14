@@ -49,6 +49,17 @@ model User {
     credits         Int       @default(3)
     polarCustomerId String?   @unique
     image           String?
+
+    // 업로드 폼의 기본값. null = 설정 안 함 → 시스템 상수를 따른다
+    // (shared/config/constants.ts DEFAULT_LANGUAGE / DEFAULT_CLIP_COUNT).
+    // Json 블롭 한 칸으로 묶지 않은 이유는 docs/plans/FEAT-38.md 「대안」(A) 참조.
+    defaultLanguage             String?
+    defaultClipCount            Int?
+    defaultReviewBeforeGenerate Boolean?
+    // 검증은 captionStyleSchema(features/clip-review/model/schemas.ts) 한 곳.
+    // ClipDraft.captionStyle과 같은 CaptionStyle 모양이다.
+    defaultCaptionStyle         Json?
+
     accounts        Account[]
     sessions        Session[]
 
@@ -79,6 +90,12 @@ model UploadedFile {
     targetClipCount       Int      @default(3)
     // Pre-generation review mode. When true, processing runs analyze -> review -> render.
     reviewBeforeGenerate  Boolean  @default(false)
+    // 업로드 시점에 User.defaultCaptionStyle을 복사한 스냅샷 (FEAT-42가 채운다).
+    // 라이브 참조가 아니라 스냅샷인 이유: 검토 중 기본값을 바꾸면 미리보기와
+    // 실렌더가 어긋나고, 그 회귀는 크레딧을 쓴 뒤에야 드러난다
+    // (features/caption-style/model/caption-preview.test.mjs가 지키는 계약).
+    // 재처리 결과가 원본과 달라지는 것도 같은 이유로 막는다.
+    captionStyle          Json?
     // The analysis attempt whose ClipDrafts are currently under review / were confirmed.
     reviewAttempt         Int?
     reviewReadyAt         DateTime?
