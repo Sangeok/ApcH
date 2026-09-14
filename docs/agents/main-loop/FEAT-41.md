@@ -103,3 +103,21 @@ render 부재 = 언어 기본값의 근거 셋(커스텀 클립·Reset·렌더 �
 - 트리: FEAT-41 문서 셋(계획서·이 기록·백로그)과 커밋 보류 중인 FEAT-38 변경뿐.
 
 **판정: 무소득** → `plan-verifier` 독립 패스 디스패치 자격. 필수 경로는 확정표의 1·2·3·4·5·7.
+
+## 독립 패스 1사이클 (2026-09-14, plan-verifier)
+
+브리핑은 계약 셋(항목ID·계획서 경로·경로 1·2·3·4·5·7 카탈로그 발췌)뿐. 검증자가 계약 준수를 스스로 확인했다.
+
+**보고: 결함 0건.** 필수 경로 여섯 전부 실행, 실행 못 한 경로 없음. 하니스는 스크래치패드.
+- 경로 1: `main.py` 인용 전부와 웹 인용(`clip-draft/api/index.ts:73·111·117-148`, `CaptionStyleDialog.tsx:82·87·117`), `test_modal_image_sources.py:16-24` 내용 일치.
+- 경로 2: 신규 모듈을 바이트 그대로 추출해 `py_compile` 통과, 적용한 `main.py`도 통과.
+- 경로 3: before 여섯의 출현 횟수가 계획서 기대와 일치(spawn·remote 꼬리 2회), 손 개입 없이 적용.
+- 경로 4: "유일한 주입 지점" — `process_clip(` 호출부는 한 곳이고 그 `caption_style=`이 `:1115` 하나. "auto moment에 caption_style 없음" — `validate_moments`가 moment를 변형 없이 append만 한다. 배포 순서 불변을 모듈 실행으로 확인.
+- 경로 5: 명세 10케이스를 unittest 12메서드로 이식해 통과, 돌연변이 6종(mode 게이트 제거·폴백 모드 render·moment 우선 제거·`is not None` 완화·truthiness 완화·request `isinstance` 제거) 전부 사멸.
+- 경로 7: 샌드박스에서 등록 있으면 통과, 등록만 빼면 실패하며 `caption_style_source`를 누락 모듈로 정확히 지목.
+
+**트리 검산**(메인 루프 직접): 패스 종료 후 `git status --short`가 디스패치 직전 스냅샷과 동일 — 커밋 보류 중인 FEAT-38 변경
+(`git diff --ignore-cr-at-eol --numstat` 수치까지 동일), `apps/web/.claude/settings.local.json`, `nul`. 검증자 무수정 준수 확인.
+
+**판정: 클린 패스.** 정지 규칙 계수 0(구현 영향 결함은 라운드 1의 설계 결함 1건뿐이고 소유자 결정으로 해소, 독립 패스 0건).
+보드에 `검증:` 줄 기록. 다음은 게이트②이며 소유자만 연다.
