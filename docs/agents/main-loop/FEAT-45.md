@@ -155,4 +155,13 @@ web-dev 보고: 완료, check EXIT 0 · test 154/0, 스케치 차이 없음. 인
 ### 범위 밖 의존
 
 계획서 「없음」 — 사용자에게 제시할 백로그 후보 없음.
-관측만 남긴다: `widgets/clip-draft-review/ui/index.tsx:281-282` 주석이 `CaptionStyleEditor :310-311`(실제 `:318-323`)을 가리키는 낡은 교차 줄번호 인용이다. 계획서가 「문구만」 범위 밖으로 남겼고 FEAT-44 열거(main.py 인용)에도 없다. 사용자에게 전달한다. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.
+관측만 남긴다: `widgets/clip-draft-review/ui/index.tsx:281-282` 주석이 `CaptionStyleEditor :310-311`(실제 `:318-323`)을 가리키는 낡은 교차 줄번호 인용이다. 계획서가 「문구만」 범위 밖으로 남겼고 FEAT-44 열거(main.py 인용)에도 없다. 사용자에게 전달한다.
+
+### doc-auditor (10차 감사, 2026-09-15)
+
+확인 18건, 어긋남 4건 — 전부 코드 주석의 낡은 줄번호 인용이다.
+- `review-language-notice.ts:2`·`ClipDraftCard.tsx:476`의 `previewText` 위치 `:113`(실제 `:114`)
+- `review-language-notice.ts:3-5`의 `main.py` 네 줄 — FEAT-44에 이미 열거됨
+- `ui/index.tsx:281-282`의 `CaptionStyleEditor :310-311` — 위 관측
+
+사용자 문구·원장·CLAUDE.md 서술은 전부 사실과 일치했다. 감사 보고는 사용자에게 전달했고 `docs/agents/doc-auditor/감사기록.md`에 이어 붙였다. FEAT-44 범위에 나머지 셋을 덧붙일지는 소유자 결정으로 남긴다. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.
