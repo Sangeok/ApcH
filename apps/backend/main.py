@@ -43,6 +43,14 @@ from temp_cleanup_policy import (
 from error_callback import build_error_callback_payload
 from moment_prompt import build_moment_prompt
 from caption_style_source import select_caption_style
+from reference_translation import (
+    should_translate_references,
+    build_reference_sources,
+    build_reference_translation_prompt,
+    strip_code_fences,
+    assemble_reference_translations,
+    attach_reference_translations,
+)
 
 # 요청 바디 모델: 처리 대상 동영상의 S3 객체 키를 받음
 class ProcessVideoRequest(BaseModel):
@@ -82,7 +90,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True)
-    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source"))
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -877,6 +885,42 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         "youtubeHashtags": youtube_metadata["hashtags"],
     }
 
+
+REFERENCE_TRANSLATION_TIMEOUT_MS = 120000  # 120s. 참고 번역은 best-effort — 멈춘 호출이 analyze를
+                                           # web 한도(ANALYSIS_RESULT_TIMEOUT 60m)까지 끌고 가면 안 된다.
+
+
+def build_reference_translations(validated_moments, transcript_words, language, gemini_client):
+    """Korean analyze 후보마다 AI 구간 원문의 참고 번역을 만든다.
+
+    - 비-Korean: None (필드 미추가, 호출 없음 — 요구 ①).
+    - 원문이 하나도 없으면 Gemini를 부르지 않고 전부 None.
+    - 번역 호출·JSON 파싱·인덱스 매칭의 모든 예외·타임아웃을 여기서 잡아 전부 None으로 돌린다 —
+      analyze 자체는 실패시키지 않는다(요구 ③). 개별 누락 인덱스도 None(부분 성공).
+    """
+    if not should_translate_references(language):
+        return None
+    sources = build_reference_sources(validated_moments, transcript_words)
+    translatable = [s for s in sources if s["text"].strip()]
+    if not translatable:
+        return [None for _ in sources]
+    try:
+        prompt = build_reference_translation_prompt(translatable)
+        response = gemini_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.3,
+                http_options=genai.types.HttpOptions(timeout=REFERENCE_TRANSLATION_TIMEOUT_MS),
+            ),
+        )
+        translation_payload = json.loads(strip_code_fences(response.text))
+        return assemble_reference_translations(sources, translation_payload)
+    except Exception as e:
+        print(f"Reference translation error: {e}. Leaving reference translations null.")
+        return [None for _ in sources]
+
 # GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스
 @app.cls(gpu="L40S", timeout=3600, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")],  volumes={mount_path: volume})
 class AiPodcastClipper:
@@ -1036,19 +1080,23 @@ class AiPodcastClipper:
 
                 validated_moments = validate_moments(clip_moments)
 
+                base_moments = [
+                    {
+                        "index": idx,
+                        "startSeconds": float(m["start"]),
+                        "endSeconds": float(m["end"]),
+                        "clipType": m.get("type"),
+                        "hook": m.get("hook"),
+                        "payoff": m.get("payoff"),
+                    }
+                    for idx, m in enumerate(validated_moments)
+                ]
+                reference_translations = build_reference_translations(
+                    validated_moments, transcript_segments, language, self.gemini_client
+                )
                 analyze_payload = {
                     "transcript_s3_key": transcript_key,
-                    "moments": [
-                        {
-                            "index": idx,
-                            "startSeconds": float(m["start"]),
-                            "endSeconds": float(m["end"]),
-                            "clipType": m.get("type"),
-                            "hook": m.get("hook"),
-                            "payoff": m.get("payoff"),
-                        }
-                        for idx, m in enumerate(validated_moments)
-                    ],
+                    "moments": attach_reference_translations(base_moments, reference_translations),
                 }
 
                 if callback_url and uploaded_file_id:
