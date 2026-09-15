@@ -43,7 +43,7 @@
 - [ ] FEAT-42: 캡션 스타일 기본값 본체 — 설정 화면 캡션 섹션 · 업로드 스냅샷 · 드래프트 시드 · 디스패치 페이로드 · 검토 화면 인라인 저장
   agent: web-dev
   area: apps/web/src/fsd/pages/settings + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/widgets/clip-draft-review/ui/_component/CaptionStyleDialog.tsx + apps/web/src/inngest
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-15, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 3건·검증 가능성 1건·위생 1건 반영)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-38·39·40 완료, 배포 선행 FEAT-41 Modal 배포됨. 기본값 체인의 마지막 — 캡션 스타일 기본값이 렌더까지 닿게 한다.
 

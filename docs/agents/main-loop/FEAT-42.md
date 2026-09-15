@@ -152,3 +152,12 @@ web-dev 계획서 `88d9c06` — **①②만**(설정 캡션 섹션·업로드 �
 - `packages/db/prisma/schema.prisma:59·186` 주석의 `captionStyleSchema` 경로는 다음 스키마 변경 항목(FEAT-47)과 함께 교정한다. 백로그 FEAT-47 요구 ③에 덧붙인다.
 - `docs/release-checks.md`: FEAT-42 절 등재. FEAT-41 절 `:68`·`:69`는 FEAT-42 배포 뒤 마감.
 - 보드 area에 남은 `CaptionStyleDialog.tsx`는 분할로 이 계획이 건드리지 않는다. 인수 때 변경 파일 대조의 기준은 계획서 「고칠 파일」이다.
+
+## 게이트② (2026-09-15)
+
+- 소유자가 세션에서 「구현 승인」을 지시했다. 보드 FEAT-42 행의 `status: 검토대기` → `구현승인` 한 줄만 바꾸고, `검증:` 줄은 전진 전이라 남겼다.
+- 전이 전 확인
+  - `dev` = `origin/dev`(0 0).
+  - 구현 파일(`caption-style-request.ts`·`sample-captions.ts`·`caption-style-schema.ts`)과 `docs/agents/web-dev/FEAT-42.md`가 아직 없음 — 다른 세션이 먼저 처리하지 않았다(FEAT-39 때 병행 처리 선례를 확인).
+  - 로컬 ApcH 세션들은 idle이다.
+- 구현 기준은 계획서 `50aef78`이다(이후 계획서 무변경). web-dev를 구현 단계로 디스패치하고, 워킹트리의 남의 변경(`apps/web/.claude/settings.local.json`·`nul`)은 건드리지 말고 커밋·푸시하지 말라고 브리핑한다.
