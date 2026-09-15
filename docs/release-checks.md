@@ -22,6 +22,21 @@
 
 ---
 
+## FEAT-42 — 캡션 스타일 기본값 앞 절반: 설정 캡션 섹션·업로드 스냅샷·드래프트 시드·auto 요청 페이로드 (web, 구현 2026-09-15)
+
+원천: `docs/agents/web-dev/FEAT-42.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 반영된다. 백엔드 선행 FEAT-41은 이미 배포됨(2026-09-15 00:00 KST).
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 145→154 — 신규 `caption-style-request.test.mjs` 3·`sample-captions.test.mjs` 6). auto 렌더가 요청 스냅샷으로 나오는지와 render에서 스타일 없는 클립이 언어 기본값인지는 아래 FEAT-41 절 「(FEAT-42 배포 후)」 두 줄이 맡고, 이 절은 설정 화면·스냅샷·검토 시드를 맡는다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면과 실제 업로드·Modal 처리에서만 판정된다.
+
+- [ ] **설정 화면에 캡션 기본 스타일 카드가 보이고 샘플 미리보기가 첫 페인트부터 그려지는가** — `/dashboard/settings`의 「Upload defaults」 아래 「Default caption style」 카드에 프리셋·위치·크기·색·외곽선·줄당 단어·Uppercase 컨트롤, 9:16 미리보기에 샘플 첫 줄(English `Style your captions the way`), 밑 안내 `This is a sample. …`, `Save caption style`·`Reset to language default`가 보이는지. 컨트롤을 바꾸면 미리보기의 크기·색·위치·줄당 단어·대문자가 즉시 바뀌는지
+- [ ] **페이지 언어를 Korean으로 바꾸면 미리보기가 함께 바뀌는가** — `Subtitle language`를 `한국어`로 고르면(저장 전에도) 미리보기 문장이 `지금 자막 스타일을`, 폰트가 Noto Sans KR, 크기 표시가 130으로 바뀌는지
+- [ ] **저장한 캡션 기본값이 새 업로드의 검토 드래프트에 시드되는가** — 캡션 스타일 저장(토스트 `Caption style saved`) → `Review first`로 새 업로드 → 검토 화면 한 클립의 `Caption style` 다이얼로그가 저장한 스타일(해당 프리셋 칩 활성 포함)로 열리는지. 저장 전에 올린 업로드는 그대로여야 한다(업로드 시점 스냅샷)
+- [ ] **캡션 기본값을 초기화한 뒤의 새 업로드는 언어 기본값인가** — `Reset to language default` 뒤 새 업로드의 검토 다이얼로그가 언어 기본값(프리셋 칩 없음)으로 열리는지
+- [ ] **검토 화면 캡션 다이얼로그가 영상 로딩 중에도 기존 그대로인가** — 원본 영상 URL이 준비되기 전에 다이얼로그를 열어도 안내가 `Live preview on your video …`이고 `This is a sample.`이 보이지 않는지(샘플 모드는 설정 화면만)
+- [ ] **캡션 기본값 저장이 계측에 `preset`과 함께 기록되는가** — admin 분석에 `settings_defaults_saved` 행이 `source: "settings_page"`와 `preset`(프리셋 id·`custom`·`default`)을 담아 생기는지
+
+---
+
 ## FEAT-39 — 설정 화면 + 업로드 기본값(언어·클립 수·생성 모드) (web, 구현 2026-09-14)
 
 원천: `docs/agents/web-dev/FEAT-39.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 00:05 KST**, PR #118 `main` 합류(`cd01537`) → Vercel `Production – apc-h` success.

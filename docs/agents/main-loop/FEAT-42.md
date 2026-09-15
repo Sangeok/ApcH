@@ -161,3 +161,30 @@ web-dev 계획서 `88d9c06` — **①②만**(설정 캡션 섹션·업로드 �
   - 구현 파일(`caption-style-request.ts`·`sample-captions.ts`·`caption-style-schema.ts`)과 `docs/agents/web-dev/FEAT-42.md`가 아직 없음 — 다른 세션이 먼저 처리하지 않았다(FEAT-39 때 병행 처리 선례를 확인).
   - 로컬 ApcH 세션들은 idle이다.
 - 구현 기준은 계획서 `50aef78`이다(이후 계획서 무변경). web-dev를 구현 단계로 디스패치하고, 워킹트리의 남의 변경(`apps/web/.claude/settings.local.json`·`nul`)은 건드리지 말고 커밋·푸시하지 말라고 브리핑한다.
+
+## 인수 (2026-09-15)
+
+web-dev 보고: 완료, check EXIT 0 · test 154/0. 인수 조건 다섯은 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`: `apps/web/src` 수정 13 + 신규 5(`caption-style-schema.ts`·`sample-captions.ts`·`sample-captions.test.mjs`·`caption-style-request.ts`·`caption-style-request.test.mjs`) — 계획서 18행과 정확히 일치. 그 밖엔 보드·백로그·`docs/agents/web-dev/FEAT-42.md`와 세션 전부터 있던 `settings.local.json`·`nul`. `CaptionStyleDialog.tsx`·`createCustomClipDraft`·`packages/db` 무변경 |
+| 2 | diff ↔ 스케치 | **기계 대조**: HEAD의 `apps/web/src`를 `git archive`로 스크래치패드에 뽑아 검증 하니스 `apply42.mjs`로 계획서 스케치를 적용하고, 구현과 파일별로 비교했다(`acceptdiff42.mjs`, 공백 무시). 16파일 중 6 동일, 10 차이 — 전부 비동작이다. ① 샘플 단어 배열 한 줄→단어당 한 줄, ② 주석 추가·보강(스키마 파일 머리 주석, 플레이어·편집기·업로드 액션 설명), ③ 임포트 순서 교환, ④ 호출 줄바꿈, ⑤ `captionStyle` state 선언 위치(다른 훅 곁으로), ⑥ 스케치가 뺀 기존 주석 `// 상위 clipCount개만 기본 선택` 유지. 분기·조건·리터럴·사용자 문구 차이 0. **실물 렌더도 구현 트리에 다시 돌렸다**(`render42.mjs`): 설정 화면 첫 큐 정적 표시, Korean 저장값 반영, 검토 다이얼로그 로딩 중 무변경 등 18/18 |
+| 3 | 검증 명령 재실행 | `npm run check -w apps/web` → verify:fsd:test `# pass 11` · `FSD boundary check passed.` · `✔ No ESLint warnings or errors` · EXIT 0. `npm test -w apps/web` → `# tests 154 # suites 35 # pass 154 # fail 0`. **구현의 실제 테스트 파일에 돌연변이 12종**(`mutate42.mjs`): 11 사멸, S5(KR 샘플 9→8) 하나 생존 — 명세 "≥8"대로 의도된 생존. 돌연변이 뒤 구현 파일 해시 동일 |
+| 4 | 백로그 제거 | `TASK_BACKLOG.md`에서 `**FEAT-42**` 블록 4줄 제거. 남은 `FEAT-42` 언급 1곳은 FEAT-49 본문의 교차 참조 |
+| 5 | 상세 기록 실재 | `docs/agents/web-dev/FEAT-42.md` 78줄 — 파일 전수, 스케치 대비 차이, 검증, 못 덮은 범위, 범위 밖. 보드 `결과` 136자 |
+
+**위생 관찰 (차단 아님, 고치지 않음)**
+- web-dev 보고서 「스케치 대비 차이」는 "유일한 형식 차이 = 카드 들여쓰기"라고 적었지만, 기계 대조로는 위 ①~⑥이 더 있다(전부 비동작). append-only 기록이라 고치지 않고 여기에 남긴다.
+- 테스트 파일은 계획서 명세보다 한 케이스 강하다 — English maxWords 8 결과 문자열까지 못박는다(`sample-captions.test.mjs:41-46`).
+
+### 문서 갱신
+
+- `apps/web/CLAUDE.md` 테스트 표: `features/caption-style/model/sample-captions.test.mjs`·`inngest/caption-style-request.test.mjs` 두 행. 테스트 개수 문구는 `23개 파일, 35 suite, 154개 테스트`(`git ls-files` 21 + 신규 2, 러너 출력 suites 35·tests 154). FSD 레이어 표·서버 액션 목록은 새 슬라이스가 없어 변화 없음.
+- `docs/release-checks.md` FEAT-42 절 여섯 줄: 설정 캡션 카드·샘플 미리보기, 언어 연동, 드래프트 시드, 초기화, 검토 다이얼로그 로딩 중 무변경, 계측 `preset`. `〔auto〕` 없음. FEAT-41 절 `(FEAT-42 배포 후)` 두 줄은 배포 뒤 함께 마감한다.
+
+### 범위 밖 의존 — 소유자에게 백로그 후보로 제시(등재는 승인 뒤, 런북 7단계)
+
+1. **③ 검토 화면 인라인 저장 (FEAT-42 뒤 절반)**: 다이얼로그 "내 기본으로 저장"(계측 `source: "review_dialog"`), Reset을 업로드 스냅샷으로, 스냅샷을 검토 UI로 흘리는 데이터 흐름, 커스텀 클립 시드 재판정.
+2. **`schema.prisma:59·186` 주석의 옛 `captionStyleSchema` 경로** — 다음 스키마 변경 항목 FEAT-47의 "함께 고칠 것"에 덧붙이는 안(생성 클라이언트 재생성 1회에 같이 태운다).
+3. **FEAT-49 본문 갱신** — 공유 상수가 이미 생겼다(`features/caption-style/model/sample-captions.ts`, `sampleCaptionWords`·영/한 각 9단어). "먼저 구현하는 쪽이 상수를 만든다"는 문장을 사실로 바꾸는 안.
