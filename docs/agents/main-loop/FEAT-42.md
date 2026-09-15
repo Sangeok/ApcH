@@ -188,3 +188,9 @@ web-dev 보고: 완료, check EXIT 0 · test 154/0. 인수 조건 다섯은 보�
 1. **③ 검토 화면 인라인 저장 (FEAT-42 뒤 절반)**: 다이얼로그 "내 기본으로 저장"(계측 `source: "review_dialog"`), Reset을 업로드 스냅샷으로, 스냅샷을 검토 UI로 흘리는 데이터 흐름, 커스텀 클립 시드 재판정.
 2. **`schema.prisma:59·186` 주석의 옛 `captionStyleSchema` 경로** — 다음 스키마 변경 항목 FEAT-47의 "함께 고칠 것"에 덧붙이는 안(생성 클라이언트 재생성 1회에 같이 태운다).
 3. **FEAT-49 본문 갱신** — 공유 상수가 이미 생겼다(`features/caption-style/model/sample-captions.ts`, `sampleCaptionWords`·영/한 각 9단어). "먼저 구현하는 쪽이 상수를 만든다"는 문장을 사실로 바꾸는 안.
+
+**소유자 결정 (2026-09-15)**: 1만 등재 승인 → `TASK_BACKLOG.md` **FEAT-50**(Web 절, BUG-12 다음). 2·3은 선택하지 않아 등재하지 않는다 — `schema.prisma` 주석 드리프트는 알려진 채로 남고, FEAT-49 본문은 그대로다.
+
+### doc-auditor (9차 감사, 2026-09-15)
+
+확인 15건, 어긋남 2건 — 둘 다 위 후보 2의 `schema.prisma:59·186` 주석이다(알려진 드리프트, 등재 미승인이라 고치지 않음). 감사 보고는 사용자에게 전달했고 `docs/agents/doc-auditor/감사기록.md`에 이어 붙였다.
