@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-16
+- [ ] FEAT-47: `ClipDraft`에 참고 번역 컬럼 추가 (마이그레이션 1회)
+  agent: main-loop
+  area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-46 완료·배포로 필드명 referenceTranslation 확정. FEAT-48의 선행 — 백엔드가 이미 싣는 참고 번역을 받을 자리.
+
 ## 2026-09-15
 - [x] FEAT-49: Korean 캡션 스타일 미리보기가 영어 원문 대신 한국어 샘플 문장을 그린다 — Uppercase·Words per line이 한국어 결과를 오도하지 않게
   agent: web-dev
