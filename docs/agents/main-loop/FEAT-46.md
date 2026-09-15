@@ -148,3 +148,29 @@ backend-dev 계획서 `docs/plans/FEAT-46.md` — 수정 1(`main.py`), 신규 2(
 편집본에 대해 하니스를 다시 전부 돌렸다.
 - 결과: 추출 5블록 · 명세 테스트 OK · 돌연변이 **18/18** · `wire46.py` **23/23** · 실제 트리 적용 `Ran 79 tests … OK` · `py_compile` 0 · 등록 음성 시험 `FAILED (failures=1)` · 원복 후 `apps/backend` 변경 0. 인용 기계 대조 불일치 0(위).
 - 결함 0. Source changed = yes(9행)였으므로 클린 패스 판정은 plan-verifier 2사이클의 독립 무편집 패스에 맡긴다.
+
+3라운드 커밋 `44fbab7`.
+
+## plan-verifier 2사이클 (2026-09-15) — 결함 0건, 실행하지 못한 경로 없음 → 클린 패스
+
+브리핑 계약 준수(항목 ID·계획서 경로·필수 경로만). 대상은 `44fbab7`의 계획서다.
+
+- **경로 1**: 계획서 `파일:줄` 전수를 내용까지 대조했다 → 전부 일치, 낡은 줄번호·오기 0.
+  - `main.py` 약 45곳, `moment_prompt.py:91`, `translation_fallback.py`, `ClipDraftCard.tsx:108-114`, `modal-contract.ts:173-201`, `functions.ts:930-946`, `requirements.txt:35`, `CLIP_COUNT_OPTIONS`.
+- **경로 2**: 신규 모듈을 바이트 그대로 추출했다 → `py_compile` OK, 6함수 노출.
+- **경로 3**: `main.py` 사본에 네 편집을 적용했다 → before 앵커 전부 1회 일치, 결과 `py_compile` OK.
+- **경로 4**: 세 전칭 모두 여집합이 공집합이다.
+  - `generate_content`는 `:515·:669·:945` 셋뿐이고, 그 셋에 `timeout`·`http_options`가 없다.
+  - `env.js` 키 13개 중 LLM 제공자 키가 0이다.
+  - 콜백 moment dict 키가 정확히 6개다.
+- **경로 5**: 명세를 unittest로 옮겨 green을 확인한 뒤 돌연변이 7종을 심었다 → **7/7 사멸**.
+- **경로 6(변형)**: 후보 4개 중 #1이 빈 구간이고 Gemini가 0·2·3만 돌려주는 시나리오를 재생했다 → `["T0", None, "T2", "T3"]`, off-by-one 없음.
+- **경로 7**: 등록 포함 시 PASS, `"reference_translation"`을 빼면 `FAILED`.
+
+**트리 청결 — 메인 루프 직접 확인**
+- 검증 뒤 `git status --short`에는 `M apps/web/.claude/settings.local.json`·`?? nul`만 있다(세션 전부터).
+- 그사이 로컬에 생긴 `ddb0ef6`(FEAT-49 검증 1라운드)은 병행 세션의 커밋이다. FEAT-46 파일은 건드리지 않았다.
+
+**판정**
+- 독립 무편집 패스 1회가 결함 0이고 미실행 경로 없이 끝났다 → **클린 패스**(보드 정지 규칙). 보드 FEAT-46 행에 `검증:` 줄을 기록하고 게이트②를 기다린다.
+- 누적 편집은 모두 구현 영향 0이다. 메인 루프 1라운드 4건(위생 3·검증 가능성 1), plan-verifier 1사이클 1건(위생).
