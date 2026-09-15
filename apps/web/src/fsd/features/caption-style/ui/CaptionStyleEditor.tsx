@@ -318,8 +318,8 @@ export default function CaptionStyleEditor({
           <p className="text-center text-[11px] text-muted-foreground">
             Live preview on your video — the whole frame is shown here. The final
             clip crops to follow whoever is speaking, so framing will differ.
-            Korean clips are translated at render time — the words here are the
-            English source.
+            Korean clips are translated at render time — the words shown here are
+            what&apos;s said in the video, in English.
           </p>
         )}
       </div>

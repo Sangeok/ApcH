@@ -40,12 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-15
-- [ ] FEAT-45: 검토 화면의 "transcript/source" 표현을 사용자 말로 풀어 쓴다 — 카드 라벨·헤더 안내·캡션 편집기 안내 문구
+- [x] FEAT-45: 검토 화면의 "transcript/source" 표현을 사용자 말로 풀어 쓴다 — 카드 라벨·헤더 안내·캡션 편집기 안내 문구
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-15, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 위생 2건 반영, 구현 영향 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 없음, FEAT-48·49의 선행. 소유자조차 "transcript"를 못 읽은 검토 화면 문구를 평이하게 — FEAT-42 인수 뒤 제안 1순위.
+  결과: 계획서 before/after 6쌍 그대로 4파일 수정 — 세 문구를 "what's said in the video, in English" 어구로 통일, 골든 2개·주석 앵커 갱신. check EXIT 0, test 154/154. 스케치 차이 없음.
 - [x] FEAT-42: 캡션 스타일 기본값 본체 — 설정 화면 캡션 섹션 · 업로드 스냅샷 · 드래프트 시드 · 디스패치 페이로드 · 검토 화면 인라인 저장
   agent: web-dev
   area: apps/web/src/fsd/pages/settings + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/widgets/clip-draft-review/ui/_component/CaptionStyleDialog.tsx + apps/web/src/inngest

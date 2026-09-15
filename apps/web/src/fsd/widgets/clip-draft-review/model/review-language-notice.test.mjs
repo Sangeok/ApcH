@@ -8,7 +8,7 @@ import {
 
 // 골든 문자열 — 사용자에게 보이는 카피라 정확값이 계약이다.
 const KOREAN_NOTICE =
-  "Subtitles will be translated to Korean when you generate. This review shows the English transcript.";
+  "Subtitles will be translated to Korean when you generate. This review shows what's said in the video, in English.";
 
 describe("reviewLanguageNotice", () => {
   it("returns the exact notice for a non-English language, with the value name embedded", () => {
@@ -40,7 +40,7 @@ describe("reviewLanguageNotice", () => {
     // 허용목록이 아니라 "English 아님"으로 판정 = 언어 추가 시 자동 커버를 못박는다.
     assert.equal(
       reviewLanguageNotice("Spanish"),
-      "Subtitles will be translated to Spanish when you generate. This review shows the English transcript.",
+      "Subtitles will be translated to Spanish when you generate. This review shows what's said in the video, in English.",
     );
   });
 });
