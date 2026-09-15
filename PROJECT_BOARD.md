@@ -43,7 +43,7 @@
 - [ ] FEAT-46: Korean 분석(analyze)에서 후보마다 참고 번역을 만들어 콜백에 싣는다 — 검토 화면이 영어 원문 옆에 한국어 뜻을 보여줄 수 있게
   agent: backend-dev
   area: apps/backend/main.py + apps/backend (신규 stdlib 순수 모듈·테스트)
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 없음, FEAT-47·48 체인의 첫 단계. FEAT-42·45 배포 뒤 메인 루프 추천 1순위 — 소유자 실물 확인 결과와 무관하게 진행 가능.
 - [x] FEAT-45: 검토 화면의 "transcript/source" 표현을 사용자 말로 풀어 쓴다 — 카드 라벨·헤더 안내·캡션 편집기 안내 문구
   agent: web-dev

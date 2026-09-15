@@ -48,3 +48,7 @@
   - Gemini 실출력의 번역 품질과 인덱스 준수, Korean analyze 지연 증가량은 unittest로 못 덮는다 — 배포 후 실제 Korean 업로드로 확인한다.
   - 이 필드는 FEAT-47·48 전까지 화면에 나오지 않는다. 그래서 배포 확인은 Modal 로그나 콜백 본문으로만 할 수 있다는 점을 적는다.
 - **메인 루프 몫(인수 때).** `apps/backend/CLAUDE.md`가 analyze 필드 소비 위치(`main.py:1046-1048`)와 이미지 등록 줄(`main.py:85`)을 인용한다. 구현으로 줄이 밀리면 인수 때 메인 루프가 갱신한다. 계획서는 밀리는지 여부만 적는다.
+
+## 계획서 수령 (2026-09-15)
+
+backend-dev 계획서 `docs/plans/FEAT-46.md` — 수정 1(`main.py`), 신규 2(`reference_translation.py`·`test_reference_translation.py`). 필드명 `referenceTranslation`, Korean만 키를 싣고(값 str|null) English는 키 없음. Gemini 타임아웃은 `HttpOptions(timeout=120000)`. 보드 `계획지시` → `검토대기`를 계획서와 같은 커밋으로 푸시했다.
