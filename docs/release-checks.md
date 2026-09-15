@@ -24,7 +24,7 @@
 
 ## FEAT-49 — Korean 캡션 스타일 미리보기를 한국어 샘플로 · Uppercase·Words per line 힌트 (web, 구현 2026-09-15)
 
-원천: `docs/agents/web-dev/FEAT-49.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **배포 대기** — `dev`만(`main` 미합류).
+원천: `docs/agents/web-dev/FEAT-49.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **배포됨 — 2026-09-15 22:28 KST**, PR #120 `main` 합류(`2af048b`, 22:25 KST 소유자) → Vercel `Production – apc-h`·`Production – apch-admin` success. (원장 표기는 FEAT-46 배포 기록 때 메인 루프가 커밋 상태로 대조해 갱신)
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **162/162 · suites 37**(인수 시 메인 루프 재실행). 치환 판정은 `previewCaptionCues` 테스트가 덮지만, 플레이어가 그 함수에 실제 `language`·`sample`을 넘기는 배선과 재생 중 큐 전환은 `<video>` state라 러너·정적 렌더 밖이다 — 배선은 인수 때 diff ↔ 스케치 기계 대조로 일치를 봤고, 실물 동작은 아래 첫 줄이 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: 검토 다이얼로그는 로그인 뒤 `review_pending` 업로드에서만, 설정 화면도 로그인 뒤에만 보인다.
 
@@ -37,12 +37,12 @@
 
 ## FEAT-46 — Korean analyze 후보마다 참고 번역(referenceTranslation) (backend, 구현 2026-09-15)
 
-원천: `docs/agents/backend-dev/FEAT-46.md`의 「못 덮은 범위」. **배포 대기** — `modal deploy`는 소유자 승인 사항이다.
+원천: `docs/agents/backend-dev/FEAT-46.md`의 「못 덮은 범위」. **배포됨 — 2026-09-15 23:42 KST**, 소유자 지시("FEAT-46 백엔드 배포 진행")로 메인 루프가 실행(`PYTHONUTF8=1 …\apch-backend\Scripts\python.exe -m modal deploy main.py`, 6.7초, EXIT 0, Modal **v27**, 마운트에 `PythonPackage:reference_translation` 포함, 엔드포인트 URL 불변). 코드는 PR #120으로 `main`에도 합류해 있다(`2af048b`). 배포 직전 unittest **117 OK** · `py_compile` 0 재실행.
 게이트는 unittest **117/0**(+38) · `py_compile` 0(인수 시 메인 루프 재실행). 인수 때 신규 모듈이 계획 스케치와 동일하고 `main.py`는 빈 줄 외 동일함을 기계 대조했으며, 실제 테스트 파일에 모듈 돌연변이 18종을 심어 전부 사멸함을 확인했다.
 **이 항목만으로는 사용자 체감 변화가 없다** — web 웹훅 정규화기(`normalizeAnalyzedMoment`)가 모르는 필드를 버리고, 저장은 FEAT-47·표시는 FEAT-48이다. 번역이 실제로 채워지는지·품질은 FEAT-48 배포 뒤 화면에서 보고, 이 절의 앞 세 줄은 배포 컨테이너와 analyze 무회귀를 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: Modal 실행·로그와 로그인 뒤 검토 화면에서만 판정된다.
 
-- [ ] **배포된 컨테이너가 `reference_translation`을 import하는가** — 배포 직후 `process_video`에 잘못된 토큰으로 유효한 형태의 바디를 POST → **401**(FEAT-41 절 첫 줄과 같은 확인). 이미지 등록이 빠졌으면 컨테이너가 기동하지 못해 모든 모드가 죽는다
+- [x] **배포된 컨테이너가 `reference_translation`을 import하는가** — 배포 직후 `process_video`에 잘못된 토큰으로 유효한 형태의 바디를 POST → **401**(FEAT-41 절 첫 줄과 같은 확인). 이미지 등록이 빠졌으면 컨테이너가 기동하지 못해 모든 모드가 죽는다 — 확인(2026-09-15, 실측 — 배포 출력 마운트에 `PythonPackage:reference_translation` · 잘못된 토큰으로 `{"s3_key":"probe/none.mp4","language":"Korean","clip_count":1,"mode":"analyze"}` POST(23:42:56) → **401** `{"detail":"Incorrect bearer token"}`, spawn 전 거부라 부작용 없음 · `modal container list` 활성 컨테이너 1, 시작 23:43으로 배포 이후)
 - [ ] **English 업로드의 분석이 이전과 같은가** — `Review first` English 업로드가 `review_pending`까지 가고 후보 카드가 이전처럼 뜨는지. English 경로는 번역 호출이 없어야 하므로 그 실행의 Modal 로그에 `Reference translation error:`가 없어야 한다
 - [ ] **Korean analyze가 번역 때문에 실패·지연되지 않는가** — `Review first` Korean 업로드가 `review_pending`까지 가는지, Modal 로그에 `Reference translation error:`가 없는지(있으면 사유를 본다 — 특히 배포 이미지의 미고정 최신 `google-genai`가 `http_options` timeout을 거부한 `ValidationError`인지), analyze 소요 시간이 이전과 크게 다르지 않은지
 - [ ] **(FEAT-48 배포 후) 검토 카드의 참고 번역이 그 후보 영어 원문의 뜻인가** — 문장 단위로 자연스러운지, 다른 후보의 번역이 붙는 인덱스 어긋남이 없는지. FEAT-48 절이 생기면 그 절이 이어받는다
