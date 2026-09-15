@@ -34,4 +34,50 @@
   FEAT-49는 같은 편집기 문장을 이 항목 뒤에 동작에 맞게 다시 고친다 — 이 항목은 표현만 바꾸고 동작 서술을 늘리지 않는다.
 - **교차 인용 주석.** `review-language-notice.ts:10`의 낡은 줄 번호 인용과 "기존 문구와도 일관" 서술을, 바뀐 문구 기준으로 고칠지 정한다.
   줄 번호 대신 내용 앵커로 쓴다(FEAT-44 결정: 교차 파일 줄번호 인용은 곧 낡는다). `ui/index.tsx:281`·`:425` 주석도 옛 문구를 인용하는지 확인한다.
-- **못 덮는 범위.** 실제 검토 화면에서 새 문구가 보이는지는 배포 후 확인이다. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.
+- **못 덮는 범위.** 실제 검토 화면에서 새 문구가 보이는지는 배포 후 확인이다.
+- (정정 — 발주 기록 자체의 위생) 위 앵커의 카드 라벨 조건 `ClipDraftCard.tsx:118`은 실제 `:115` `const showsEnglishSource = showsEnglishSourceForTranslation(language);`다. 계획서는 바르게 인용했다.
+
+## 계획서 수령 (2026-09-15)
+
+web-dev 계획서 `8947bcf` — 수정 4, 신규 0. 새 문구 셋이 어구 "what's said in the video, in English"를 공유한다. 보드 `계획지시` → `검토대기`를 같은 커밋으로 푸시했다.
+
+## 검증 필수 경로 확정 (2026-09-15, 카탈로그 `docs/plans/verification-paths.md`)
+
+- **1 인용 전수 대조** — 모든 항목.
+- **2 스케치 추출·실행** — before/after 여섯 쌍을 실제 트리에 적용해 `npm run check -w apps/web`·`npm test -w apps/web`, 끝나면 원복.
+- **3 before/after 기계 적용** — 수정 4파일.
+- **4 전칭 여집합 열거** — "이 세 문구 외에 transcript/source 사용자 문구는 없다", "`ui/index.tsx` 주석은 바뀌는 문구를 인용하지 않는다".
+- **5 돌연변이 검사** — 순수 함수 `reviewLanguageNotice`의 반환 문구가 바뀐다. 계획서가 "trim 제거 돌연변이가 새 문구에서도 잡힌다"고 주장한다.
+- **7 음성 시험** — "ESLint `react/no-unescaped-entities`가 JSX 텍스트의 raw `'`를 막아 `&apos;`가 필요하다"에 기댄다.
+- **8 실물 렌더** — 카드 라벨·편집기 안내 화면 문구 변경.
+- 6(외부 신호 없음)·9(schema·config·생성 파일 없음) 트리거 없음.
+
+## 1라운드 (2026-09-15, 메인 루프 — 위생 결함 2건, 편집)
+
+하니스는 스크래치패드 `feat45/`에 있다(`apply45.mjs`·`mutate45.mjs`·`neg45.mjs`·`render45.mjs`·`restore45.mjs`). 계획서 코드 블록 12개(before/after 여섯 쌍)를 바이트 그대로 적용했고 하니스 작성분은 0이다.
+
+- **경로 1**: 인용을 전부 다시 읽었다.
+  - `review-language-notice.ts:3,10-11,16-18,19,25-29`, `review-language-notice.test.mjs:10-11,18-30,32-37,36,39-45,42-44,48-72`
+  - `ClipDraftCard.tsx:115,480,482,485-487`, `CaptionStyleEditor.tsx:313-316,315,318-323,319-320,321-322`
+  - `ui/index.tsx:234,281,285-289,425,432`, `release-checks.md:108,120,121`, `apps/web/CLAUDE.md:83`
+
+  불일치 하나: 계획서는 `ui/index.tsx:281`·`:425` 둘 다 편집기를 "줄번호로" 참조한다고 했지만, 줄번호가 있는 것은 `:281-282`(`CaptionStyleEditor\n:310-311`)뿐이고 `:425`는 이름만 쓴다(**위생 결함 H2**).
+- **경로 2·3**: 여섯 before 전부 트리와 바이트 일치 1회. `npm run check -w apps/web` **EXIT 0**(verify:fsd 통과, ESLint 0, tsc 0), `npm test -w apps/web` **154/154**(수 불변).
+- **경로 4**
+  - 계획서의 grep 범위(검토 화면 설명 문구)는 세 파일뿐으로 성립한다.
+  - 그러나 서술이 "`apps/web/src` 전체에서 … 없다"로 넓다. 여집합 열거로 공개 마케팅·정책 페이지의 `transcript` 카피(`how-it-works`·`guides`·`podcast-to-shorts`·`product-tour`·`product-copy`·`privacy` `Transcript text`)와 전사 로드 실패 서버 메시지(`features/clip-review/api/index.ts:40,47`)가 나왔다(**위생 결함 H1** — 전칭 과대).
+  - 실패 서버 메시지는 `transcriptErrorMessage`가 `AddCustomClipPanel.tsx:85`의 `!== null` 판정에만 쓰여 화면에 나오지 않음을 확인했다. 범위 판단(세 문구만)은 옳고 서술만 넓다.
+  - 교차 줄번호 인용 주석은 `review-language-notice.ts:10`(계획서가 고침)과 `ui/index.tsx:281-282`(계획서가 범위 밖으로 남김)뿐이다.
+- **경로 5**: 새 문구 트리에 돌연변이 6종 — trim 제거, 언어값 삽입 제거, English 제외 제거, 옛 문구 복귀, 새 어구 한 글자 변경, `showsEnglishSource` 항상 true. **6/6 사멸** → 계획서의 trim 주장이 성립한다.
+- **경로 7**: JSX 텍스트를 raw `'`로 되돌리니 두 파일 모두 `react/no-unescaped-entities` error로 exit 1(`ClipDraftCard.tsx:482:19`·`CaptionStyleEditor.tsx:322:17`). 대조군 `&apos;`는 exit 0.
+- **경로 8**: `renderToStaticMarkup`(FEAT-42 스텁 훅 재사용).
+  - 카드 Korean → 새 라벨 `What's said in the video (English)` 바로 뒤에 영어 원문 본문. English → 라벨 없음(조건 불변).
+  - 편집기 라이브 → 앞 두 문장 불변 + 새 마지막 문장, 옛 `English source` 없음. 샘플 분기(FEAT-42 설정 화면) 문구 불변.
+  - 헤더 안내는 `reviewLanguageNotice("Korean")`이 새 문구, English → null, `ui/index.tsx`가 `{languageNotice}`로 그대로 렌더 — 위젯 정적 렌더는 react-query·재생 URL 훅에 묶여 생략하고 이 대조로 대신했다.
+  - 11/11.
+
+**편집** (구현 영향 0, 위생 2):
+- H1: 여집합 서술을 "검토 화면·캡션 편집기의 설명 문구는 이 셋뿐"으로 좁히고, 마케팅·정책 페이지와 실패 서버 메시지를 제외 근거와 함께 열거.
+- H2: `ui/index.tsx` 주석 서술을 "줄번호는 `:281-282`만, `:425`는 이름만"으로 정정.
+
+원복 후 `apps/web/src` 변경 0. 편집이 있었으므로 2라운드 무편집 재실행. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.

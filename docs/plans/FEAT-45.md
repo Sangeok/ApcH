@@ -15,7 +15,9 @@ agent: web-dev
 
 골든 문자열 테스트 `widgets/clip-draft-review/model/review-language-notice.test.mjs`가 이 카피를 계약으로 고정한다 — `:10-11` `KOREAN_NOTICE`, `:42-44` Spanish 문구. 현재 `npm test -w apps/web` 기준선은 **154**.
 
-**여집합 확인(범위 밖으로 남기는 것)** — `apps/web/src` 전체에서 이 세 문구 외에 "transcript/source" 사용자 문구는 없다(`English transcript|English source|This review shows|the words here are|translated at render time` grep = 위 세 파일뿐). 다음은 문자열이 겹쳐 보이지만 FEAT-45 대상이 아니다:
+**여집합 확인(범위 밖으로 남기는 것)** — 검토 화면(`widgets/clip-draft-review`)과 캡션 편집기에서 "지금 보이는 글이 무엇인가"를 "transcript/source"로 설명하는 사용자 문구는 이 셋뿐이다(`English transcript|English source|This review shows|the words here are|translated at render time` grep = 위 세 파일뿐). `apps/web/src` 전체로 넓히면 "transcript/source" 단어는 더 나오지만 다음은 FEAT-45 대상이 아니다:
+- 공개 마케팅·정책 페이지의 제품 설명 문구 — `pages/how-it-works/config/index.ts:20,30`, `pages/guides/config/index.ts:145,165`, `pages/podcast-to-shorts/config/index.ts:45`, `pages/product-tour/config/index.ts:25`, `shared/config/product-copy.ts:28`, `app/(public-marketing)/how-it-works/page.tsx:16`, `app/(public-marketing)/privacy/page.tsx:106,245`(`Transcript text`). 검토 화면 밖에서 파이프라인을 설명하는 공개 카피라, 소유자가 검토 중에 오독한 문구와 문맥이 다르다. 같은 페이지들의 "source"는 소스 영상·소재를 뜻한다(예: `pages/guides/config/index.ts:209,211`).
+- 전사 로드 실패 서버 메시지 — `features/clip-review/api/index.ts:40` `Transcript is not available for this upload`·`:47` `Failed to load transcript`. `use-clip-draft-review.ts:316-320` `transcriptErrorMessage`로 전달되지만 소비자 `AddCustomClipPanel.tsx:85`는 `!== null` 판정에만 쓰고 고정 문구(`:90`)를 그리므로 화면에 나오지 않는다.
 - `ui/index.tsx:432` `Source video. Each clip is cropped to vertical (9:16) and follows whoever is speaking.` — "Source"를 쓰지만 소스 영상 플레이어를 설명하는 라벨이지 전사가 아니다. 백로그 요구 ①은 세 문구를 이름으로 지목했고 이 라벨은 그 셋이 아니다.
 - `ui/_component/AddCustomClipPanel.tsx:90` `Transcript unavailable — custom clips are disabled.` · `model/use-clip-draft-review.ts:319` `"Transcript unavailable"` — 데이터 로드 실패 오류 메시지지 "지금 보이는 글이 무엇인가"를 설명하는 문구가 아니다.
 
@@ -143,7 +145,7 @@ after:
 
 ### `ui/index.tsx` 주석 — 결정: 손대지 않음
 
-`ui/index.tsx:281`이 `유일한 기존 안내(CaptionStyleEditor :310-311)는 …`, `:425`가 `최종 산출물이 세로 영상이라는 사실은 지금까지 CaptionStyleEditor 안에만 있었는데 …`로 편집기를 **줄번호로** 참조한다(둘 다 이제 낡음 — 라이브 안내는 `:318-323`). 그러나 두 주석 모두 **바뀌는 사용자 문구를 인용하지 않고** 줄번호로만 가리킨다. FEAT-45는 「문구만」 바꾸는 항목이고, 교차 파일 줄번호 인용의 전면 정리는 FEAT-44의 성격이다(다만 이 두 줄은 `main.py` 인용이 아니라 FEAT-44 열거 목록에도 없다). 범위 규율상 여기서는 손대지 않고, 이 관측을 「비고」로 남겨 FEAT-44/메인 루프가 판단하게 한다. (`review-language-notice.ts:10`만 예외로 고치는 이유: FEAT-45가 편집하는 파일 안이고, 그 인용이 가리키는 **문구 자체가 이번에 바뀌며**, 메인 루프 게이트① 기록이 명시적으로 이 줄의 처리를 지시했다.)
+`ui/index.tsx:281-282`는 `유일한 기존 안내(CaptionStyleEditor :310-311)는 …`로 편집기를 **줄번호로** 참조한다(이제 낡음 — 라이브 안내는 `:318-323`). `:425`의 `최종 산출물이 세로 영상이라는 사실은 지금까지 CaptionStyleEditor 안에만 있었는데 …`는 줄번호 없이 이름으로만 가리킨다. 두 주석 모두 **바뀌는 사용자 문구를 인용하지 않는다**. FEAT-45는 「문구만」 바꾸는 항목이고, 교차 파일 줄번호 인용의 전면 정리는 FEAT-44의 성격이다(다만 이 두 줄은 `main.py` 인용이 아니라 FEAT-44 열거 목록에도 없다). 범위 규율상 여기서는 손대지 않고, 이 관측을 「비고」로 남겨 FEAT-44/메인 루프가 판단하게 한다. (`review-language-notice.ts:10`만 예외로 고치는 이유: FEAT-45가 편집하는 파일 안이고, 그 인용이 가리키는 **문구 자체가 이번에 바뀌며**, 메인 루프 게이트① 기록이 명시적으로 이 줄의 처리를 지시했다.)
 
 ## 테스트
 
