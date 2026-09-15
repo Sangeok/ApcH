@@ -130,4 +130,29 @@ web-dev 계획서 `8947bcf` — 수정 4, 신규 0. 새 문구 셋이 어구 "wh
   - `dev` = `origin/dev`(0 0).
   - 새 문구(`said in the video`)가 트리에 없고 `docs/agents/web-dev/FEAT-45.md`도 없다 — 다른 세션이 먼저 처리하지 않았다.
   - 로컬 ApcH 세션들은 idle이다.
-- 구현 기준은 계획서 `36456dc`다(이후 계획서 무변경). web-dev를 구현 단계로 디스패치하고, 워킹트리의 남의 변경(`apps/web/.claude/settings.local.json`·`nul`)은 건드리지 말고 커밋·푸시하지 말라고 브리핑한다. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.
+- 구현 기준은 계획서 `36456dc`다(이후 계획서 무변경). web-dev를 구현 단계로 디스패치하고, 워킹트리의 남의 변경(`apps/web/.claude/settings.local.json`·`nul`)은 건드리지 말고 커밋·푸시하지 말라고 브리핑한다.
+
+## 인수 (2026-09-15)
+
+web-dev 보고: 완료, check EXIT 0 · test 154/0, 스케치 차이 없음. 인수 조건 다섯은 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`: `apps/web/src` 수정 4(`review-language-notice.ts`·`review-language-notice.test.mjs`·`ClipDraftCard.tsx`·`CaptionStyleEditor.tsx`), 신규 0 — 계획서 넷과 정확히 일치. 그 밖엔 보드·백로그·`docs/agents/web-dev/FEAT-45.md`와 세션 전부터 있던 `settings.local.json`·`nul`. `ui/index.tsx` 무변경 |
+| 2 | diff ↔ 스케치 | **기계 대조**(`acceptdiff45.mjs`): HEAD의 `apps/web/src`를 `git archive`로 뽑아 계획서 before/after 여섯 쌍을 적용하고 구현과 비교 — **4/4 IDENTICAL**(공백 포함 비교, 줄 끝 CRLF·후행 공백만 정규화). 구현 트리 렌더(`render45.mjs`) 11/11: 카드 Korean 새 라벨·English 라벨 없음, 편집기 새 마지막 문장·앞 두 문장 불변·샘플 분기 불변, 헤더 안내 새 문구·English null |
+| 3 | 검증 명령 재실행 | `npm run check -w apps/web` → verify:fsd:test `# pass 11` · `FSD boundary check passed.` · `✔ No ESLint warnings or errors` · EXIT 0. `npm test -w apps/web` → `# tests 154 # suites 35 # pass 154 # fail 0`. 구현의 실제 테스트 파일에 돌연변이 6종 **6/6 사멸**, JSX raw `'` 음성 시험 두 파일 `react/no-unescaped-entities` exit 1(대조군 0). 돌연변이·음성 시험 뒤 구현 파일 해시 동일 |
+| 4 | 백로그 제거 | `TASK_BACKLOG.md`에서 `**FEAT-45**` 블록 4줄 제거. 남은 `FEAT-45` 언급 4곳은 FEAT-46·48·49 본문의 교차 참조 |
+| 5 | 상세 기록 실재 | `docs/agents/web-dev/FEAT-45.md` 54줄 — 착수 전 확인, 파일 전수, 스케치 대비 차이(없음), 검증, 못 덮은 범위, 인수 몫. 보드 `결과` 140자 |
+
+### 문서 갱신
+
+- `apps/web/CLAUDE.md` 테스트 표 `review-language-notice.test.mjs` 행: 「English transcript」 → 「What's said in the video (English)」, FEAT-45가 바꾼 이유 한 구절. 테스트 수 문구(23개 파일·35 suite·154개)는 불변이다.
+- `docs/release-checks.md`
+  - FEAT-45 절 세 줄 등재: 헤더 새 안내, 카드 새 라벨(엔티티 노출 없음), 다이얼로그 안내 마지막 문장(설정 화면 샘플 안내는 그대로). `〔auto〕` 없음.
+  - FEAT-37 절: 옛 헤더 골든 문구 줄·「English transcript」 라벨 줄을 `대체(FEAT-45)`로 마감. 셋째 줄(English에선 둘 다 안 보임)은 표시 조건이 그대로라 열린 채 계속 유효하다.
+  - FEAT-43 절 열린 줄의 "「English transcript」 라벨은 영어 그대로가 정상" → 새 라벨로 서술 갱신.
+
+### 범위 밖 의존
+
+계획서 「없음」 — 사용자에게 제시할 백로그 후보 없음.
+관측만 남긴다: `widgets/clip-draft-review/ui/index.tsx:281-282` 주석이 `CaptionStyleEditor :310-311`(실제 `:318-323`)을 가리키는 낡은 교차 줄번호 인용이다. 계획서가 「문구만」 범위 밖으로 남겼고 FEAT-44 열거(main.py 인용)에도 없다. 사용자에게 전달한다. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.

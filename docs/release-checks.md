@@ -22,6 +22,18 @@
 
 ---
 
+## FEAT-45 — 검토 화면 "transcript/source" 문구를 사용자 말로 (web, 구현 2026-09-15)
+
+원천: `docs/agents/web-dev/FEAT-45.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 반영된다.
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 수 불변 — 골든 문자열 2개 교체). 표시 조건(비영어 업로드에서만)은 바뀌지 않아, English 업로드에서 안내·라벨이 없는지는 아래 FEAT-37 절 셋째 줄이 계속 맡는다. FEAT-37 절의 옛 문구 관측 두 줄은 이 절로 `대체`됐다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 `review_pending` 업로드의 검토 화면에서만 보인다.
+
+- [ ] **Korean 업로드 검토 화면 헤더에 새 안내가 보이는가** — 「N moments suggested … credits」 문단 아래 `bg-muted` 박스로 `Subtitles will be translated to Korean when you generate. This review shows what's said in the video, in English.`가 뜨는지
+- [ ] **카드마다 새 라벨이 영어 원문 위에 붙는가** — 각 카드의 영어 원문 박스 바로 위에 `What's said in the video (English)`가 보이는지. 아포스트로피가 `&apos;` 같은 엔티티 글자로 노출되지 않아야 한다
+- [ ] **캡션 스타일 다이얼로그 안내의 마지막 문장이 바뀌었는가** — 검토 화면 한 클립의 `Caption style` 다이얼로그에서 미리보기 밑 안내가 `… Korean clips are translated at render time — the words shown here are what's said in the video, in English.`로 끝나는지. 설정 화면(FEAT-42)의 샘플 안내 `This is a sample. …`는 그대로여야 한다
+
+---
+
 ## FEAT-42 — 캡션 스타일 기본값 앞 절반: 설정 캡션 섹션·업로드 스냅샷·드래프트 시드·auto 요청 페이로드 (web, 구현 2026-09-15)
 
 원천: `docs/agents/web-dev/FEAT-42.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 반영된다. 백엔드 선행 FEAT-41은 이미 배포됨(2026-09-15 00:00 KST).
@@ -105,7 +117,7 @@
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 검토 화면과 Modal 실행 결과에서만 판정된다.
 
 - [x] **배포된 컨테이너가 `moment_prompt`를 import하는가** — 확인(2026-09-14, 실측 — 배포 출력의 마운트에 `PythonPackage:moment_prompt` 포함 · 배포 직후 `process_video`에 잘못된 토큰으로 POST → **401**(모듈 import 실패였다면 컨테이너 기동 실패) · 응답 시점 활성 컨테이너는 하나이고 시작 08:06으로 배포 이후). 관측한 것은 GPU 없는 디스패처 컨테이너다. GPU 워커(`AiPodcastClipper`)도 같은 이미지에서 같은 `main.py`를 모듈 수준에서 import하므로 같은 결과로 판정했다 — 워커 기동 자체는 아래 둘째 줄의 첫 실제 처리에서 함께 관측된다
-- [ ] **Korean 업로드의 검토 카드 hook·payoff가 한국어로 나오는가** — `review_pending` 검토 화면 카드의 굵은 제목(hook)과 설명(payoff)이 자연스러운 한국어인지, 종류 라벨은 그대로 `Q&A`/`Insight`인지(`type`이 번역되지 않았는지). 전사 본문과 FEAT-37의 헤더 안내·「English transcript」 라벨은 영어 그대로가 정상이다. **새로 분석한 업로드만 해당** — 기분석 업로드는 영어로 남는다(백필 없음)
+- [ ] **Korean 업로드의 검토 카드 hook·payoff가 한국어로 나오는가** — `review_pending` 검토 화면 카드의 굵은 제목(hook)과 설명(payoff)이 자연스러운 한국어인지, 종류 라벨은 그대로 `Q&A`/`Insight`인지(`type`이 번역되지 않았는지). 전사 본문과 헤더 안내·카드 라벨(FEAT-45 이후 `What's said in the video (English)`)은 영어 그대로가 정상이다. **새로 분석한 업로드만 해당** — 기분석 업로드는 영어로 남는다(백필 없음)
 - [ ] **같은 영상을 English·Korean으로 분석했을 때 고른 구간이 크게 다르지 않은가** — 시작·끝이 대체로 겹치는지. English 프롬프트는 바이트 동일이라 English 쪽 차이는 Gemini 비결정성 범위여야 하고, Korean 쪽은 지시문 추가가 구간 선택을 흔들지 않았는지를 본다
 
 ---
@@ -117,8 +129,8 @@
 계획 검증에서 `renderToStaticMarkup` 3분기로 닫혔다. 아래는 **실제 페이지 흐름·시각 배치**라 러너가 못 덮는 것들이다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 `review_pending` 업로드의 검토 화면에서만 보인다.
 
-- [ ] **Korean 업로드의 검토 화면 헤더에 안내가 실제로 보이는가** — 「N moments suggested … credits」 문단 바로 아래 `bg-muted` 박스로 `Subtitles will be translated to Korean when you generate. This review shows the English transcript.` 이 뜨는지. `language` 프롭이 page→section으로 실제 흘러가는 런타임 값의 확인이기도 하다. 프로덕션 업로드 `cmtsreci00001l104g6imnufl`(Korean, review_pending)이 그대로 확인 대상이다. 마감 증거는 `확인(날짜, 화면 관측)`
-- [ ] **카드마다 「English transcript」 라벨이 본문 위에 붙는가** — 7장 전부, 본문 박스 스타일은 종전과 같고 `mt-2` 간격만 바깥 div로 옮겨진 상태
+- [x] **Korean 업로드의 검토 화면 헤더에 안내가 실제로 보이는가** — 대체(FEAT-45, 2026-09-15 — 안내 문구가 `… This review shows what's said in the video, in English.`로 바뀌어 아래 옛 골든 문구의 관측이 무의미해졌다. 새 문구 기준 확인은 FEAT-45 절 첫째 줄) — 「N moments suggested … credits」 문단 바로 아래 `bg-muted` 박스로 `Subtitles will be translated to Korean when you generate. This review shows the English transcript.` 이 뜨는지. `language` 프롭이 page→section으로 실제 흘러가는 런타임 값의 확인이기도 하다. 프로덕션 업로드 `cmtsreci00001l104g6imnufl`(Korean, review_pending)이 그대로 확인 대상이다. 마감 증거는 `확인(날짜, 화면 관측)`
+- [x] **카드마다 「English transcript」 라벨이 본문 위에 붙는가** — 대체(FEAT-45, 2026-09-15 — 라벨이 `What's said in the video (English)`로 바뀌었다. 새 라벨 기준 확인은 FEAT-45 절 둘째 줄) — 7장 전부, 본문 박스 스타일은 종전과 같고 `mt-2` 간격만 바깥 div로 옮겨진 상태
 - [ ] **English 업로드에선 둘 다 안 보이는가** — 회귀 확인. 영어 업로드 검토 화면에 안내 박스도 라벨도 없어야 한다
 
 ---
