@@ -43,7 +43,7 @@
 - [ ] FEAT-45: 검토 화면의 "transcript/source" 표현을 사용자 말로 풀어 쓴다 — 카드 라벨·헤더 안내·캡션 편집기 안내 문구
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-15, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 위생 2건 반영, 구현 영향 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 없음, FEAT-48·49의 선행. 소유자조차 "transcript"를 못 읽은 검토 화면 문구를 평이하게 — FEAT-42 인수 뒤 제안 1순위.
 - [x] FEAT-42: 캡션 스타일 기본값 본체 — 설정 화면 캡션 섹션 · 업로드 스냅샷 · 드래프트 시드 · 디스패치 페이로드 · 검토 화면 인라인 저장
