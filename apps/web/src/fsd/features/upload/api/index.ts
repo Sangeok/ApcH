@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch/server";
+import { getUserDefaultCaptionStyle } from "~/fsd/entities/user/server";
 import { dispatchProcessingRequestById } from "./dispatch-processing";
 import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { flushReports } from "~/fsd/shared/observability";
@@ -237,6 +238,12 @@ export async function prepareUpload(fileInfo: {
       S3_CONFIG.PRESIGNED_PUT_URL_EXPIRY,
     );
 
+    // 클라이언트는 스타일을 보내지 않으므로 prepareUploadSchema(검증 표면)는 늘지 않는다.
+    // 업로드 시점에 서버에서 스냅샷을 읽어 UploadedFile.captionStyle에 고정한다.
+    const { defaultCaptionStyle } = await getUserDefaultCaptionStyle(
+      authResult.data.userId,
+    );
+
     const uploadDraft = await createUploadDraft({
       userId: authResult.data.userId,
       s3Key: key,
@@ -244,6 +251,7 @@ export async function prepareUpload(fileInfo: {
       language,
       targetClipCount: clipCount,
       reviewBeforeGenerate,
+      captionStyle: defaultCaptionStyle, // 업로드 시점에 고정되는 스냅샷
     });
 
     return success({ key, uploadedFileId: uploadDraft.id, signedUrl });

@@ -221,3 +221,17 @@ web-dev 보고: 완료, check EXIT 0 · test 145/0. 인수 조건 다섯을 보�
 
 - 구현 커밋: FEAT-39 경로(web 14 + 보드·백로그·web-dev 보고서)만 지정해 스테이징하고, 남의 변경이 섞이지 않았는지 스테이징 집합을 확인한 뒤 커밋.
 - 인수 문서 커밋: `apps/web/CLAUDE.md`·`docs/release-checks.md`·이 기록.
+
+## 배포 (2026-09-15)
+
+소유자가 인수 보고 뒤 "배포 수행"으로 지시 — 메인 루프가 웹(`main` 합류)과 백엔드 FEAT-41(Modal, 상세는 `docs/agents/main-loop/FEAT-41.md` 「배포」)을 배포했다.
+
+- 사전 확인: `main` 브랜치 보호 없음(`gh api …/branches/main/protection` → 404 `Branch not protected`). 로컬 `dev` = `origin/dev`. `origin/main..origin/dev` 42커밋 — 웹 코드는 BUG-09·FEAT-38(재생성 Prisma 클라이언트·analytics 계약)·FEAT-39·FEAT-40, 백엔드는 FEAT-41·FEAT-43. 웹 게이트는 FEAT-39 인수 때 같은 트리에서 재실행(check EXIT 0 · test 145/0).
+- 합류: PR #118 `dev → main` 생성 후 `gh pr merge --merge` → 머지 커밋 `cd01537`(23:59:19 KST). `dev` 브랜치는 유지. 합류 직후 `origin/main..origin/dev` 0.
+- Vercel: 머지 커밋의 커밋 상태를 20초 간격으로 폴링 → 00:06:08에 `Vercel – apc-h=success`·`Vercel – apch-admin=success`. 같은 sha의 deployments는 `Production – apc-h`(15:05:51Z = 00:05 KST)·`Production – apch-admin`(15:03:25Z).
+- 프로덕션 실측(쿠키 없는 `curl`, 리다이렉트 비추적)
+  - `https://a-pch.com/` → **200**.
+  - `https://a-pch.com/dashboard/settings` → **307** `https://a-pch.com/login?callbackUrl=https%3A%2F%2Fa-pch.com%2Fdashboard%2Fsettings`.
+  - `https://a-pch.com/dashboard` → **307** 로그인. `https://admin.a-pch.com/` → **307** admin 로그인.
+  - `/dashboard/settings`의 307은 **보호 동작의 증거이지 새 라우트가 떴다는 증거는 아니다** — 미들웨어 matcher `/dashboard/:path*`가 FEAT-39 이전부터 이 경로를 덮어, 라우트가 없던 때도 같은 응답이다. 새 코드의 반영은 위 Production 배포의 sha로 판정한다.
+- 원장: FEAT-39 절 미인증 리다이렉트 줄을 위 실측으로 마감(단서 포함). 설정 화면 흐름 네 줄·FEAT-38 두 줄·FEAT-40·BUG-09는 로그인 뒤 화면이라 소유자 몫.

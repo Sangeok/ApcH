@@ -162,3 +162,21 @@ backend-dev 보고: 완료, unittest 79 · py_compile 0. 인수 조건 다섯을
 
 `docs/release-checks.md` 최상단에 FEAT-41 절 — ① 배포 컨테이너 import + 기존 렌더 불변(지금 확인 가능), ② auto가 요청 스냅샷으로
 렌더(FEAT-42 뒤), ③ render의 스타일 없는 클립이 언어 기본값(FEAT-42 뒤, 소유자 결정 위반 감시). `〔auto〕` 없음.
+
+## 배포 (2026-09-15)
+
+소유자가 FEAT-39 인수 뒤 "배포 수행"으로 지시 — 웹(`main` 합류, PR #118)과 함께 백엔드 FEAT-41을 메인 루프가 배포했다.
+
+- 사전 확인
+  - `python -m unittest discover -s apps/backend -p "test_*.py"` → `Ran 79 tests … OK` · `python -m py_compile apps/backend/main.py` 0.
+  - venv `C:\Users\hamso\venvs\apch-backend`의 `python -m modal --version` → 1.2.1 · `modal app list` → `ai-podcast-clipper` `deployed`.
+  - 워킹트리 `apps/backend` 청결, 로컬 `dev` = `origin/dev`(FEAT-41 커밋 `d640ab6` 포함).
+- 배포: `PYTHONUTF8=1 …\python.exe -m modal deploy main.py`(cwd `apps/backend`, 23:59:54 시작) → `✓ App deployed in 6.660s!`, EXIT 0.
+  마운트 `PythonPackage:s3_upload_policy, translation_fallback, temp_cleanup_policy, error_callback, moment_prompt, caption_style_source`.
+  엔드포인트 URL 불변(`https://sangeok--ai-podcast-clipper-process-video.modal.run`).
+- import 실측: 잘못된 토큰으로 `process_video`에 POST.
+  - 첫 시도(00:01:32)는 바디에 필수 필드 `clip_count`(`main.py:51` `    clip_count: int`)를 빠뜨려 **422** — 요청 검증에서 막혀 토큰 판정까지 가지 않았으므로 import 증거로 쓰지 않았다.
+  - 바디를 고쳐 재시도(00:02:04) → **401** `{"detail":"Incorrect bearer token"}`. 부작용 없음(spawn 전 거부).
+  - `modal container list` → 활성 컨테이너 1, 시작 00:01(배포 이후).
+  - 원장 FEAT-41 첫 줄 아래에 이 증거를 적었다. 줄은 「배포 뒤 첫 실제 처리의 캡션이 이전과 같은가」가 남아 열린 채다.
+- 되돌리기 경로(미사용): FEAT-41 이전 `main.py`(커밋 `e511fe7`, FEAT-43 상태)로 재배포.

@@ -3,13 +3,23 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { saveUploadDefaults } from "~/fsd/features/settings/api";
+import {
+  saveDefaultCaptionStyle,
+  saveUploadDefaults,
+} from "~/fsd/features/settings/api";
+import {
+  CaptionStyleEditor,
+  matchPresetId,
+  sampleCaptionWords,
+  SAMPLE_CAPTION_CLIP_END,
+} from "~/fsd/features/caption-style";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   CLIP_COUNT_OPTIONS,
   DEFAULT_CLIP_COUNT,
   DEFAULT_LANGUAGE,
   SUPPORTED_LANGUAGES,
+  type CaptionStyle,
 } from "~/fsd/shared/config/constants";
 import {
   DEFAULT_REVIEW_BEFORE_GENERATE,
@@ -32,14 +42,21 @@ import {
 
 interface SettingsViewProps {
   initialDefaults: ResolvedUploadDefaults;
+  initialCaptionStyle: CaptionStyle | null;
 }
 
-export default function SettingsView({ initialDefaults }: SettingsViewProps) {
+export default function SettingsView({
+  initialDefaults,
+  initialCaptionStyle,
+}: SettingsViewProps) {
   const router = useRouter();
   const [language, setLanguage] = useState(initialDefaults.language);
   const [clipCount, setClipCount] = useState(initialDefaults.clipCount);
   const [reviewBeforeGenerate, setReviewBeforeGenerate] = useState(
     initialDefaults.reviewBeforeGenerate,
+  );
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle | null>(
+    initialCaptionStyle,
   );
   const [isSaving, startSaving] = useTransition();
 
@@ -81,8 +98,41 @@ export default function SettingsView({ initialDefaults }: SettingsViewProps) {
     });
   };
 
+  const handleSaveCaption = () =>
+    startSaving(async () => {
+      const result = await saveDefaultCaptionStyle(captionStyle);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      // 계측은 fire-and-forget(저장은 이미 성공). preset = matchPresetId 결과.
+      void trackAnalyticsEvent("settings_defaults_saved", {
+        source: "settings_page",
+        preset: matchPresetId(captionStyle),
+      });
+      toast.success("Caption style saved");
+      router.refresh();
+    });
+
+  const handleResetCaption = () => {
+    setCaptionStyle(null);
+    startSaving(async () => {
+      const result = await saveDefaultCaptionStyle(null);
+      if (!result.success) toast.error(result.error);
+      else {
+        void trackAnalyticsEvent("settings_defaults_saved", {
+          source: "settings_page",
+          preset: matchPresetId(null), // "default"
+        });
+        toast.success("Caption style saved");
+        router.refresh();
+      }
+    });
+  };
+
   return (
-    <Card>
+    <div className="space-y-6">
+      <Card>
       <CardHeader>
         <CardTitle>Upload defaults</CardTitle>
         <CardDescription>
@@ -167,5 +217,39 @@ export default function SettingsView({ initialDefaults }: SettingsViewProps) {
         </div>
       </CardContent>
     </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Default caption style</CardTitle>
+          <CardDescription>
+            New uploads start with this caption style. You can still change it
+            per clip while reviewing.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <CaptionStyleEditor
+            language={language}
+            value={captionStyle}
+            sample
+            playUrl={null}
+            clipStart={0}
+            clipEnd={SAMPLE_CAPTION_CLIP_END}
+            words={sampleCaptionWords(language)}
+            onChange={setCaptionStyle}
+          />
+          <div className="flex gap-x-2">
+            <Button onClick={handleSaveCaption} disabled={isSaving}>
+              Save caption style
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleResetCaption}
+              disabled={isSaving}
+            >
+              Reset to language default
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

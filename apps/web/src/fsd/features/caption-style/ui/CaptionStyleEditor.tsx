@@ -21,6 +21,8 @@ interface CaptionStyleEditorProps {
   clipEnd: number;
   words: TranscriptWord[];
   onChange: (style: CaptionStyle) => void;
+  // 설정 화면의 정지 샘플 미리보기. 검토 다이얼로그는 넘기지 않는다(기본 false).
+  sample?: boolean;
 }
 
 const POSITION_LABELS: Record<
@@ -70,6 +72,7 @@ export default function CaptionStyleEditor({
   clipEnd,
   words,
   onChange,
+  sample = false,
 }: CaptionStyleEditorProps) {
   // 저장된 값 위에 언어별 기본값을 얹은 "유효 스타일". 컨트롤과 미리보기가 이 값을 표시한다.
   const effectivePosition =
@@ -301,15 +304,24 @@ export default function CaptionStyleEditor({
           maxWords={effectiveMaxWords}
           uppercase={effectiveUppercase}
           position={effectivePosition}
+          sample={sample}
         />
         {/* 못 닫는 근사 둘을 말한다: 미리보기는 전체 프레임(resize 모드)을 보여주지만
-            실렌더는 화자를 따라 크롭하고, 한국어는 렌더 시 번역되므로 여기선 영어 원문이다. */}
-        <p className="text-center text-[11px] text-muted-foreground">
-          Live preview on your video — the whole frame is shown here. The final
-          clip crops to follow whoever is speaking, so framing will differ.
-          Korean clips are translated at render time — the words here are the
-          English source.
-        </p>
+            실렌더는 화자를 따라 크롭하고, 한국어는 렌더 시 번역되므로 여기선 영어 원문이다.
+            정지 샘플(설정 화면)은 사용자 영상·전사가 없으므로 다른 안내를 낸다. */}
+        {sample ? (
+          <p className="text-center text-[11px] text-muted-foreground">
+            This is a sample. Your clips use your own video and words — here
+            you&apos;re setting the size, color, position, and words per line.
+          </p>
+        ) : (
+          <p className="text-center text-[11px] text-muted-foreground">
+            Live preview on your video — the whole frame is shown here. The final
+            clip crops to follow whoever is speaking, so framing will differ.
+            Korean clips are translated at render time — the words shown here are
+            what&apos;s said in the video, in English.
+          </p>
+        )}
       </div>
     </div>
   );

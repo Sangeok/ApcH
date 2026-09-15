@@ -479,7 +479,7 @@ export default function ClipDraftCard({
               곧 최종 자막이라 라벨이 군말이 된다. */}
           {showsEnglishSource && (
             <p className="text-muted-foreground mb-1 text-[11px] font-medium">
-              English transcript
+              What&apos;s said in the video (English)
             </p>
           )}
           <p className="bg-muted line-clamp-3 rounded p-2 text-xs">

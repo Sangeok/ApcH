@@ -7,11 +7,13 @@ export {
   getBillingUserSnapshot,
   getDashboardHeaderUser,
   getHomeUserProfile,
+  getUserDefaultCaptionStyle,
   getUserPolarCustomerId,
   getUserUploadDefaults,
   incrementUserCredits,
   incrementUserCreditsAndSetPolarCustomerId,
   resolvePolarCustomerUserId,
+  updateUserDefaultCaptionStyle,
   updateUserPolarCustomerId,
   updateUserUploadDefaults,
 } from "./api";

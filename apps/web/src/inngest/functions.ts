@@ -30,6 +30,8 @@ import {
 } from "~/fsd/shared/observability";
 import { inngest } from "./client";
 import type { AnalyzedMoment } from "./client";
+import { autoRequestCaptionStyle } from "./caption-style-request";
+import type { CaptionStyle } from "~/fsd/shared/config/constants";
 import {
   normalizeBackendClips,
   toModalErrorMessage,
@@ -370,6 +372,11 @@ export const processVideo = inngest.createFunction(
             clip_count: clipCount,
             mode: shouldRenderSelectedMoments ? "render" : "auto",
             moments: shouldRenderSelectedMoments ? moments : undefined,
+            // JSON.stringify가 undefined 키를 떨어뜨리므로 render·null 스냅샷에선 키가 생략된다.
+            caption_style: autoRequestCaptionStyle(
+              shouldRenderSelectedMoments,
+              context.captionStyle as CaptionStyle | null, // 렌더 경로(entities/clip-draft/api :111)와 같은 캐스트
+            ),
             transcript_s3_key: transcriptS3Key ?? undefined,
             output_prefix: outputPrefix,
             callback_url: callbackUrl,
@@ -918,6 +925,7 @@ export const analyzeVideo = inngest.createFunction(
       }
 
       await step.run("persist-clip-drafts", async () => {
+        const snapshotStyle = context.captionStyle as CaptionStyle | null;
         await createClipDraftsBulk(
           validMoments.map((moment, order) => ({
             uploadedFileId,
@@ -932,6 +940,10 @@ export const analyzeVideo = inngest.createFunction(
             payoff: moment.payoff ?? null,
             // 상위 clipCount개만 기본 선택 (Gemini 랭킹 순)
             selected: order < clipCount,
+            // 스냅샷이 있으면 시드, null이면 필드 생략(컬럼 null → 언어 기본값).
+            // 커스텀 클립(createCustomClipDraft)은 이 경로 밖이라 계속 null이다(의도 — render는
+            // 드래프트 스타일만 쓰므로 언어 기본값으로 렌더된다).
+            ...(snapshotStyle !== null ? { captionStyle: snapshotStyle } : {}),
           })),
         );
       });
