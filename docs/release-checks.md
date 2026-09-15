@@ -22,6 +22,20 @@
 
 ---
 
+## FEAT-46 — Korean analyze 후보마다 참고 번역(referenceTranslation) (backend, 구현 2026-09-15)
+
+원천: `docs/agents/backend-dev/FEAT-46.md`의 「못 덮은 범위」. **배포 대기** — `modal deploy`는 소유자 승인 사항이다.
+게이트는 unittest **117/0**(+38) · `py_compile` 0(인수 시 메인 루프 재실행). 인수 때 신규 모듈이 계획 스케치와 동일하고 `main.py`는 빈 줄 외 동일함을 기계 대조했으며, 실제 테스트 파일에 모듈 돌연변이 18종을 심어 전부 사멸함을 확인했다.
+**이 항목만으로는 사용자 체감 변화가 없다** — web 웹훅 정규화기(`normalizeAnalyzedMoment`)가 모르는 필드를 버리고, 저장은 FEAT-47·표시는 FEAT-48이다. 번역이 실제로 채워지는지·품질은 FEAT-48 배포 뒤 화면에서 보고, 이 절의 앞 세 줄은 배포 컨테이너와 analyze 무회귀를 맡는다.
+**`〔auto〕` 태그를 붙이지 않는다**: Modal 실행·로그와 로그인 뒤 검토 화면에서만 판정된다.
+
+- [ ] **배포된 컨테이너가 `reference_translation`을 import하는가** — 배포 직후 `process_video`에 잘못된 토큰으로 유효한 형태의 바디를 POST → **401**(FEAT-41 절 첫 줄과 같은 확인). 이미지 등록이 빠졌으면 컨테이너가 기동하지 못해 모든 모드가 죽는다
+- [ ] **English 업로드의 분석이 이전과 같은가** — `Review first` English 업로드가 `review_pending`까지 가고 후보 카드가 이전처럼 뜨는지. English 경로는 번역 호출이 없어야 하므로 그 실행의 Modal 로그에 `Reference translation error:`가 없어야 한다
+- [ ] **Korean analyze가 번역 때문에 실패·지연되지 않는가** — `Review first` Korean 업로드가 `review_pending`까지 가는지, Modal 로그에 `Reference translation error:`가 없는지(있으면 사유를 본다 — 특히 배포 이미지의 미고정 최신 `google-genai`가 `http_options` timeout을 거부한 `ValidationError`인지), analyze 소요 시간이 이전과 크게 다르지 않은지
+- [ ] **(FEAT-48 배포 후) 검토 카드의 참고 번역이 그 후보 영어 원문의 뜻인가** — 문장 단위로 자연스러운지, 다른 후보의 번역이 붙는 인덱스 어긋남이 없는지. FEAT-48 절이 생기면 그 절이 이어받는다
+
+---
+
 ## FEAT-45 — 검토 화면 "transcript/source" 문구를 사용자 말로 (web, 구현 2026-09-15)
 
 원천: `docs/agents/web-dev/FEAT-45.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 14:53 KST**, PR #119 `main` 합류(`5567b2f`) → Vercel `Production – apc-h` success.

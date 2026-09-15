@@ -192,3 +192,41 @@ backend-dev 계획서 `docs/plans/FEAT-46.md` — 수정 1(`main.py`), 신규 2(
   - 워킹트리의 남의 변경은 건드리지 않는다: `apps/web/.claude/settings.local.json`·`nul`, 병행 세션의 FEAT-49 변경.
   - 커밋·푸시하지 않는다.
   - 보드 FEAT-49 행 등 다른 행을 건드리지 않는다.
+
+게이트② 커밋 `b8bca61`. 그 사이 병행 세션이 `a7ecc00`(FEAT-49 구현승인)을 먼저 커밋했다. `b8bca61`의 보드 diff가 FEAT-46 한 줄뿐이고 부모가 `a7ecc00`이라, FEAT-49 줄은 되돌려지지 않았다(`HEAD` 두 행 모두 `구현승인` 확인).
+
+## 인수 (2026-09-15)
+
+backend-dev 보고는 "완료, unittest 117 · py_compile 0, 스케치 대비 차이 없음"이었다. 인수 조건 다섯은 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 본 것 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | FEAT-46 몫: `apps/backend/main.py` 수정, `reference_translation.py`·`test_reference_translation.py` 신규 — 계획서 3행과 정확히 일치. 그 밖엔 보드 FEAT-46 행·백로그 FEAT-46 블록·`docs/agents/backend-dev/FEAT-46.md`. 나머지(web 5파일·`web-dev/FEAT-49.md`·보드와 백로그의 FEAT-49 몫·`main-loop/FEAT-49.md`)는 병행 세션, `settings.local.json`·`nul`은 세션 전부터 |
+| 2 | diff ↔ 스케치 | **기계 대조**(`acceptdiff46.mjs`): 계획 기준 `44fbab7`의 `main.py`에 스케치 ①~④를 적용한 기대본과 비교. `reference_translation.py` **IDENTICAL**. `main.py`는 래퍼 앞 빈 줄 +1·뒤 빈 줄 −1만 달랐다 — `--ignore-blank-lines -w`로 exit 0. 분기·조건·리터럴·프롬프트 문구 차이 0 |
+| 3 | 검증 명령 재실행 | `python -m unittest discover -s apps/backend -p "test_*.py"` → `Ran 117 tests … OK`(79 + 38) · `py_compile` 0 · 새 파일 단독 `Ran 38 tests … OK`. **실제 테스트 파일에 모듈 돌연변이 18종**(`mutreal46.py`, 복사본에만 주입) → **18/18 사멸**, 저장소 모듈 해시 불변. 첫 실행에서 경계 비교 두 종은 같은 문자열이 모듈 docstring에도 있어 앵커 2회 일치로 건너뛰었고, 조건문 전체를 앵커로 바꿔 재실행해 사멸 확인 |
+| 4 | 백로그 제거 | `TASK_BACKLOG.md`에서 `**FEAT-46**` 블록 4줄(헤더·area·source·빈 줄) 제거. 남은 `FEAT-46` 언급은 FEAT-47(`:38`, 3회)·FEAT-48(`:42`, 2회) 본문의 교차 참조 |
+| 5 | 상세 기록 실재 | `docs/agents/backend-dev/FEAT-46.md` 70줄 — 무엇을 했나·고친 파일 전수·스케치 대비 차이·테스트(메서드 38 분류)·못 덮은 범위·검증 출력·남은 일. 보드 `결과` 147자 |
+
+**위생 관찰 (차단 아님, 고치지 않음)**
+- 보고서 「스케치 대비 차이: 없음」과 달리 빈 줄 두 곳이 다르다(PEP 8 쪽으로). 비동작이고 append-only 기록이라 고치지 않고 여기 남긴다.
+- 테스트는 명세보다 강하다. 메서드 38개(≥ 20)이고, 골든 비교에 `'   ```JSON\n[1]\n```   '`·`'no fences here'`가 들어 있다.
+
+### 커밋 — 병행 세션 변경 분리
+
+- 구현 커밋 `227cb7f`에는 6파일(backend 3 + 보드 + 백로그 + backend-dev 보고서)이 들어갔다. 작업 트리의 보드·백로그에는 병행 세션의 커밋 안 된 FEAT-49 변경이 섞여 있었다.
+- 그래서 `stageimpl46.mjs`로 `HEAD` 보드의 FEAT-46 행 블록만 작업 트리 것으로 바꾸고, `HEAD` 백로그에서 FEAT-46 블록만 뺀 blob을 인덱스에 올렸다.
+- 스테이징 뒤 자동 확인: 보드 +3/−2(체크박스·status·결과)에 FEAT-49 없음, 백로그 0/−4, 스테이징 집합 정확히 6.
+
+### 문서 갱신
+
+- `apps/backend/CLAUDE.md`
+  - 이 구현으로 밀린 `main.py` 줄번호 인용 11곳을 갱신했다: `:116-117`→`:124-125`, `:1046-1048`→`:1088-1090`, `:1124-1126`→`:1172-1174`, `:85`→`:93`, `:164`→`:172`, `:298-304`→`:306-312`, `:414-420`→`:422-428`, `:367`→`:375`, `:562`→`:570`, `:140-144`→`:148-152`, `:147-150`→`:155-158`.
+  - 옮기기 전에 `docs46.mjs`가 `HEAD` 옛 범위와 작업 트리 새 범위의 내용이 같은지 전부 대조했다. `:93`은 등록 줄에 `"reference_translation"`이 들어간 것을 확인했다.
+  - Stage 2에 FEAT-46 설명 한 줄을 더했다: analyze Korean만 별도 호출, 원문 규칙이 카드와 같음, 순수 모듈, 실패 전부 null, English 바이트 불변, 렌더는 읽지 않음.
+- `apps/web/CLAUDE.md:77`: `caption-preview.test.mjs` 행의 `apps/backend/main.py:294-352` → `:302-360`(내용 대조 동일).
+- `docs/release-checks.md`: 최상단에 FEAT-46 절 네 줄 — ① 배포 컨테이너 import(잘못된 토큰 401) ② English analyze 무회귀 ③ Korean analyze 실패·지연 없음(Modal 로그 `Reference translation error:` 부재) ④ (FEAT-48 배포 후) 참고 번역 품질·인덱스 어긋남. `〔auto〕` 없음, 배포 대기.
+- 갱신하지 않은 것: `.claude/agents/backend-dev.md:154` `main.py:136`, `feature-scout.md`의 `main.py:519·524·26·585` 인용. FEAT-46 이전부터 낡아 있었고 이미 FEAT-44 범위다(교차 파일 줄번호를 앵커로 교체).
+
+### 범위 밖 의존
+
+계획서 「없음」. FEAT-47(컬럼)·FEAT-48(표시)은 이미 백로그에 있어 새로 제시할 후보가 없다.
