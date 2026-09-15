@@ -105,3 +105,7 @@ web-dev 계획서 `docs/plans/FEAT-49.md` — 수정 5(`sample-captions.ts`·`Ca
 - `apps/web/CLAUDE.md` 테스트 개수(154→162, suites 35→37)와 `sample-captions.test.mjs` 행 갱신.
 - 「못 덮는 범위」의 배선(플레이어가 `previewCaptionCues`에 실제 `language`·`sample === true`를 넘기는지)은 diff ↔ 스케치 대조로 확인한다 — 러너·정적 렌더가 못 잡는다(돌연변이 W2 생존). 격리 worktree `scratchpad/wt49`와 `apply49.mjs`를 대조 기준으로 남겨 둔다.
 - 배포 확인 원장 등재 후보: Korean 업로드 검토 다이얼로그에서 재생 중 한국어 샘플이 큐 시각에 맞춰 바뀌는지, 샘플 크기·줄 길이가 실렌더와 대략 비슷한지, English 검토 다이얼로그는 영어 원문 그대로인지(육안).
+
+## 게이트② (2026-09-15)
+
+소유자 세션 지시 "Feat 49 구현 승인" — `검토대기` → `구현승인`. 승인 대상은 클린 패스를 받은 계획서 `ddb0ef6`판(이후 계획서 무변경). web-dev에 구현을 디스패치한다. 다른 세션이 같은 체크아웃에서 FEAT-46(backend)을 진행 중이라, 구현 범위는 계획서 「고칠 파일」 5개로 한정하고 커밋·푸시는 메인 루프가 경로 지정으로 한다.
