@@ -42,3 +42,29 @@
 - **다른 항목과의 결합.** BUG-14가 Korean 묶기를 바꾸면 따라간다는 사실을 적는다. FEAT-44가 이 폴더의 `main.py:\d+` 주석을 앵커로 바꾼다 — 이 항목은 그 주석을 고치지 않는다(범위를 섞지 않는다). 줄이 밀리는 것은 FEAT-44의 앵커 방식이 흡수한다.
 - **못 덮는 범위.** 실제 Korean 업로드 검토 화면에서 샘플의 크기·줄 길이가 실제 렌더 클립과 대략 비슷해 보이는지는 배포 후 육안이다.
 - **메인 루프 몫(인수 때).** 테스트 수가 늘면 `apps/web/CLAUDE.md`의 테스트 개수·표를 갱신한다. 계획서는 늘어나는 테스트 수만 적는다.
+
+## 계획서 수령 (2026-09-15)
+
+web-dev 계획서 `docs/plans/FEAT-49.md` — 수정 5(`sample-captions.ts`·`CaptionPreviewPlayer.tsx`·`CaptionStyleEditor.tsx`·`review-language-notice.ts` 주석·`sample-captions.test.mjs`), 신규 0. 기존 `KR_WORDS`를 재사용해 큐마다 영어 단어 수만큼 순환 치환(`koreanSampleCues`), `buildCaptionCues` 계약 불변. Uppercase는 비활성화 대신 Korean 힌트 표기(프리셋 `matchPresetId`가 `uppercase`를 비교하고 저장값이 갇히는 문제 회피), 라이브 안내는 Korean/English 분기. 예상 test 154→159. 보드 `계획지시` → `검토대기`를 계획서와 같은 커밋(`b082bd5`)으로 푸시했다.
+
+## 검증 필수 경로 (카탈로그 대조)
+
+1 인용 전수(모든 항목) · 2 스케치 추출·실행(코드 블록 15) · 3 before/after 기계 적용(기존 파일 수정 5) · 4 전칭 여집합(「영어 원문이 그려지는 유일한 지점」·「여기 없는 파일은 고치지 않는다」·「props만 넘기므로」) · 5 돌연변이(순수 함수 신설) · 7 음성 시험(`buildCaptionCues` 계약 불변에 기댐) · 8 실물 렌더(화면 변경). 6(외부 신호 해석)·9(schema·config·생성 파일) 해당 없음.
+
+## 검증 1라운드 (2026-09-15) — 편집 라운드
+
+**격리**: 다른 세션이 같은 체크아웃에서 FEAT-46을 진행 중이라 실제 트리에 적용하지 않았다. `git worktree add --detach scratchpad/wt49 b082bd5` + `node_modules` 정션 둘(루트·`apps/web`)로 격리 사본을 만들고 거기에만 적용했다. 하니스는 스크래치패드 `feat49/`(`apply49.mjs`·`mutate49.mjs`·`render49.mjs`·`stub-hooks49.mjs`·`register49.mjs`·`tsconfig49.json`·`planedit49.mjs`). `stub-hooks`는 FEAT-42 것을 경로만 바꿔 복제했다. 하니스 자체 결함 둘은 계획서와 무관하다 — 삽입 앵커가 개행으로 끝나 닫는 `</div>` 탐색이 한 글자 늦게 시작함, tsx가 `jsx: preserve`를 classic 런타임으로 컴파일해 `React is not defined`(렌더 전용 `tsconfig49.json`에 `jsx: react-jsx`). 둘 다 하니스만 고쳐 재실행했다.
+
+**실행한 경로와 결과**
+- **1 인용 전수**: 계획서 `파일:줄` 인용 40여 개를 현재 트리에서 내용까지 대조. 어긋남 2 — (B2) §1 새 함수 주석의 `apps/backend/main.py:837·:840 create_korean_subtitles_with_ffmpeg` — 실제 `:837`은 `lambda: s3_client.upload_file(...)`, `:840`은 `)`이고 분기·호출은 `:844` `    elif selected_language == "Korean":`·`:847`이다. 게다가 FEAT-44 결정(교차 파일 줄번호 인용을 새로 만들지 않는다)과 어긋난다. (B3) §4 before 인용 `review-language-notice.ts:9-11` — 블록 내용은 실제 `:10-12`다(`:9`는 `// 문장에 넣는다 — 앱 UI가 영어라…`).
+- **2·3 적용**: 코드 블록 15개 추출. 「현재 동작」 인용 2개가 현재 트리와 바이트 일치, before/after 5쌍이 각 1회 일치해 손 개입 없이 적용. 산문이 위치만 지시한 조각 3개(함수 파일 끝 추가, 힌트 두 곳)와 산문 테스트 명세의 실행본(5케이스)은 하니스가 조립. 변경 파일 5개 = 「고칠 파일」 표. `SKIP_ENV_VALIDATION=1 npm run check -w apps/web` → **EXIT 0**(verify:fsd:test 11/11 · verify:fsd 통과 · next lint 경고 0 · tsc). 테스트 **159/159**(계획서 예상과 일치).
+- **4 여집합**: `CaptionPreviewPlayer` 소비자 = `CaptionStyleEditor` 하나, `CaptionStyleEditor` 소비자 = `CaptionStyleDialog.tsx:71`·`pages/settings/ui/index.tsx:229` 둘, `buildCaptionCues` 소비자 = 플레이어·`sample-captions.ts` 둘(`apps/web/src` 전역 grep). `widgets/clip-draft-review/ui/index.tsx`에는 캡션 오버레이가 없다(주석 둘뿐). 편집기 props는 늘지 않아 두 소비자는 무수정이 맞다.
+- **5 돌연변이**(전체 테스트 러너, 12개): `koreanSampleCues` K1 cursor 리셋·K2 wrap 제거·K3 start 버림·K4 치환 안 함·K6 단어 수 고정·K7 공백 없는 결합 → 전부 사멸. **생존 4** — K5 빈 텍스트 가드 제거(동치: `buildCaptionCues`는 빈 단어를 건너뛰고 `current`가 비어 있지 않을 때만 flush하므로 빈 텍스트 큐가 생기지 않는다 — 결함 아님), **P1 언어 조건 제거(English 라이브까지 치환)·P3 치환 영구 비활성 → 생존**, P2 sample 가드 제거 → 생존(아래 8에서 동치 확인).
+- **7 음성**: NEG1 `buildCaptionCues` 대문자 적용 제거 → fail 2, NEG2 잔여 flush 제거 → fail 6. 계획서가 기대는 계약 가드는 장식이 아니다.
+- **8 렌더**(`renderToStaticMarkup`, 14/14): Korean 라이브 = 프레임 안내 + 한국어 샘플 꼬리, 옛 「in English.」 없음 · English 라이브 = 프레임 안내만 · 샘플 분기 안내(FEAT-42) 두 언어 불변 · 힌트 둘은 Korean(라이브·샘플)에만, 위치는 Words per line 뒤·Letter case 앞 / Uppercase 뒤·미리보기 안내 앞 · 설정 화면 첫 큐 `지금 자막 스타일을`·`Style your captions the way` 기존 동작 유지 · **라이브 정적 렌더엔 캡션 텍스트가 없다**(`<video>` `timeupdate`가 채우는 state). P2 동치: 설정 화면 입력 `sampleCaptionWords("Korean")`에서 줄당 단어 1–8 × 대문자 켬/끔 16조합 모두 치환 전후 동일.
+
+**결함 3 — 통합 편집 1회(`planedit49.mjs`, 16치환)**
+- **B1 (구현 영향 — 테스트 명세 구멍)**: 치환 판정 `language === "Korean" && props.sample !== true`가 플레이어 `useMemo` 안 삼항이라 English 회귀(P1)와 치환 누락(P3)을 어떤 테스트도, 정적 렌더도 잡지 못한다 — 이 항목의 핵심 스위치가 무방비다. 게이트① 기록 「판정 로직(Korean 여부·큐 인덱스 → 샘플 텍스트)은 순수 함수와 테스트로 둔다」와도 어긋난다. → 순수 함수 `previewCaptionCues(cues, language, sample)`를 `sample-captions.ts`에 두고 플레이어는 그 함수에 통과만, 테스트 describe 하나(Korean·라이브 치환 / English·라이브 그대로 / Korean·샘플 그대로) 추가. 예상 수 154→**162**, suites 35→**37**. 표·§1·§2·테스트·못 덮는 범위(배선은 러너 밖)·대안에 전파.
+- **B2 (위생·소유자 결정 위반)**: 새 주석을 `apps/backend/main.py create_korean_subtitles_with_ffmpeg`(함수명 앵커)로, 결합 주의 산문도 같이.
+- **B3 (위생)**: `:9-11` → `:10-12`.
+- 결함 아님(기록만): K5 동치, P2 동치(가드는 의도 표기로 유지).
