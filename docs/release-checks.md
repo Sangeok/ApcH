@@ -24,7 +24,7 @@
 
 ## FEAT-45 — 검토 화면 "transcript/source" 문구를 사용자 말로 (web, 구현 2026-09-15)
 
-원천: `docs/agents/web-dev/FEAT-45.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 반영된다.
+원천: `docs/agents/web-dev/FEAT-45.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 14:53 KST**, PR #119 `main` 합류(`5567b2f`) → Vercel `Production – apc-h` success.
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 수 불변 — 골든 문자열 2개 교체). 표시 조건(비영어 업로드에서만)은 바뀌지 않아, English 업로드에서 안내·라벨이 없는지는 아래 FEAT-37 절 셋째 줄이 계속 맡는다. FEAT-37 절의 옛 문구 관측 두 줄은 이 절로 `대체`됐다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 `review_pending` 업로드의 검토 화면에서만 보인다.
 
@@ -36,7 +36,7 @@
 
 ## FEAT-42 — 캡션 스타일 기본값 앞 절반: 설정 캡션 섹션·업로드 스냅샷·드래프트 시드·auto 요청 페이로드 (web, 구현 2026-09-15)
 
-원천: `docs/agents/web-dev/FEAT-42.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 반영된다. 백엔드 선행 FEAT-41은 이미 배포됨(2026-09-15 00:00 KST).
+원천: `docs/agents/web-dev/FEAT-42.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 14:53 KST**, PR #119 `main` 합류(`5567b2f`) → Vercel `Production – apc-h` success. 백엔드 선행 FEAT-41은 먼저 배포됨(2026-09-15 00:00 KST).
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 145→154 — 신규 `caption-style-request.test.mjs` 3·`sample-captions.test.mjs` 6). auto 렌더가 요청 스냅샷으로 나오는지와 render에서 스타일 없는 클립이 언어 기본값인지는 아래 FEAT-41 절 「(FEAT-42 배포 후)」 두 줄이 맡고, 이 절은 설정 화면·스냅샷·검토 시드를 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면과 실제 업로드·Modal 처리에서만 판정된다.
 
@@ -87,11 +87,15 @@
 
 원천: `docs/agents/backend-dev/FEAT-41.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 00:00 KST**, 소유자 지시("배포 수행")로 메인 루프가 실행(`PYTHONUTF8=1 …\apch-backend\Scripts\python.exe -m modal deploy main.py`, 6.7초, EXIT 0, 마운트에 `PythonPackage:caption_style_source` 포함, 엔드포인트 URL 불변). 배포 직전 unittest **79 OK** · `py_compile` 0 재실행.
 게이트는 unittest **79/0**(+12) · `py_compile` 0(인수 시 메인 루프 재실행). 인수 때 신규 모듈이 계획 스케치와 바이트 동일함과, 실제 테스트 파일에 돌연변이 10종을 심어 전부 실패함을 확인했다.
-**이 항목만으로는 사용자 체감 변화가 없다** — 웹이 요청 단위 스타일을 보내기 시작하는 것은 FEAT-42라, 둘째·셋째 줄은 FEAT-42 배포 뒤에만 닫힌다.
+**이 항목만으로는 사용자 체감 변화가 없다** — 웹이 요청 단위 스타일을 보내기 시작하는 것은 FEAT-42라, 둘째·셋째 줄은 FEAT-42 배포 뒤에만 닫힌다. FEAT-42는 2026-09-15 14:53 KST에 배포됐다(PR #119, `5567b2f`). 이제 둘째·셋째 줄을 닫을 수 있다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 생성 결과 영상과 Modal 실행에서만 판정된다.
 
 - [ ] **배포된 컨테이너가 `caption_style_source`를 import하고 기존 렌더가 그대로인가** — 배포 직후 `process_video`에 잘못된 토큰으로 POST → 401(FEAT-43 원장 첫 줄과 같은 확인) + 배포 뒤 첫 실제 처리(auto·render 아무거나)의 캡션이 이전과 같은지. 웹이 아직 요청 필드를 보내지 않으므로 달라지면 결함이다
   - import 절반 확인(2026-09-15, 실측 — 배포 출력 마운트에 `PythonPackage:caption_style_source` · 잘못된 토큰으로 `process_video`에 유효한 형태의 바디 POST(00:02:04) → **401** `Incorrect bearer token` · `modal container list` 활성 컨테이너 1, 시작 00:01로 배포 이후). 남은 것: 배포 뒤 첫 실제 처리의 캡션이 이전과 같은지
+  - 전제 변경(2026-09-15, FEAT-42 배포)
+    - 이제 캡션 기본값을 저장한 계정은 auto 요청에 `caption_style`이 실린다(`apps/web/src/inngest/caption-style-request.ts` `autoRequestCaptionStyle`).
+    - 그 계정의 분석 드래프트도 업로드 스냅샷으로 시드된다.
+    - 그래서 "캡션 불변" 판정은 **캡션 기본값을 저장하지 않은 계정**의 처리로만 한다. 저장한 계정의 캡션이 달라지는 것은 결함이 아니라 아래 둘째 줄에서 볼 대상이다.
 - [ ] **(FEAT-42 배포 후) auto 생성 클립이 요청 단위 스냅샷 스타일로 렌더되는가** — 설정한 기본 캡션(색·크기·위치)이 검토 없이 생성한 클립에 그대로 적용되는지
 - [ ] **(FEAT-42 배포 후) render에서 스타일 없는 클립은 언어 기본값으로 렌더되는가** — 검토 화면에서 커스텀 클립을 추가하거나 한 클립을 「Reset style」로 되돌린 뒤 생성하면, 그 클립이 미리보기대로 언어 기본값인지. 요청 스냅샷 스타일이 새어 나오면 소유자 결정(2026-09-14, render는 클립 스타일만) 위반이다
 

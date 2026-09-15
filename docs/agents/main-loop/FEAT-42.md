@@ -194,3 +194,26 @@ web-dev 보고: 완료, check EXIT 0 · test 154/0. 인수 조건 다섯은 보�
 ### doc-auditor (9차 감사, 2026-09-15)
 
 확인 15건, 어긋남 2건 — 둘 다 위 후보 2의 `schema.prisma:59·186` 주석이다(알려진 드리프트, 등재 미승인이라 고치지 않음). 감사 보고는 사용자에게 전달했고 `docs/agents/doc-auditor/감사기록.md`에 이어 붙였다.
+
+## 배포 (2026-09-15)
+
+FEAT-45 인수 뒤 소유자가 "dev에 있는거 main에 pr"로 지시했다. 메인 루프는 PR만 만들었고, 합류는 소유자가 GitHub에서 직접 했다. FEAT-45도 같은 합류로 나갔다.
+
+- 사전 확인
+  - 로컬 `dev` = `origin/dev`. `origin/main..origin/dev` 19커밋이고, 반대 방향 24는 전부 머지 커밋이다(`--no-merges` 0).
+  - 웹 코드는 FEAT-42(`5f5b028`)와 FEAT-45(`b7caa1e`)뿐이다. `packages/db`·`apps/backend`·`apps/admin` diff 0.
+  - 웹 게이트는 FEAT-45 인수 때 같은 코드 트리에서 재실행했다(check EXIT 0 · test 154/0). 그 뒤 커밋은 문서뿐이다.
+- PR #119: `mergeable` MERGEABLE, `mergeStateStatus` BLOCKED.
+  - 브랜치 보호는 없다(404).
+  - 룰셋 `pull_request`가 `require_last_push_approval: true`다(필수 승인 수 0).
+  - 미리보기 `Vercel – apc-h`·`Vercel – apch-admin` success.
+- 합류: 소유자(`mergedBy` Sangeok), 머지 커밋 `5567b2f`(05:51:25Z = 14:51 KST).
+- Vercel: 머지 커밋 상태 `Vercel – apc-h` success(05:53:43Z)·`Vercel – apch-admin` success(05:55:11Z). 같은 sha의 deployments는 `Production – apc-h`·`Production – apch-admin`.
+- 프로덕션 실측(쿠키 없는 `curl`, 리다이렉트 비추적)
+  - `https://a-pch.com/` → **200**.
+  - `https://a-pch.com/dashboard/settings` → **307** `https://a-pch.com/login?callbackUrl=https%3A%2F%2Fa-pch.com%2Fdashboard%2Fsettings`.
+  - 보호 동작의 증거일 뿐이다. 새 코드의 반영은 Production 배포 sha로 판정한다.
+- 원장
+  - FEAT-42 절에 배포됨을 표기했다. 여섯 줄은 전부 로그인 뒤 화면·실제 업로드·admin 분석에서 판정되는 소유자 몫이라 열어 둔다.
+  - FEAT-41 절 「(FEAT-42 배포 후)」 두 줄은 이제 닫을 수 있다고 표기했다.
+  - FEAT-41 첫 줄 「배포 뒤 첫 실제 처리의 캡션이 이전과 같은가」는 전제가 바뀌었다. 이제 캡션 기본값을 저장한 계정은 auto 요청에 `caption_style`이 실리고(`inngest/caption-style-request.ts` `autoRequestCaptionStyle`), 분석 드래프트도 그 스냅샷으로 시드된다. 그래서 불변 판정은 캡션 기본값을 저장하지 않은 계정의 처리로만 한다고 그 줄 아래에 적었다.
