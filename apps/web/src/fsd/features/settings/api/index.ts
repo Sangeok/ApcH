@@ -2,9 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { normalizeUploadDefaults } from "~/fsd/entities/user";
-import { updateUserUploadDefaults } from "~/fsd/entities/user/server";
+import {
+  updateUserDefaultCaptionStyle,
+  updateUserUploadDefaults,
+} from "~/fsd/entities/user/server";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
+import { captionStyleSchema } from "~/fsd/shared/config/caption-style-schema";
+import type { CaptionStyle } from "~/fsd/shared/config/constants";
 
 export async function saveUploadDefaults(input: {
   defaultLanguage: string | null;
@@ -26,5 +31,26 @@ export async function saveUploadDefaults(input: {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/settings");
 
+  return success();
+}
+
+export async function saveDefaultCaptionStyle(
+  input: CaptionStyle | null,
+): Promise<ActionResult<void>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  // null = 언어 기본값으로 비우기(검증 안 함). 값이 있으면 write-time 단일 검증.
+  // 원본 input이 아니라 파싱 결과를 쓴다 — z.object는 모르는 키를 결과에서 떨구므로 조작된 요청이 붙인
+  // 여분 키가 저장·스냅샷·Modal 페이로드로 흘러가지 않는다(saveClipDraftEdit도 validated.data를 쓴다).
+  let style: CaptionStyle | null = null;
+  if (input !== null) {
+    const parsed = captionStyleSchema.safeParse(input);
+    if (!parsed.success) return failure("Invalid caption style");
+    style = parsed.data;
+  }
+
+  await updateUserDefaultCaptionStyle(authResult.data.userId, style);
+  revalidatePath("/dashboard/settings");
   return success();
 }

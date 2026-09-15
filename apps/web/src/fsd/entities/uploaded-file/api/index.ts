@@ -109,12 +109,18 @@ export async function createUploadDraft(data: {
   language: string;
   targetClipCount: number;
   reviewBeforeGenerate: boolean;
+  captionStyle?: Prisma.JsonValue; // User.defaultCaptionStyle 스냅샷 (없으면 null 컬럼)
 }) {
+  const { captionStyle, ...rest } = data;
   return db.uploadedFile.create({
     data: {
-      ...data,
+      ...rest,
       uploaded: false,
       status: "upload_pending",
+      // null/미지정이면 필드를 생략 → 컬럼 null. 있으면 그대로 스냅샷을 쓴다.
+      ...(captionStyle != null
+        ? { captionStyle: captionStyle as Prisma.InputJsonValue }
+        : {}),
     },
     select: { id: true },
   });
@@ -508,6 +514,7 @@ export async function findCurrentProcessingAttemptContext(
       userId: true,
       s3Key: true,
       status: true,
+      captionStyle: true, // auto 요청 스냅샷 · 분석 드래프트 시드가 읽는다
       user: {
         select: {
           credits: true,

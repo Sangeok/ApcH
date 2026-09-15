@@ -12,6 +12,7 @@ import {
   getPreviewVerticalInset,
   pickActiveCue,
 } from "../model/caption-preview";
+import { firstCueText } from "../model/sample-captions";
 
 const PREVIEW_HEIGHT_PX = 320;
 const PREVIEW_WIDTH_PX = 180; // 9:16
@@ -30,6 +31,9 @@ interface CaptionPreviewPlayerProps {
   maxWords: number;
   uppercase: boolean;
   position: CaptionStyle["position"];
+  // 설정 화면의 정지 샘플 미리보기. true면 영상 없이 첫 큐를 고정으로 그린다.
+  // playUrl === null로 추론하지 않는다 — 검토 화면은 URL 로딩·실패 동안에도 null을 넘긴다.
+  sample?: boolean;
 }
 
 export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
@@ -103,6 +107,9 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
   const fontFamily =
     language === "Korean" ? "var(--font-noto-sans-kr)" : "var(--font-anton)";
   const centered = inset.top === null && inset.bottom === null;
+  // 정지 샘플은 재생 이펙트(playUrl === null이라 no-op)의 setState 대신 렌더 중에 첫 큐를
+  // 계산한다 — 첫 페인트부터 보이고, 영상 없이도 정적으로 확인된다.
+  const displayText = props.sample === true ? firstCueText(cues) : activeText;
 
   return (
     <div
@@ -138,7 +145,7 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
         )}
         style={{ top: inset.top ?? undefined, bottom: inset.bottom ?? undefined }}
       >
-        {activeText !== "" && (
+        {displayText !== "" && (
           <p
             className="text-center leading-tight"
             style={{
@@ -152,7 +159,7 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
               textShadow: `${shadowPx}px ${shadowPx}px 0 rgba(12,12,12,0.18)`,
             }}
           >
-            {activeText}
+            {displayText}
           </p>
         )}
       </div>
