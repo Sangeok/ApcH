@@ -174,3 +174,21 @@ backend-dev 계획서 `docs/plans/FEAT-46.md` — 수정 1(`main.py`), 신규 2(
 **판정**
 - 독립 무편집 패스 1회가 결함 0이고 미실행 경로 없이 끝났다 → **클린 패스**(보드 정지 규칙). 보드 FEAT-46 행에 `검증:` 줄을 기록하고 게이트②를 기다린다.
 - 누적 편집은 모두 구현 영향 0이다. 메인 루프 1라운드 4건(위생 3·검증 가능성 1), plan-verifier 1사이클 1건(위생).
+
+클린 패스 커밋 `469618b`.
+
+## 게이트② (2026-09-15)
+
+- 소유자가 세션에서 「Feat 46 구현 승인」을 지시했다. 보드 FEAT-46 행의 `status: 검토대기` → `구현승인` 한 줄만 바꾸고, `검증:` 줄은 남겼다.
+- 전이 전 확인
+  - `dev` = `origin/dev`(0 0).
+  - `apps/backend/reference_translation*`와 `docs/agents/backend-dev/FEAT-46.md`가 없고, `HEAD`의 `apps/backend`에 `referenceTranslation`이 0건이다. 다른 세션이 먼저 처리하지 않았다.
+- **병행 세션과의 겹침**
+  - 같은 작업 트리에서 병행 세션이 FEAT-49를 `구현승인`으로 바꿨는데, 그 보드 줄과 `docs/agents/main-loop/FEAT-49.md`는 아직 커밋되지 않았다.
+  - 그래서 보드는 `HEAD` 버전에 FEAT-46 한 줄만 얹은 blob을 인덱스에 직접 올려(`stage46.mjs`) 남의 변경을 섞지 않았다.
+  - 두 구현이 동시에 돌 수 있다. FEAT-46 쓰기 범위는 `apps/backend`, FEAT-49는 `apps/web/src/fsd/features/caption-style`이라 코드 파일은 겹치지 않는다.
+  - 하지만 두 dev가 모두 `PROJECT_BOARD.md`(자기 행)와 `TASK_BACKLOG.md`(자기 항목 제거)를 고친다. 인수 때 보드·백로그 diff에서 FEAT-46 몫만 대조한다.
+- 구현 기준은 계획서 `44fbab7`이다(이후 계획서 무변경). backend-dev를 구현 단계로 디스패치하고 이렇게 브리핑한다.
+  - 워킹트리의 남의 변경은 건드리지 않는다: `apps/web/.claude/settings.local.json`·`nul`, 병행 세션의 FEAT-49 변경.
+  - 커밋·푸시하지 않는다.
+  - 보드 FEAT-49 행 등 다른 행을 건드리지 않는다.
