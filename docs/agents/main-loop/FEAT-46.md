@@ -52,3 +52,56 @@
 ## 계획서 수령 (2026-09-15)
 
 backend-dev 계획서 `docs/plans/FEAT-46.md` — 수정 1(`main.py`), 신규 2(`reference_translation.py`·`test_reference_translation.py`). 필드명 `referenceTranslation`, Korean만 키를 싣고(값 str|null) English는 키 없음. Gemini 타임아웃은 `HttpOptions(timeout=120000)`. 보드 `계획지시` → `검토대기`를 계획서와 같은 커밋으로 푸시했다.
+
+## 검증 필수 경로 확정 (2026-09-15, 카탈로그 `docs/plans/verification-paths.md`)
+
+| 경로 | 채택 | 근거 |
+| --- | --- | --- |
+| 1 인용 전수 대조 | ○ | 전 항목. `main.py` 인용 약 30곳 + `moment_prompt.py`·`translation_fallback.py`·`requirements.txt`·web 4파일 |
+| 2 스케치 추출·실행 | ○ | 신규 모듈 전문 + I/O 래퍼 + 페이로드 블록 |
+| 3 before/after 기계 적용 | ○ | before 둘(이미지 등록·analyze 페이로드) + 삽입 둘(import·래퍼) |
+| 4 전칭 여집합 열거 | ○ | "Gemini 호출 셋에 타임아웃 없음", "`analyze_payload`는 콜백·동기 응답이 스프레드할 뿐", "English 페이로드 바이트 동일", "`validate_moments`는 원본 dict 통과", "web 무변화" |
+| 5 돌연변이 검사 | ○ | 순수 함수 6개 신설 |
+| 6 실제 사건 재생 | ○(변형) | 외부 신호 = Gemini 응답·전사 JSON. 과거 실측 응답이 없어 BUG-02(응답 형상 재생)·FEAT-36(생산자 계약 입력 차등 비교) 선례대로 적용 |
+| 7 음성 시험 | ○ | Modal 이미지 등록 가드(`test_modal_image_sources.py`)에 기댄다 |
+| 8 실물 렌더 | × | 화면 변경 없음 |
+| 9 구조적 아티팩트 | × | schema·config·생성 파일 변경 없음(`requirements.txt` 무변경) |
+
+## 1라운드 (2026-09-15, 메인 루프 — 위생·검증 가능성 결함 4건, 일괄 편집)
+
+하니스는 스크래치패드 `feat46/`(`apply46.mjs`·`test_ref46.py`·`mutate46.py`·`wire46.py`·`neg46.mjs`·`planedit46.mjs`).
+
+- **경로 1**: 계획서 인용 전수를 현재 트리와 내용까지 대조했다. `get_title_and_hashtags` 하나만 틀렸고(D1), 나머지는 전부 일치했다(`main.py:2·23·45·85·120-136·410·481·515·525-530·534·547-548·602·669·752·878·880-881·889·896·928·930·937·944·945·982·997·1001·1017·1019-1025·1027-1035·1037·1039-1052·1054-1061·1142·1146-1153·1156·1166-1171`, `moment_prompt.py:91`, `requirements.txt:35`, `ClipDraftCard.tsx:108-114`, `modal-contract.ts:173-201`, `functions.ts:930-946`, `env.js` LLM 키 0).
+- **경로 2·3**: `apply46.mjs`가 python 블록 5개를 바이트 그대로 추출하고, 실제 트리에 앵커 1회 일치로 ①~④를 적용했다(`main.py` +60/−12).
+  - 결과: `python -m unittest discover -s apps/backend -p "test_*.py"` → `Ran 79 tests … OK` · `py_compile` 0 · 실제 위치 모듈에 명세 테스트 24/24.
+  - 끝에 `git checkout -- apps/backend/main.py`와 모듈 파일 삭제로 원복했다.
+- **경로 4**
+  - `generate_content` 호출은 `:515·:669·:945` 셋뿐이고 전부 타임아웃이 없다.
+  - `analyze_payload` 사용은 `:960` 초기화·`:1039` 생성·`:1060`·`:1170` 스프레드뿐이다(`git grep HEAD`).
+  - `validate_moments`는 원본 dict를 그대로 append한다(`:135`).
+  - web 수신 두 경로가 새 필드를 버린다(게이트① 실측).
+- **경로 5**: 계획서 「테스트」 명세를 명세 밖 단언 없이 `test_ref46.py` 24메서드로 옮기고 `mutate46.py`로 돌연변이 18종을 심었다 → **18/18 사멸**, 원본 해시 불변.
+  - 돌연변이 종류: 언어 대소문자·경계 배타·join·index·빈 단어·count·ensure_ascii·index 지시·키 이름·json 접두·꼬리 펜스·빈 원문 None·누락→""·None 경로 복사·원본 변형·바깥 strip·json 대소문자.
+- **경로 6(변형)**: `wire46.py`가 계획서 ③ 래퍼와 ④ before/after를 exec했다. genai는 venv 설치본 `google-genai` 2.16.0이고 클라이언트만 가짜다 → **23/23**.
+  - English는 호출 없이 None, 전부 빈 원문이면 호출 없음.
+  - config가 실제 `GenerateContentConfig`이고 `http_options.timeout == 120000`, 프롬프트에서 빈 원문이 빠진다.
+  - 응답 형상 9종(호출 예외·text None·잘못된 JSON·오류 객체·빈 배열·문자열 index·공백 번역·모르는 index·bare 펜스)이 전부 래퍼 밖으로 새지 않는다.
+  - English 페이로드는 before/after 바이트 동일이고, Korean은 전 moment에 키가 붙고 나머지 필드는 불변이다.
+  - 생산자 계약 형태의 무작위 구간 300개에서 원문이 카드 본문 규칙과 전부 일치했다.
+- **경로 7**: 적용 트리에서 등록 목록의 `"reference_translation"`만 빼자(`neg46.mjs`) `test_modal_image_sources` → `FAILED (failures=1)`. 원복했다.
+- **추가 사실 확인**
+  - `google-genai` 소스: 요청 단위 `http_options` 전달(`models.py` `parameter_model.config.http_options`), `_api_client.py:229` `timeout / 1000.0`, 재시도 옵션 없으면 `stop_after_attempt(1)`(`:536`).
+  - web `parseTranscriptWords`(`features/clip-review/model/transcript.ts:11-18`)는 빈 문자열 단어도 통과시킨다. 하지만 생산자 `transcribe_video`가 빈 단어를 버리므로(`:928`·`:937`) 실데이터에서는 카드와 원문이 어긋나지 않는다.
+  - `should_translate_references`·`build_reference_sources`는 `try` 밖이지만 예외에 도달할 수 없다. moment의 `start`/`end`는 `validate_moments`의 `end - start`에서 이미 수치가 보장되고, 전사 단어는 생산자가 `float()`한다.
+- **스킬 floor**
+  - 동시성·멱등: 해당 없음. 번역은 상태를 남기지 않고, 재분석은 새 attempt가 전체를 다시 돈다.
+  - 권한 표면: 신설 없음.
+  - 직렬화 형상 변경: (a) 의존성 버전 — `google-genai` 미고정은 D3에서 다룬다. (b) 옛 페이로드를 박은 fixture — 테스트 파일 grep(`normalizeAnalyzedMoment|referenceTranslation|phase analyze`) 0건. (c) 관측 — 새 로그 줄 `Reference translation error:` 외 메트릭·트레이스 없음.
+
+**결함 — 전부 비구현 영향, 일괄 편집(`planedit46.mjs`, 앵커 1회 일치 5곳)**
+- **D1 위생**: ③ 삽입 위치가 존재하지 않는 `get_title_and_hashtags`를 인용하고 "헬퍼 뒤, 클래스 앞"이 모호했다. `process_clip` 끝(`:878`) 뒤, 클래스 주석(`:880`) 앞으로 특정하고, 주석과 데코레이터 사이에 넣지 않는다고 적었다.
+- **D2 위생**: 지연 추정의 "후보 수 ≤ 8"은 코드가 강제하지 않는다. 요청 수일 뿐이며 `validate_moments`는 개수를 자르지 않는다고 고쳤다.
+- **D3 위생**: 미지원 시 예외를 `TypeError`로 적었지만 pydantic `extra="forbid"`라 `ValidationError`다. 설치본 2.16.0의 지원·전달·단위·재시도 증거를 적고, 「못 덮는 범위」 확인 문구를 배포 이미지(미고정 최신) 기준으로 고쳤다.
+- **D4 검증 가능성**: "예상 22개 내외"로는 backend-dev B-5의 "약속한 수 이상" 판정이 서지 않는다. "신규 ≥ 20 → N ≥ 99"로 고쳤다.
+
+**패스 상태**: Source changed = yes → 클린 패스 아님. 다음은 최신 저장본 전체에 대한 무편집 2라운드다. 트리 청결(`git status`): 계획서 편집 + 세션 전부터 있던 `settings.local.json`·`nul`뿐.

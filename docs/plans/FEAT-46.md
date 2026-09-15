@@ -186,7 +186,7 @@ from reference_translation import (
     .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation"))
 ```
 
-**③ 모듈 레벨 I/O 래퍼** — 다른 모듈 레벨 Gemini 헬퍼(`create_korean_subtitles_with_ffmpeg`·`get_title_and_hashtags`) 뒤, 클래스 정의(`main.py:881` `@app.cls(...)`) 앞에 신설:
+**③ 모듈 레벨 I/O 래퍼** — `process_clip`(`main.py:752`)의 끝(`main.py:878` `    }`) 뒤, 클래스 정의 주석(`main.py:880` `# GPU/타임아웃/시크릿/볼륨 설정이 적용된 서비스 클래스`) 앞에 신설한다. 그 주석과 `main.py:881` `@app.cls(...)`는 붙어 있어야 하므로 둘 사이에 넣지 않는다. 모듈 레벨 Gemini 헬퍼 `create_korean_subtitles_with_ffmpeg`(`main.py:410`)·`generate_youtube_metadata`(`main.py:602`)와 같은 층이고, 쓰는 이름 `json`(`main.py:2`)·`genai`(`main.py:23` `from google import genai`)는 이미 모듈 레벨에서 import돼 있다:
 
 ```python
 REFERENCE_TRANSLATION_TIMEOUT_MS = 120000  # 120s. 참고 번역은 best-effort — 멈춘 호출이 analyze를
@@ -225,7 +225,7 @@ def build_reference_translations(validated_moments, transcript_words, language, 
         return [None for _ in sources]
 ```
 
-- **타임아웃 방법·값**: google-genai의 `GenerateContentConfig(http_options=HttpOptions(timeout=...))`, 단위는 **밀리초**. 값 `120000`(120s). 이 kwarg를 설치본이 지원하지 않으면 호출 조립에서 `TypeError`가 나지만 그것도 `try/except`가 잡아 전부 None으로 떨어지므로 analyze는 안전하다(다만 그 경우 필드가 조용히 안 채워진다 — 「테스트」 「못 덮는 범위」에 confirm 항목으로 둔다). `google-genai`는 `requirements.txt:35`에서 버전 미고정이라 배포 시점 최신본을 쓴다.
+- **타임아웃 방법·값**: google-genai의 `GenerateContentConfig(http_options=HttpOptions(timeout=...))`, 단위는 **밀리초**. 값 `120000`(120s). 로컬 venv(`C:\Users\hamso\venvs\apch-backend`) 설치본 `google-genai` **2.16.0**에서 확인했다 — `HttpOptions.timeout`은 `Optional[int]`("Timeout for the request in milliseconds.")이고, `GenerateContentConfig`에 `http_options` 필드가 있으며, `Models.generate_content`가 `parameter_model.config.http_options`를 요청에 넘기고(`google/genai/models.py`), `_api_client.py`가 `timeout / 1000.0`초로 바꾼다. 재시도 옵션이 없으면 1회만 시도한다(`tenacity.stop_after_attempt(1)`) — 타임아웃이 곱해지지 않는다. `google-genai`는 `requirements.txt:35`에서 버전 미고정이라 배포 이미지는 빌드 시점 최신본을 쓴다. 그 버전이 이 필드를 받지 않으면 `GenerateContentConfig`(pydantic, `extra="forbid"`) 생성이 `ValidationError`를 내지만 `try` 안이라 전부 None으로 떨어지고 analyze는 안전하다(다만 필드가 조용히 안 채워진다 — 「테스트」 「못 덮는 범위」에 확인 항목으로 둔다).
 - 렌더 번역(temp 0.3)과 같은 온도. 렌더처럼 "줄 수 맞추기" 제약은 프롬프트에 넣지 않는다(요구 ②).
 
 **④ analyze 페이로드 교체** (`main.py:1039-1052`) before/after:
@@ -277,7 +277,7 @@ English에서 `reference_translations is None` → `attach_reference_translation
 
 `apps/backend/test_reference_translation.py` (`unittest.TestCase`, `main.py` import 안 함 — `from reference_translation import ...`):
 
-- **덮는 것** (예상 22개 내외):
+- **덮는 것** — 아래 케이스를 테스트 메서드 **20개 이상**으로 쓴다(B-5 확인 기준: 기존 79 + 신규 ≥ 20 → `Ran N tests`의 N ≥ 99):
   - `should_translate_references`: `"Korean"`만 True; `"English"`·`""`·`"korean"`·`"KOREAN"`·`" Korean "`·`"Spanish"`·`None`은 False (moment_prompt와 같은 정확 일치).
   - `build_reference_sources`: 경계 포함(`w.start == start`·`w.end == end` 포함), 앞으로 넘친 단어(`w.start < start`)·뒤로 넘친 단어(`w.end > end`) 제외 — `ClipDraftCard.tsx:108-109` 규칙과 동일; `" "` join; `index == 위치`; 빈 구간 → `text == ""`; `start`/`end`가 int인 moment도 `float()`로 처리; 시각·텍스트 없는 단어 skip; 반환 길이 == moment 수.
   - `build_reference_translation_prompt`: `count` 리터럴 삽입, 각 원문 텍스트 포함, `ensure_ascii=False`(비-ASCII 원문이 이스케이프 안 됨), 인덱스 유지 지시 문구 존재, `"translation"` 키 지시 존재.
@@ -286,8 +286,8 @@ English에서 `reference_translations is None` → `attach_reference_translation
   - `attach_reference_translations`: None→같은 리스트 그대로 반환(`assertIs`)이며 어떤 dict에도 `referenceTranslation` 키 없음(**English 불변 — 요구 ①**); 리스트→각 moment에 aligned 값(str·null) 부착, 원본 dict 미변형(키 없음 유지), 길이 보존.
 - **못 덮는 범위** (torch/whisperx로 `main.py` import 불가라 unittest 밖):
   - I/O 래퍼 `build_reference_translations`의 배선(언어 게이트→sources→translatable 필터→Gemini 호출→타임아웃→펜스 제거→assemble)과 페이로드 부착 호출부 — `py_compile`로 문법만, 동작은 `modal run`으로 사용자 확인.
-  - Gemini 실출력의 번역 품질·인덱스 준수·문장 단위 자연스러움, Korean analyze 지연 증가량(입력 = 후보 수 ≤ `clip_count*2`(clip_count 최대 4 → ≤ 8) × 구간당 단어 수(30~90s, 대략 80~250단어); flash 1회 호출로 web 60m 한도에 비해 미미) — 배포 후 실제 Korean 업로드로만 확인.
-  - `http_options=HttpOptions(timeout=...)`를 배포 시점 `google-genai`가 지원하는지, `referenceTranslation`이 실제로 채워지는지 — `modal run`으로 확인(미지원이면 try/except가 전부 null로 조용히 강등).
+  - Gemini 실출력의 번역 품질·인덱스 준수·문장 단위 자연스러움, Korean analyze 지연 증가량(입력 = 후보 수 × 구간당 단어 수(30~90s, 대략 80~250단어). 후보 수는 `identify_moments`에 `clip_count * 2`개를 요청한 결과다(`main.py:1017`; web `CLIP_COUNT_OPTIONS` 1~4 → 요청 최대 8). 다만 코드는 개수 상한을 강제하지 않는다 — `validate_moments`(`main.py:120-136`)는 길이만 거르고 개수를 자르지 않아, Gemini가 더 돌려주면 그만큼 입력이 는다. flash 1회 호출이라 web 60m 한도에 비해 미미) — 배포 후 실제 Korean 업로드로만 확인.
+  - 배포 이미지의 `google-genai`(미고정 최신)가 `http_options=HttpOptions(timeout=...)`를 여전히 받는지(로컬 2.16.0은 받음 — 위 ③), `referenceTranslation`이 실제로 채워지는지 — 배포 뒤 Korean 업로드의 Modal 로그·콜백 본문으로 확인(받지 않으면 try/except가 전부 null로 조용히 강등하고 로그에 `Reference translation error:`가 남는다).
   - 이 필드는 FEAT-47(컬럼)·FEAT-48(표시) 전까지 화면에 안 나온다 — 배포 확인은 Modal 로그·콜백 본문으로만.
 
 ## 범위 밖 의존
