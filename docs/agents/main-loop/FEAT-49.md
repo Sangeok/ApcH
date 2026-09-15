@@ -83,3 +83,25 @@ web-dev 계획서 `docs/plans/FEAT-49.md` — 수정 5(`sample-captions.ts`·`Ca
 - **8 렌더**: 14/14, P2 동치 16조합 차이 0.
 
 실제 트리 `git status`: 무관한 `apps/web/.claude/settings.local.json`·`nul`뿐 — 하니스는 실제 트리를 건드리지 않았다. → `plan-verifier` 1사이클 디스패치(브리핑은 항목ID, 계획서 경로, 필수 경로 1·2·3·4·5·7·8만).
+
+## plan-verifier 1사이클 (2026-09-15) — 결함 0건, 실행하지 못한 경로 없음 → 클린 패스
+
+- **브리핑**: 항목ID, 계획서 경로, 필수 경로 1·2·3·4·5·7·8만 전달했다. 검증자가 계약 준수를 확인했다. 검증자는 grep 중 이 기록 파일이 부수적으로 보였다고 밝혔고, 브리핑에 실린 것이 아니며 조준 안내로 쓰지 않고 계획서 전체에 경로를 독립 실행했다고 적었다 — 계약 위반이 아니다(브리핑은 셋뿐이었다).
+- **경로별 증거 실질**
+  - 1: 계획서 인용 전수 재독 — 플레이어 `:15/40/45-49/108/112/155/162`, `caption-preview.ts:12/35`, 편집기 `:43-47/239-276/278-290/312-316/317-324`, `sample-captions.ts:2/7-8/20-30/36-38/41`, 소비자 `CaptionStyleDialog.tsx:71`·`ClipDraftCard.tsx:114/525`·설정 `:229/232/236`, `caption-presets.ts:13-24`, `constants.ts:145/157/169/181`, `main.py:583-585`, `review-language-notice.ts:10-12/19` — 낡은 줄번호·틀린 인용 0.
+  - 2: 스케치 `sample-captions.ts`(두 함수 + 주석)를 바이트 그대로 추출해 저장소 tsconfig(strict·noUncheckedIndexedAccess·verbatimModuleSyntax·isolatedModules)로 `tsc --noEmit` 0 에러, typescript-eslint 계층 복제 flat config로 eslint 0.
+  - 3: before 5블록(`sample-captions.ts:7-8`·플레이어 `:15`·`:45-49`·편집기 `:317-324`·`review-language-notice.ts:10-12`) 바이트 일치.
+  - 4: `KR_WORDS` 파일 밖 소비자 0(두 소비자 주장 성립), 편집기 소비자 2·플레이어 소비자 1, 새 함수명 충돌 없음, 플레이어의 `cues` 판독처(`:53·55·58·112`)가 전부 useMemo 하류.
+  - 5: 명세 실행본(describe 2·it 8)에 돌연변이 — `koreanSampleCues` 6/6 사멸, `previewCaptionCues` 언어 가드 제거·치환 비활성·항상 치환 사멸. 생존 둘은 동치(빈 텍스트 가드, `!sample` 가드 — 계획서가 계약으로 명시).
+  - 7: 가드 제거 시 English 라이브 테스트·Korean 라이브 테스트가 각각 실제로 실패.
+  - 8: 안내·힌트 JSX를 `renderToStaticMarkup`으로 language×sample 4조합 렌더 — 조합별 기대 분기 전부 일치.
+- **[실행하지 못한 경로]**: 없음.
+- **범위 메모(판정 근거의 투명성)**: 검증자의 경로 2는 `sample-captions.ts` 스케치를 컴파일했고 플레이어·편집기 after는 경로 3(before 바이트 일치)·8(JSX 조각 렌더)로 다뤘다. 전체 5파일 적용 후 `check`(tsc·lint·FSD)와 전체 컴포넌트 렌더는 메인 루프 1·2라운드가 wt49에서 실측했다(EXIT 0, 14/14). 검증자 보고가 필수 경로를 전부 실행했고 미실행 경로가 없으므로 무소득 보고로 판정한다(FEAT-45 전례와 같은 판단).
+- **트리 청결 직접 확인**(`git status`): `apps`·`docs`·`packages`·보드·백로그 변경 0. 남은 것은 무관한 `settings.local.json`·`nul`.
+- **판정**: 독립 무편집 무소득 패스 1회 → **클린 패스**. 보드에 `검증:` 줄을 기록하고 status는 `검토대기` 그대로다(게이트② `구현승인`은 소유자만 연다).
+- **반영된 결함 분류**: 구현 영향 1(B1 판정 순수 함수화), 위생 2(B2 낡은 `main.py` 줄번호·FEAT-44 결정 위반, B3 인용 범위).
+
+**인수 때 메인 루프 몫**
+- `apps/web/CLAUDE.md` 테스트 개수(154→162, suites 35→37)와 `sample-captions.test.mjs` 행 갱신.
+- 「못 덮는 범위」의 배선(플레이어가 `previewCaptionCues`에 실제 `language`·`sample === true`를 넘기는지)은 diff ↔ 스케치 대조로 확인한다 — 러너·정적 렌더가 못 잡는다(돌연변이 W2 생존). 격리 worktree `scratchpad/wt49`와 `apply49.mjs`를 대조 기준으로 남겨 둔다.
+- 배포 확인 원장 등재 후보: Korean 업로드 검토 다이얼로그에서 재생 중 한국어 샘플이 큐 시각에 맞춰 바뀌는지, 샘플 크기·줄 길이가 실렌더와 대략 비슷한지, English 검토 다이얼로그는 영어 원문 그대로인지(육안).
