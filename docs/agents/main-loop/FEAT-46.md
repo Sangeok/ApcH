@@ -230,3 +230,14 @@ backend-dev 보고는 "완료, unittest 117 · py_compile 0, 스케치 대비 �
 ### 범위 밖 의존
 
 계획서 「없음」. FEAT-47(컬럼)·FEAT-48(표시)은 이미 백로그에 있어 새로 제시할 후보가 없다.
+
+구현 커밋 `227cb7f` · 인수 문서 커밋 `8ae9701`(원장·web CLAUDE.md는 병행 세션의 FEAT-49 변경을 빼고 `HEAD` blob에 FEAT-46 몫만 얹어 스테이징 — `stagedocs46.mjs`, 원장 +14/−0·web 1/1 확인).
+
+### doc-auditor (11차 감사, 2026-09-15)
+
+대상을 FEAT-46이 바꾼 주장과 흔들렸을 수 있는 곳으로 지정했다: 백로그 FEAT-44·47·48, `apps/backend/CLAUDE.md` 전체, `apps/web/CLAUDE.md` `caption-preview.test.mjs` 행, 원장 FEAT-46 절. 기본값(백로그·CLAUDE.md 전부)을 쓰지 않은 이유는 작업 트리에 병행 세션의 커밋 안 된 FEAT-49 문서 변경이 있어서다.
+
+- 감사자 보고: 확인 52건, 어긋남 1건 — FEAT-44 「제외」 절의 `schema.prisma:116`(실제 `:133`). 메인 루프가 줄을 다시 읽어 확인했다(`:116` `@@index([userId, status, createdAt])`, `:133`에 해당 주석).
+- **메인 루프 교차 확인에서 감사자가 놓친 것 5건**: FEAT-44 본문이 "현재 줄"로 적은 `main.py` 인용 6개 중 5개가 낡았다 — `:838`→`:852`(`elif selected_language == "Korean":`), `:142`→`:156`(`"top": 200,`), `:288`→`:302`(`def create_subtitles_with_ffmpeg(`), `:158`→`:172`(`def resolve_caption_style(`), `:47`→`:56`(`class ProcessVideoRequest(BaseModel):`). `:44` import만 맞다. FEAT-41에서 이미 +6(클래스는 +1) 밀렸고 FEAT-46이 +8을 더했다. 감사자의 FEAT-44 "주장 12건 확인"은 web 쪽 인용 대조였다.
+- 감사자 미확인 메모: FEAT-48의 `functions.ts:921·:931` 인용이 `:929·:939`로 8줄 밀림(내용은 존재). 메인 루프는 인용 글자 추출에 실패해 판정을 보류했다.
+- 영향: 전부 백로그 서술의 줄번호다. 코드·동작·원장 확인 항목에는 영향이 없다. FEAT-44는 완료 시 grep을 다시 돌리므로 구현을 오도하지는 않는다. 백로그 수정 여부는 소유자 결정으로 남긴다.
