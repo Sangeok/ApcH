@@ -40,6 +40,11 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-15
+- [ ] FEAT-49: Korean 캡션 스타일 미리보기가 영어 원문 대신 한국어 샘플 문장을 그린다 — Uppercase·Words per line이 한국어 결과를 오도하지 않게
+  agent: web-dev
+  area: apps/web/src/fsd/features/caption-style
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-45 완료·샘플 상수는 FEAT-42가 만듦. FEAT-46과 파일 겹침 없음 — 병행 후보 1순위로 메인 루프가 제시.
 - [ ] FEAT-46: Korean 분석(analyze)에서 후보마다 참고 번역을 만들어 콜백에 싣는다 — 검토 화면이 영어 원문 옆에 한국어 뜻을 보여줄 수 있게
   agent: backend-dev
   area: apps/backend/main.py + apps/backend (신규 stdlib 순수 모듈·테스트)
