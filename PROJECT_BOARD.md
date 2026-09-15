@@ -40,6 +40,20 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-15
+- [x] FEAT-49: Korean 캡션 스타일 미리보기가 영어 원문 대신 한국어 샘플 문장을 그린다 — Uppercase·Words per line이 한국어 결과를 오도하지 않게
+  agent: web-dev
+  area: apps/web/src/fsd/features/caption-style
+  status: 완료
+  검증: 클린 패스 (2026-09-15, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 1건·위생 2건 반영)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-45 완료·샘플 상수는 FEAT-42가 만듦. FEAT-46과 파일 겹침 없음 — 병행 후보 1순위로 메인 루프가 제시.
+  결과: 계획 5파일 구현 — Korean 라이브 미리보기를 previewCaptionCues로 한국어 샘플 치환, Uppercase·Words per line 힌트·안내 언어별 분리. check EXIT0·test 162/37. 상세 web-dev/FEAT-49.md
+- [x] FEAT-46: Korean 분석(analyze)에서 후보마다 참고 번역을 만들어 콜백에 싣는다 — 검토 화면이 영어 원문 옆에 한국어 뜻을 보여줄 수 있게
+  agent: backend-dev
+  area: apps/backend/main.py + apps/backend (신규 stdlib 순수 모듈·테스트)
+  status: 완료
+  검증: 클린 패스 (2026-09-15, 독립 무편집 2사이클째 — 결함 0, 1사이클 위생 1건·앞선 메인 루프 라운드 위생 3·검증 가능성 1건 반영, 구현 영향 0)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 없음, FEAT-47·48 체인의 첫 단계. FEAT-42·45 배포 뒤 메인 루프 추천 1순위 — 소유자 실물 확인 결과와 무관하게 진행 가능.
+  결과: 순수모듈 reference_translation+테스트38 신설, main.py에 import·등록·analyze 페이로드 attach 배선. English 불변. unittest 117/0·py_compile 0. 상세 backend-dev/FEAT-46
 - [x] FEAT-45: 검토 화면의 "transcript/source" 표현을 사용자 말로 풀어 쓴다 — 카드 라벨·헤더 안내·캡션 편집기 안내 문구
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx

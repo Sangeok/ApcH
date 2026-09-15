@@ -22,21 +22,49 @@
 
 ---
 
+## FEAT-49 — Korean 캡션 스타일 미리보기를 한국어 샘플로 · Uppercase·Words per line 힌트 (web, 구현 2026-09-15)
+
+원천: `docs/agents/web-dev/FEAT-49.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **배포 대기** — `dev`만(`main` 미합류).
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **162/162 · suites 37**(인수 시 메인 루프 재실행). 치환 판정은 `previewCaptionCues` 테스트가 덮지만, 플레이어가 그 함수에 실제 `language`·`sample`을 넘기는 배선과 재생 중 큐 전환은 `<video>` state라 러너·정적 렌더 밖이다 — 배선은 인수 때 diff ↔ 스케치 기계 대조로 일치를 봤고, 실물 동작은 아래 첫 줄이 맡는다.
+**`〔auto〕` 태그를 붙이지 않는다**: 검토 다이얼로그는 로그인 뒤 `review_pending` 업로드에서만, 설정 화면도 로그인 뒤에만 보인다.
+
+- [ ] **Korean 업로드 검토 화면의 `Caption style` 다이얼로그 미리보기가 재생 중 한국어 샘플을 그리는가** — 영상이 도는 동안 자막 자리에 영어 원문 대신 `지금 자막 스타일을` 같은 한국어 샘플 토큰이 큐 시각에 맞춰 바뀌며 뜨는지. Words per line을 올리면 한 줄이 길어지고, Uppercase를 켜도 글자 모양이 그대로인지
+- [ ] **샘플의 크기·줄 길이가 실제 렌더 클립과 대략 비슷해 보이는가** — 같은 스타일로 생성한 Korean 클립과 나란히 볼 때 글자 크기·한 줄 폭·화면 차지가 크게 어긋나지 않는지. 샘플은 "영어 N단어 = 한국어 N토큰" 근사라 정확히 같을 수는 없다 — 근사가 스타일 판단을 오도할 만큼 크면 이관
+- [ ] **다이얼로그 안내와 힌트가 언어대로 갈리는가** — Korean: 미리보기 밑 안내가 `… so framing will differ. The Korean words shown are a sample — your captions are translated from the video when you generate, so the exact wording and line length will differ.`로 끝나고, Words per line 아래 `For Korean, this counts English source words per line before translation.`, Uppercase 아래 `Korean text isn't affected — only English words mixed into a line are uppercased.`가 보이는지. English 업로드: 안내가 `… so framing will differ.`에서 끝나고 힌트 둘이 없으며, 미리보기 글자는 영어 원문 그대로인지
+- [ ] **설정 화면(언어 Korean) 캡션 섹션이 기존대로인가** — 샘플 안내 `This is a sample. …`는 그대로이고 힌트 둘이 함께 보이는지, 샘플 첫 큐가 종전처럼 `지금 자막 스타일을`(줄당 단어 기본 3)인지
+
+---
+
+## FEAT-46 — Korean analyze 후보마다 참고 번역(referenceTranslation) (backend, 구현 2026-09-15)
+
+원천: `docs/agents/backend-dev/FEAT-46.md`의 「못 덮은 범위」. **배포 대기** — `modal deploy`는 소유자 승인 사항이다.
+게이트는 unittest **117/0**(+38) · `py_compile` 0(인수 시 메인 루프 재실행). 인수 때 신규 모듈이 계획 스케치와 동일하고 `main.py`는 빈 줄 외 동일함을 기계 대조했으며, 실제 테스트 파일에 모듈 돌연변이 18종을 심어 전부 사멸함을 확인했다.
+**이 항목만으로는 사용자 체감 변화가 없다** — web 웹훅 정규화기(`normalizeAnalyzedMoment`)가 모르는 필드를 버리고, 저장은 FEAT-47·표시는 FEAT-48이다. 번역이 실제로 채워지는지·품질은 FEAT-48 배포 뒤 화면에서 보고, 이 절의 앞 세 줄은 배포 컨테이너와 analyze 무회귀를 맡는다.
+**`〔auto〕` 태그를 붙이지 않는다**: Modal 실행·로그와 로그인 뒤 검토 화면에서만 판정된다.
+
+- [ ] **배포된 컨테이너가 `reference_translation`을 import하는가** — 배포 직후 `process_video`에 잘못된 토큰으로 유효한 형태의 바디를 POST → **401**(FEAT-41 절 첫 줄과 같은 확인). 이미지 등록이 빠졌으면 컨테이너가 기동하지 못해 모든 모드가 죽는다
+- [ ] **English 업로드의 분석이 이전과 같은가** — `Review first` English 업로드가 `review_pending`까지 가고 후보 카드가 이전처럼 뜨는지. English 경로는 번역 호출이 없어야 하므로 그 실행의 Modal 로그에 `Reference translation error:`가 없어야 한다
+- [ ] **Korean analyze가 번역 때문에 실패·지연되지 않는가** — `Review first` Korean 업로드가 `review_pending`까지 가는지, Modal 로그에 `Reference translation error:`가 없는지(있으면 사유를 본다 — 특히 배포 이미지의 미고정 최신 `google-genai`가 `http_options` timeout을 거부한 `ValidationError`인지), analyze 소요 시간이 이전과 크게 다르지 않은지
+- [ ] **(FEAT-48 배포 후) 검토 카드의 참고 번역이 그 후보 영어 원문의 뜻인가** — 문장 단위로 자연스러운지, 다른 후보의 번역이 붙는 인덱스 어긋남이 없는지. FEAT-48 절이 생기면 그 절이 이어받는다
+
+---
+
 ## FEAT-45 — 검토 화면 "transcript/source" 문구를 사용자 말로 (web, 구현 2026-09-15)
 
-원천: `docs/agents/web-dev/FEAT-45.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 반영된다.
+원천: `docs/agents/web-dev/FEAT-45.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 14:53 KST**, PR #119 `main` 합류(`5567b2f`) → Vercel `Production – apc-h` success.
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 수 불변 — 골든 문자열 2개 교체). 표시 조건(비영어 업로드에서만)은 바뀌지 않아, English 업로드에서 안내·라벨이 없는지는 아래 FEAT-37 절 셋째 줄이 계속 맡는다. FEAT-37 절의 옛 문구 관측 두 줄은 이 절로 `대체`됐다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 `review_pending` 업로드의 검토 화면에서만 보인다.
 
 - [ ] **Korean 업로드 검토 화면 헤더에 새 안내가 보이는가** — 「N moments suggested … credits」 문단 아래 `bg-muted` 박스로 `Subtitles will be translated to Korean when you generate. This review shows what's said in the video, in English.`가 뜨는지
 - [ ] **카드마다 새 라벨이 영어 원문 위에 붙는가** — 각 카드의 영어 원문 박스 바로 위에 `What's said in the video (English)`가 보이는지. 아포스트로피가 `&apos;` 같은 엔티티 글자로 노출되지 않아야 한다
 - [ ] **캡션 스타일 다이얼로그 안내의 마지막 문장이 바뀌었는가** — 검토 화면 한 클립의 `Caption style` 다이얼로그에서 미리보기 밑 안내가 `… Korean clips are translated at render time — the words shown here are what's said in the video, in English.`로 끝나는지. 설정 화면(FEAT-42)의 샘플 안내 `This is a sample. …`는 그대로여야 한다
+  - FEAT-49가 이 문장을 바꾼다(Korean은 샘플 안내, English는 프레임 안내만). FEAT-49 배포 전까지는 이 줄이 유효하고, 배포 뒤 확인하지 못했으면 `대체(FEAT-49)`로 닫는다 — 새 문장 확인은 FEAT-49 절 셋째 줄
 
 ---
 
 ## FEAT-42 — 캡션 스타일 기본값 앞 절반: 설정 캡션 섹션·업로드 스냅샷·드래프트 시드·auto 요청 페이로드 (web, 구현 2026-09-15)
 
-원천: `docs/agents/web-dev/FEAT-42.md`의 「테스트로 못 덮은 범위」. **배포 대기** — web은 `main` 합류 뒤 반영된다. 백엔드 선행 FEAT-41은 이미 배포됨(2026-09-15 00:00 KST).
+원천: `docs/agents/web-dev/FEAT-42.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 14:53 KST**, PR #119 `main` 합류(`5567b2f`) → Vercel `Production – apc-h` success. 백엔드 선행 FEAT-41은 먼저 배포됨(2026-09-15 00:00 KST).
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 145→154 — 신규 `caption-style-request.test.mjs` 3·`sample-captions.test.mjs` 6). auto 렌더가 요청 스냅샷으로 나오는지와 render에서 스타일 없는 클립이 언어 기본값인지는 아래 FEAT-41 절 「(FEAT-42 배포 후)」 두 줄이 맡고, 이 절은 설정 화면·스냅샷·검토 시드를 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면과 실제 업로드·Modal 처리에서만 판정된다.
 
@@ -87,11 +115,15 @@
 
 원천: `docs/agents/backend-dev/FEAT-41.md`의 「테스트로 못 덮은 범위」. **배포됨 — 2026-09-15 00:00 KST**, 소유자 지시("배포 수행")로 메인 루프가 실행(`PYTHONUTF8=1 …\apch-backend\Scripts\python.exe -m modal deploy main.py`, 6.7초, EXIT 0, 마운트에 `PythonPackage:caption_style_source` 포함, 엔드포인트 URL 불변). 배포 직전 unittest **79 OK** · `py_compile` 0 재실행.
 게이트는 unittest **79/0**(+12) · `py_compile` 0(인수 시 메인 루프 재실행). 인수 때 신규 모듈이 계획 스케치와 바이트 동일함과, 실제 테스트 파일에 돌연변이 10종을 심어 전부 실패함을 확인했다.
-**이 항목만으로는 사용자 체감 변화가 없다** — 웹이 요청 단위 스타일을 보내기 시작하는 것은 FEAT-42라, 둘째·셋째 줄은 FEAT-42 배포 뒤에만 닫힌다.
+**이 항목만으로는 사용자 체감 변화가 없다** — 웹이 요청 단위 스타일을 보내기 시작하는 것은 FEAT-42라, 둘째·셋째 줄은 FEAT-42 배포 뒤에만 닫힌다. FEAT-42는 2026-09-15 14:53 KST에 배포됐다(PR #119, `5567b2f`). 이제 둘째·셋째 줄을 닫을 수 있다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 생성 결과 영상과 Modal 실행에서만 판정된다.
 
 - [ ] **배포된 컨테이너가 `caption_style_source`를 import하고 기존 렌더가 그대로인가** — 배포 직후 `process_video`에 잘못된 토큰으로 POST → 401(FEAT-43 원장 첫 줄과 같은 확인) + 배포 뒤 첫 실제 처리(auto·render 아무거나)의 캡션이 이전과 같은지. 웹이 아직 요청 필드를 보내지 않으므로 달라지면 결함이다
   - import 절반 확인(2026-09-15, 실측 — 배포 출력 마운트에 `PythonPackage:caption_style_source` · 잘못된 토큰으로 `process_video`에 유효한 형태의 바디 POST(00:02:04) → **401** `Incorrect bearer token` · `modal container list` 활성 컨테이너 1, 시작 00:01로 배포 이후). 남은 것: 배포 뒤 첫 실제 처리의 캡션이 이전과 같은지
+  - 전제 변경(2026-09-15, FEAT-42 배포)
+    - 이제 캡션 기본값을 저장한 계정은 auto 요청에 `caption_style`이 실린다(`apps/web/src/inngest/caption-style-request.ts` `autoRequestCaptionStyle`).
+    - 그 계정의 분석 드래프트도 업로드 스냅샷으로 시드된다.
+    - 그래서 "캡션 불변" 판정은 **캡션 기본값을 저장하지 않은 계정**의 처리로만 한다. 저장한 계정의 캡션이 달라지는 것은 결함이 아니라 아래 둘째 줄에서 볼 대상이다.
 - [ ] **(FEAT-42 배포 후) auto 생성 클립이 요청 단위 스냅샷 스타일로 렌더되는가** — 설정한 기본 캡션(색·크기·위치)이 검토 없이 생성한 클립에 그대로 적용되는지
 - [ ] **(FEAT-42 배포 후) render에서 스타일 없는 클립은 언어 기본값으로 렌더되는가** — 검토 화면에서 커스텀 클립을 추가하거나 한 클립을 「Reset style」로 되돌린 뒤 생성하면, 그 클립이 미리보기대로 언어 기본값인지. 요청 스냅샷 스타일이 새어 나오면 소유자 결정(2026-09-14, render는 클립 스타일만) 위반이다
 

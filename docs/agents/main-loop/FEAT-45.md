@@ -165,3 +165,11 @@ web-dev 보고: 완료, check EXIT 0 · test 154/0, 스케치 차이 없음. 인
 - `ui/index.tsx:281-282`의 `CaptionStyleEditor :310-311` — 위 관측
 
 사용자 문구·원장·CLAUDE.md 서술은 전부 사실과 일치했다. 감사 보고는 사용자에게 전달했고 `docs/agents/doc-auditor/감사기록.md`에 이어 붙였다. FEAT-44 범위에 나머지 셋을 덧붙일지는 소유자 결정으로 남긴다. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.
+
+**소유자 결정 (2026-09-15)**: 1·2·4를 FEAT-44에 덧붙인다 → `TASK_BACKLOG.md` FEAT-44 「추가 범위 ⑤」, 제목도 넓혔다(`d7d024f`). 등재 전 여집합을 열거했다(`apps/web/src`에서 `파일.ts(x):줄`·`(:줄)` 형태). 같은 형태의 web 내부 줄번호 인용이 10여 곳 더 있다 — `selection-budget.ts:7,11,50`·`ClipDraftCard.tsx:363`·`preview-range.ts:11`·`CaptionPreviewPlayer.tsx:63`·`review-language-notice.ts:9`·`upload-defaults.ts:15`·`scrub-event.ts:4`·`clip-count-budget.ts:20`·`inngest/functions.ts:1019`. 각각이 낡았는지는 대조하지 않았고, 승인 범위가 아니라 등재하지 않았다.
+
+## 배포 (2026-09-15)
+
+FEAT-42와 함께 PR #119로 `main`에 합류했다. 머지 커밋은 `5567b2f`이고, 소유자가 14:51 KST에 합류했다. Vercel `Production – apc-h`는 14:53 KST에 success다. 사전 확인·PR 상태·프로덕션 실측은 `docs/agents/main-loop/FEAT-42.md` 「배포」에 있다.
+
+- 원장: FEAT-45 절에 배포됨을 표기했다. 세 줄은 모두 로그인 뒤 `review_pending` 검토 화면에서만 보여 소유자 몫이라 열어 둔다.

@@ -66,7 +66,7 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 23개 파일, 35 suite, 154개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 23개 파일, 37 suite, 162개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -74,9 +74,9 @@ npm test -w apps/web
 | `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키. `ANALYTICS_METADATA_KEYS_BY_EVENT`는 `as const satisfies Record<AnalyticsEventName, readonly string[]>`로 계약에 묶여 있어, 이벤트 이름 변경은 이제 컴파일 오류다. 이 테스트는 각 이벤트가 **어떤 키를 허용하는지**(값)를 지킨다 |
 | `shared/analytics/lib/normalize-path.test.mjs` | 경로 정규화 |
 | `widgets/clip-draft-review/model/selection-budget.test.mjs` | 클립 선택 예산 |
-| `features/caption-style/model/caption-preview.test.mjs` | 캡션 스타일 미리보기의 큐 묶기(`apps/backend/main.py:294-352` 이식)·활성 큐 선택·px 환산. **묶기 규칙·범위 필터(`end === clipEnd` 포함)·`EM_SCALE` 분모는 백엔드 자막과 묶인 계약이다** — 어긋나면 미리보기가 실렌더와 다른 것을 보여주고, 사용자는 크레딧을 쓴 뒤에야 안다. 분모가 `usWinAscent+usWinDescent`인 이유는 libass가 FreeType 메트릭을 OS/2 win 값으로 덮어쓰기 때문이다(`set_font_metrics`) |
+| `features/caption-style/model/caption-preview.test.mjs` | 캡션 스타일 미리보기의 큐 묶기(`apps/backend/main.py:302-360` 이식)·활성 큐 선택·px 환산. **묶기 규칙·범위 필터(`end === clipEnd` 포함)·`EM_SCALE` 분모는 백엔드 자막과 묶인 계약이다** — 어긋나면 미리보기가 실렌더와 다른 것을 보여주고, 사용자는 크레딧을 쓴 뒤에야 안다. 분모가 `usWinAscent+usWinDescent`인 이유는 libass가 FreeType 메트릭을 OS/2 win 값으로 덮어쓰기 때문이다(`set_font_metrics`) |
 | `features/caption-style/model/caption-presets.test.mjs` | 캡션 프리셋이 `captionStyleSchema` 안에 있는지와 `matchPresetId`. **프리셋은 리터럴 값 묶음이라 범위를 벗어나도 타입은 통과하고, Apply 할 때 zod가 런타임에 거부한다.** position을 무시하는 매칭도 여기서만 잡힌다 — 무너지면 위치를 바꾼 순간 프리셋 칩이 꺼진다 |
-| `features/caption-style/model/sample-captions.test.mjs` | 설정 화면 정지 샘플 미리보기가 그리는 첫 큐. `firstSampleCueText`는 플레이어의 `sample` 분기와 **같은 `firstCueText`**·`buildCaptionCues`를 거쳐 영/한 리터럴·대문자·줄당 단어(최대 8이 한 줄을 채움)를 못박는다. **플레이어가 자체 식을 쓰던 초안은 첫 큐 선택을 바꿔도 모든 테스트를 통과했다**(FEAT-42 계획 검증 돌연변이 실측). 플레이어가 이 함수를 실제로 부르는지는 러너 밖(렌더) 몫이다. KR 샘플 9단어 중 하나를 빼는 변이는 명세(≥8)상 의도된 생존이다 |
+| `features/caption-style/model/sample-captions.test.mjs` | 설정 화면 정지 샘플 미리보기가 그리는 첫 큐. `firstSampleCueText`는 플레이어의 `sample` 분기와 **같은 `firstCueText`**·`buildCaptionCues`를 거쳐 영/한 리터럴·대문자·줄당 단어(최대 8이 한 줄을 채움)를 못박는다. **플레이어가 자체 식을 쓰던 초안은 첫 큐 선택을 바꿔도 모든 테스트를 통과했다**(FEAT-42 계획 검증 돌연변이 실측). 플레이어가 이 함수를 실제로 부르는지는 러너 밖(렌더) 몫이다. KR 샘플 9단어 중 하나를 빼는 변이는 명세(≥8)상 의도된 생존이다. **Korean 라이브 미리보기(FEAT-49)**: `koreanSampleCues`는 큐 타이밍·개수를 두고 큐별 영어 단어 수만큼 `KR_WORDS`를 cursor 순환으로 채우며(연속·wrap·한글만), `previewCaptionCues`는 **Korean·라이브일 때만** 치환을 고른다 — English 라이브 그대로(회귀), Korean 라이브 치환(누락)이 여기서 잡힌다. 이 판정이 플레이어 `useMemo` 안 삼항이던 초안은 English 회귀·치환 비활성 변이가 전 테스트를 통과했고, 라이브 캡션 텍스트는 `<video>` state라 정적 렌더로도 안 보인다(FEAT-49 계획 검증 실측). 플레이어가 실제 `language`·`sample`을 넘기는 배선은 러너 밖이다. `!sample` 가드 제거 변이는 생존한다 — 설정 화면 케이스 입력이 한글 샘플이라 치환해도 같고, 실입력에서도 동치다 |
 | `inngest/caption-style-request.test.mjs` | auto Modal 요청의 요청 단위 `caption_style` 결정 — render는 스냅샷이 있어도 `undefined`(요청 단위 무효화, `moments[].caption_style`만), auto+스냅샷은 스냅샷, auto+null은 `undefined`(키 생략 → 백엔드 언어 기본값). **백엔드 `caption_style_source.py` `select_caption_style`과 묶인 계약이다**(FEAT-41 소유자 결정 2026-09-14: render는 클립 스타일만) — 어긋나면 커스텀·Reset 클립이 미리보기와 다른 스타일로 렌더된다 |
 | `widgets/clip-draft-review/model/boundary-snap.test.mjs` | `snapToAdjacentBoundary`의 방향 스냅과 **no-op 회귀**. 이전 구현(`nearestBoundary`)은 "가장 가까운 경계"를 골라서, 인접 단어 간격이 1.0초 이상이면 ±0.5초 넛지가 원래 자리로 스냅해 **눌러도 값이 안 움직였다**(문장 첫 단어에 경계가 걸렸을 때 = 넛지를 가장 많이 쓸 순간). 케이스마다 죽이는 회귀가 정해져 있다 — 원시(비격자) 현재값은 `roundTenth(value)` 제거를(167.893도 167.9도 화면엔 `2:47.9`라 회귀가 눈에 안 보인다), forward 케이스의 "앞에 경계 둘 이상"은 `Math.min`→`Math.max`를, 폴백 케이스는 방향과 반올림을 지킨다. **forward 폴백의 `roundTenth`는 의도적으로 테스트하지 않는다** — 격자 360,001개 전수에서 `g+0.5`가 부정확한 경우가 0건이라 도달 가능한 입력으로 구별되지 않는 등가 변이다 |
 | `widgets/clip-draft-review/model/preview-range.test.mjs` | `getPreviewRange`의 Start/Full/End 프리뷰 창과 0 클램프. **pre/post-roll이 요점이다** — start부터 재생하면 무엇을 잘랐든 깔끔하게 들려 "말 중간이 잘렸는가"를 판정할 수 없다 |

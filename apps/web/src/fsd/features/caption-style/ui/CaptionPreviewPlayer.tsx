@@ -12,7 +12,7 @@ import {
   getPreviewVerticalInset,
   pickActiveCue,
 } from "../model/caption-preview";
-import { firstCueText } from "../model/sample-captions";
+import { firstCueText, previewCaptionCues } from "../model/sample-captions";
 
 const PREVIEW_HEIGHT_PX = 320;
 const PREVIEW_WIDTH_PX = 180; // 9:16
@@ -44,8 +44,21 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
 
   const cues = useMemo(
     () =>
-      buildCaptionCues(words, clipStart, clipEnd, props.maxWords, props.uppercase),
-    [words, clipStart, clipEnd, props.maxWords, props.uppercase],
+      // Korean 라이브 미리보기만 텍스트를 한국어 샘플로 치환한다 — 판정은 previewCaptionCues.
+      previewCaptionCues(
+        buildCaptionCues(words, clipStart, clipEnd, props.maxWords, props.uppercase),
+        language,
+        props.sample === true,
+      ),
+    [
+      words,
+      clipStart,
+      clipEnd,
+      props.maxWords,
+      props.uppercase,
+      language,
+      props.sample,
+    ],
   );
 
   // 큐 목록은 ref로 읽는다. 재생 이펙트의 의존성에 cues를 넣으면 줄당 단어·대문자를
