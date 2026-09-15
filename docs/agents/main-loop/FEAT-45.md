@@ -80,4 +80,17 @@ web-dev 계획서 `8947bcf` — 수정 4, 신규 0. 새 문구 셋이 어구 "wh
 - H1: 여집합 서술을 "검토 화면·캡션 편집기의 설명 문구는 이 셋뿐"으로 좁히고, 마케팅·정책 페이지와 실패 서버 메시지를 제외 근거와 함께 열거.
 - H2: `ui/index.tsx` 주석 서술을 "줄번호는 `:281-282`만, `:425`는 이름만"으로 정정.
 
-원복 후 `apps/web/src` 변경 0. 편집이 있었으므로 2라운드 무편집 재실행. 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.
+원복 후 `apps/web/src` 변경 0. 편집이 있었으므로 2라운드 무편집 재실행.
+
+## 2라운드 (2026-09-15, 메인 루프 — 무편집, 무소득)
+
+편집한 계획서(`36456dc`)를 같은 하니스로 처음부터 다시 적용·실행했다. 계획서는 고치지 않았다(1라운드 편집은 산문뿐이라 코드 블록 12개가 같다).
+
+- **경로 1**: 편집으로 새로 들어간 인용 — `pages/how-it-works/config/index.ts:20,30`·`pages/guides/config/index.ts:145,165,209,211`·`pages/podcast-to-shorts/config/index.ts:45`·`pages/product-tour/config/index.ts:25`·`shared/config/product-copy.ts:28`·`app/(public-marketing)/how-it-works/page.tsx:16`·`privacy/page.tsx:106,245`·`features/clip-review/api/index.ts:40,47`·`use-clip-draft-review.ts:316-320`·`AddCustomClipPanel.tsx:85,90`·`ui/index.tsx:281-282,425` — 1라운드 여집합 열거 출력과 대조해 전부 일치.
+- **경로 2·3**: 여섯 before 바이트 일치 1회씩. `npm run check -w apps/web` **EXIT 0**, `npm test -w apps/web` **154/154**.
+- **경로 4**: 좁힌 전칭("검토 화면·캡션 편집기의 설명 문구는 이 셋뿐")이 1라운드 열거로 성립한다. 새 전칭은 없다.
+- **경로 5**: 돌연변이 6/6 사멸.
+- **경로 7**: raw `'` → 두 파일 `react/no-unescaped-entities` exit 1, 대조군 exit 0.
+- **경로 8**: 렌더 실패 0(11/11).
+
+원복 후 `apps/web/src` 변경 0. → `plan-verifier` 1사이클 디스패치(브리핑은 항목ID, 계획서 경로, 필수 경로 목록만). 원장 FEAT-37 절의 옛 문구 인용 줄(`:120`·`:121`)은 인수 때 `대체(FEAT-45)`로 마감하고 새 문구 기준 확인 줄을 등재한다 — 계획서 「못 덮는 범위」에 그 대응을 적는다.
