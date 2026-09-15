@@ -273,6 +273,12 @@ export default function CaptionStyleEditor({
               +
             </Button>
           </div>
+          {language === "Korean" && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              For Korean, this counts English source words per line before
+              translation.
+            </p>
+          )}
         </div>
 
         <div>
@@ -287,6 +293,12 @@ export default function CaptionStyleEditor({
           >
             Uppercase
           </Button>
+          {language === "Korean" && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Korean text isn&apos;t affected — only English words mixed into a
+              line are uppercased.
+            </p>
+          )}
         </div>
       </div>
 
@@ -314,12 +326,18 @@ export default function CaptionStyleEditor({
             This is a sample. Your clips use your own video and words — here
             you&apos;re setting the size, color, position, and words per line.
           </p>
+        ) : language === "Korean" ? (
+          <p className="text-center text-[11px] text-muted-foreground">
+            Live preview on your video — the whole frame is shown here. The final
+            clip crops to follow whoever is speaking, so framing will differ. The
+            Korean words shown are a sample — your captions are translated from the
+            video when you generate, so the exact wording and line length will
+            differ.
+          </p>
         ) : (
           <p className="text-center text-[11px] text-muted-foreground">
             Live preview on your video — the whole frame is shown here. The final
             clip crops to follow whoever is speaking, so framing will differ.
-            Korean clips are translated at render time — the words shown here are
-            what&apos;s said in the video, in English.
           </p>
         )}
       </div>

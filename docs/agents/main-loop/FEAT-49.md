@@ -109,3 +109,27 @@ web-dev 계획서 `docs/plans/FEAT-49.md` — 수정 5(`sample-captions.ts`·`Ca
 ## 게이트② (2026-09-15)
 
 소유자 세션 지시 "Feat 49 구현 승인" — `검토대기` → `구현승인`. 승인 대상은 클린 패스를 받은 계획서 `ddb0ef6`판(이후 계획서 무변경). web-dev에 구현을 디스패치한다. 다른 세션이 같은 체크아웃에서 FEAT-46(backend)을 진행 중이라, 구현 범위는 계획서 「고칠 파일」 5개로 한정하고 커밋·푸시는 메인 루프가 경로 지정으로 한다.
+
+## 인수 (2026-09-15)
+
+web-dev 구현 보고 `docs/agents/web-dev/FEAT-49.md`, 보드 `결과` 기록. 인수 조건 다섯을 직접 재현했다.
+
+| # | 조건 | 재현 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`: web 5파일 M(= 표) + 보고 신규 + 보드·백로그. 같은 트리의 `apps/backend/main.py`·`reference_translation.py`·`test_reference_translation.py`·`docs/agents/backend-dev/FEAT-46.md`와 보드 FEAT-46 행·백로그 FEAT-46 항목은 다른 세션의 미커밋 FEAT-46 몫이라 이 인수 커밋에서 뺐다 |
+| 2 | diff ↔ 스케치 | **기계 대조**: 검증 때 계획서를 바이트 그대로 적용해 둔 `scratchpad/wt49`의 5파일과 구현을 `git diff --no-index -w --ignore-blank-lines`로 비교. 소스 4파일(`sample-captions.ts`·`CaptionPreviewPlayer.tsx`·`CaptionStyleEditor.tsx`·`review-language-notice.ts`) **차이 0** — 플레이어 배선(`previewCaptionCues(…, language, props.sample === true)`)도 스케치와 같다. 러너·렌더가 못 잡던 배선 돌연변이 W2를 이 대조로 닫는다. 테스트 파일은 하니스 실행본과 `it` 제목·변수명·주석·줄바꿈만 다르고 케이스 8개·입력·기대값은 「테스트」 절 그대로다(예외 하나는 아래 위생 메모) |
+| 3 | 검증 명령 재실행 | 실제 트리에서 `npm run check -w apps/web` **EXIT 0**(verify:fsd:test 11/11 · verify:fsd · ESLint 0 · tsc), `npm test -w apps/web` **tests 162 · suites 37 · fail 0** |
+| 4 | 백로그 제거 | `**FEAT-49**` 항목 헤더 0건. 남은 `FEAT-49` 문자열은 다른 항목의 교차 참조다 |
+| 5 | 상세 기록 실재 | `docs/agents/web-dev/FEAT-49.md` 실재 — 변경 5·스케치와의 차이(힌트 들여쓰기만)·게이트·못 덮는 범위 |
+
+**위생 메모 (인수 거부 사유 아님)**: 구현 테스트 파일을 wt49에 복사해 판정 돌연변이를 다시 심었다 — English 회귀(P1)·치환 비활성(P3)은 fail 1로 사멸, **`!sample` 가드 제거(P2)는 생존**(pass 14 · fail 0). "Korean 설정 화면 샘플 그대로" 케이스의 입력이 한글 `"지금 자막 스타일을"`이라 `koreanSampleCues`가 `KR_WORDS` 앞 세 토큰을 같은 순서로 다시 채워도 입력과 같아지기 때문이다. 계획서가 이 가드를 "설정 화면 실입력에선 치환 결과가 같다(16조합)"며 의도 표기용 계약으로 뒀으므로 행동 영향은 없고, 「테스트」 절이 입력을 지정하지 않아 스케치 위반도 아니다. 계약을 테스트로 고정하려면 그 케이스 입력을 영어로 바꾸면 된다 — 기록만 남긴다.
+
+**문서 갱신 (메인 루프 몫)**
+- `apps/web/CLAUDE.md` — 테스트 개수 154/35 → 162/37, `sample-captions.test.mjs` 행에 `koreanSampleCues`·`previewCaptionCues`가 지키는 것과 P2 동치 생존을 덧붙임.
+- `docs/release-checks.md` — FEAT-49 절 등재(열린 줄 4, `〔auto〕` 없음 — 로그인 뒤 화면). FEAT-45 절 셋째 줄(다이얼로그 안내 마지막 문장)에 "FEAT-49 배포 뒤엔 Korean 안내가 바뀐다" 메모 — FEAT-49가 배포되기 전까지는 그 줄이 여전히 유효해 `대체`로 닫지 않았다.
+
+**보드 `결과` 길이 교정**: web-dev가 쓴 `결과`가 157자로 보드 규칙(150자 이내 — 대시보드가 넘치면 보인다)을 넘었다. 스테이징 가드가 잡았고, 뜻은 그대로 두고 145자로 줄였다(「Uppercase·Words per line·안내에 Korean 힌트/분리」 → 「Uppercase·Words per line 힌트·안내 언어별 분리」, `fail0` 생략 — 162/37이 곧 전부 통과).
+
+**범위 밖 의존**: 계획서 「범위 밖 의존」 없음 → 백로그 후보 없음.
+
+**커밋 방식**: 공유 트리라 보드·백로그·`apps/web/CLAUDE.md`·`docs/release-checks.md`가 한때 다른 세션의 미커밋 FEAT-46 변경과 섞여 있었다. HEAD에 FEAT-49 몫만 얹은 블롭을 인덱스에 넣는 가드 스크립트(`scratchpad/feat49/stage49b.mjs`)를 준비했으나, 실행 직전 다른 세션이 FEAT-46 몫을 자기 커밋(`227cb7f`·`8ae9701`)으로 먼저 가져갔다. 그 뒤 네 파일의 HEAD 대비 차이가 FEAT-49 hunk뿐임을 `git diff -U0`로 확인하고 경로 지정 `git add`로 커밋했다. 가드는 두 번 발동해 아무것도 스테이징하지 않았다(`결과` 150자 초과 1회 · HEAD 이동 1회).

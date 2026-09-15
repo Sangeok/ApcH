@@ -22,6 +22,19 @@
 
 ---
 
+## FEAT-49 — Korean 캡션 스타일 미리보기를 한국어 샘플로 · Uppercase·Words per line 힌트 (web, 구현 2026-09-15)
+
+원천: `docs/agents/web-dev/FEAT-49.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **배포 대기** — `dev`만(`main` 미합류).
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **162/162 · suites 37**(인수 시 메인 루프 재실행). 치환 판정은 `previewCaptionCues` 테스트가 덮지만, 플레이어가 그 함수에 실제 `language`·`sample`을 넘기는 배선과 재생 중 큐 전환은 `<video>` state라 러너·정적 렌더 밖이다 — 배선은 인수 때 diff ↔ 스케치 기계 대조로 일치를 봤고, 실물 동작은 아래 첫 줄이 맡는다.
+**`〔auto〕` 태그를 붙이지 않는다**: 검토 다이얼로그는 로그인 뒤 `review_pending` 업로드에서만, 설정 화면도 로그인 뒤에만 보인다.
+
+- [ ] **Korean 업로드 검토 화면의 `Caption style` 다이얼로그 미리보기가 재생 중 한국어 샘플을 그리는가** — 영상이 도는 동안 자막 자리에 영어 원문 대신 `지금 자막 스타일을` 같은 한국어 샘플 토큰이 큐 시각에 맞춰 바뀌며 뜨는지. Words per line을 올리면 한 줄이 길어지고, Uppercase를 켜도 글자 모양이 그대로인지
+- [ ] **샘플의 크기·줄 길이가 실제 렌더 클립과 대략 비슷해 보이는가** — 같은 스타일로 생성한 Korean 클립과 나란히 볼 때 글자 크기·한 줄 폭·화면 차지가 크게 어긋나지 않는지. 샘플은 "영어 N단어 = 한국어 N토큰" 근사라 정확히 같을 수는 없다 — 근사가 스타일 판단을 오도할 만큼 크면 이관
+- [ ] **다이얼로그 안내와 힌트가 언어대로 갈리는가** — Korean: 미리보기 밑 안내가 `… so framing will differ. The Korean words shown are a sample — your captions are translated from the video when you generate, so the exact wording and line length will differ.`로 끝나고, Words per line 아래 `For Korean, this counts English source words per line before translation.`, Uppercase 아래 `Korean text isn't affected — only English words mixed into a line are uppercased.`가 보이는지. English 업로드: 안내가 `… so framing will differ.`에서 끝나고 힌트 둘이 없으며, 미리보기 글자는 영어 원문 그대로인지
+- [ ] **설정 화면(언어 Korean) 캡션 섹션이 기존대로인가** — 샘플 안내 `This is a sample. …`는 그대로이고 힌트 둘이 함께 보이는지, 샘플 첫 큐가 종전처럼 `지금 자막 스타일을`(줄당 단어 기본 3)인지
+
+---
+
 ## FEAT-46 — Korean analyze 후보마다 참고 번역(referenceTranslation) (backend, 구현 2026-09-15)
 
 원천: `docs/agents/backend-dev/FEAT-46.md`의 「못 덮은 범위」. **배포 대기** — `modal deploy`는 소유자 승인 사항이다.
@@ -45,6 +58,7 @@
 - [ ] **Korean 업로드 검토 화면 헤더에 새 안내가 보이는가** — 「N moments suggested … credits」 문단 아래 `bg-muted` 박스로 `Subtitles will be translated to Korean when you generate. This review shows what's said in the video, in English.`가 뜨는지
 - [ ] **카드마다 새 라벨이 영어 원문 위에 붙는가** — 각 카드의 영어 원문 박스 바로 위에 `What's said in the video (English)`가 보이는지. 아포스트로피가 `&apos;` 같은 엔티티 글자로 노출되지 않아야 한다
 - [ ] **캡션 스타일 다이얼로그 안내의 마지막 문장이 바뀌었는가** — 검토 화면 한 클립의 `Caption style` 다이얼로그에서 미리보기 밑 안내가 `… Korean clips are translated at render time — the words shown here are what's said in the video, in English.`로 끝나는지. 설정 화면(FEAT-42)의 샘플 안내 `This is a sample. …`는 그대로여야 한다
+  - FEAT-49가 이 문장을 바꾼다(Korean은 샘플 안내, English는 프레임 안내만). FEAT-49 배포 전까지는 이 줄이 유효하고, 배포 뒤 확인하지 못했으면 `대체(FEAT-49)`로 닫는다 — 새 문장 확인은 FEAT-49 절 셋째 줄
 
 ---
 

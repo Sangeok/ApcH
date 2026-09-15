@@ -7,8 +7,9 @@
 //
 // 언어 이름은 전달된 값(SUPPORTED_LANGUAGES[].value: "English"|"Korean")을 그대로
 // 문장에 넣는다 — 앱 UI가 영어라(clip-display/model/subtitle-status.ts:5 주석) 영어
-// 문장 안의 언어명도 값("Korean")이 맞고, CaptionStyleEditor의 라이브 미리보기 안내와도
-// 일관된다. English·nullish/공백은 안내 없음(null) — 영어 전사가 곧 최종 자막이라
+// 문장 안의 언어명도 값("Korean")이 맞다. 이 안내는 카드 본문(previewText=영어 원문) 몫이다
+// — 캡션 스타일 미리보기는 FEAT-49 뒤 한국어 샘플을 그려 카드 본문과 다르다.
+// English·nullish/공백은 안내 없음(null) — 영어 전사가 곧 최종 자막이라
 // 오독 여지가 없다. "English"만 제외하므로 향후 언어가 늘어도 자동으로 커버된다.
 export function reviewLanguageNotice(
   language: string | null | undefined,
