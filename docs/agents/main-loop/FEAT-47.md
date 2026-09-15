@@ -28,3 +28,7 @@
 - **타입·쿼리 영향 전수.** 필드가 늘면 `ClipDraft` 객체를 리터럴로 만드는 TS 코드는 컴파일이 깨진다 — 위 소비자 열거로 그런 곳이 없는지, `$executeRaw`가 `ClipDraft`와 무관한지, 드래프트 생성 경로(`createMany` 입력은 선택 필드)가 무영향인지 보인다. 게이트는 루트 형태 `npm run check --workspaces --if-present`(FEAT-38 교훈)와 web·admin 테스트.
 - **못 덮는 범위.** 프로덕션 적용 여부, 배포 뒤 기존 검토 화면 무회귀, FEAT-48 전까지 컬럼이 비어 있다는 점.
 - **메인 루프 몫(인수 때).** `TASK_BACKLOG.md` FEAT-44 「제외」 줄은 이 항목이 그 주석을 고치므로 정리한다. 계획서는 필요 여부만 적는다.
+
+## 계획서 작성 (2026-09-16, 메인 루프)
+
+`docs/plans/FEAT-47.md` — 고칠 파일 셋(`schema.prisma` 컬럼+`Clip` 주석, 신규 `migrations/20260916000000_clip_draft_reference_translation/migration.sql`, `generated/prisma` 재생성). 컬럼 `referenceTranslation String?`을 `clipType`·`hook`·`payoff` 뒤에 둔다. 적용은 FEAT-38 실측 명령(`node --env-file=../../.env …prisma… migrate deploy`)으로, 적용 → 확인 → 커밋·푸시 순서(`select` 없는 `findMany` 셋이 새 컬럼을 SELECT, `dev` 푸시도 Vercel 빌드). 드리프트 결합(이후 빈 DB `migrate deploy`는 실패로 바뀜)과 후속 후보 재제시를 적었다. 작성 중 추가 관측: `Clip` 주석의 "ClipDraft는 analyzeVideo에서만 만들어진다"도 커스텀 추가(`createCustomClipDraft`) 때문에 부정확 → 주석 교체에 포함. 보드 `계획지시` → `검토대기`.
