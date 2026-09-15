@@ -59,7 +59,7 @@ after:
 
 **타입과 이름**: `String?`, 기본값 없음. 이름은 FEAT-46 콜백 필드와 같은 `referenceTranslation`이다 — FEAT-48의 저장 매핑이 `moment.referenceTranslation ?? null` 한 줄이 되고, 이름 변환 층이 생기지 않는다.
 
-**주석이 "렌더는 쓰지 않는다"를 적는 이유**(백로그 요구 ②): 렌더가 쓰는 값으로 오독하면 "검토 번역 = 최종 자막"을 기대하게 되고, 미리보기-실렌더 일치 논의가 되살아난다. 확정 번역을 기각한 결정은 `TASK_BACKLOG.md` FEAT-48의 원천 대화(FEAT-46 결정 ②)에 있다.
+**주석이 "렌더는 쓰지 않는다"를 적는 이유**(백로그 요구 ②): 렌더가 쓰는 값으로 오독하면 "검토 번역 = 최종 자막"을 기대하게 되고, 미리보기-실렌더 일치 논의가 되살아난다. 확정 번역(렌더가 재사용)을 기각한 결정은 FEAT-46 백로그 항목의 「**결정(대화에서 확정)**」 ②였고, 그 항목은 FEAT-46 완료로 백로그에서 빠졌다(`git show 227cb7f^:TASK_BACKLOG.md`의 FEAT-46 항목). 현행 백로그에는 FEAT-48 요구 ②의 「(렌더는 따로 번역한다)」로 남아 있다.
 
 ### 2. `schema.prisma` — `Clip` 주석 두 인용
 
@@ -101,7 +101,7 @@ nullable·무기본이라 **기존 행 백필이 없고** 테이블 재작성 �
 
 ### 4. 생성 클라이언트 재생성
 
-`npm run db:generate:client -w @repo/db`(= `prisma generate`, DB에 접속하지 않는다). `packages/db/generated/prisma`는 git 추적 대상이고, 스키마를 품은 사본(`schema.prisma`·`index.js`·`edge.js`·`wasm.js`)과 타입(`index.d.ts`)이 실제 내용으로 바뀐다 — 그 diff는 커밋 대상이다. `git diff --ignore-cr-at-eol --numstat`이 0인 파일만 CRLF 찌꺼기다(FEAT-38 구현 기록과 같은 판정).
+`npm run db:generate:client -w @repo/db`(= `prisma generate`, DB에 접속하지 않는다). `packages/db/generated/prisma`는 git 추적 대상이고, **7파일**이 실제 내용으로 바뀐다 — 스키마를 품은 사본 넷(`schema.prisma`·`index.js`·`edge.js`·`wasm.js`), 타입(`index.d.ts` — `ClipDraft` 결과 타입에 `referenceTranslation: string | null`, 생성 입력에서는 선택 필드), 스칼라 필드 enum(`index-browser.js`), 스키마 해시가 든 패키지 이름(`package.json`). 그 diff는 커밋 대상이다. `git diff --ignore-cr-at-eol --numstat`이 0인 파일만 CRLF 찌꺼기다(FEAT-38 구현 기록과 같은 판정).
 
 ## ⚠️ 마이그레이션 히스토리 드리프트와의 결합
 
@@ -125,7 +125,7 @@ nullable·무기본이라 **기존 행 백필이 없고** 테이블 재작성 �
 | 적용 후 확인 | `… migrate status` → `Database schema is up to date!` / `… db pull --print` → `model ClipDraft` 안에 `referenceTranslation String?` | 읽기 전용(`--print`는 파일을 쓰지 않는다) |
 
 **순서: 적용 → 확인 → 커밋·푸시 → `main` 합류.** 코드보다 컬럼이 먼저여야 한다.
-- 새 생성 클라이언트는 `select` 없는 `ClipDraft` 조회에서 스칼라 컬럼을 전부 고르므로 `referenceTranslation`도 SELECT한다. 그런 조회가 셋이다 — `apps/web/src/fsd/entities/clip-draft/api/index.ts:35` `  return getClient(options?.tx).clipDraft.findMany({`(`listClipDraftsForAttempt`), `:98` `  const drafts = await db.clipDraft.findMany({`(`getSelectedRenderMomentsForAttempt`, 렌더 디스패치), `apps/web/src/fsd/entities/uploaded-file/api/index.ts:357` `      ? await db.clipDraft.findMany({`(업로드 상세의 드래프트). 컬럼이 DB에 없는 채 새 클라이언트가 돌면 검토 화면과 렌더 디스패치가 `column does not exist`로 깨진다.
+- 새 생성 클라이언트는 `select` 없는 `ClipDraft` 쿼리에서 스칼라 컬럼을 전부 고르므로 `referenceTranslation`도 읽는다. 그런 쿼리가 넷이다 — 갱신된 행을 돌려받는 `select` 없는 `update` 하나(`apps/web/src/fsd/entities/clip-draft/api/index.ts:80` `  return getClient(options?.tx).clipDraft.update({`, 검토 카드 편집 저장)와 `findMany` 셋: `apps/web/src/fsd/entities/clip-draft/api/index.ts:35` `  return getClient(options?.tx).clipDraft.findMany({`(`listClipDraftsForAttempt`), `:98` `  const drafts = await db.clipDraft.findMany({`(`getSelectedRenderMomentsForAttempt`, 렌더 디스패치), `apps/web/src/fsd/entities/uploaded-file/api/index.ts:357` `      ? await db.clipDraft.findMany({`(업로드 상세의 드래프트). 컬럼이 DB에 없는 채 새 클라이언트가 돌면 검토 화면·편집 저장·렌더 디스패치가 `column does not exist`로 깨진다.
 - `dev` 푸시도 Vercel 빌드를 돌린다(`0e7180b`의 커밋 상태에 `Vercel – apc-h`·`Vercel – apch-admin`이 붙는다). 그 프리뷰가 같은 DB를 쓰는지는 이 계획에서 확인하지 않았다 — 그래서 **푸시 전에** 적용한다.
 - 배포 파이프라인은 마이그레이션을 자동 적용하지 않는다 — `apps/web/vercel.json`에 빌드 커맨드 오버라이드가 없고(`"framework": "nextjs"`, `"regions": ["icn1"]`뿐), `packages/db/package.json`의 `"postinstall": "prisma generate"`는 클라이언트 생성뿐이다.
 
@@ -139,7 +139,7 @@ nullable·무기본이라 **기존 행 백필이 없고** 테이블 재작성 �
 | --- | --- | --- |
 | `apps/web/src/inngest/functions.ts:929` `        await createClipDraftsBulk(` → `entities/clip-draft/api/index.ts:17` `  data: Prisma.ClipDraftCreateManyInput[],` | 생성 입력 | 새 필드는 입력 타입에서 선택이다 — 기존 매핑(`:930-947`) 그대로 컴파일. FEAT-48이 `referenceTranslation`을 더한다 |
 | `entities/clip-draft/api/index.ts:134` `    return tx.clipDraft.create({` | 커스텀 드래프트 생성 | 선택 필드 — 생략 시 null(의도: 커스텀 클립은 번역 없음) |
-| `:80` `  return getClient(options?.tx).clipDraft.update({` | 편집 저장 | 무관 |
+| `:80` `  return getClient(options?.tx).clipDraft.update({` | 편집 저장(`select` 없음) | 입력 쪽은 무관. 갱신된 행 전체를 돌려받으므로 새 컬럼을 읽는다 — 위 「순서」의 이유 |
 | `:46` `  return db.clipDraft.findFirst({` | 명시 `select` | 새 컬럼을 고르지 않는다 |
 | `:35`·`:98`·`uploaded-file/api/index.ts:357` | `select` 없는 `findMany` | 새 필드가 결과에 실린다(값 null). 위 「순서」의 이유 |
 | `ClipDraft` 타입 소비자 — `entities/clip-draft/model/types.ts:1`·`entities/uploaded-file/model/types.ts:1`·`widgets/clip-draft-review/model/selection-budget.ts:1`(`Pick<ClipDraft, …>`)·`use-clip-draft-review.ts:5`·`ui/_component/ClipDraftCard.tsx:4`·`ui/index.tsx:5` | 타입 재수출·props·`Pick` | 리터럴 생성이 없어 필드 추가로 깨지지 않는다. 서버→클라이언트 전달도 `string \| null`이라 직렬화 문제가 없다 |

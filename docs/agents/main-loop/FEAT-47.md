@@ -31,4 +31,34 @@
 
 ## 계획서 작성 (2026-09-16, 메인 루프)
 
-`docs/plans/FEAT-47.md` — 고칠 파일 셋(`schema.prisma` 컬럼+`Clip` 주석, 신규 `migrations/20260916000000_clip_draft_reference_translation/migration.sql`, `generated/prisma` 재생성). 컬럼 `referenceTranslation String?`을 `clipType`·`hook`·`payoff` 뒤에 둔다. 적용은 FEAT-38 실측 명령(`node --env-file=../../.env …prisma… migrate deploy`)으로, 적용 → 확인 → 커밋·푸시 순서(`select` 없는 `findMany` 셋이 새 컬럼을 SELECT, `dev` 푸시도 Vercel 빌드). 드리프트 결합(이후 빈 DB `migrate deploy`는 실패로 바뀜)과 후속 후보 재제시를 적었다. 작성 중 추가 관측: `Clip` 주석의 "ClipDraft는 analyzeVideo에서만 만들어진다"도 커스텀 추가(`createCustomClipDraft`) 때문에 부정확 → 주석 교체에 포함. 보드 `계획지시` → `검토대기`.
+`docs/plans/FEAT-47.md` — 고칠 파일 셋(`schema.prisma` 컬럼+`Clip` 주석, 신규 `migrations/20260916000000_clip_draft_reference_translation/migration.sql`, `generated/prisma` 재생성). 컬럼 `referenceTranslation String?`을 `clipType`·`hook`·`payoff` 뒤에 둔다. 적용은 FEAT-38 실측 명령(`node --env-file=../../.env …prisma… migrate deploy`)으로, 적용 → 확인 → 커밋·푸시 순서(`select` 없는 `findMany` 셋이 새 컬럼을 SELECT, `dev` 푸시도 Vercel 빌드). 드리프트 결합(이후 빈 DB `migrate deploy`는 실패로 바뀜)과 후속 후보 재제시를 적었다. 작성 중 추가 관측: `Clip` 주석의 "ClipDraft는 analyzeVideo에서만 만들어진다"도 커스텀 추가(`createCustomClipDraft`) 때문에 부정확 → 주석 교체에 포함. 보드 `계획지시` → `검토대기`(`b943bce`).
+
+## 검증 필수 경로 (카탈로그 대조)
+
+| 경로 | 채택 | 근거 |
+| --- | --- | --- |
+| 1 인용 전수 대조 | ○ | 전 항목 필수 — schema·migration·web API·backend·agent 정의·선례 기록 인용 30여 곳 |
+| 2 스케치 추출·실행 | ○ | prisma 조각 2쌍 + SQL 1. 적용본으로 `prisma validate`·`generate`·web `tsc`(새 생성 타입으로) |
+| 3 before/after 기계 적용 | ○ | 기존 파일(`schema.prisma`) before 블록 2 |
+| 4 전칭 여집합 | ○ | "그런 조회가 셋", "리터럴 생성·손 SQL 둘 다 없다", "`apps/*` 소스 무변경", "raw SQL 한 곳", "admin 0건" |
+| 5 돌연변이 | × | 순수 함수 신설·변경 없음 |
+| 6 실제 사건 재생 | × | 외부 신호 해석 없음 |
+| 7 음성 시험 | ○ | 계획서가 "새 필드는 생성 입력에서 선택이라 기존 생성 경로가 그대로 컴파일된다"에 기댄다 — 필수로 바꾸면 `tsc`가 정말 그 자리에서 깨지는가(게이트가 장식이 아닌가) |
+| 8 실물 렌더 | × | 화면 변경 없음 |
+| 9 구조적 아티팩트 | ◎ | schema·migration·생성 파일 변경. SQL과 스키마의 구조 일치를 `migrate diff`로 |
+
+## 검증 1라운드 (2026-09-16) — 편집 라운드
+
+**격리**: `git worktree add --detach scratchpad/wt47 0e7180b`(대상 파일은 계획서 커밋 전후 동일) + `node_modules` 정션 셋(루트·`apps/web`·`packages/db`). 하니스는 스크래치패드 `feat47/`(`apply47.mjs`·`planedit47.mjs`·`schema.head.prisma`), web 전용 `wt47/apps/web/tsconfig47.json`(`@repo/db` → wt의 `packages/db/src/index.ts` — 루트 `node_modules/@repo/db`가 실제 저장소 `packages/db`로 링크돼 있어, 그대로 `tsc`를 돌리면 옛 생성 클라이언트를 본다). Prisma CLI에는 가짜 `DATABASE_URL`·`DATABASE_URL_UNPOOLED`(`127.0.0.1:1`)를 줬다 — DB 접속 없는 명령만 돌렸다. 실제 저장소 `node_modules/.prisma`·`@prisma/client` 최종 수정 시각(2026-08-01 21:58) 전후 불변, 실제 트리 `packages`·`apps/web/src` 변경 0.
+
+**실행한 경로와 결과**
+- **3**: before 2블록(`ClipDraft` `:179-182`, `Clip` 주석 `:133-136`)이 wt 스키마에 각 1회 바이트 일치, 손 개입 없이 적용.
+- **2·9**: 적용본 `prisma validate` → valid. `migrate diff --from-schema-datamodel <HEAD 사본> --to-schema-datamodel <적용본> --script` → `-- AlterTable` / `ALTER TABLE "ClipDraft" ADD COLUMN     "referenceTranslation" TEXT;` — **계획서 SQL과 바이트 일치**. `prisma generate` EXIT 0 → 생성 파일 **7개** 실내용 변경(`--ignore-cr-at-eol --numstat`: `edge.js` 6/5 · `index-browser.js` 1/0 · `index.d.ts` 37/1 · `index.js` 6/5 · `package.json` 1/1 · `schema.prisma` 15/8 · `wasm.js` 6/5). `index.d.ts`에 `referenceTranslation: string | null`. 새 생성 타입으로 web `tsc --noEmit -p tsconfig47.json` **EXIT 0**.
+- **7 음성**: 적용본의 `referenceTranslation String?`을 `String`(필수)으로 바꿔 재생성 → `tsc` **EXIT 2**, 오류가 정확히 두 생성 경로에서 났다 — `entities/clip-draft/api/index.ts(135,7) TS2322`(커스텀 드래프트 `create`), `inngest/functions.ts(930,11) TS2345`(`createClipDraftsBulk` 매핑). 원복·재생성 확인. 계획서가 기대는 "선택 필드라 기존 생성 경로 무영향"은 참이고, 게이트(`tsc`)가 그 결합을 실제로 지킨다.
+- **4 여집합**: `apps/web/src`의 `ClipDraft` 모델 호출 전수 8개 — `createMany`(`:24`)·`findMany`(`:35`)·`findFirst`+`select`(`:46`)·`update`(`:80`)·`findMany`(`:98`)·`aggregate`(`:127`)·`create`+`select {id}`(`:134`)·`uploaded-file/api` `findMany`(`:357`). 관계 `include`/`select`로 `clipDrafts`를 읽는 곳 0(`clipDrafts:`는 타입·테스트·클라이언트 상태뿐). `apps/admin`·`scripts`·`packages/db/src` 0. raw SQL `entities/user/api/index.ts:131` 한 곳(`UPDATE "User"`).
+- **1 인용**: `.claude/agents/web-dev.md:53·54`, `reference_translation.py:117`, `schema.prisma:12·133·134·163·179-181·187·196`, `main.py:1000·1172-1174`, `functions.ts:929·930-947·938-940`, `clip-draft/api/index.ts:17·35·46·80·98·117·134`, `uploaded-file/api/index.ts:357`, `user/api/index.ts:131`, 선례 migration SQL, `vercel.json`, `package.json` `postinstall`, `0e7180b` 커밋 상태(Vercel 두 개 pending — `dev` 푸시도 빌드), FEAT-38 기록·계획서 절 이름 — 대조.
+
+**결함 3 — 전부 문서 위생, 통합 편집 1회(`planedit47.mjs`, 산문만 · 코드 블록 불변)**
+- **H1 (경로 4)**: 「순서」가 "`select` 없는 조회가 셋"이라 했고 표가 `update`(`:80`)를 "무관"으로 적었다. `update`도 `select`가 없어 갱신된 행 전체를 돌려받으므로 새 컬럼을 읽는다 — 쿼리는 **넷**이다. 결론(적용 → 푸시 순서)은 그대로라 구현 영향은 없다. → 넷으로 정정, 편집 저장 경로 추가, 표 행 정정.
+- **H2 (경로 1)**: "확정 번역을 기각한 결정은 `TASK_BACKLOG.md` FEAT-48의 원천 대화(FEAT-46 결정 ②)에 있다" — 현행 백로그에 그 결정 문장이 없다(「확정 번역」 0건). FEAT-46 항목이 완료로 빠지면서 사라졌고, `git show 227cb7f^:TASK_BACKLOG.md`의 FEAT-46 「결정(대화에서 확정)」 ②에 있다. 현행은 FEAT-48 요구 ② 「(렌더는 따로 번역한다)」(`TASK_BACKLOG.md:42`). → 출처 정정.
+- **H3 (경로 2)**: generate가 바꾸는 파일을 다섯(사본 넷+`index.d.ts`)으로 적었으나 실제 일곱(`index-browser.js` 스칼라 enum, `package.json` 스키마 해시 이름 추가). → 7파일로 정정.
