@@ -68,3 +68,18 @@ web-dev 계획서 `docs/plans/FEAT-49.md` — 수정 5(`sample-captions.ts`·`Ca
 - **B2 (위생·소유자 결정 위반)**: 새 주석을 `apps/backend/main.py create_korean_subtitles_with_ffmpeg`(함수명 앵커)로, 결합 주의 산문도 같이.
 - **B3 (위생)**: `:9-11` → `:10-12`.
 - 결함 아님(기록만): K5 동치, P2 동치(가드는 의도 표기로 유지).
+
+편집 커밋 `ddb0ef6`. 편집이 있었으므로 2라운드 무편집 재실행.
+
+## 검증 2라운드 (2026-09-15) — 무편집, 무소득
+
+편집한 계획서(`ddb0ef6`)를 처음부터 다시 읽고(전문 재독), wt49를 `git checkout -- .`로 `b082bd5`에 되돌린 뒤 같은 하니스로 다시 적용·실행했다. 하니스의 테스트 명세 실행본은 편집된 「테스트」 절(describe 2 · it 8)로, 돌연변이 P1–P3 앵커는 `previewCaptionCues`로 옮겼고 배선 돌연변이 W1·W2를 더했다. 계획서는 고치지 않았다.
+
+- **1 인용 전수**: 편집으로 바뀐 인용은 `before(\`:10-12\`)`와 새 주석의 함수명 앵커 `apps/backend/main.py create_korean_subtitles_with_ffmpeg`(`main.py:410` `def create_korean_subtitles_with_ffmpeg(`) — 일치. 나머지 인용은 1라운드 대조 그대로다(계획서 산문의 해당 줄 불변). 계획서 안 `main.py:\d+`는 산문 `:583-585`뿐이고 코드 블록 안에는 없다.
+- **2·3 적용**: 코드 블록 15개, 「현재 동작」 인용 2 · before/after 5쌍 각 1회 바이트 일치. 변경 5파일 = 표. `SKIP_ENV_VALIDATION=1 npm run check -w apps/web` **EXIT 0**(verify:fsd:test 11/11 · verify:fsd · ESLint 0 · tsc). 테스트 **162 · suites 37 · fail 0** — 계획서 예상(154→162, 35→37)과 일치.
+- **4 여집합**: 편집으로 새 전칭 없음. 1라운드 소비자 열거 그대로(편집기 props 불변).
+- **5 돌연변이**(14개): K1·K2·K3·K4·K6·K7 사멸, **P1 English 회귀·P2 sample 가드 제거·P3 치환 비활성 → 전부 사멸**. 생존 3 — K5(동치, 1라운드 근거), W1 플레이어가 `sample`을 늘 false로 넘김(라이브는 원래 false, 설정 화면은 P2 동치 16/16 → 행동 동치), W2 플레이어가 `language` 대신 English 고정(계획서 「못 덮는 범위」가 배선을 러너 밖으로 명시 — 인수 때 diff ↔ 스케치 대조 몫).
+- **7 음성**: NEG1 fail 2, NEG2 fail 6.
+- **8 렌더**: 14/14, P2 동치 16조합 차이 0.
+
+실제 트리 `git status`: 무관한 `apps/web/.claude/settings.local.json`·`nul`뿐 — 하니스는 실제 트리를 건드리지 않았다. → `plan-verifier` 1사이클 디스패치(브리핑은 항목ID, 계획서 경로, 필수 경로 1·2·3·4·5·7·8만).
