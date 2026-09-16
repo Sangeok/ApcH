@@ -43,7 +43,7 @@
 - [ ] FEAT-50: 검토 화면에서 캡션 기본값 캡처 — 다이얼로그 「내 기본으로 저장」·Reset을 업로드 스냅샷으로
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/settings/api + apps/web/src/fsd/entities/uploaded-file/api + apps/web/src/fsd/entities/clip-draft/api
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-42 완료 — 그 계획서 「범위 밖 의존」③으로 분할해 미룬 뒤 절반. 스타일은 내 영상 위에서 정해진다.
 - [x] FEAT-48: 검토 카드에 참고 번역을 저장·표시 — 영어 원문 아래 한국어 번역 블록
   agent: web-dev
