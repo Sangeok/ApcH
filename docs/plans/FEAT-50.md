@@ -334,7 +334,7 @@ props 인터페이스(`:18-31`)에 추가:
 
 ### 8. 커스텀 클립 시드 (`entities/clip-draft/api/index.ts`)
 
-`createCustomClipDraft`(`:117-148`) args에 `captionStyle` 추가, AI persist 경로(`functions.ts:948`)와 동형으로 시드:
+`createCustomClipDraft`(`:117-148`) args에 `captionStyle` 추가, AI persist 경로(`functions.ts:948`)와 동형으로 시드. 아래는 **함수 전문**이라 그대로 붙여 넣으면 되지만, `) {` 다음의 **P2002 동시성 리스크 주석(`:122-125`)을 반드시 보존한다** — 아래 블록에도 그대로 실어 두었다. 이 주석은 컴파일에 영향이 없어 `npm run check`가 유실을 잡아 주지 못한다(독립 패스가 초안에서 실제로 유실을 지적했다):
 
 ```ts
 export async function createCustomClipDraft(
@@ -346,6 +346,10 @@ export async function createCustomClipDraft(
     captionStyle?: CaptionStyle | null;
   },
 ) {
+  // 이 함수는 sibling 엔티티 함수들과 달리 자체 트랜잭션을 소유한다(호출자 tx를 받지 않음):
+  // max(index)+1 읽기와 create를 한 트랜잭션에 묶기 위해서다. 단, Prisma 기본 격리
+  // 수준에서는 aggregate 범위가 잠기지 않으므로 동시 추가 시 두 트랜잭션이 같은 max를
+  // 읽어 P2002가 날 수 있다(문서 §7 리스크 #1 — 단일 사용자 UI라 재시도 하드닝은 유예).
   return db.$transaction(async (tx) => {
     const aggregate = await tx.clipDraft.aggregate({
       where: { uploadedFileId, attempt },
@@ -402,7 +406,11 @@ export async function createCustomClipDraft(
   - 부분 객체(신규 키 누락, 예: `{ color: "#ffffff" }`) → `position: "middle"`(DEFAULT_POSITION)·나머지 신규 키 `null`·기존 값 보존
   - 완전 객체 → 전 필드 통과
   - `position`이 있는 객체 → 그 값 유지(기본값이 덮지 않음)
-  - **falsy 값 보존: `{ uppercase: false }` → `uppercase: false`** (null이 아니다). `??`를 `||`로 바꾼 구현은 위 네 케이스를 **전부 통과한다**(계획 검증 돌연변이 실측 — 변이 9개 중 유일한 생존). 도달 가능한 입력이다: `CaptionStyle.uppercase`는 `boolean | null`이고(`shared/config/constants.ts:126`) 저장되는 프리셋 `clean-white`·`mint-pop`이 `uppercase: false`를 싣는다(`:145`·`:181`) — 칩 한 번으로 만들어지는 값이다. `||`가 그 `false`를 `null`로 갈아치우면 백엔드 언어 기본값으로 렌더되는데, 화면에는 "기본값이 적용된 모습"으로 보여 사용자는 크레딧을 쓴 뒤에야 안다. `outlineWidth: 0`은 `captionStyleSchema`의 `.int()`와 프리셋 범위(1~5)상 UI로 도달하지 않으므로 케이스로 두지 않는다.
+  - **falsy 값 보존: `{ uppercase: false }` → `uppercase: false`** (null이 아니다). `??`를 `||`로 바꾼 구현은 위 네 케이스를 **전부 통과한다**(계획 검증 돌연변이 실측 — 변이 9개 중 유일한 생존). 도달 가능한 입력이다: `CaptionStyle.uppercase`는 `boolean | null`이고(`shared/config/constants.ts:126`) 저장되는 프리셋 `clean-white`·`mint-pop`이 `uppercase: false`를 싣는다(`:145`·`:181`) — 칩 한 번으로 만들어지는 값이다. `||`가 그 `false`를 `null`로 갈아치우면 백엔드 언어 기본값으로 렌더되는데, 화면에는 "기본값이 적용된 모습"으로 보여 사용자는 크레딧을 쓴 뒤에야 안다.   - **falsy 값 보존 둘째: `{ outlineWidth: 0 }` → `outlineWidth: 0`** (null이 아니다). `uppercase: false`와 **같은 종류이고 같은 변이가 살아남는다** — `outlineWidth: stored.outlineWidth ?? null`을 `||`로 바꾸면 위 다섯 케이스를 전부 통과한다(독립 패스 실측). 도달 경로는 프리셋이 아니라 **별도 스테퍼**다: `CAPTION_STYLE_OPTIONS.OUTLINE_WIDTH_RANGE`의 하한이 `MIN: 0`이고(`shared/config/constants.ts:60`), 편집기의 아웃라인 폭 감소 버튼이 `Math.max(OUTLINE_WIDTH_RANGE.MIN, Math.round(effectiveOutlineWidth) - 1)`을 emit하며(`features/caption-style/ui/CaptionStyleEditor.tsx:207-214`), 언어 기본값 1.1/1.3이 `Math.round`로 1이 되므로 **「−」 한 번이면 0**에 닿는다. 저장도 통과한다 — `captionStyleSchema`는 `.int().min(OUTLINE_WIDTH_RANGE.MIN)` = `.min(0)`이고(`shared/config/caption-style-schema.ts:35-39`), 그 파일 `:12` 주석이 허용 범위를 "outlineWidth 0-6"으로 백엔드와 동기라고 못박는다. `.int()`는 0을 정수로 허용하므로 배제 근거가 되지 못한다.
+
+  - **`fontSize`·`maxWordsPerLine`은 케이스를 두지 않는다 — 등가 변이다.** 하한이 각각 `FONT_SIZE_RANGE.MIN: 60`·`MAX_WORDS_RANGE.MIN: 1`이고(`shared/config/constants.ts:52`·`:56`) 스키마가 `.min(...)`으로 그대로 강제하며(`caption-style-schema.ts:15-20`·`:26-31`) 편집기도 같은 하한을 쓴다(`CaptionStyleEditor.tsx:146`·`:251`). 저장 가능한 값이 전부 truthy(60~200, 1~8)이고 미설정은 `??`·`||` 양쪽 다 `null`을 내므로, **도달 가능한 입력으로 두 연산자가 구별되지 않는다.** `boundary-snap.test.mjs`의 `roundTenth`, `reference-translation.test.mjs`의 허용오차 정확값과 같은 판정이다.
+
+  > **falsy가 도달하는 필드는 둘뿐이다** — `outlineWidth`(하한 0)와 `uppercase`(boolean). 나머지 다섯의 여집합: `position`은 enum, `color`·`outlineColor`는 `#RRGGBB` 정규식이라 빈 문자열이 불가, `fontSize`·`maxWordsPerLine`은 위 하한. 그래서 falsy 보존 케이스도 그 둘만 둔다.
 
   이 함수는 ②가 Reset 대상(스냅샷)과 initialValue(드래프트) **둘 다** 통과시키는 지점이라, 누락 키 채움이 깨지면 스냅샷/드래프트가 zod에서 거부되거나 위치가 뒤집힌다.
 
