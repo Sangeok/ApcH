@@ -8,7 +8,8 @@ agent: web-dev
 
 - 열릴 때 `initialValue`(카드가 넘긴 드래프트의 저장 스타일)로 `working`을 시드한다(`CaptionStyleDialog.tsx:48`, 재시드 `:52-59`).
 - 푸터 버튼은 **넷**이다(`:81-124`): Reset style(`:83-90`) · Cancel(`:92-99`) · Apply to all clips(`:100-112`) · Apply(`:113-122`). Reset은 `:87` `onClick={() => setWorking(null)}`로 **언어 기본값**(null)으로 되돌린다.
-- 다이얼로그는 업로드 스냅샷을 모른다 — props는 `initialValue`·`playUrl`·구간·`words`·`onApply`·`onApplyToAll`·`isApplyingToAll`뿐이다(`:18-31`).
+- 다이얼로그는 업로드 스냅샷을 모른다 — props 열한 개(`open`·`onOpenChange`·`language`·`initialValue`·`playUrl`·`clipStart`·`clipEnd`·`words`·`onApply`·`onApplyToAll`·`isApplyingToAll`, `:18-31`) 어디에도 없다.
+- **`working`은 null이 될 수 있다.** `initialValue`가 null이면(드래프트에 저장된 스타일이 없는 정상 상태) 시드부터 null이고(`:48`, 재시드 `:54`), Reset을 누르면 `:87`이 null로 만든다. 그래서 `Apply to all clips`는 `:104` `disabled={isApplyingToAll || working === null}`와 `:106` `if (working === null) return;` 이중 가드를 갖는다 — 이 위젯이 이미 쓰는 패턴이다.
 
 카드(`ClipDraftCard.tsx`)가 다이얼로그를 렌더한다.
 
@@ -18,7 +19,7 @@ agent: web-dev
 
 위젯(`ui/index.tsx`)이 데이터를 카드로 흘린다.
 
-- `useClipDraftReview`에서 액션·플래그를 구조분해한다(`ui/index.tsx:108-122`).
+- `useClipDraftReview`에서 액션·플래그를 구조분해한다(`widgets/clip-draft-review/ui/index.tsx:108-122` — 저장소에 `ui/index.tsx`가 29개라 슬라이스까지 적는다. 이 절의 나머지 맨 줄번호도 같은 파일이다).
 - 카드에 `draft`·`language`·`onApplyToAll`·`isApplyingToAll`·`playUrl` 등을 넘긴다(`:445-460`). 업로드 스냅샷 prop은 없다.
 - props는 `uploadedFileId`·`clipDrafts`·`targetClipCount`·`currentUserCredits`·`language`(`:36-42`).
 
@@ -53,9 +54,17 @@ DTO/엔티티.
 
 세 결함:
 
-1. 다이얼로그에 작업본을 사용자 기본값으로 저장하는 진입점이 없다 — `saveDefaultCaptionStyle`은 설정 화면(`pages/settings/ui/index.tsx:103`)에서만 호출된다. 계측 `settings_defaults_saved`의 `source: "review_dialog"`는 계약에 예고돼 있으나(`metadata.ts:59`) 아무도 발신하지 않는다.
-2. Reset(`CaptionStyleDialog.tsx:87`)은 **언어 기본값**(null)으로 되돌린다 — 사용자가 이 업로드에 걸어 둔 캡션 기본값(업로드 스냅샷)으로 돌아갈 수 없다. 스냅샷은 DTO/props 어디에도 흐르지 않는다(`types.ts:27-48`, `ui/index.tsx:36-42`).
+1. 다이얼로그에 작업본을 사용자 기본값으로 저장하는 진입점이 없다 — `saveDefaultCaptionStyle`의 호출부는 워크스페이스 전체에서 **둘뿐이고 둘 다 설정 화면 안**이다: `pages/settings/ui/index.tsx:103`(저장)과 `:120`(비우기, `handleResetCaption`). 계측 `settings_defaults_saved`의 `source: "review_dialog"`는 계약에 예고돼 있으나(`metadata.ts:59`) 아무도 발신하지 않는다.
+
+   **`:120`이 이 계획에 직접 걸린다.** 그 액션은 `saveDefaultCaptionStyle(null)`로 사용자 기본값을 **지우고** 계측을 `preset: matchPresetId(null) // "default"`로 싣는다(`:117-131`). 즉 이 서버 액션에서 `null`은 "저장 안 함"이 아니라 **비우기 명령**이다.
+2. Reset(`CaptionStyleDialog.tsx:87`)은 **언어 기본값**(null)으로 되돌린다 — 사용자가 이 업로드에 걸어 둔 캡션 기본값(업로드 스냅샷)으로 돌아갈 수 없다. 스냅샷은 DTO/props 어디에도 흐르지 않는다(`entities/uploaded-file/model/types.ts:27-48`, `widgets/clip-draft-review/ui/index.tsx:36-42` — 저장소에 `types.ts`가 13개, `ui/index.tsx`가 29개라 둘 다 슬라이스까지 적는다).
 3. 커스텀 클립은 스냅샷으로 시드되지 않아(`functions.ts:946-947`) AI 형제 클립이 사용자 기본값으로 렌더될 때 혼자 언어 기본값으로 렌더된다 — 조용한 불일치. 백로그 ③은 이 결정의 **재판정**을 요구한다.
+
+### 「저장」이 「삭제」가 되는 경우 — 이 계획이 반드시 막아야 하는 것
+
+요구 ①의 버튼을 `onSaveAsDefault(working)`으로 단순 배선하면, `working === null`인 상태(위 「현재 동작」에서 열거한 두 경로: 드래프트에 스타일이 없어 처음부터 null · Reset 직후)에서 누르는 순간 `saveDefaultCaptionStyle(null)`이 나가 **사용자 기본값이 삭제된다.** 버튼 이름은 "Save as my default"이고 토스트는 "Saved as your default caption style"이며 계측은 `preset: "default"`로 나간다 — 셋 다 일어난 일과 반대를 말한다. 되돌릴 UI도 없다(설정 화면에서 다시 만들어야 한다).
+
+그래서 **`working === null`일 때 이 버튼은 비활성이다.** 같은 다이얼로그의 `Apply to all clips`가 쓰는 가드 형태를 그대로 따른다(§5). 「스냅샷/언어 기본값으로 되돌리기」는 Reset의 몫이지 이 버튼의 몫이 아니다 — 기본값을 비우려는 사용자는 설정 화면의 `handleResetCaption`을 쓴다.
 
 ## 고칠 파일
 
@@ -79,10 +88,12 @@ DTO/엔티티.
 
 ### 1. 순수 함수 추출 (신규 `model/caption-style-from-json.ts`)
 
-`ClipDraftCard.tsx:36-50`의 지역 함수를 그대로 옮기되 export하고, 스냅샷(같은 `Prisma.JsonValue`)도 받도록 입력 타입을 넓힌다.
+`ClipDraftCard.tsx:36-50`의 지역 함수를 그대로 옮기되 export한다. **입력 타입은 넓히지 않는다** — 스키마에서 `ClipDraft.captionStyle`(`packages/db/prisma/schema.prisma:194`)과 `UploadedFile.captionStyle`(`:98`)이 둘 다 `Json?`이라 생성 클라이언트에서 같은 `JsonValue | null`이고(`packages/db/generated/prisma/index.d.ts:5801`·`:8465`), 유니온으로 쓰면 `@typescript-eslint/no-duplicate-type-constituents`가 `next lint`를 깨뜨린다(계획 검증에서 실측 — `npm run check` EXIT 1). 한쪽 타입이 두 입력을 이미 덮으므로 `ClipDraft["captionStyle"]` 하나로 둔다.
+
+> `UploadedFile` 타입 임포트도 이 파일에는 필요 없다 — 아래 블록의 첫 줄은 `import type { ClipDraft } from "@repo/db";`다.
 
 ```ts
-import type { ClipDraft, UploadedFile } from "@repo/db";
+import type { ClipDraft } from "@repo/db";
 import {
   CAPTION_STYLE_OPTIONS,
   type CaptionStyle,
@@ -93,7 +104,7 @@ import {
 // 아무것도 고치지 않고 Apply 했을 때 zod(required-but-nullable)가 거부하므로 누락 키를
 // null(= 백엔드 언어별 기본값)로 채운다.
 export function toCaptionStyle(
-  raw: ClipDraft["captionStyle"] | UploadedFile["captionStyle"],
+  raw: ClipDraft["captionStyle"],
 ): CaptionStyle | null {
   if (raw === null || raw === undefined) return null;
   const stored = raw as Partial<CaptionStyle>;
@@ -109,9 +120,9 @@ export function toCaptionStyle(
 }
 ```
 
-> 반환 본문 7줄은 `ClipDraftCard.tsx:41-49`를 한 글자도 바꾸지 않고 옮긴 것이다 — 입력 타입만 스냅샷(`UploadedFile["captionStyle"]`)을 받도록 넓혔다.
+> 이 블록은 `ClipDraftCard.tsx:32-50`을 한 글자도 바꾸지 않고 옮긴 것이다 — `export`만 붙었다. 스냅샷도 같은 `JsonValue | null`이라 시그니처를 손댈 필요가 없다(위 문단).
 
-`ClipDraftCard.tsx`에서 지역 함수(`:32-50`)와 그 주석을 삭제하고 임포트한다.
+`ClipDraftCard.tsx`에서 지역 함수(`:32-50`)와 그 주석을 삭제하고 임포트한다. **같이 `CAPTION_STYLE_OPTIONS` 임포트도 지운다**(`:9`) — 그 상수의 이 파일 안 유일한 사용처가 방금 지운 `:42` `position: stored.position ?? CAPTION_STYLE_OPTIONS.DEFAULT_POSITION,`이라(여집합 열거로 확인) 남기면 `'CAPTION_STYLE_OPTIONS' is defined but never used`로 `next lint`가 경고를 낸다. 같은 임포트 무리의 `CLIP_DURATION_LIMITS`·`CaptionStyle`·`isClipDurationWithinLimits`는 다른 곳에서 쓰이므로 남긴다.
 
 ```ts
 // ClipDraftCard.tsx 상단 ../../model/* 임포트 무리에 추가
@@ -120,7 +131,7 @@ import { toCaptionStyle } from "../../model/caption-style-from-json";
 
 ### 2. 훅에 저장-기본값 뮤테이션 (`use-clip-draft-review.ts`)
 
-임포트 추가(설정 화면과 동일한 딥 임포트 — features 공개 엔트리 `api`, 위젯→features 허용):
+임포트 추가(설정 화면과 같은 경로). `~/fsd/features/settings/api`는 **딥 임포트가 아니라 public entry**다 — 경계 검사 W6(`apps/web/scripts/verify-fsd-boundaries.mjs:209-212` — `apps/admin`에도 동명 파일이 있으니 web 쪽이다)이 `features`의 `api/index.ts`를 세 종류 public entry 중 하나로 통과시키고(셀프테스트 `apps/web/scripts/verify-fsd-boundaries.test.mjs:111-119`가 동형 임포트에 위반 0을 단언), 이 슬라이스의 루트 배럴은 `export {};`뿐이라(`features/settings/index.ts:1-3`, "소비자는 `~/fsd/features/settings/api`로 임포트한다") 배럴 경유는 애초에 불가능하다. 위젯→features 방향은 W1 위반이 아니며 이 훅이 이미 `clip-review`·`upload`·`caption-style`을 그렇게 쓴다:
 
 ```ts
 import { saveDefaultCaptionStyle } from "~/fsd/features/settings/api";
@@ -131,6 +142,12 @@ import { saveDefaultCaptionStyle } from "~/fsd/features/settings/api";
 ```ts
 // 다이얼로그의 "Save as my default" — 작업본을 사용자 기본 캡션 스타일로 저장한다.
 // 설정 화면 handleSaveCaption과 같은 서버 액션·계측을 쓰되, source로 진입점을 구분한다.
+//
+// ⚠️ style에 null을 넘기지 않는다. saveDefaultCaptionStyle(null)은 "저장 안 함"이 아니라
+//    기본값 비우기이고(설정 화면 handleResetCaption:117-131이 그 용법), 이 버튼 이름과
+//    토스트는 정반대를 말한다. 호출부(§5)가 working === null일 때 비활성으로 막지만,
+//    타입이 null을 허용하는 것은 계측 matchPresetId(null) 경로와 시그니처를 맞추기
+//    위해서일 뿐이다 — 새 호출자를 붙일 때 이 주석을 먼저 읽는다.
 const saveDefaultMutation = useMutation({
   mutationFn: async (style: CaptionStyleInput | null) => {
     const result = await saveDefaultCaptionStyle(style);
@@ -273,13 +290,19 @@ props 인터페이스(`:18-31`)에 추가:
               Reset style
             </Button>
             {/* 마음에 드는 스타일을 이 순간 사용자 기본값으로 캡처한다.
-                계측·토스트는 훅(saveCaptionStyleAsDefault)이 발신한다. */}
+                계측·토스트는 훅(saveCaptionStyleAsDefault)이 발신한다.
+                working === null 가드는 Apply to all clips(:104·:106)와 같은 형태다 —
+                null을 그대로 보내면 saveDefaultCaptionStyle이 기본값을 "비운다"(설정
+                화면 handleResetCaption:120이 그 용법). 버튼 이름과 반대 동작이 된다. */}
             <Button
               type="button"
               size="sm"
               variant="outline"
-              disabled={isSavingDefault}
-              onClick={() => onSaveAsDefault(working)}
+              disabled={isSavingDefault || working === null}
+              onClick={() => {
+                if (working === null) return;
+                onSaveAsDefault(working);
+              }}
             >
               Save as my default
             </Button>
@@ -304,6 +327,8 @@ props 인터페이스(`:18-31`)에 추가:
 `getUploadedFileDetailsById`의 `select`(`:306-329`)에 `captionStyle: true,` 추가 — `...fileData` 스프레드(`:340`)가 DTO로 옮긴다.
 
 `findUploadedFileReviewState`의 `select`(`:472-485`)에 `captionStyle: true,` 추가(③ — 커스텀 클립 시드용).
+
+> **앵커 주의**: 이 파일에서 `where: { id: uploadedFileId, userId },` + `select: {` 조합은 **여덟 번** 나온다(계획 검증 실측). 줄번호로 찾지 말고 **함수명으로** 연 뒤 그 안의 `select`를 고친다. 두 대상의 고유 식별줄은 각각 `displayName: true,` 다음 줄이 `createdAt: true,`인 쪽(detail)과 `reviewAttempt: true,` 다음 줄이 `transcriptS3Key: true,`인 쪽(reviewState)이며 둘 다 파일에서 1회뿐이다. `findUploadedFileForDeletion`(`:492` 부근)을 포함한 나머지 여섯은 건드리지 않는다.
 
 ### 8. 커스텀 클립 시드 (`entities/clip-draft/api/index.ts`)
 
@@ -354,14 +379,17 @@ export async function createCustomClipDraft(
 
 ### 9. 커스텀 클립 서버 액션 (`features/clip-review/api/index.ts`)
 
-임포트(`:13-16`)에 `type CaptionStyle` 추가. `createCustomClipDraft` 호출(`:140-143`):
+임포트는 **추가하지 않는다.** 이 파일은 이미 `type CaptionStyleInput`을 `../model/schemas`에서 가져오고 있고(`:20`), 그것이 곧 `CaptionStyle`이다(`caption-style-schema.ts:44` `export type CaptionStyleInput = CaptionStyle;`). 같은 타입을 `~/fsd/shared/config/constants`에서 한 번 더 가져오면 이름만 둘인 동의어가 된다. `createCustomClipDraft` 호출(`:140-143`):
 
 ```ts
     const created = await createCustomClipDraft(file.id, file.reviewAttempt, {
       startSeconds,
       endSeconds,
       // 렌더 경로·AI persist와 같은 캐스트(entities/clip-draft/api:111, functions.ts:378).
-      captionStyle: file.captionStyle as CaptionStyle | null,
+      // 타입은 이 파일에 이미 있는 CaptionStyleInput(:20)이다 — CaptionStyle을 새로
+      // 임포트하면 동의어가 둘이 되고, 임포트 없이 그 이름을 쓰면 error 타입이 되어
+      // no-unsafe-assignment로 next lint가 깨진다(계획 검증에서 실측).
+      captionStyle: file.captionStyle as CaptionStyleInput | null,
     });
 ```
 
@@ -372,6 +400,7 @@ export async function createCustomClipDraft(
   - 부분 객체(신규 키 누락, 예: `{ color: "#ffffff" }`) → `position: "middle"`(DEFAULT_POSITION)·나머지 신규 키 `null`·기존 값 보존
   - 완전 객체 → 전 필드 통과
   - `position`이 있는 객체 → 그 값 유지(기본값이 덮지 않음)
+  - **falsy 값 보존: `{ uppercase: false }` → `uppercase: false`** (null이 아니다). `??`를 `||`로 바꾼 구현은 위 네 케이스를 **전부 통과한다**(계획 검증 돌연변이 실측 — 변이 9개 중 유일한 생존). 도달 가능한 입력이다: `CaptionStyle.uppercase`는 `boolean | null`이고(`shared/config/constants.ts:126`) 저장되는 프리셋 `clean-white`·`mint-pop`이 `uppercase: false`를 싣는다(`:145`·`:181`) — 칩 한 번으로 만들어지는 값이다. `||`가 그 `false`를 `null`로 갈아치우면 백엔드 언어 기본값으로 렌더되는데, 화면에는 "기본값이 적용된 모습"으로 보여 사용자는 크레딧을 쓴 뒤에야 안다. `outlineWidth: 0`은 `captionStyleSchema`의 `.int()`와 프리셋 범위(1~5)상 UI로 도달하지 않으므로 케이스로 두지 않는다.
 
   이 함수는 ②가 Reset 대상(스냅샷)과 initialValue(드래프트) **둘 다** 통과시키는 지점이라, 누락 키 채움이 깨지면 스냅샷/드래프트가 zod에서 거부되거나 위치가 뒤집힌다.
 
@@ -383,6 +412,16 @@ export async function createCustomClipDraft(
   - 커스텀 클립이 스냅샷으로 시드돼 렌더되는지 (DB write + 렌더)
 
   새 테스트 파일이 하나 늘므로 `apps/web/CLAUDE.md` 테스트 목록 표에 행이 필요하다 — 그 파일은 읽기 전용이라 구현 단계에서 `비고:`로 추가할 행을 보고한다.
+
+## 검증 게이트
+
+`npm run check -w apps/web`(= `verify:fsd:test` → `verify:fsd` → `next lint` → `tsc --noEmit`)와 `npm test -w apps/web`. 계획 검증에서 이 스케치를 격리 워크트리에 기계 적용해 실제로 돌렸고(26개 편집 전부 유일 앵커, 손 개입 0), 그때 `next lint`가 세 번 깨졌다 — **셋 다 이 계획서에 이미 반영했으니 구현 때 다시 만나면 반영이 빠진 것이다**:
+
+1. `toCaptionStyle` 입력을 두 모델의 유니온으로 쓰면 `no-duplicate-type-constituents`(§1 — 같은 `JsonValue | null`이라 유니온이 성립하지 않는다)
+2. 지역 함수를 들어낸 뒤 `CAPTION_STYLE_OPTIONS` 임포트를 남기면 `no-unused-vars`(§1)
+3. `features/clip-review/api`에서 임포트 없는 `CaptionStyle`을 캐스트에 쓰면 `no-unsafe-assignment`(§9 — 그 파일의 이름은 `CaptionStyleInput`이다)
+
+`verify:fsd`는 통과한다 — 워크트리 실측으로 확인했다(W6 public entry 판정, §2).
 
 ## 범위 밖 의존
 
