@@ -44,6 +44,7 @@
   agent: backend-dev
   area: apps/backend/caption_style_source.py + apps/backend/main.py
   status: 검토대기
+  검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0. 1차 독립 패스는 메인 루프 브리핑 계약 위반으로 무효. 앞선 메인 루프 라운드에서 문서 위생 3건 반영, 구현 영향 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-50 인수 직후 범위 재설계 — 스타일을 검토 화면에서 빼고 설정 전용으로. FEAT-52보다 먼저 배포해야 한다.
 - [x] FEAT-50: 검토 화면에서 캡션 기본값 캡처 — 다이얼로그 「내 기본으로 저장」·Reset을 업로드 스냅샷으로
   agent: web-dev
