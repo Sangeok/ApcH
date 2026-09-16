@@ -217,6 +217,7 @@ exports.Prisma.ClipDraftScalarFieldEnum = {
   clipType: 'clipType',
   hook: 'hook',
   payoff: 'payoff',
+  referenceTranslation: 'referenceTranslation',
   selected: 'selected',
   captionStyle: 'captionStyle',
   createdAt: 'createdAt',
