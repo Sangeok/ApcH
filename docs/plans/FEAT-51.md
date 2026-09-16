@@ -78,10 +78,14 @@ def select_caption_style(moment_style, request_style):
 
 **render 경로 변화**: 기존 `select(moment_style, request, "render")`는 moment dict면 moment, 아니면 `mode != "auto"`라 None이었다. 새 함수는 moment dict면 moment(동일), 아니면 request dict일 때 request(**신규 폴백**), 그래도 없으면 None.
 
-변하는 입력을 정확히 적는다(구·신 함수를 `moment_style` 6종 × `request_style` 6종 × `mode` 4종 = 144조합으로 대조한 결과, 검증 라운드 1):
+변하는 입력을 정확히 적는다. 구 함수(현재 트리)와 신 함수(위 스케치)를 아래 값 집합의 곱으로 전수 대조한 결과다(검증 라운드 1):
+
+- `moment_style`·`request_style` 각 6종 — dict 3종(`{"fontSize": 200}` · `{"color": "#FF0000"}` · **`{}`**) + 비-dict 3종(`None` · `"x"` · `["y"]`)
+- `mode` 4종 — `"auto"` · `"render"` · `"analyze"` · `None`
+- 6 × 6 × 4 = **144조합**. 빈 dict `{}`를 dict 쪽에 넣는 것이 요점이다 — 이 계약에서 `{}`는 "존재하는 스타일"이라 폴백 대상이 아니다(테스트 케이스 4·8). 다른 분할로 세면 아래 조합 수가 달라진다.
 
 - **`auto`: 144조합 중 변화 0건.** auto는 moment에 `caption_style` 키가 없어 `moment_style`이 늘 None이고, 구 함수도 그때 `request_style`을 검사했다 — 결과가 같다. 설령 auto moment에 스타일이 실려도 구·신 둘 다 첫 분기에서 moment를 반환하므로 여전히 같다.
-- **`auto` 이외: `moment_style`이 dict가 아니고 `request_style`이 dict일 때 `None → request_style`** (모드당 9조합). "moment가 **없을** 때"가 아니라 "moment가 **dict가 아닐** 때"다 — 비-dict(문자열·리스트)도 폴백 대상이며, 테스트 케이스 5가 이를 덮는다.
+- **`auto` 이외: `moment_style`이 dict가 아니고 `request_style`이 dict일 때 `None → request_style`** — 위 값 집합에서는 비-dict 3종 × dict 3종 = **모드당 9조합**(`auto`를 뺀 3모드 = 27). "moment가 **없을** 때"가 아니라 "moment가 **dict가 아닐** 때"다 — 비-dict(문자열·리스트)도 폴백 대상이며, 테스트 케이스 5가 이를 덮는다.
 - 그 "`auto` 이외"에 현재 **도달 가능한 모드는 `render` 하나뿐**이다. `analyze`는 클립 루프 밖에서 끝나 이 함수에 닿지 않고(`main.py:1045` `            if mode == "analyze":`), 그 밖의 값은 존재하지 않는다. 즉 관측 가능한 변화는 render뿐이며 — 이 항목의 목표 그대로다.
 - **설계 귀결(의도)**: `mode` 가드를 없애므로 앞으로 클립 루프에 도달하는 모드가 추가되면 **자동으로 요청 스냅샷 폴백을 받는다.** 모드별 예외를 다시 만들지 않는 것이 이 항목의 의도다(예외가 있던 자리가 곧 FEAT-52가 지우는 전제였다). 새 모드에 다른 정책이 필요해지면 그때 명시적으로 넣는다.
 
