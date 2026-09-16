@@ -23,6 +23,7 @@ import type {
 import { getPreviewRange } from "../../model/preview-range";
 import { snapToAdjacentBoundary } from "../../model/boundary-snap";
 import { showsEnglishSourceForTranslation } from "../../model/review-language-notice";
+import { resolveReferenceTranslationDisplay } from "../../model/reference-translation";
 import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
@@ -113,6 +114,14 @@ export default function ClipDraftCard({
 
   const previewText = wordsInRange.map((word) => word.word).join(" ");
   const showsEnglishSource = showsEnglishSourceForTranslation(language);
+
+  const referenceTranslationDisplay = resolveReferenceTranslationDisplay({
+    referenceTranslation: draft.referenceTranslation,
+    aiStartSeconds: draft.aiStartSeconds,
+    aiEndSeconds: draft.aiEndSeconds,
+    currentStartSeconds: startSeconds,
+    currentEndSeconds: endSeconds,
+  });
 
   const adjustStart = (direction: "back" | "forward") => {
     const next = snapToAdjacentBoundary(
@@ -484,6 +493,20 @@ export default function ClipDraftCard({
           )}
           <p className="bg-muted line-clamp-3 rounded p-2 text-xs">
             {previewText}
+          </p>
+        </div>
+      )}
+
+      {referenceTranslationDisplay && (
+        <div className="mt-2">
+          {/* 참고 번역 — draft.referenceTranslation(FEAT-46 Korean analyze). 렌더 자막은
+              따로 번역되므로 표현이 다를 수 있고, 번역은 AI 구간 기준이라 구간을 편집하면
+              라벨이 그 사실을 밝힌다(reference-translation.ts). null이면 이 블록은 없다. */}
+          <p className="text-muted-foreground mb-1 text-[11px] font-medium">
+            {referenceTranslationDisplay.label}
+          </p>
+          <p className="bg-muted line-clamp-3 rounded p-2 text-xs">
+            {referenceTranslationDisplay.text}
           </p>
         </div>
       )}

@@ -938,6 +938,8 @@ export const analyzeVideo = inngest.createFunction(
             clipType: moment.clipType ?? null,
             hook: moment.hook ?? null,
             payoff: moment.payoff ?? null,
+            // Korean analyze 참고 번역(FEAT-46). moment에 없으면 컬럼 null.
+            referenceTranslation: moment.referenceTranslation ?? null,
             // 상위 clipCount개만 기본 선택 (Gemini 랭킹 순)
             selected: order < clipCount,
             // 스냅샷이 있으면 시드, null이면 필드 생략(컬럼 null → 언어 기본값).

@@ -22,6 +22,21 @@
 
 ---
 
+## FEAT-48 — 검토 카드에 참고 번역 저장·표시 (web, 구현 2026-09-16)
+
+원천: `docs/agents/web-dev/FEAT-48.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **아직 배포되지 않았다** — 코드는 `dev`만이고 `main` 미합류(PR 없음). 선행 둘은 이미 실물에 있다: FEAT-46(백엔드, 2026-09-15 배포, Modal v27)과 FEAT-47(컬럼, 2026-09-16 프로덕션 Neon 적용).
+게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **176/176 · suites 41**(162→176, 인수 시 메인 루프 재실행). 인수 때 계획서 스케치 블록을 기계 추출해 구현본과 대조했고(추가된 줄이 전부 승인된 블록에서 나왔으며 스케치 밖 누출 0·삭제 0), 신규 순수 함수는 스케치와 바이트 동일(1831), 골든 문구 두 줄은 승인본 그대로였다.
+**이 절이 앞 두 절의 미완을 이어받는다** — FEAT-47 절 셋째 줄(컬럼에 값이 채워지는가)과 FEAT-46 절 넷째 줄(번역이 그 후보의 뜻인가)이 예고한 대로다. 그 둘은 `대체(FEAT-48)`로 닫았다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 `review_pending` Korean 업로드의 검토 화면에서만 판정되고, 값이 채워지는지는 DB·실제 analyze 실행이 필요하다.
+
+- [ ] **Korean 업로드 검토 카드에 참고 번역 블록이 영어 원문 아래 뜨는가** — 카드의 `What's said in the video (English)` 원문 박스 **아래**에 `Korean reference — final subtitles are translated separately and may differ.` 라벨과 한국어 번역 박스(원문과 같은 `bg-muted` · 3줄 클램프)가 보이는지. **FEAT-46 배포 이후 새로 분석한 Korean 업로드만 해당** — 그 전 업로드와 기존 드래프트는 컬럼이 null이라 블록이 없다(백필 없음)
+- [ ] **구간을 편집하면 라벨이 낡음을 밝히고, 되돌리면 복구되는가** — 넛지(`−`/`+`)로 시작이나 끝을 0.1초 넘게 옮기면 라벨이 `Korean reference for the AI-suggested range — final subtitles are translated separately and may differ.`로 바뀌는지(번역은 AI 구간 기준이라 그대로 남는다), `Reset to AI suggestion`을 누르면 다시 첫 문구로 돌아오는지. 앞으로 당기든 뒤로 밀든 같아야 한다
+- [ ] **컬럼에 값이 실제로 채워지는가**(FEAT-47 절에서 이어받음) — 웹훅 → `modal/video.analyzed` 이벤트 → Inngest `persist-clip-drafts` 배선을 거쳐 `ClipDraft.referenceTranslation`에 문자열이 저장되는지. 네 곳 중 하나라도 빠지면 **에러 없이 null**이 되고 화면에는 「블록 없음」으로만 보인다 — 그래서 화면이 비어 있으면 번역 실패인지 배선 누락인지 Modal 로그(`Reference translation error:`)로 갈라야 한다
+- [ ] **English 업로드와 커스텀 클립에는 블록이 없는가** — 회귀 확인. English 업로드 카드에는 번역 블록도 라벨도 없어야 하고(백엔드가 키 자체를 싣지 않는다), 검토 화면에서 직접 추가한 커스텀 클립도 마찬가지다(`createCustomClipDraft`는 이 필드를 넣지 않는다)
+- [ ] **번역이 그 후보 영어 원문의 뜻인가**(FEAT-46 절에서 이어받음) — 문장 단위로 자연스러운지, 다른 후보의 번역이 붙는 인덱스 어긋남이 없는지. 카드의 영어 원문과 번역이 같은 구간을 가리키는지(구간을 편집하지 않은 상태에서)
+
+---
+
 ## FEAT-47 — `ClipDraft.referenceTranslation` 컬럼 (db, 구현 2026-09-16)
 
 원천: `docs/agents/main-loop/FEAT-47.md`의 「원장」과 계획서 「못 덮는 범위」. **마이그레이션은 프로덕션 Neon에 적용 완료 — 2026-09-16**, 소유자 승인("적용 진행") 뒤 메인 루프가 `migrate deploy` 실행. 코드(스키마·생성 클라이언트)는 `dev`만(`main` 미합류).
@@ -31,7 +46,7 @@
 
 - [x] **마이그레이션이 프로덕션 Neon에 실제로 적용됐는가** — 적용 후 `migrate status`와 `db pull --print`로 본다 — 확인(2026-09-16, 실측 — `migrate deploy` EXIT 0 `All migrations have been successfully applied.` · 적용 후 `migrate status` **`Database schema is up to date!`** · `db pull --print`의 `model ClipDraft` 안에 `referenceTranslation String?` 1건 · 대상 `neondb`@`ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`)
 - [ ] **새 생성 클라이언트가 배포된 뒤 검토 화면·편집 저장·렌더 디스패치가 그대로 도는가** — `select` 없는 `ClipDraft` 쿼리 넷이 이제 새 컬럼을 함께 읽는다(`listClipDraftsForAttempt` · 카드 편집 저장 `update` · `getSelectedRenderMomentsForAttempt` · 업로드 상세). `review_pending` 업로드의 검토 화면에 후보 카드가 뜨는지, 카드 편집이 저장되는지, 선택 후 렌더 디스패치가 시작되는지. 컬럼 적용이 코드 배포보다 앞섰으므로 정상이 기대값이다
-- [ ] **(FEAT-48 배포 후) 컬럼에 값이 실제로 채워지는가** — 이 항목만으로는 전 행이 null이다(백필 없음). FEAT-48 절이 생기면 그 절이 이어받는다
+- [x] **(FEAT-48 배포 후) 컬럼에 값이 실제로 채워지는가** — 대체(FEAT-48, 2026-09-16 — 예고대로 FEAT-48 절 셋째 줄이 같은 확인을 재선언했다) — 이 항목만으로는 전 행이 null이다(백필 없음)
 
 ---
 
@@ -58,7 +73,7 @@
 - [x] **배포된 컨테이너가 `reference_translation`을 import하는가** — 배포 직후 `process_video`에 잘못된 토큰으로 유효한 형태의 바디를 POST → **401**(FEAT-41 절 첫 줄과 같은 확인). 이미지 등록이 빠졌으면 컨테이너가 기동하지 못해 모든 모드가 죽는다 — 확인(2026-09-15, 실측 — 배포 출력 마운트에 `PythonPackage:reference_translation` · 잘못된 토큰으로 `{"s3_key":"probe/none.mp4","language":"Korean","clip_count":1,"mode":"analyze"}` POST(23:42:56) → **401** `{"detail":"Incorrect bearer token"}`, spawn 전 거부라 부작용 없음 · `modal container list` 활성 컨테이너 1, 시작 23:43으로 배포 이후)
 - [ ] **English 업로드의 분석이 이전과 같은가** — `Review first` English 업로드가 `review_pending`까지 가고 후보 카드가 이전처럼 뜨는지. English 경로는 번역 호출이 없어야 하므로 그 실행의 Modal 로그에 `Reference translation error:`가 없어야 한다
 - [ ] **Korean analyze가 번역 때문에 실패·지연되지 않는가** — `Review first` Korean 업로드가 `review_pending`까지 가는지, Modal 로그에 `Reference translation error:`가 없는지(있으면 사유를 본다 — 특히 배포 이미지의 미고정 최신 `google-genai`가 `http_options` timeout을 거부한 `ValidationError`인지), analyze 소요 시간이 이전과 크게 다르지 않은지
-- [ ] **(FEAT-48 배포 후) 검토 카드의 참고 번역이 그 후보 영어 원문의 뜻인가** — 문장 단위로 자연스러운지, 다른 후보의 번역이 붙는 인덱스 어긋남이 없는지. FEAT-48 절이 생기면 그 절이 이어받는다
+- [x] **(FEAT-48 배포 후) 검토 카드의 참고 번역이 그 후보 영어 원문의 뜻인가** — 대체(FEAT-48, 2026-09-16 — 예고대로 FEAT-48 절 다섯째 줄이 같은 확인을 재선언했다) — 문장 단위로 자연스러운지, 다른 후보의 번역이 붙는 인덱스 어긋남이 없는지
 
 ---
 

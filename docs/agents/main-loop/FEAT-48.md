@@ -135,3 +135,27 @@
 **승인 시점의 계획서가 승인의 내용이다.** 게이트② 직전에 카드 골든 문구 두 줄을 소유자에게 그대로 제시했고(FRESH: `Korean reference — final subtitles are translated separately and may differ.` / STALE: `Korean reference for the AI-suggested range — final subtitles are translated separately and may differ.`) 수정 지시가 없었으므로, 계획서 §4에 적힌 문자열이 확정된 카피다. 구현에서 이 두 줄이 달라지면 `.claude/agents/web-dev.md` B-4에 따라 그 사실과 이유가 보드 `결과:`에 남아야 한다 — 분기 순서·조건·리터럴 값·사용자에게 보이는 문구 넷은 사용자가 스케치를 보고 판단한 대상이다.
 
 web-dev에 구현을 디스패치한다. 범위는 수정 3(`modal-contract.ts`·`functions.ts`·`ClipDraftCard.tsx`) / 신규 3(`reference-translation.ts` + 테스트 2). 마이그레이션 없음 — 컬럼은 FEAT-47이 이미 프로덕션에 넣었다.
+
+## 인수 (2026-09-16) — 보드 안내 블록의 조건 다섯 재현
+
+web-dev 보고가 아니라 메인 루프가 직접 재현했다.
+
+| 조건 | 재현 결과 |
+| --- | --- |
+| 1 변경 파일 ↔ 「고칠 파일」 | 코드 6개가 계획 표 6행과 정확히 일치(수정 `modal-contract.ts`·`functions.ts`·`ClipDraftCard.tsx`, 신규 `reference-translation.ts`+테스트 2). 그 밖의 변경은 에이전트 정의가 요구하는 기록물 셋(보드 행·백로그 제거·`web-dev/FEAT-48.md`)뿐 |
+| 2 diff ↔ 「구현 스케치」 | after 블록 7개가 구현본에 각 1회, before 블록은 0회. `functions.ts`의 before만 1회로 잡혔는데 **after의 접두사**(닫는 구분자 없는 세 줄)여서이고 시작 오프셋이 27509로 동일함을 확인 — 결함 아님. `git diff -U0`의 추가 줄을 전수로 훑어 **스케치 밖 누출 0·삭제 0**. 신규 순수 함수는 스케치 블록과 바이트 동일(1831). 골든 문구 두 줄이 승인본 그대로 |
+| 3 검증 명령 재실행 | `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **176/176 · suites 41**(162→176). 보고와 일치 |
+| 4 백로그 항목 제거 | `TASK_BACKLOG.md`에 `FEAT-48` 0건(−4줄). 다른 항목이 FEAT-48을 참조하는 줄도 없다 |
+| 5 `결과`가 가리키는 상세 기록 실재 | 보드 `결과` 132자(≤150), `docs/agents/web-dev/FEAT-48.md` 5602바이트 실재 |
+
+무관한 두 건(`apps/web/.claude/settings.local.json`·루트 `nul`)은 numstat가 세션 시작 시점과 같아(2 추가/1 삭제) web-dev가 건드리지 않았음을 확인했다.
+
+### 구현 보고의 오기 1건
+
+`docs/agents/web-dev/FEAT-48.md`의 소제목이 「고친 파일 (수정 4 / 신규 3 — 계획 「고칠 파일」과 정확히 일치)」인데 **실제 수정은 3개**다(그 아래 나열도 셋이고 diff도 셋). 계획 표와 일치한다는 판정 자체는 맞다. 남의 보고서라 고치지 않고 여기 적는다 — 그 파일은 dev의 쓰기 범위이고 append-only 규약을 따른다.
+
+### 인수 후속 (메인 루프 몫)
+
+- `apps/web/CLAUDE.md` 테스트 표: 머리 수치 `23개 파일, 37 suite, 162개 테스트` → `25개 파일, 41 suite, 176개 테스트`, 행 2개 추가(`inngest/modal-contract.test.mjs`는 `caption-style-request` 행 뒤, `widgets/clip-draft-review/model/reference-translation.test.mjs`는 `review-language-notice` 행 뒤). web-dev에게 읽기 전용이라 비고로 받은 문안을 반영했다.
+- `docs/release-checks.md`에 FEAT-48 절 등재(줄 다섯, `〔auto〕` 없음 — 로그인 뒤 Korean 검토 화면에서만 판정된다). 동시에 **FEAT-47 절 셋째 줄**과 **FEAT-46 절 넷째 줄**을 `대체(FEAT-48)`로 닫았다 — 두 줄 모두 "FEAT-48 절이 생기면 그 절이 이어받는다"고 스스로 예고했고, 한 확인이 두 곳에서 열려 있으면 어느 쪽을 닫아야 하는지가 흐려진다.
+- 「범위 밖 의존」에 막힌 것이 없어(계획서가 미리 따라가 확인했다) **백로그 후보로 올릴 후속이 없다**. 사용자 승인을 요청할 등재 항목 없음.
