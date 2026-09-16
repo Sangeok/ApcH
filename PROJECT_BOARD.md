@@ -40,6 +40,11 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-16
+- [ ] FEAT-51: `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 — 클립별 스타일 폐지의 백엔드 절반
+  agent: backend-dev
+  area: apps/backend/caption_style_source.py + apps/backend/main.py
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-50 인수 직후 범위 재설계 — 스타일을 검토 화면에서 빼고 설정 전용으로. FEAT-52보다 먼저 배포해야 한다.
 - [x] FEAT-50: 검토 화면에서 캡션 기본값 캡처 — 다이얼로그 「내 기본으로 저장」·Reset을 업로드 스냅샷으로
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/settings/api + apps/web/src/fsd/entities/uploaded-file/api + apps/web/src/fsd/entities/clip-draft/api
