@@ -44,6 +44,7 @@
   agent: web-dev
   area: apps/web/src/inngest/modal-contract.ts + apps/web/src/inngest/functions.ts + apps/web/src/fsd/widgets/clip-draft-review
   status: 검토대기
+  검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건·위생 4건 반영)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-47(컬럼)·FEAT-46(백엔드 적재) 둘 다 완료 — 콜백이 이미 싣는 참고 번역을 계약·저장·카드까지 잇는 마지막 구간.
 - [x] FEAT-47: `ClipDraft`에 참고 번역 컬럼 추가 (마이그레이션 1회)
   agent: main-loop

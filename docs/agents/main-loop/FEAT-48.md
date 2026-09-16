@@ -102,3 +102,28 @@
 **트리 청결 직접 검산**(검증자 보고가 아니라 내가 확인): 실제 저장소는 `M apps/web/.claude/settings.local.json` · `?? nul` 둘뿐, HEAD `64fbc0c`. 검증자 하니스는 `scratchpad/vfeat48/`에만 있고 공용 워크트리 `wt48`은 pristine으로 복원돼 있다.
 
 계약에 맞는 브리핑(셋뿐)으로 재디스패치한다.
+
+## 독립 패스 2차 (2026-09-16) — 클린 패스
+
+계약에 맞는 브리핑(항목ID · 계획서 경로 · 필수 경로 여덟의 카탈로그 발췌, **그 셋뿐**)으로 재디스패치했다. 검증자가 계약 준수를 확인하고 여덟 경로를 전부 실행해 **결함 0건**을 보고했다 — 판정 자격이 있는 무소득 패스다. 보드 정지 규칙(「`plan-verifier`의 무편집 무소득 패스 1회가 나오면 끝난 것이다」)이 충족됐다.
+
+검증자가 독립적으로 확인한 것 중 **내 라운드가 닿지 않았던 것**:
+
+- 생성 클라이언트 실물 — `packages/db/generated/prisma/index.d.ts`의 `ClipDraftCreateManyInput.referenceTranslation?`와 결과 타입 `referenceTranslation: string | null`. 계획서가 FEAT-47 재생성에 기대는 전제를 타입 선언에서 직접 확인했다(나는 FEAT-47 인수 때의 기억에 기댔다).
+- 「네 곳」의 **여집합**을 `payoff` 전수 grep으로 열거 — moment를 필드별로 복사하는 다른 지점(process-video Clip 경로 `modal-contract.ts:26·51·156`·`functions.ts:151`, 렌더 경로 `client.ts:21`·`clip-draft/api:109`)은 전부 `ClipDraft.referenceTranslation` 쓰기 경로 밖이라 **다섯째 누락 지점이 없다**. 내 라운드는 `AnalyzedMoment` 소비처를 열거했고, 검증자는 `payoff`라는 형제 필드를 축으로 같은 집합을 다른 길로 재확인했다.
+- 베이스라인 `npm test -w apps/web` 162/162 — 계획서가 인용한 머리 수치와 일치.
+- 계획서의 부동소수 실측값 재현(`10.05 - 10 = 0.05000000000000071`).
+
+돌연변이는 8종 중 7종 사멸, 유일 생존은 계획서가 등가 변이로 명시한 `>`→`>=` — 내 라운드 2의 재판정과 같은 결론에 독립적으로 도달했다.
+
+검증자가 **도달하지 못한 것**(보고에 명시): `functions.ts` 매핑 한 줄을 더한 뒤의 `check` 재현은 저장소 편집이 필요해 그 환경에서 불가했고, 대신 `ClipDraftCreateManyInput`의 선택 필드 실재로 타입 적합성만 정적 확인했다. 그 줄의 음성 시험은 내 라운드 1에서 실행했다(제거 시 `check` EXIT 0 + 전체 테스트 통과 — 자동 게이트 0).
+
+**트리 청결 직접 검산**: 실제 저장소는 `M apps/web/.claude/settings.local.json` · `?? nul` 둘뿐, HEAD `c0b8124`. `git diff HEAD -- docs/plans/FEAT-48.md`도 비어 있어 **검증자가 읽은 계획서가 커밋본과 같다**.
+
+보드에 `검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건·위생 4건 반영)`을 올린다. 게이트②는 사용자만 연다.
+
+### 남긴 것
+
+격리 워크트리 `scratchpad/wt48`은 지우지 않는다 — `node_modules` 정크션 3개가 걸려 있어 재귀 삭제가 실제 `node_modules`를 건드릴 위험이 있다. 이전 사이클의 `wt36`·`wt47`·`wt49`도 남아 있다.
+
+게이트② 전에 소유자 확인이 필요한 것 하나: 카드에 뜰 골든 문구 두 줄(`Korean reference — final subtitles are translated separately and may differ.` / `Korean reference for the AI-suggested range — …`). 사용자에게 보이는 카피라 정확값이 계약이 된다(`review-language-notice` 선례).
