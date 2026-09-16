@@ -43,7 +43,7 @@
 - [ ] FEAT-47: `ClipDraft`에 참고 번역 컬럼 추가 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 위생 3건 반영, 구현 영향 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-46 완료·배포로 필드명 referenceTranslation 확정. FEAT-48의 선행 — 백엔드가 이미 싣는 참고 번역을 받을 자리.
 
