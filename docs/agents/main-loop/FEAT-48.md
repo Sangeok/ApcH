@@ -127,3 +127,11 @@
 격리 워크트리 `scratchpad/wt48`은 지우지 않는다 — `node_modules` 정크션 3개가 걸려 있어 재귀 삭제가 실제 `node_modules`를 건드릴 위험이 있다. 이전 사이클의 `wt36`·`wt47`·`wt49`도 남아 있다.
 
 게이트② 전에 소유자 확인이 필요한 것 하나: 카드에 뜰 골든 문구 두 줄(`Korean reference — final subtitles are translated separately and may differ.` / `Korean reference for the AI-suggested range — …`). 사용자에게 보이는 카피라 정확값이 계약이 된다(`review-language-notice` 선례).
+
+## 게이트② (2026-09-16) — 구현승인
+
+소유자가 세션에서 열었다("구현 승인"). 직전에 독립 무편집 패스가 결함 0건으로 끝나 보드에 `검증:` 줄이 올라간 상태였다(`50f6ca9`).
+
+**승인 시점의 계획서가 승인의 내용이다.** 게이트② 직전에 카드 골든 문구 두 줄을 소유자에게 그대로 제시했고(FRESH: `Korean reference — final subtitles are translated separately and may differ.` / STALE: `Korean reference for the AI-suggested range — final subtitles are translated separately and may differ.`) 수정 지시가 없었으므로, 계획서 §4에 적힌 문자열이 확정된 카피다. 구현에서 이 두 줄이 달라지면 `.claude/agents/web-dev.md` B-4에 따라 그 사실과 이유가 보드 `결과:`에 남아야 한다 — 분기 순서·조건·리터럴 값·사용자에게 보이는 문구 넷은 사용자가 스케치를 보고 판단한 대상이다.
+
+web-dev에 구현을 디스패치한다. 범위는 수정 3(`modal-contract.ts`·`functions.ts`·`ClipDraftCard.tsx`) / 신규 3(`reference-translation.ts` + 테스트 2). 마이그레이션 없음 — 컬럼은 FEAT-47이 이미 프로덕션에 넣었다.
