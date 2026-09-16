@@ -130,10 +130,11 @@ model Clip {
   endSeconds   Float?
   scriptText   String?
 
-  // 백엔드가 클립마다 생성해 성공 콜백에 싣는 선택 근거다(main.py:1182-1184).
-  // ClipDraft의 동명 필드(아래 :162-164)와 같은 값이지만, ClipDraft는 analyzeVideo
-  // 에서만 만들어지므로 auto 경로 클립에는 대응 행이 없다 — 여기 저장하지
-  // 않으면 유실된다.
+  // 백엔드가 클립마다 생성해 성공 콜백에 싣는 선택 근거다
+  // (apps/backend/main.py _do_process_video — clip_result["clipType"]·["hook"]·["payoff"]).
+  // ClipDraft의 동명 필드(아래 model ClipDraft)와 같은 값이지만, ClipDraft는 검토 경로
+  // (analyzeVideo의 후보·검토 화면의 커스텀 추가)에서만 만들어지므로 auto 경로 클립에는
+  // 대응 행이 없다 — 여기 저장하지 않으면 유실된다.
   clipType String?
   hook     String?
   payoff   String?
@@ -176,10 +177,16 @@ model ClipDraft {
   startSeconds Float
   endSeconds   Float
 
-  clipType String?
-  hook     String?
-  payoff   String?
-  selected Boolean @default(true)
+  clipType             String?
+  hook                 String?
+  payoff               String?
+  // Korean analyze의 참고 번역 — FEAT-46이 analyze 콜백 moment에 싣는 referenceTranslation.
+  // 검토 화면에서 영어 원문 옆에 뜻을 보여주는 읽기 보조일 뿐이다. 렌더는 이 값을 쓰지 않고
+  // 자막을 따로 번역한다(apps/backend/main.py create_korean_subtitles_with_ffmpeg).
+  // null = 번역 없음: English 업로드·번역 실패·커스텀 클립·이 컬럼 이전 행.
+  // 원문은 AI 구간(aiStartSeconds~aiEndSeconds) 기준이라 사용자가 구간을 옮기면 낡는다.
+  referenceTranslation String?
+  selected             Boolean @default(true)
 
   // Per-clip caption style override. null = language defaults (backend hardcoded values).
   // Shape: shared CaptionStyle type (src/fsd/shared/config/constants.ts),

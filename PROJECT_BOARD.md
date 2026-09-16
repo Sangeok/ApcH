@@ -39,6 +39,22 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-16
+- [x] FEAT-48: 검토 카드에 참고 번역을 저장·표시 — 영어 원문 아래 한국어 번역 블록
+  agent: web-dev
+  area: apps/web/src/inngest/modal-contract.ts + apps/web/src/inngest/functions.ts + apps/web/src/fsd/widgets/clip-draft-review
+  status: 완료
+  검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 구현 영향 2건·위생 4건 반영)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-47(컬럼)·FEAT-46(백엔드 적재) 둘 다 완료 — 콜백이 이미 싣는 참고 번역을 계약·저장·카드까지 잇는 마지막 구간.
+  결과: 계약타입2·정규화기·저장매핑 네 곳에 referenceTranslation 배선+카드 번역블록(fresh/stale 라벨) 순수모듈+테스트14. check EXIT0·test 176/0(162→176). 상세 web-dev/FEAT-48
+- [x] FEAT-47: `ClipDraft`에 참고 번역 컬럼 추가 (마이그레이션 1회)
+  agent: main-loop
+  area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations
+  status: 완료
+  검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0, 앞선 메인 루프 라운드에서 위생 3건 반영, 구현 영향 0)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-46 완료·배포로 필드명 referenceTranslation 확정. FEAT-48의 선행 — 백엔드가 이미 싣는 참고 번역을 받을 자리.
+  결과: ClipDraft에 referenceTranslation String? 추가+Clip 주석 앵커 교체, 마이그레이션 Neon 적용(db pull 확인), 생성 클라 7파일. check0·web162·admin334. 상세 main-loop/FEAT-47
+
 ## 2026-09-15
 - [x] FEAT-49: Korean 캡션 스타일 미리보기가 영어 원문 대신 한국어 샘플 문장을 그린다 — Uppercase·Words per line이 한국어 결과를 오도하지 않게
   agent: web-dev

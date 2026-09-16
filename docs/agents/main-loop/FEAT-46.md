@@ -241,3 +241,27 @@ backend-dev 보고는 "완료, unittest 117 · py_compile 0, 스케치 대비 �
 - **메인 루프 교차 확인에서 감사자가 놓친 것 5건**: FEAT-44 본문이 "현재 줄"로 적은 `main.py` 인용 6개 중 5개가 낡았다 — `:838`→`:852`(`elif selected_language == "Korean":`), `:142`→`:156`(`"top": 200,`), `:288`→`:302`(`def create_subtitles_with_ffmpeg(`), `:158`→`:172`(`def resolve_caption_style(`), `:47`→`:56`(`class ProcessVideoRequest(BaseModel):`). `:44` import만 맞다. FEAT-41에서 이미 +6(클래스는 +1) 밀렸고 FEAT-46이 +8을 더했다. 감사자의 FEAT-44 "주장 12건 확인"은 web 쪽 인용 대조였다.
 - 감사자 미확인 메모: FEAT-48의 `functions.ts:921·:931` 인용이 `:929·:939`로 8줄 밀림(내용은 존재). 메인 루프는 인용 글자 추출에 실패해 판정을 보류했다.
 - 영향: 전부 백로그 서술의 줄번호다. 코드·동작·원장 확인 항목에는 영향이 없다. FEAT-44는 완료 시 grep을 다시 돌리므로 구현을 오도하지는 않는다. 백로그 수정 여부는 소유자 결정으로 남긴다.
+
+감사 기록 커밋 `7d9a37f`.
+
+## 배포 (2026-09-15)
+
+소유자가 "FEAT-46 백엔드 배포 진행"으로 지시했다. 그 전에 소유자가 PR #120(`dev → main`, FEAT-49 웹·FEAT-46 코드·문서)을 22:25 KST에 합류시켰다(`2af048b`).
+
+- 사전 확인
+  - 로컬 = `origin/dev`(0 0). `origin/main`이 앞선 26커밋은 합류 커밋뿐이고, `apps/backend` diff는 `HEAD`↔`origin/main` 0파일이다. `apps/backend` 작업 트리 변경 0.
+  - `python -m unittest discover -s apps/backend -p "test_*.py"` → `Ran 117 tests … OK` · `py_compile` 0.
+  - venv `python -m modal --version` → 1.2.1.
+  - `modal app history ai-podcast-clipper` 직전 버전은 v26(2026-09-15 00:00, FEAT-41).
+- 배포: `PYTHONUTF8=1 …\python.exe -m modal deploy main.py`(cwd `apps/backend`, 23:41:46 시작) → `✓ App deployed in 6.740s!`, EXIT 0.
+  - 마운트 `PythonPackage:s3_upload_policy, translation_fallback, temp_cleanup_policy, error_callback, moment_prompt, caption_style_source, reference_translation`.
+  - 엔드포인트 URL 불변(`https://sangeok--ai-podcast-clipper-process-video.modal.run`). 이력에 **v27**(23:42 KST).
+- import 실측
+  - 잘못된 토큰으로 필수 필드를 갖춘 바디(`s3_key`·`language: "Korean"`·`clip_count: 1`·`mode: "analyze"`)를 POST했다(23:42:56) → **401** `{"detail":"Incorrect bearer token"}`. spawn 전 거부라 부작용이 없다.
+  - `modal container list` → 활성 컨테이너 1, 시작 23:43(배포 이후).
+- 웹 배포 대조: 합류 커밋 `2af048b`의 커밋 상태 `Vercel – apc-h` success(13:28:01Z = 22:28 KST)·`Vercel – apch-admin` success(13:27:18Z). 같은 sha의 deployments는 `Production – apc-h`·`Production – apch-admin`.
+- 원장
+  - FEAT-46 절에 배포됨을 표기하고, 첫 줄(import)을 위 실측으로 마감했다.
+  - 둘째·셋째 줄(English 무회귀, Korean analyze 실패·지연 없음)은 로그인 뒤 실제 업로드와 Modal 로그로 판정되는 소유자 몫이라 열어 둔다. 넷째 줄은 FEAT-48 배포 뒤다.
+  - 원장에 「배포 대기」로 남아 있던 FEAT-49 절도 위 커밋 상태로 대조해 배포됨으로 표기했다. FEAT-49는 병행 세션의 항목이지만 원장은 메인 루프 소유 문서다.
+- 되돌리기 경로(미사용): FEAT-46 이전 백엔드(`b8bca61`의 `apps/backend`, FEAT-41 상태)로 재배포.

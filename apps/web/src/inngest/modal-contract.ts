@@ -63,6 +63,8 @@ export type AnalyzedMoment = {
   clipType?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  // Korean analyze 참고 번역(FEAT-46). 없으면 null. 저장 컬럼 ClipDraft.referenceTranslation.
+  referenceTranslation?: string | null;
 };
 
 export type RawAnalyzedMoment = {
@@ -75,6 +77,8 @@ export type RawAnalyzedMoment = {
   clip_type?: string | null;
   hook?: string | null;
   payoff?: string | null;
+  // FEAT-46 attach_reference_translations는 camelCase 키만 싣는다(snake 변형 없음).
+  referenceTranslation?: string | null;
 };
 
 export function toStrictNonNegativeInteger(value: unknown): number | null {
@@ -197,6 +201,7 @@ export function normalizeAnalyzedMoment(
     clipType: toNullableString(raw.clipType ?? raw.clip_type),
     hook: toNullableString(raw.hook),
     payoff: toNullableString(raw.payoff),
+    referenceTranslation: toNullableString(raw.referenceTranslation),
   };
 }
 
