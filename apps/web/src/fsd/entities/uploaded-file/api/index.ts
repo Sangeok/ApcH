@@ -311,6 +311,7 @@ export async function getUploadedFileDetailsById(
       status: true,
       language: true,
       targetClipCount: true,
+      captionStyle: true,
       failureCode: true,
       enqueueRequestedAt: true,
       queuedAt: true,
@@ -476,6 +477,7 @@ export async function findUploadedFileReviewState(
       reviewAttempt: true,
       transcriptS3Key: true,
       targetClipCount: true,
+      captionStyle: true,
       user: {
         select: {
           credits: true,

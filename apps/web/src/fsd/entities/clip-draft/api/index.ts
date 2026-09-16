@@ -117,7 +117,11 @@ export async function getSelectedRenderMomentsForAttempt(
 export async function createCustomClipDraft(
   uploadedFileId: string,
   attempt: number,
-  args: { startSeconds: number; endSeconds: number },
+  args: {
+    startSeconds: number;
+    endSeconds: number;
+    captionStyle?: CaptionStyle | null;
+  },
 ) {
   // 이 함수는 sibling 엔티티 함수들과 달리 자체 트랜잭션을 소유한다(호출자 tx를 받지 않음):
   // max(index)+1 읽기와 create를 한 트랜잭션에 묶기 위해서다. 단, Prisma 기본 격리
@@ -141,6 +145,12 @@ export async function createCustomClipDraft(
         startSeconds: args.startSeconds,
         endSeconds: args.endSeconds,
         selected: true,
+        // 업로드 스냅샷이 있으면 시드(AI 드래프트 persist-clip-drafts와 동형). null이면
+        // 필드 생략 → 컬럼 null → 렌더 시 언어 기본값. FEAT-50에서 기존 "커스텀은 항상 null"
+        // 의도(functions.ts 주석)를 뒤집었다.
+        ...(args.captionStyle != null
+          ? { captionStyle: args.captionStyle as Prisma.InputJsonValue }
+          : {}),
       },
       select: { id: true },
     });

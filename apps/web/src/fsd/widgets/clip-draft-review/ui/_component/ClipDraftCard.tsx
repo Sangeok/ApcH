@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ClipDraft } from "@repo/db";
+import type { ClipDraft, UploadedFile } from "@repo/db";
 import { clipTypeLabel } from "~/fsd/entities/clip";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
-  CAPTION_STYLE_OPTIONS,
   CLIP_DURATION_LIMITS,
   type CaptionStyle,
   isClipDurationWithinLimits,
@@ -24,30 +23,11 @@ import { getPreviewRange } from "../../model/preview-range";
 import { snapToAdjacentBoundary } from "../../model/boundary-snap";
 import { showsEnglishSourceForTranslation } from "../../model/review-language-notice";
 import { resolveReferenceTranslationDisplay } from "../../model/reference-translation";
+import { toCaptionStyle } from "../../model/caption-style-from-json";
 import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
 const AUTO_SAVE_DEBOUNCE_MS = 600;
-
-// draft.captionStyle(Prisma JsonValue) → shared CaptionStyle 강제 변환의 단일 지점.
-// 필드가 늘기 전에 저장된 행에는 신규 키가 없다. 그대로 다이얼로그에 넣으면
-// 아무것도 고치지 않고 Apply 했을 때 zod(required-but-nullable)가 거부하므로
-// 누락 키를 null(= 백엔드 언어별 기본값)로 채운다.
-function toCaptionStyle(raw: ClipDraft["captionStyle"]): CaptionStyle | null {
-  if (raw === null || raw === undefined) return null;
-  // Partial로 받는다 — 저장된 행에 신규 키가 없을 수 있다는 사실을 타입에도
-  // 남겨야 아래 기본값이 죽은 코드로 취급되지 않는다.
-  const stored = raw as Partial<CaptionStyle>;
-  return {
-    position: stored.position ?? CAPTION_STYLE_OPTIONS.DEFAULT_POSITION,
-    fontSize: stored.fontSize ?? null,
-    color: stored.color ?? null,
-    maxWordsPerLine: stored.maxWordsPerLine ?? null,
-    outlineColor: stored.outlineColor ?? null,
-    outlineWidth: stored.outlineWidth ?? null,
-    uppercase: stored.uppercase ?? null,
-  };
-}
 
 interface ClipDraftCardProps {
   draft: ClipDraft;
@@ -61,6 +41,9 @@ interface ClipDraftCardProps {
   isOverlapping: boolean;
   isBudgetFull: boolean;
   playUrl: string | null;
+  uploadCaptionStyle: UploadedFile["captionStyle"];
+  onSaveAsDefault: (style: CaptionStyle | null) => void;
+  isSavingDefault: boolean;
 }
 
 function roundTenth(value: number): number {
@@ -79,6 +62,9 @@ export default function ClipDraftCard({
   isOverlapping,
   isBudgetFull,
   playUrl,
+  uploadCaptionStyle,
+  onSaveAsDefault,
+  isSavingDefault,
 }: ClipDraftCardProps) {
   // 구간·스타일은 사용자가 편집 중인 값이라 로컬 state로 두지만, 선택 여부는
   // detail 캐시(draft.selected)에서 직접 읽는다. 로컬로 복사하면 위젯 헤더의
@@ -549,6 +535,9 @@ export default function ClipDraftCard({
         onApply={handleApplyStyle}
         onApplyToAll={onApplyToAll}
         isApplyingToAll={isApplyingToAll}
+        snapshotValue={toCaptionStyle(uploadCaptionStyle)}
+        onSaveAsDefault={onSaveAsDefault}
+        isSavingDefault={isSavingDefault}
       />
     </div>
   );

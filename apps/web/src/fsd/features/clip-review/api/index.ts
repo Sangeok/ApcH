@@ -140,6 +140,11 @@ export async function addCustomClipDraft(input: {
     const created = await createCustomClipDraft(file.id, file.reviewAttempt, {
       startSeconds,
       endSeconds,
+      // 렌더 경로·AI persist와 같은 캐스트(entities/clip-draft/api:111, functions.ts:378).
+      // 타입은 이 파일에 이미 있는 CaptionStyleInput(:20)이다 — CaptionStyle을 새로
+      // 임포트하면 동의어가 둘이 되고, 임포트 없이 그 이름을 쓰면 error 타입이 되어
+      // no-unsafe-assignment로 next lint가 깨진다(계획 검증에서 실측).
+      captionStyle: file.captionStyle as CaptionStyleInput | null,
     });
 
     revalidatePath(`/dashboard/uploads/${file.id}`);

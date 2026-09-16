@@ -48,6 +48,7 @@ export default function UploadDetailPage({
     outcome,
     targetClipCount,
     currentUserCredits,
+    captionStyle: uploadCaptionStyle,
   } = liveUploadedFileData;
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function UploadDetailPage({
           targetClipCount={targetClipCount}
           currentUserCredits={currentUserCredits}
           language={language}
+          uploadCaptionStyle={uploadCaptionStyle}
         />
       )}
 

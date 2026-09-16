@@ -28,6 +28,10 @@ interface CaptionStyleDialogProps {
   onApply: (style: CaptionStyle | null) => void;
   onApplyToAll: (style: CaptionStyle) => void;
   isApplyingToAll: boolean;
+  // Reset이 되돌릴 대상 — 업로드 스냅샷(null이면 언어 기본값).
+  snapshotValue: CaptionStyle | null;
+  onSaveAsDefault: (style: CaptionStyle | null) => void;
+  isSavingDefault: boolean;
 }
 
 export default function CaptionStyleDialog({
@@ -42,6 +46,9 @@ export default function CaptionStyleDialog({
   onApply,
   onApplyToAll,
   isApplyingToAll,
+  snapshotValue,
+  onSaveAsDefault,
+  isSavingDefault,
 }: CaptionStyleDialogProps) {
   // 편집은 작업본에서만 일어난다. Apply 전에는 아무것도 저장되지 않으므로
   // Cancel/바깥 클릭이 곧 되돌리기다.
@@ -79,15 +86,36 @@ export default function CaptionStyleDialog({
         />
 
         <DialogFooter className="sm:justify-between">
-          {/* 작업본만 비운다. 저장(= 언어 기본값으로 리셋)은 Apply가 한다. */}
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => setWorking(null)}
-          >
-            Reset style
-          </Button>
+          {/* 좌측은 "기본값 관리"(Reset·Save as default), 우측은 "이 클립에 적용". */}
+          <div className="flex gap-2">
+            {/* Reset은 업로드 스냅샷으로 되돌린다(FEAT-50). 스냅샷이 null이면
+                지금까지처럼 언어 기본값이다. 저장은 Apply/Save가 한다. */}
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setWorking(snapshotValue)}
+            >
+              Reset style
+            </Button>
+            {/* 마음에 드는 스타일을 이 순간 사용자 기본값으로 캡처한다.
+                계측·토스트는 훅(saveCaptionStyleAsDefault)이 발신한다.
+                working === null 가드는 Apply to all clips(:104·:106)와 같은 형태다 —
+                null을 그대로 보내면 saveDefaultCaptionStyle이 기본값을 "비운다"(설정
+                화면 handleResetCaption:120이 그 용법). 버튼 이름과 반대 동작이 된다. */}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={isSavingDefault || working === null}
+              onClick={() => {
+                if (working === null) return;
+                onSaveAsDefault(working);
+              }}
+            >
+              Save as my default
+            </Button>
+          </div>
           <div className="flex gap-2">
             <Button
               type="button"

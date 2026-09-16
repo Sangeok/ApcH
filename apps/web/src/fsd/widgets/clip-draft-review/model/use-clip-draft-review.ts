@@ -15,6 +15,7 @@ import {
   type TranscriptWord,
 } from "~/fsd/features/clip-review";
 import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload";
+import { saveDefaultCaptionStyle } from "~/fsd/features/settings/api";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { matchPresetId } from "~/fsd/features/caption-style";
 
@@ -205,6 +206,37 @@ export function useClipDraftReview(
     },
   });
 
+  // 다이얼로그의 "Save as my default" — 작업본을 사용자 기본 캡션 스타일로 저장한다.
+  // 설정 화면 handleSaveCaption과 같은 서버 액션·계측을 쓰되, source로 진입점을 구분한다.
+  //
+  // ⚠️ style에 null을 넘기지 않는다. saveDefaultCaptionStyle(null)은 "저장 안 함"이 아니라
+  //    기본값 비우기이고(설정 화면 handleResetCaption:117-131이 그 용법), 이 버튼 이름과
+  //    토스트는 정반대를 말한다. 호출부(CaptionStyleDialog)가 working === null일 때 비활성으로
+  //    막지만, 타입이 null을 허용하는 것은 계측 matchPresetId(null) 경로와 시그니처를 맞추기
+  //    위해서일 뿐이다 — 새 호출자를 붙일 때 이 주석을 먼저 읽는다.
+  const saveDefaultMutation = useMutation({
+    mutationFn: async (style: CaptionStyleInput | null) => {
+      const result = await saveDefaultCaptionStyle(style);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    },
+    onSuccess: (_data, style) => {
+      // 계측은 fire-and-forget(저장은 이미 성공). preset = matchPresetId 결과.
+      void trackAnalyticsEvent(
+        "settings_defaults_saved",
+        { source: "review_dialog", preset: matchPresetId(style) },
+        { path: REVIEW_ANALYTICS_PATH },
+      );
+      toast.success("Saved as your default caption style");
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save default",
+      );
+    },
+  });
+
   const confirmMutation = useMutation({
     mutationFn: async () => {
       const result = await confirmClipDraftsAndGenerate(uploadedFileId);
@@ -325,6 +357,9 @@ export function useClipDraftReview(
     applyStyleToAll: (style: CaptionStyleInput | null) => {
       applyStyleMutation.mutate(style);
     },
+    saveCaptionStyleAsDefault: (style: CaptionStyleInput | null) => {
+      saveDefaultMutation.mutate(style);
+    },
     confirmAndGenerate: () => {
       confirmMutation.mutate();
     },
@@ -346,6 +381,7 @@ export function useClipDraftReview(
     // (개별 카드 저장 표시)과 스코프가 다르므로 이름으로 구분한다.
     isSavingDraft: saveMutation.isPending,
     isApplyingToAll: applyStyleMutation.isPending,
+    isSavingDefault: saveDefaultMutation.isPending,
     isConfirming: confirmMutation.isPending,
     isAddingCustom: addCustomMutation.isPending,
     isSettingSelection: setSelectionMutation.isPending,

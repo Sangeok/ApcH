@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import type { ClipDraft } from "@repo/db";
+import type { ClipDraft, UploadedFile } from "@repo/db";
 import { getOriginalPlayUrl } from "~/fsd/features/upload";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
@@ -39,6 +39,8 @@ interface ClipDraftReviewSectionProps {
   targetClipCount: number;
   currentUserCredits: number;
   language: string;
+  // 업로드 스냅샷(User.defaultCaptionStyle 캡처). Reset이 이 값으로 되돌린다.
+  uploadCaptionStyle: UploadedFile["captionStyle"];
 }
 
 // 차단 사유의 종류. 사유별 후속 UI(빌링 링크)와 계측 메타데이터(reason)가
@@ -94,6 +96,7 @@ export default function ClipDraftReviewSection({
   targetClipCount,
   currentUserCredits,
   language,
+  uploadCaptionStyle,
 }: ClipDraftReviewSectionProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playUrlState = usePlayUrl(uploadedFileId, getOriginalPlayUrl);
@@ -114,6 +117,8 @@ export default function ClipDraftReviewSection({
     addCustomClip,
     selectUpToBudget,
     deselectAll,
+    saveCaptionStyleAsDefault,
+    isSavingDefault,
     isConfirming,
     isApplyingToAll,
     isAddingCustom,
@@ -456,6 +461,9 @@ export default function ClipDraftReviewSection({
               isOverlapping={overlappingDraftIds.has(draft.id)}
               isBudgetFull={budget.isFull}
               playUrl={readyPlayUrl}
+              uploadCaptionStyle={uploadCaptionStyle}
+              onSaveAsDefault={saveCaptionStyleAsDefault}
+              isSavingDefault={isSavingDefault}
             />
           ))}
         </div>
