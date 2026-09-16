@@ -107,6 +107,8 @@ export function toCaptionStyle(
   raw: ClipDraft["captionStyle"],
 ): CaptionStyle | null {
   if (raw === null || raw === undefined) return null;
+  // Partial로 받는다 — 저장된 행에 신규 키가 없을 수 있다는 사실을 타입에도
+  // 남겨야 아래 기본값이 죽은 코드로 취급되지 않는다.
   const stored = raw as Partial<CaptionStyle>;
   return {
     position: stored.position ?? CAPTION_STYLE_OPTIONS.DEFAULT_POSITION,
@@ -120,7 +122,7 @@ export function toCaptionStyle(
 }
 ```
 
-> 이 블록은 `ClipDraftCard.tsx:32-50`을 한 글자도 바꾸지 않고 옮긴 것이다 — `export`만 붙었다. 스냅샷도 같은 `JsonValue | null`이라 시그니처를 손댈 필요가 없다(위 문단).
+> 판정 본문은 `ClipDraftCard.tsx:32-50`과 동일하다 — 가드·`??` 채움·`as Partial<CaptionStyle>` 캐스트·내부 주석까지 그대로다. **표면은 두 군데 다르다**(기계 대조 실측): `export`가 붙었고, 선두 주석이 두 입력(드래프트·스냅샷)을 함께 가리키도록 다시 감쌌으며 그에 맞춰 시그니처가 prettier 폭으로 여러 줄이 됐다. 동작 차이는 없다. 스냅샷도 같은 `JsonValue | null`이라 타입을 넓힐 필요가 없다(위 문단).
 
 `ClipDraftCard.tsx`에서 지역 함수(`:32-50`)와 그 주석을 삭제하고 임포트한다. **같이 `CAPTION_STYLE_OPTIONS` 임포트도 지운다**(`:9`) — 그 상수의 이 파일 안 유일한 사용처가 방금 지운 `:42` `position: stored.position ?? CAPTION_STYLE_OPTIONS.DEFAULT_POSITION,`이라(여집합 열거로 확인) 남기면 `'CAPTION_STYLE_OPTIONS' is defined but never used`로 `next lint`가 경고를 낸다. 같은 임포트 무리의 `CLIP_DURATION_LIMITS`·`CaptionStyle`·`isClipDurationWithinLimits`는 다른 곳에서 쓰이므로 남긴다.
 
@@ -415,11 +417,16 @@ export async function createCustomClipDraft(
 
 ## 검증 게이트
 
-`npm run check -w apps/web`(= `verify:fsd:test` → `verify:fsd` → `next lint` → `tsc --noEmit`)와 `npm test -w apps/web`. 계획 검증에서 이 스케치를 격리 워크트리에 기계 적용해 실제로 돌렸고(26개 편집 전부 유일 앵커, 손 개입 0), 그때 `next lint`가 세 번 깨졌다 — **셋 다 이 계획서에 이미 반영했으니 구현 때 다시 만나면 반영이 빠진 것이다**:
+`npm run check -w apps/web`(= `verify:fsd:test` → `verify:fsd` → `next lint` → `tsc --noEmit`)와 `npm test -w apps/web`. 계획 검증에서 이 스케치를 격리 워크트리에 기계 적용해 실제로 돌렸고(편집 전부 유일 앵커, 손 개입 0), 그때 걸린 것이 셋이다. **셋의 성격이 다르므로 나눠 적는다** — 묶으면 셋째가 게이트에 막힐 것처럼 읽힌다.
+
+**게이트가 막는 둘 (ERROR — `next lint` 종료코드 1)**
 
 1. `toCaptionStyle` 입력을 두 모델의 유니온으로 쓰면 `no-duplicate-type-constituents`(§1 — 같은 `JsonValue | null`이라 유니온이 성립하지 않는다)
-2. 지역 함수를 들어낸 뒤 `CAPTION_STYLE_OPTIONS` 임포트를 남기면 `no-unused-vars`(§1)
-3. `features/clip-review/api`에서 임포트 없는 `CaptionStyle`을 캐스트에 쓰면 `no-unsafe-assignment`(§9 — 그 파일의 이름은 `CaptionStyleInput`이다)
+2. `features/clip-review/api`에서 임포트 없는 `CaptionStyle`을 캐스트에 쓰면 `no-unsafe-assignment`(§9 — 그 파일의 이름은 `CaptionStyleInput`이다)
+
+**게이트가 막지 않는 하나 (WARNING — 통과한다)**
+
+3. 지역 함수를 들어낸 뒤 `CAPTION_STYLE_OPTIONS` 임포트를 남기면 `no-unused-vars`(§1). 이건 **경고일 뿐이라 `check`를 세우지 못한다** — `apps/web/eslint.config.js:27-30`이 그 규칙을 `"warn"`으로 낮추고 `check`의 `next lint`에는 `--max-warnings`가 없다. `tsc --noEmit`도 못 잡는다(`apps/web/tsconfig.json`에 `noUnusedLocals`가 없고 `extends`도 없다 — `strict: true`뿐). 즉 **§1의 임포트 제거 지시를 잊으면 아무 게이트도 알려주지 않는다.** 이 한 줄은 자동 방어선이 없으니 구현자가 지켜야 지켜진다.
 
 `verify:fsd`는 통과한다 — 워크트리 실측으로 확인했다(W6 public entry 판정, §2).
 
