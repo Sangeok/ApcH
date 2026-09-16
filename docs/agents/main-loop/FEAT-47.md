@@ -100,3 +100,57 @@
 - 담당은 메인 루프다(계획서 머리말 — `.claude/agents/web-dev.md:53-54`가 `schema.prisma` 수정과 prisma 실행을 dev 로스터 금지 목록에 둔다).
 - **마이그레이션 적용(`migrate deploy`)은 이 승인에 포함되지 않는다.** 계획서 「적용 — 명령·승인·순서」대로 그 명령 직전에 소유자 승인을 따로 받는다. 게이트②가 여는 것은 파일 작성(스키마·마이그레이션 SQL·생성 클라이언트 재생성)과 읽기 전용 게이트 실행까지다.
 - 실행 순서: 스키마 2곳 편집 → 마이그레이션 SQL 신규 → `db:generate:client` → 구조 대조(`migrate diff`) → `check`·`test` 게이트 → **소유자 승인** → `migrate status` → `migrate deploy` → 적용 후 확인(`migrate status`·`db pull --print`) → 커밋·푸시.
+
+## 구현·적용 (2026-09-16) — 메인 루프 직접 수행
+
+계획서 「고칠 파일」 3항과 「적용 — 명령·승인·순서」를 그대로 따랐다. 구현 커밋 `71bf498`(9파일).
+
+### 파일
+
+- `packages/db/prisma/schema.prisma` — `ClipDraft`에 주석 5줄 + `referenceTranslation String?`(`payoff`와 `selected` 사이), `Clip` 주석의 낡은 인용 둘을 함수명·모델명 앵커로 교체. HEAD^ 대비 바뀐 줄은 **추가 11 / 삭제 4**뿐이고 전부 이 두 곳이다(전수 열거로 확인).
+- `packages/db/prisma/migrations/20260916000000_clip_draft_reference_translation/migration.sql` — 신규. 계획서 SQL 블록과 **바이트 동일**. 파일 끝은 기존 마이그레이션 최근 3건과 같은 `;`+줄바꿈 하나다 — `migrate diff --script` 출력은 끝에 빈 줄이 하나 더 붙어 그 1바이트만 다르다(전수: 9개 중 최근 3개가 `;
+`, 오래된 CRLF 파일 둘은 `
+
+`).
+- `packages/db/generated/prisma/` — `npm run db:generate:client -w @repo/db`(EXIT 0). 내용이 바뀐 파일 **정확히 7개**로 계획서 예고와 일치(`edge.js`·`index-browser.js`·`index.d.ts`·`index.js`·`package.json`·`schema.prisma`·`wasm.js`). `--ignore-cr-at-eol` numstat이 같아 CRLF 찌꺼기는 0. 손으로 고치지 않았다.
+
+`apps/*` 소스는 한 줄도 고치지 않았다 — 계획서 「타입·쿼리 영향 전수」의 예측 그대로다.
+
+### 게이트 (메인 루프가 직접 실행)
+
+| 명령 | 결과 |
+| --- | --- |
+| `prisma validate` | The schema at prismaschema.prisma is valid |
+| `migrate diff --from-schema-datamodel <HEAD 사본> --to-schema-datamodel <현재>` (DB 미접속) | 수기 SQL과 같은 `ALTER TABLE "ClipDraft" ADD COLUMN     "referenceTranslation" TEXT;` |
+| `npm run db:generate:client -w @repo/db` | EXIT 0 · 7파일 |
+| `npm run check --workspaces --if-present` | EXIT 0 (admin 단독 재실행도 EXIT 0) |
+| `npm test -w apps/web` | 162/0 |
+| `npm test -w apps/admin` | 334/0 |
+
+생성 타입 실측: `index.d.ts`에 `referenceTranslation` 37회 — 결과 타입 `string | null`, `ClipDraftOmit` 목록, `FieldRef`, 필터·정렬·집계, 스칼라 enum(`index-browser.js:220`). 생성 입력에서는 선택이라 기존 생성 경로가 그대로 컴파일된다(`check`가 실검사였음은 검증 단계 경로 7에서 확인).
+
+### 적용 — 소유자 승인 뒤 (`packages/db`에서)
+
+소유자 지시 "적용 진행". 계획서 표의 세 명령을 그 순서로 돌렸다.
+
+- 적용 전 `migrate status` — 대상 Neon `neondb`(`ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`), 미적용은 **이 한 건뿐**.
+- `migrate deploy` — EXIT 0. `Applying migration 20260916000000_clip_draft_reference_translation` → `All migrations have been successfully applied.`
+- 적용 후 `migrate status` — `Database schema is up to date!`
+- `db pull --print`(파일을 쓰지 않는다) — `model ClipDraft` 안에 `referenceTranslation String?` 1건. 내성 결과에서는 `updatedAt` 뒤에 온다(ADD COLUMN이라 물리 순서가 마지막이다).
+- **순서 준수**: 적용 → 확인 → 커밋·푸시. 새 생성 클라이언트가 `dev` 푸시로 Vercel 빌드에 실리기 전에 컬럼이 DB에 있었다.
+
+### 인수 — 다섯 조건 (메인 루프가 직접 재현)
+
+1. **변경 파일 ↔ 계획서 「고칠 파일」**: 3항 그대로. 커밋 스테이징을 9경로로 명시하고 스테이징 수를 9로 검산해 다른 변경이 섞이지 않았음을 확인했다(무관한 `settings.local.json`·`nul`은 그대로 둔다).
+2. **diff ↔ 「구현 스케치」**: 계획서 펜스 블록 5개를 기계 추출해 대조 — before 2블록은 HEAD^에 각 1회·현재 0회, after 2블록은 현재 각 1회, SQL 블록은 파일 전문과 바이트 동일. 검증 단계의 격리 worktree `wt47`(계획 적용본)의 스키마와 `diff` 결과도 **동일**.
+3. **검증 명령 직접 재실행**: 위 게이트 표 — 전부 내가 돌린 출력이다.
+4. **백로그 제거**: `TASK_BACKLOG.md`에서 FEAT-47 항목 제거. 함께 FEAT-44의 「제외」(스키마 주석을 "다음에 스키마를 바꾸는 항목"으로 넘긴 줄)를 이 항목이 처리했다고 정리했다 — 계획서 「메인 루프 몫(인수 때)」.
+5. **상세 기록 실재**: 이 문서.
+
+### 원장
+
+`docs/release-checks.md`에 FEAT-47 절 등재. 첫 줄(마이그레이션이 프로덕션 Neon에 실제 적용됐는가)은 위 적용 후 확인으로 **등재와 동시에 닫았다**. 나머지 둘은 배포 뒤 실물에서만 판정된다.
+
+### 범위 밖 의존 — 소유자에게 제시할 후속 후보
+
+계획서 「⚠️ 마이그레이션 히스토리 드리프트」: `ClipDraft`를 만드는 마이그레이션이 히스토리에 없다(`db:push`로만 생긴 테이블). 이 항목이 들어가면서 **빈 DB에 `migrate deploy`를 돌리면 이 마이그레이션에서 `relation "ClipDraft" does not exist`로 실패한다** — 프로덕션(테이블 존재)에는 영향이 없다. FEAT-38 때 제시했다가 등재되지 않았고, 이번 인수 보고에서 다시 제시한다. 등재는 소유자 승인 뒤에만 한다.

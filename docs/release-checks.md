@@ -22,6 +22,19 @@
 
 ---
 
+## FEAT-47 — `ClipDraft.referenceTranslation` 컬럼 (db, 구현 2026-09-16)
+
+원천: `docs/agents/main-loop/FEAT-47.md`의 「원장」과 계획서 「못 덮는 범위」. **마이그레이션은 프로덕션 Neon에 적용 완료 — 2026-09-16**, 소유자 승인("적용 진행") 뒤 메인 루프가 `migrate deploy` 실행. 코드(스키마·생성 클라이언트)는 `dev`만(`main` 미합류).
+게이트는 `npm run check --workspaces --if-present` EXIT 0 · `npm test -w apps/web` **162/0** · `-w apps/admin` **334/0** · `prisma generate` 7파일(인수 시 메인 루프 재실행). 인수 때 계획서 코드 블록 다섯을 기계 추출해 실파일과 바이트 대조했고, 스키마에서 바뀐 줄이 추가 11·삭제 4뿐임을 전수로 확인했다.
+**이 항목만으로는 사용자 체감 변화가 없다** — 값을 채우는 저장 매핑과 카드 표시는 FEAT-48이다. 그때까지 모든 행이 null이므로 아래 셋째 줄은 FEAT-48 절이 이어받는다.
+**`〔auto〕` 태그를 붙이지 않는다**: DB 카탈로그와 로그인 뒤 검토 화면에서만 판정된다.
+
+- [x] **마이그레이션이 프로덕션 Neon에 실제로 적용됐는가** — 적용 후 `migrate status`와 `db pull --print`로 본다 — 확인(2026-09-16, 실측 — `migrate deploy` EXIT 0 `All migrations have been successfully applied.` · 적용 후 `migrate status` **`Database schema is up to date!`** · `db pull --print`의 `model ClipDraft` 안에 `referenceTranslation String?` 1건 · 대상 `neondb`@`ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`)
+- [ ] **새 생성 클라이언트가 배포된 뒤 검토 화면·편집 저장·렌더 디스패치가 그대로 도는가** — `select` 없는 `ClipDraft` 쿼리 넷이 이제 새 컬럼을 함께 읽는다(`listClipDraftsForAttempt` · 카드 편집 저장 `update` · `getSelectedRenderMomentsForAttempt` · 업로드 상세). `review_pending` 업로드의 검토 화면에 후보 카드가 뜨는지, 카드 편집이 저장되는지, 선택 후 렌더 디스패치가 시작되는지. 컬럼 적용이 코드 배포보다 앞섰으므로 정상이 기대값이다
+- [ ] **(FEAT-48 배포 후) 컬럼에 값이 실제로 채워지는가** — 이 항목만으로는 전 행이 null이다(백필 없음). FEAT-48 절이 생기면 그 절이 이어받는다
+
+---
+
 ## FEAT-49 — Korean 캡션 스타일 미리보기를 한국어 샘플로 · Uppercase·Words per line 힌트 (web, 구현 2026-09-15)
 
 원천: `docs/agents/web-dev/FEAT-49.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **배포됨 — 2026-09-15 22:28 KST**, PR #120 `main` 합류(`2af048b`, 22:25 KST 소유자) → Vercel `Production – apc-h`·`Production – apch-admin` success. (원장 표기는 FEAT-46 배포 기록 때 메인 루프가 커밋 상태로 대조해 갱신)
