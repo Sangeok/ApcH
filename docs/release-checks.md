@@ -22,6 +22,18 @@
 
 ---
 
+## FEAT-51 — `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 (backend, 구현 2026-09-17)
+
+원천: `docs/agents/backend-dev/FEAT-51.md`의 「못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있고 `modal deploy`를 돌리지 않았다. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 113 tests ... OK`**(기준선 117, 이 모듈 12→8) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했고, 구현 결과물이 계획서 스케치와 **바이트 동일**임도 확인했다.
+**`〔auto〕` 태그를 붙이지 않는다**: 세 줄 전부 GPU·ffmpeg·pysubs2가 만든 `.mp4` 자막이나 Modal 워커 내부 전달이라 공개 HTTP 응답으로 판정되지 않는다.
+**⚠️ 두 줄은 FEAT-52 배포 전까지 판정할 수 없다** — 그 전까지 웹은 render 요청에 요청 단위 `caption_style`을 싣지 않아(`autoRequestCaptionStyle`이 render에서 `undefined` 반환) 새 폴백 경로가 **휴면**이다. 순서를 뒤집어 확인하려 들면 안 된다.
+
+- [ ] 전이 구간 회귀 0 — FEAT-51만 배포된 상태에서 검토 확정 렌더가 오늘과 같은 자막으로 나온다(클립별 스타일이 계속 이김). **FEAT-52 배포 전에 확인해야 하는 유일한 줄이다.**
+- [ ] `main.py` 호출부의 실배선 — 엔드포인트 → `.spawn`/`.remote` → `_do_process_video` → `select_caption_style` 주입까지 요청 스냅샷이 실제로 전달된다. `main.py`가 `whisperx`→`torch`를 import해 unittest 러너로 안 돌아 `py_compile`+`git diff`로만 덮였다. `modal run` 실물 필요
+- [ ] render 폴백의 실효 — 사용자가 설정한 스타일이 render 클립의 실제 `.mp4` 자막에 나타난다. **선행: FEAT-52 배포**(그전까지 휴면)
+
+---
+
 ## FEAT-50 — 검토 화면에서 캡션 기본값 캡처 (web, 구현 2026-09-16)
 
 원천: `docs/agents/web-dev/FEAT-50.md`의 「테스트로 못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **183/183 · suites 42**(176→183, 인수 시 메인 루프 재실행). 인수 때 검증 라운드의 스케치 기계 적용본과 실구현을 대조했고 10파일 중 9파일 내용 동일(나머지 1건은 보고된 주석 표현 조정), 신규 순수 함수는 바이트 동일이었다.

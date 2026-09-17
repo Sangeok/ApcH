@@ -40,12 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-16
-- [ ] FEAT-51: `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 — 클립별 스타일 폐지의 백엔드 절반
+- [x] FEAT-51: `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 — 클립별 스타일 폐지의 백엔드 절반
   agent: backend-dev
   area: apps/backend/caption_style_source.py + apps/backend/main.py
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0. 1차 독립 패스는 메인 루프 브리핑 계약 위반으로 무효. 앞선 메인 루프 라운드에서 문서 위생 3건 반영, 구현 영향 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-50 인수 직후 범위 재설계 — 스타일을 검토 화면에서 빼고 설정 전용으로. FEAT-52보다 먼저 배포해야 한다.
+  결과: 계획대로 3파일 — caption_style_source의 mode 게이트 제거(render도 request 폴백)+호출부 2인자화+주석 갱신, 테스트 12→8. test 113/0(117→113)·py_compile OK. 상세 backend-dev/FEAT-51
 - [x] FEAT-50: 검토 화면에서 캡션 기본값 캡처 — 다이얼로그 「내 기본으로 저장」·Reset을 업로드 스냅샷으로
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/settings/api + apps/web/src/fsd/entities/uploaded-file/api + apps/web/src/fsd/entities/clip-draft/api

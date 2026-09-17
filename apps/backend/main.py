@@ -69,10 +69,10 @@ class ProcessVideoRequest(BaseModel):
     output_prefix: str | None = None
     callback_url: str | None = None
     uploaded_file_id: str | None = None
-    # 요청 단위 캡션 스타일 스냅샷(업로드 시점). auto 모드 전용 폴백이다 —
-    # auto는 moment별 caption_style이 없어 이 값이 언어 기본값 위에 얹힌다.
-    # render는 이 값을 쓰지 않는다(클립별 스타일만, 부재 = 언어 기본값).
-    # 선택·기본 None → 웹이 아직 안 보내면 기존 동작과 동일(FEAT-42가 auto 디스패치에 싣는다).
+    # 요청 단위 캡션 스타일 스냅샷(업로드 시점). auto·render 공통 폴백이다(FEAT-51) —
+    # 클립별 caption_style이 없으면 이 값이 언어 기본값 위에 얹힌다.
+    # 클립별 스타일이 있으면 그것이 우선(FEAT-52 배포 전 웹이 여전히 보낸다).
+    # 선택·기본 None → 웹이 안 보내면 언어 기본값(기존 동작과 동일).
     caption_style: dict | None = None
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
@@ -1166,7 +1166,7 @@ class AiPodcastClipper:
                         self.gemini_client,
                         language,
                         output_prefix,
-                        caption_style=select_caption_style(moment.get("caption_style"), request_caption_style, mode),
+                        caption_style=select_caption_style(moment.get("caption_style"), request_caption_style),
                     )
 
                     clip_result["clipType"] = moment.get("type")
