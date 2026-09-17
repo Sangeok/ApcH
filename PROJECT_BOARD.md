@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-17
+- [ ] FEAT-52: 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 — `Video style` 카드 + 업로드 폼 표시
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/clip-review + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/fsd/shared/analytics + apps/web/src/inngest
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-51 완료·배포 — 백엔드가 요청 스냅샷을 받을 준비를 마쳤다. 사용자가 보는 변화는 전부 이 항목에 있다.
+
 ## 2026-09-16
 - [x] FEAT-51: `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 — 클립별 스타일 폐지의 백엔드 절반
   agent: backend-dev
