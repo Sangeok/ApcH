@@ -11,13 +11,10 @@ import {
   addCustomClipDraft,
   getTranscript,
   saveClipDraftEdit,
-  type CaptionStyleInput,
   type TranscriptWord,
 } from "~/fsd/features/clip-review";
 import { confirmClipDraftsAndGenerate } from "~/fsd/features/upload";
-import { saveDefaultCaptionStyle } from "~/fsd/features/settings/api";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
-import { matchPresetId } from "~/fsd/features/caption-style";
 
 export type { TranscriptWord };
 
@@ -31,8 +28,6 @@ export interface SaveDraftInput {
   startSeconds: number;
   endSeconds: number;
   selected: boolean;
-  // undefined = 스타일 변경 없음, null = 기본 스타일로 리셋
-  captionStyle?: CaptionStyleInput | null;
 }
 
 // 커스텀 구간 입력의 단일 타입. 위젯 계층 3곳(mutationFn 인자, addCustomClip 반환,
@@ -99,31 +94,12 @@ export function useClipDraftReview(
     );
   };
 
-  // 캡션 스타일 계측. 카드는 저장 성공을 관찰하지 못하므로(runSave가 에러를
-  // 삼킨다) 다른 검토 이벤트와 같이 훅에서 발화한다.
-  const trackCaptionStyleEdited = (
-    style: CaptionStyleInput | null,
-    appliedToAll: boolean,
-  ) => {
-    void trackAnalyticsEvent(
-      "clip_review_caption_style_edited",
-      { uploadedFileId, preset: matchPresetId(style), appliedToAll },
-      { path: REVIEW_ANALYTICS_PATH },
-    );
-  };
-
   const saveMutation = useMutation({
     mutationFn: async (input: SaveDraftInput) => {
       const result = await saveClipDraftEdit(input);
       if (!result.success) {
         throw new Error(result.error);
       }
-    },
-    // 구간 자동 저장은 captionStyle을 싣지 않는다(ClipDraftCard). 이 조건이
-    // 다이얼로그 Apply만 정확히 골라낸다 — null도 "기본값으로 리셋"이라 계측한다.
-    onSuccess: (_data, input) => {
-      if (input.captionStyle === undefined) return;
-      trackCaptionStyleEdited(input.captionStyle, false);
     },
     // 낙관적 갱신: 헤더 선택 개수와 Generate 가드가 서버 왕복 없이 즉시
     // 일치하도록 detail 캐시의 해당 draft를 먼저 바꾼다. 실패 시 롤백.
@@ -174,66 +150,6 @@ export function useClipDraftReview(
         return;
       }
       trackSelectionChanged();
-    },
-  });
-
-  // "Apply to all"의 벌크 저장은 draft 컬렉션을 아는 이 훅이 소유한다.
-  // CaptionStyleEditor는 onApplyToAll(style) 콜백만 호출한다.
-  const applyStyleMutation = useMutation({
-    mutationFn: async (style: CaptionStyleInput | null) => {
-      for (const draft of clipDrafts) {
-        const result = await saveClipDraftEdit({
-          clipDraftId: draft.id,
-          startSeconds: draft.startSeconds,
-          endSeconds: draft.endSeconds,
-          selected: draft.selected,
-          captionStyle: style,
-        });
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-      }
-    },
-    onSuccess: async (_data, style) => {
-      await invalidateDetail();
-      trackCaptionStyleEdited(style, true);
-      toast.success("Applied caption style to all clips");
-    },
-    onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to apply style",
-      );
-    },
-  });
-
-  // 다이얼로그의 "Save as my default" — 작업본을 사용자 기본 캡션 스타일로 저장한다.
-  // 설정 화면 handleSaveCaption과 같은 서버 액션·계측을 쓰되, source로 진입점을 구분한다.
-  //
-  // ⚠️ style에 null을 넘기지 않는다. saveDefaultCaptionStyle(null)은 "저장 안 함"이 아니라
-  //    기본값 비우기이고(설정 화면 handleResetCaption:117-131이 그 용법), 이 버튼 이름과
-  //    토스트는 정반대를 말한다. 호출부(CaptionStyleDialog)가 working === null일 때 비활성으로
-  //    막지만, 타입이 null을 허용하는 것은 계측 matchPresetId(null) 경로와 시그니처를 맞추기
-  //    위해서일 뿐이다 — 새 호출자를 붙일 때 이 주석을 먼저 읽는다.
-  const saveDefaultMutation = useMutation({
-    mutationFn: async (style: CaptionStyleInput | null) => {
-      const result = await saveDefaultCaptionStyle(style);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-    },
-    onSuccess: (_data, style) => {
-      // 계측은 fire-and-forget(저장은 이미 성공). preset = matchPresetId 결과.
-      void trackAnalyticsEvent(
-        "settings_defaults_saved",
-        { source: "review_dialog", preset: matchPresetId(style) },
-        { path: REVIEW_ANALYTICS_PATH },
-      );
-      toast.success("Saved as your default caption style");
-    },
-    onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to save default",
-      );
     },
   });
 
@@ -354,12 +270,6 @@ export function useClipDraftReview(
     // 아래 넷은 JSX가 프라미스를 버리는 fire-and-forget 호출처다. mutateAsync는
     // mutationFn이 던지면 reject하는데 호출처가 받지 않아 unhandled rejection이 됐다
     // (onError 토스트는 버려진 프라미스를 settle하지 않는다). mutate로 바꾼다.
-    applyStyleToAll: (style: CaptionStyleInput | null) => {
-      applyStyleMutation.mutate(style);
-    },
-    saveCaptionStyleAsDefault: (style: CaptionStyleInput | null) => {
-      saveDefaultMutation.mutate(style);
-    },
     confirmAndGenerate: () => {
       confirmMutation.mutate();
     },
@@ -380,8 +290,6 @@ export function useClipDraftReview(
     // 위젯(확정 다이얼로그)이 소비하는 공유 플래그. 카드 로컬 isSaving
     // (개별 카드 저장 표시)과 스코프가 다르므로 이름으로 구분한다.
     isSavingDraft: saveMutation.isPending,
-    isApplyingToAll: applyStyleMutation.isPending,
-    isSavingDefault: saveDefaultMutation.isPending,
     isConfirming: confirmMutation.isPending,
     isAddingCustom: addCustomMutation.isPending,
     isSettingSelection: setSelectionMutation.isPending,

@@ -58,6 +58,11 @@ export default function SettingsView({
   const [captionStyle, setCaptionStyle] = useState<CaptionStyle | null>(
     initialCaptionStyle,
   );
+  // 미리보기 전용 언어. 업로드 기본 언어(language, Save defaults로 저장됨)와 분리한다 —
+  // 한국어 미리보기를 보려고 업로드 언어를 건드리는 사고 경로를 막는다(FEAT-52 관측 4). 저장 안 함.
+  const [previewLanguage, setPreviewLanguage] = useState(
+    initialDefaults.language,
+  );
   const [isSaving, startSaving] = useTransition();
 
   const persist = (payload: {
@@ -219,21 +224,47 @@ export default function SettingsView({
     </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Default caption style</CardTitle>
+          <CardTitle>Video style</CardTitle>
           <CardDescription>
-            New uploads start with this caption style. You can still change it
-            per clip while reviewing.
+            New uploads use this style. It&apos;s locked in when you upload — to
+            change a video&apos;s style, upload it again.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div>
+            <p className="text-sm font-medium">Captions</p>
+            <p className="text-muted-foreground text-xs">
+              Right now you can style the captions. Framing and background will
+              live here too.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="text-muted-foreground text-xs font-medium">
+              Preview language
+            </p>
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <Button
+                key={lang.value}
+                type="button"
+                size="sm"
+                variant={previewLanguage === lang.value ? "default" : "outline"}
+                onClick={() => setPreviewLanguage(lang.value)}
+              >
+                {lang.label}
+              </Button>
+            ))}
+          </div>
+          <p className="text-muted-foreground text-[11px]">
+            Preview only — this doesn&apos;t change your upload language.
+          </p>
           <CaptionStyleEditor
-            language={language}
+            language={previewLanguage}
             value={captionStyle}
             sample
             playUrl={null}
             clipStart={0}
             clipEnd={SAMPLE_CAPTION_CLIP_END}
-            words={sampleCaptionWords(language)}
+            words={sampleCaptionWords(previewLanguage)}
             onChange={setCaptionStyle}
           />
           <div className="flex gap-x-2">

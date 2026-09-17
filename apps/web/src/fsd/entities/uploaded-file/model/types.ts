@@ -1,4 +1,4 @@
-import type { Clip, ClipDraft, UploadedFile } from "@repo/db";
+import type { Clip, ClipDraft } from "@repo/db";
 import type { UploadedFileOutcome } from "./failure-code";
 import type { ProcessingStatus } from "./processing-status";
 
@@ -43,8 +43,6 @@ export interface UploadedFileDetail {
   reviewAttempt: number | null;
   reviewReadyAt: Date | null;
   currentUserCredits: number;
-  /** 업로드 시점 User.defaultCaptionStyle 스냅샷. 검토 Reset이 이 값으로 되돌린다(FEAT-50). */
-  captionStyle: UploadedFile["captionStyle"];
   clips: Clip[];
   clipDrafts: ClipDraft[];
 }

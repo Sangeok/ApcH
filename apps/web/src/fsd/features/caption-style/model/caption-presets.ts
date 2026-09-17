@@ -22,3 +22,15 @@ export function matchPresetId(style: CaptionStyle | null): CaptionPresetMatch {
 
   return hit?.id ?? "custom";
 }
+
+// 업로드 폼·발견 경로가 쓰는 사람이 읽는 라벨. matchPresetId 위에 얹는다.
+// "custom"을 따로 분기하지 않는다 — find가 못 찾으면 ?? 가 받는다. 분기를 두면
+// 그 ??가 도달 불가가 되어 테스트로 고정되지 않는다(검증 라운드 1 돌연변이 실측).
+export function captionStyleLabel(style: CaptionStyle | null): string {
+  const match = matchPresetId(style);
+  if (match === "default") return "Default";
+  return (
+    CAPTION_STYLE_PRESETS.find((preset) => preset.id === match)?.label ??
+    "Custom"
+  );
+}

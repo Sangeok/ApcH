@@ -15,6 +15,7 @@ import {
 } from "~/fsd/shared/ui/atoms/dropdown-menu";
 
 import Dropzone, { type DropzoneState } from "react-dropzone";
+import Link from "next/link";
 import { formatSecondsAsClock } from "~/fsd/shared/lib/format-duration";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
@@ -25,12 +26,14 @@ import {
   useUploadPodcast,
 } from "~/fsd/pages/dashboard/model/useUploadPodcast";
 import { getMaxFeasibleClipCount } from "~/fsd/pages/dashboard/model/clip-count-budget";
+import { captionStyleLabel } from "~/fsd/features/caption-style";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   UPLOAD_CONFIG,
   SUPPORTED_LANGUAGES,
   CLIP_COUNT_OPTIONS,
   CLIP_DURATION_LIMITS,
+  type CaptionStyle,
 } from "~/fsd/shared/config/constants";
 import type { ResolvedUploadDefaults } from "~/fsd/entities/user";
 import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
@@ -62,11 +65,13 @@ type UploadOptionsPayload = {
 interface UploadPodcastProps {
   onOptimisticAdd: (file: UploadedFileSummary) => void;
   defaults: ResolvedUploadDefaults;
+  defaultCaptionStyle: CaptionStyle | null;
 }
 
 export default function UploadPodcast({
   onOptimisticAdd,
   defaults,
+  defaultCaptionStyle,
 }: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [language, setLanguage] = useState<string>(defaults.language);
@@ -289,6 +294,20 @@ export default function UploadPodcast({
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </div>
+                <div className="flex gap-x-2">
+                  <p className="mt-1.5 text-sm font-medium">Video style:</p>
+                  <div className="mt-1.5 flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">
+                      {captionStyleLabel(defaultCaptionStyle)}
+                    </span>
+                    <Link
+                      href="/dashboard/settings"
+                      className="text-primary text-xs underline underline-offset-2"
+                    >
+                      Change in settings
+                    </Link>
+                  </div>
                 </div>
               </div>
               {files.length > 0 && durationSeconds !== null && (

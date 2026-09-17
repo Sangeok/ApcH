@@ -1,9 +1,7 @@
 import "server-only";
 
-// Prisma.JsonNull 값을 쓰므로 type-only import가 아니어야 한다.
-import { Prisma } from "@repo/db";
+import type { Prisma } from "@repo/db";
 import { db } from "~/server/db";
-import type { CaptionStyle } from "~/fsd/shared/config/constants";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 
@@ -70,21 +68,12 @@ export async function updateClipDraftEdit(
     startSeconds: number;
     endSeconds: number;
     selected: boolean;
-    // undefined = 스타일 변경 없음, null = 기본 스타일로 리셋
-    captionStyle?: Prisma.InputJsonValue | null;
   },
   options?: { tx?: Prisma.TransactionClient },
 ) {
-  const { captionStyle, ...rest } = data;
-
   return getClient(options?.tx).clipDraft.update({
     where: { id: clipDraftId },
-    data: {
-      ...rest,
-      ...(captionStyle !== undefined
-        ? { captionStyle: captionStyle ?? Prisma.JsonNull }
-        : {}),
-    },
+    data,
   });
 }
 
@@ -107,8 +96,6 @@ export async function getSelectedRenderMomentsForAttempt(
     type: draft.clipType,
     hook: draft.hook,
     payoff: draft.payoff,
-    // 저장 시 captionStyleSchema(shared CaptionStyle)로 검증된 JSON.
-    caption_style: (draft.captionStyle as CaptionStyle | null) ?? undefined,
   }));
 }
 
@@ -120,7 +107,6 @@ export async function createCustomClipDraft(
   args: {
     startSeconds: number;
     endSeconds: number;
-    captionStyle?: CaptionStyle | null;
   },
 ) {
   // 이 함수는 sibling 엔티티 함수들과 달리 자체 트랜잭션을 소유한다(호출자 tx를 받지 않음):
@@ -145,12 +131,6 @@ export async function createCustomClipDraft(
         startSeconds: args.startSeconds,
         endSeconds: args.endSeconds,
         selected: true,
-        // 업로드 스냅샷이 있으면 시드(AI 드래프트 persist-clip-drafts와 동형). null이면
-        // 필드 생략 → 컬럼 null → 렌더 시 언어 기본값. FEAT-50에서 기존 "커스텀은 항상 null"
-        // 의도(functions.ts 주석)를 뒤집었다.
-        ...(args.captionStyle != null
-          ? { captionStyle: args.captionStyle as Prisma.InputJsonValue }
-          : {}),
       },
       select: { id: true },
     });

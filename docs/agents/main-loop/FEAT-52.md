@@ -158,3 +158,50 @@ FEAT-51과 달리 **화면 변경과 계측 제거가 있어 경로 7·8이 새�
 확인). **경로 선정을 좁힐 이유가 없다.**
 
 **다음은 게이트② — 소유자만 연다.**
+
+## 인수 (2026-09-17)
+
+인수 조건 다섯을 직접 재현했다.
+
+① **변경 파일 ↔ 「고칠 파일」**: 삭제 3 + 수정 24 = 27, 표와 정확히 일치. 범위 밖 코드 0.
+② **diff ↔ 구현 스케치**: 핵심 넷을 실물로 대조 — `captionStyleLabel`이 **단순화안 그대로**
+   (`custom` 분기 없음, prettier 줄바꿈만 다름) · `requestCaptionStyle` 모듈이 스케치와 동일 ·
+   `Default` 칩이 `onClick={() => onChange(null)}`로 `emit`을 거치지 않음 · `constants.ts`의
+   `RenderCaptionStyle` 인용이 실제 참조로 교체됨.
+③ **게이트 직접 재실행**: `npm test -w apps/web` → **`tests 178 / suites 42 / pass 178 / fail 0`**
+   (계획 기대값 정확 일치) · `npm run check -w apps/web` **EXIT 0**(verify:fsd:test → verify:fsd
+   "FSD boundary check passed" → next lint → tsc).
+④ **백로그**: FEAT-52 항목 정의 0건, FEAT-53·54·55 보존.
+⑤ **상세 기록**: `docs/agents/web-dev/FEAT-52.md` 94줄 실재, 보드 `결과`가 그것을 가리킨다.
+
+### 인수에서 새로 나온 것 — 죽은 prop 하나
+
+`npm run check`가 **새 경고 하나**를 냈다: `ClipDraftCard.tsx:54 'playUrl' is defined but never
+used`. 다이얼로그가 미리보기 플레이어에 `playUrl`을 넘기던 유일한 소비자였는데, 계획서의
+`ClipDraftCard` 행이 제거 목록에 `playUrl`을 넣지 않아 prop만 남았다. 죽은 사슬을 전수로 확인했다:
+`ui/index.tsx:101`의 `readyPlayUrl` 산출 → `:454`의 `playUrl={readyPlayUrl}` 전달 →
+`ClipDraftCard.tsx:38`(타입)·`:54`(구조분해). 위젯 본체 플레이어(`:403-414`)는 `playUrlState`를
+직접 쓰므로 그쪽은 살아 있다. **네 줄짜리 잔재다.**
+
+경고이지 오류가 아니라 게이트는 EXIT 0이고, 구현은 계획서를 정확히 따랐다(계획서가 놓친 것이다 —
+내 검증 라운드도 놓쳤다. 나는 스케치가 **쓰는** 식별자만 대조했지, 삭제로 **죽는** 식별자는 열거하지
+않았다). 인수를 막을 사유는 아니므로 **후속 항목의 후보로 사용자에게 제시**한다.
+
+같은 성격의 잔재를 구현 보고가 함께 열거했다 — `use-clip-draft-review.ts`의 낡은 주석 3곳,
+`features/clip-review/index.ts`의 `CaptionStyleInput` 재수출(소비자 0). 그리고 내가 갱신한
+`constants.ts` 주석에도 "검토 UI가 전부 이 타입 하나를 참조한다"는 절이 남아 있는데, 검토 UI는
+이제 `CaptionStyle`을 참조하지 않는다. 넷을 한 항목으로 묶는 게 맞다.
+
+### 메인 루프 몫 둘
+
+- **`apps/web/CLAUDE.md` 테스트 표 네 곳 갱신.** 구현 보고가 「범위 밖」으로 넘긴 것이다(web-dev는
+  그 파일을 읽기 전용 지시 문서로 다룬다 — FEAT-51에서 `apps/backend/CLAUDE.md`를 같은 방식으로
+  처리한 전례). ① 헤더 수치 `26개 파일/183개 테스트` → `25개/178개` ② `caption-presets` 행에
+  `captionStyleLabel`과 **왜 `custom` 분기를 두면 안 되는지**(돌연변이 실측) 추가 ③
+  `caption-style-request` 행을 뒤집힌 계약으로 재작성 — 이 행은 FEAT-41의 2026-09-14 결정을
+  그대로 적고 있었는데 그 결정이 이번에 죽었다 ④ `caption-style-from-json` 행 제거(파일 삭제).
+- **`docs/release-checks.md`**: FEAT-52 절 신설(육안 6줄, `〔auto〕` 태그 없음 — 전부 로그인 뒤
+  화면이거나 렌더 산출물). 그리고 **FEAT-50 절의 다섯 줄을 전부 `대체(FEAT-52)`로 마감**했다 —
+  그 다이얼로그가 통째로 사라져 확인할 화면이 없다. 네 번째 줄(커스텀 클립이 형제와 같은 스타일)만
+  결과가 살아남되 경로가 드래프트 시드에서 백엔드 요청 스냅샷 폴백으로 바뀌었고, 그 확인은 FEAT-52
+  절의 실렌더 줄이 받는다. **FEAT-50은 프로덕션에 배포되지 못한 채 대체됐다.**

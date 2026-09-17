@@ -20,7 +20,9 @@ interface CaptionStyleEditorProps {
   clipStart: number;
   clipEnd: number;
   words: TranscriptWord[];
-  onChange: (style: CaptionStyle) => void;
+  // Default 칩이 null을 낸다(= 언어별 기본값). emit은 여전히 완전 객체를 내므로
+  // null 허용은 확대일 뿐이다.
+  onChange: (style: CaptionStyle | null) => void;
   // 설정 화면의 정지 샘플 미리보기. 검토 다이얼로그는 넘기지 않는다(기본 false).
   sample?: boolean;
 }
@@ -104,6 +106,16 @@ export default function CaptionStyleEditor({
             Preset
           </p>
           <div className="flex flex-wrap gap-1">
+            {/* null = "설정 안 함". emit은 null을 못 내므로(effective 병합) onChange를
+                직접 부른다. matchPresetId(null) === "default"라 이 칩만 켜진다. */}
+            <Button
+              type="button"
+              size="sm"
+              variant={activePreset === "default" ? "default" : "outline"}
+              onClick={() => onChange(null)}
+            >
+              Default
+            </Button>
             {CAPTION_STYLE_PRESETS.map((preset) => (
               <Button
                 key={preset.id}

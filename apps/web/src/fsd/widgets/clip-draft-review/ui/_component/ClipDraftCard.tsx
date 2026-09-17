@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ClipDraft, UploadedFile } from "@repo/db";
+import type { ClipDraft } from "@repo/db";
 import { clipTypeLabel } from "~/fsd/entities/clip";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   CLIP_DURATION_LIMITS,
-  type CaptionStyle,
   isClipDurationWithinLimits,
 } from "~/fsd/shared/config/constants";
 import {
@@ -23,8 +22,6 @@ import { getPreviewRange } from "../../model/preview-range";
 import { snapToAdjacentBoundary } from "../../model/boundary-snap";
 import { showsEnglishSourceForTranslation } from "../../model/review-language-notice";
 import { resolveReferenceTranslationDisplay } from "../../model/reference-translation";
-import { toCaptionStyle } from "../../model/caption-style-from-json";
-import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
 const AUTO_SAVE_DEBOUNCE_MS = 600;
@@ -36,14 +33,9 @@ interface ClipDraftCardProps {
   transcriptWords: TranscriptWord[];
   onPreview: (range: ClipRange) => void;
   onSave: (input: SaveDraftInput) => Promise<void>;
-  onApplyToAll: (style: CaptionStyle) => void;
-  isApplyingToAll: boolean;
   isOverlapping: boolean;
   isBudgetFull: boolean;
   playUrl: string | null;
-  uploadCaptionStyle: UploadedFile["captionStyle"];
-  onSaveAsDefault: (style: CaptionStyle | null) => void;
-  isSavingDefault: boolean;
 }
 
 function roundTenth(value: number): number {
@@ -57,14 +49,9 @@ export default function ClipDraftCard({
   transcriptWords,
   onPreview,
   onSave,
-  onApplyToAll,
-  isApplyingToAll,
   isOverlapping,
   isBudgetFull,
   playUrl,
-  uploadCaptionStyle,
-  onSaveAsDefault,
-  isSavingDefault,
 }: ClipDraftCardProps) {
   // 구간·스타일은 사용자가 편집 중인 값이라 로컬 state로 두지만, 선택 여부는
   // detail 캐시(draft.selected)에서 직접 읽는다. 로컬로 복사하면 위젯 헤더의
@@ -74,10 +61,6 @@ export default function ClipDraftCard({
   // 편집 중에만 원시 텍스트를 담는다. null = 편집 아님(초 state에서 포맷). 커밋은 blur에서만.
   const [startText, setStartText] = useState<string | null>(null);
   const [endText, setEndText] = useState<string | null>(null);
-  // 캡션 스타일은 로컬 state로 두지 않는다. 편집은 다이얼로그의 작업본에서만
-  // 일어나고 Apply가 곧바로 저장하므로, 구간 자동 저장은 스타일을 건드리지 않는다
-  // (captionStyle: undefined = 변경 없음).
-  const [isStyleDialogOpen, setIsStyleDialogOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const skipInitialAutoSaveRef = useRef(true);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -170,9 +153,6 @@ export default function ClipDraftCard({
         startSeconds,
         endSeconds,
         selected: draft.selected,
-        // 스타일은 다이얼로그 Apply만 저장한다. 여기서 값을 실으면 다른
-        // 카드의 Apply to all 결과를 오래된 값으로 덮을 수 있다.
-        captionStyle: undefined,
       });
     }, AUTO_SAVE_DEBOUNCE_MS);
 
@@ -198,20 +178,6 @@ export default function ClipDraftCard({
       startSeconds: isDurationWithinLimits ? startSeconds : draft.startSeconds,
       endSeconds: isDurationWithinLimits ? endSeconds : draft.endSeconds,
       selected: nextSelected,
-      captionStyle: undefined,
-    });
-  };
-
-  // 다이얼로그 Apply. 구간 자동 저장과 경합하지 않도록 대기 중인 타이머를
-  // 취소하고 현재 구간과 함께 한 번에 저장한다.
-  const handleApplyStyle = (style: CaptionStyle | null) => {
-    clearPendingAutoSave();
-    void runSave({
-      clipDraftId: draft.id,
-      startSeconds: isDurationWithinLimits ? startSeconds : draft.startSeconds,
-      endSeconds: isDurationWithinLimits ? endSeconds : draft.endSeconds,
-      selected: draft.selected,
-      captionStyle: style,
     });
   };
 
@@ -509,36 +475,7 @@ export default function ClipDraftCard({
         >
           Reset to AI suggestion
         </Button>
-        {/* 구간이 길이 제한 밖이면 서버가 저장 자체를 거부하므로, 스타일만
-            따로 저장할 방법이 없다. 구간을 먼저 고치게 막는다. */}
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={!isDurationWithinLimits}
-          className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
-          onClick={() => setIsStyleDialogOpen(true)}
-        >
-          Caption style
-        </Button>
       </div>
-
-      <CaptionStyleDialog
-        open={isStyleDialogOpen}
-        onOpenChange={setIsStyleDialogOpen}
-        language={language}
-        initialValue={toCaptionStyle(draft.captionStyle)}
-        playUrl={playUrl}
-        clipStart={startSeconds}
-        clipEnd={endSeconds}
-        words={wordsInRange}
-        onApply={handleApplyStyle}
-        onApplyToAll={onApplyToAll}
-        isApplyingToAll={isApplyingToAll}
-        snapshotValue={toCaptionStyle(uploadCaptionStyle)}
-        onSaveAsDefault={onSaveAsDefault}
-        isSavingDefault={isSavingDefault}
-      />
     </div>
   );
 }
