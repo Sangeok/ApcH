@@ -43,7 +43,7 @@
 - [ ] FEAT-53: `ClipDraft.captionStyle` 컬럼 제거 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-52 배포 완료로 활성 참조 0이 됐다 — 그 전제는 앞으로의 작업이 조용히 깨뜨릴 수 있어 지금이 적기다. FEAT-55를 여는 유일한 항목.
 - [x] FEAT-52: 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 — `Video style` 카드 + 업로드 폼 표시
   agent: web-dev
