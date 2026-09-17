@@ -9,7 +9,7 @@ import {
   CAPTION_STYLE_OPTIONS,
   CAPTION_STYLE_PRESETS,
 } from "~/fsd/shared/config/constants";
-import { matchPresetId } from "./caption-presets.ts";
+import { captionStyleLabel, matchPresetId } from "./caption-presets.ts";
 
 // 프리셋은 position이 없는 부분 스타일이다. 저장 경로가 받는 완전한 형태로 만든다.
 function withPosition(presetStyle, position = "middle") {
@@ -80,5 +80,28 @@ describe("matchPresetId", () => {
 
   it("reports default for the language-default style", () => {
     assert.equal(matchPresetId(null), "default");
+  });
+});
+
+describe("captionStyleLabel", () => {
+  // 이 셋이 함수를 완전히 고정한다(검증 라운드 1에서 돌연변이 7종 7/7 사멸 실측).
+  it("labels the language-default (null) style as Default", () => {
+    assert.equal(captionStyleLabel(null), "Default");
+  });
+
+  it("labels a matched preset by its human-readable name", () => {
+    const boldYellow = CAPTION_STYLE_PRESETS.find(
+      (preset) => preset.id === "bold-yellow",
+    );
+    assert.equal(captionStyleLabel(withPosition(boldYellow.style)), "Bold Yellow");
+  });
+
+  it("labels a style that matches no preset as Custom", () => {
+    assert.equal(
+      captionStyleLabel(
+        withPosition({ ...CAPTION_STYLE_PRESETS[0].style, fontSize: 200 }),
+      ),
+      "Custom",
+    );
   });
 });

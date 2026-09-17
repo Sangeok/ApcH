@@ -17,8 +17,6 @@ export const updateClipDraftSchema = z
     startSeconds: z.number().min(0),
     endSeconds: z.number().positive(),
     selected: z.boolean(),
-    // undefined = 스타일 변경 없음, null = 기본 스타일로 리셋
-    captionStyle: captionStyleSchema.nullable().optional(),
   })
   .refine(
     (value) => isClipDurationWithinLimits(value.startSeconds, value.endSeconds),

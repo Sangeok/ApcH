@@ -109,13 +109,11 @@ export default function ClipDraftReviewSection({
     transcriptWords,
     transcriptErrorMessage,
     saveDraft,
-    applyStyleToAll,
     confirmAndGenerate,
     addCustomClip,
     selectUpToBudget,
     deselectAll,
     isConfirming,
-    isApplyingToAll,
     isAddingCustom,
     isSavingDraft,
     isSettingSelection,
@@ -451,8 +449,6 @@ export default function ClipDraftReviewSection({
               transcriptWords={transcriptWords}
               onPreview={(range) => handlePreview(draft.id, range)}
               onSave={saveDraft}
-              onApplyToAll={applyStyleToAll}
-              isApplyingToAll={isApplyingToAll}
               isOverlapping={overlappingDraftIds.has(draft.id)}
               isBudgetFull={budget.isFull}
               playUrl={readyPlayUrl}

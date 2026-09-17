@@ -110,7 +110,7 @@ export function isClipDurationWithinLimits(
 /**
  * 캡션 스타일 계약의 단일 원천(canonical) 타입.
  * 검증 스키마(shared/config/caption-style-schema.ts의 captionStyleSchema),
- * 렌더 이벤트 페이로드(src/inngest/client.ts의 RenderCaptionStyle),
+ * 요청 단위 caption_style 페이로드(src/inngest/caption-style-request.ts의 requestCaptionStyle),
  * 렌더 디스패처의 JSON 캐스팅, 검토 UI가 전부 이 타입 하나를 참조한다.
  * 모든 필드는 required-but-nullable: null = 백엔드가 언어별 기본값으로 해석.
  */

@@ -39,7 +39,30 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-17
+- [x] FEAT-52: 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 — `Video style` 카드 + 업로드 폼 표시
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/clip-review + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/fsd/shared/analytics + apps/web/src/inngest
+  status: 완료
+  검증: 클린 패스 (2026-09-17, 독립 무편집 1사이클 — 결함 0, 필수 7경로 전수. 앞선 메인 루프 라운드에서 구현 영향 1건·문서 위생 2건 반영)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-51 완료·배포 — 백엔드가 요청 스냅샷을 받을 준비를 마쳤다. 사용자가 보는 변화는 전부 이 항목에 있다.
+  결과: 계획대로 27파일(삭제3·수정24) 구현 — 검토 클립별 스타일 경로 제거·render도 요청 스냅샷·설정 Video style 카드+Default 칩·업로드폼 라벨. check EXIT0·test 178/0(183→178·파일25). 상세 web-dev/FEAT-52
+
 ## 2026-09-16
+- [x] FEAT-51: `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 — 클립별 스타일 폐지의 백엔드 절반
+  agent: backend-dev
+  area: apps/backend/caption_style_source.py + apps/backend/main.py
+  status: 완료
+  검증: 클린 패스 (2026-09-16, 독립 무편집 1사이클 — 결함 0. 1차 독립 패스는 메인 루프 브리핑 계약 위반으로 무효. 앞선 메인 루프 라운드에서 문서 위생 3건 반영, 구현 영향 0)
+  근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-50 인수 직후 범위 재설계 — 스타일을 검토 화면에서 빼고 설정 전용으로. FEAT-52보다 먼저 배포해야 한다.
+  결과: 계획대로 3파일 — caption_style_source의 mode 게이트 제거(render도 request 폴백)+호출부 2인자화+주석 갱신, 테스트 12→8. test 113/0(117→113)·py_compile OK. 상세 backend-dev/FEAT-51
+- [x] FEAT-50: 검토 화면에서 캡션 기본값 캡처 — 다이얼로그 「내 기본으로 저장」·Reset을 업로드 스냅샷으로
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/settings/api + apps/web/src/fsd/entities/uploaded-file/api + apps/web/src/fsd/entities/clip-draft/api
+  status: 완료
+  검증: 클린 패스 (2026-09-16, 독립 무편집 4사이클 — 결함 0. 앞선 3사이클에서 구현 영향 1건·위생 4건 반영)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-42 완료 — 그 계획서 「범위 밖 의존」③으로 분할해 미룬 뒤 절반. 스타일은 내 영상 위에서 정해진다.
+  결과: 계획대로 11파일(신규2·수정9) 구현 — 다이얼로그 「Save as my default」+Reset 스냅샷 복귀+스냅샷 DTO 배선+커스텀 클립 시드③, 순수모듈+테스트7. check EXIT0·test 183/0(176→183). 상세 web-dev/FEAT-50
 - [x] FEAT-48: 검토 카드에 참고 번역을 저장·표시 — 영어 원문 아래 한국어 번역 블록
   agent: web-dev
   area: apps/web/src/inngest/modal-contract.ts + apps/web/src/inngest/functions.ts + apps/web/src/fsd/widgets/clip-draft-review

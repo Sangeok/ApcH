@@ -22,9 +22,52 @@
 
 ---
 
+## FEAT-51 — `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 (backend, 구현 2026-09-17)
+
+원천: `docs/agents/backend-dev/FEAT-51.md`의 「못 덮는 범위」와 계획서 「테스트」. **배포됨(2026-09-17)** — 소유자 승인 후 `PYTHONUTF8=1 python -m modal deploy main.py`(이 머신은 `modal`이 PATH에 없어 `python -m modal`로 돈다). `✓ App deployed in 6.486s`, 로컬 모듈 마운트에 `PythonPackage:caption_style_source` 재생성 확인, 엔드포인트 `https://sangeok--ai-podcast-clipper-process-video.modal.run`. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 113 tests ... OK`**(기준선 117, 이 모듈 12→8) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했고, 구현 결과물이 계획서 스케치와 **바이트 동일**임도 확인했다.
+**`〔auto〕` 태그를 붙이지 않는다**: 세 줄 전부 GPU·ffmpeg·pysubs2가 만든 `.mp4` 자막이나 Modal 워커 내부 전달이라 공개 HTTP 응답으로 판정되지 않는다.
+**⚠️ 두 줄은 FEAT-52 배포 전까지 판정할 수 없다** — 그 전까지 웹은 render 요청에 요청 단위 `caption_style`을 싣지 않아(`autoRequestCaptionStyle`이 render에서 `undefined` 반환) 새 폴백 경로가 **휴면**이다. 순서를 뒤집어 확인하려 들면 안 된다.
+
+- [ ] 전이 구간 회귀 0 — FEAT-51만 배포된 상태에서 검토 확정 렌더가 오늘과 같은 자막으로 나온다(클립별 스타일이 계속 이김). **FEAT-52 배포 전에 확인해야 하는 유일한 줄이다.**
+- [ ] `main.py` 호출부의 실배선 — 엔드포인트 → `.spawn`/`.remote` → `_do_process_video` → `select_caption_style` 주입까지 요청 스냅샷이 실제로 전달된다. `main.py`가 `whisperx`→`torch`를 import해 unittest 러너로 안 돌아 `py_compile`+`git diff`로만 덮였다. `modal run` 실물 필요
+- [ ] render 폴백의 실효 — 사용자가 설정한 스타일이 render 클립의 실제 `.mp4` 자막에 나타난다. **선행: FEAT-52 배포**(그전까지 휴면)
+
+---
+
+## FEAT-52 — 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 (web, 구현 2026-09-17)
+
+원천: `docs/agents/web-dev/FEAT-52.md`의 「못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` EXIT 0(verify:fsd 통과·tsc 통과) · `npm test -w apps/web` **`tests 178 / suites 42 / pass 178`**(기준선 183→178, 파일 26→25) — 둘 다 인수 시 메인 루프가 직접 재실행했고 계획서가 못박은 기대값과 정확히 일치했다. 선행 **FEAT-51은 이미 프로덕션에 배포**돼 백엔드가 요청 스냅샷 폴백을 받을 준비를 마쳤다.
+**`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 화면(설정·업로드 폼·검토)이거나 GPU·ffmpeg·pysubs2 렌더 산출물이라 공개 HTTP 응답으로 판정되지 않는다.
+
+- [ ] 설정 화면 카드가 **`Video style`** 제목으로 뜨고, 설명이 "업로드 시점에 고정된다"를 말하며, 안에 **`Captions` 섹션 헤더**가 보인다
+- [ ] **`Default` 칩이 프리셋 칩 맨 앞에 뜬다** — 기본값을 한 번도 안 정한 계정에서 그 칩이 켜져 있고, 누르면 언어 기본값으로 돌아가며(컨트롤·미리보기가 EN 122/5단어·KR 130/3단어를 그린다), 프리셋을 고르면 `Default`가 꺼지고 그 프리셋이 켜진다
+- [ ] **미리보기 언어 토글이 미리보기만 바꾼다** — `한국어`로 넘기면 샘플·숫자가 한국어 기준으로 바뀌고, 그 상태에서 업로드 기본값 카드의 `Save`를 눌러도 **다음 업로드 언어가 안 바뀐다**(관측 4의 사고 경로가 닫혔는지)
+- [ ] 업로드 폼(언어·클립 수·Generation 옆)에 **`Video style: <라벨>` 읽기 전용 한 줄**과 설정 링크가 뜨고, 라벨이 실제 기본값을 따라간다(미설정 → `Default`)
+- [ ] **검토 화면에서 캡션 스타일 UI가 사라졌다** — 카드에 `Caption style` 버튼이 없고 다이얼로그가 열리지 않는다. 구간·선택 편집은 그대로 동작한다
+- [ ] **render 실렌더가 업로드 스냅샷 스타일로 나온다** — 검토를 켠 업로드에서 스타일을 설정해 두고 확정하면, 만들어진 `.mp4` 자막이 그 스타일이다. **FEAT-51 + FEAT-52 둘 다 배포된 뒤에만 판정된다**(FEAT-51 절의 「render 폴백의 실효」와 같은 확인이다 — 둘 중 하나로 닫으면 나머지는 대체 처리)
+
+## FEAT-50 — 검토 화면에서 캡션 기본값 캡처 (web, 구현 2026-09-16)
+
+원천: `docs/agents/web-dev/FEAT-50.md`의 「테스트로 못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **183/183 · suites 42**(176→183, 인수 시 메인 루프 재실행). 인수 때 검증 라운드의 스케치 기계 적용본과 실구현을 대조했고 10파일 중 9파일 내용 동일(나머지 1건은 보고된 주석 표현 조정), 신규 순수 함수는 바이트 동일이었다.
+선행 FEAT-42(설정 화면 캡션 기본값·업로드 스냅샷)는 이미 실물에 있다.
+**`〔auto〕` 태그를 붙이지 않는다**: 다섯 줄 전부 로그인 뒤 `review_pending` 업로드의 검토 다이얼로그에서만 판정되고, 저장·시드는 DB write이며 계측은 fire-and-forget I/O라 공개 응답으로 판정되지 않는다.
+
+- [x] 캡션 스타일 다이얼로그 푸터가 **다섯 버튼**(좌: Reset style · Save as my default / 우: Cancel · Apply to all clips · Apply)으로 뜨고 좌우 그룹이 양끝으로 갈린다 — **대체(FEAT-52)**
+- [x] **「Save as my default」가 실제로 저장한다** — 누른 뒤 설정 화면 캡션 기본값이 그 스타일로 바뀌어 있고, 다음 업로드의 스냅샷에도 반영된다. 작업본이 비어 있을 때(스타일 없는 드래프트를 열었거나 Reset 직후 스냅샷이 null) 그 버튼이 **비활성**이다 — 활성이면 기본값이 지워진다 — **대체(FEAT-52)**
+- [x] **Reset style이 업로드 스냅샷으로 되돌린다** — 스냅샷이 있는 업로드에서 스타일을 바꾼 뒤 Reset하면 언어 기본값이 아니라 그 스냅샷 값으로 돌아온다(스냅샷이 null인 업로드에서는 지금까지처럼 언어 기본값) — **대체(FEAT-52)**
+- [x] **커스텀 클립이 스냅샷으로 시드된다**(요구 ③ — FEAT-41/42의 "커스텀은 언제나 언어 기본값" 결정을 뒤집은 것) — 스냅샷이 있는 업로드에서 직접 클립을 추가하면 그 클립도 형제 AI 클립과 같은 스타일로 렌더된다 — **대체(FEAT-52)**
+- [x] 계측 `settings_defaults_saved`가 `source: "review_dialog"`·`preset`과 함께 admin 분석에 기록된다(설정 화면발 `source: "settings_page"`와 구분된다) — **대체(FEAT-52)**
+
+> **다섯 줄 전부 대체(FEAT-52, 2026-09-17).** FEAT-52가 검토 화면의 캡션 스타일 다이얼로그를
+> 통째로 없앴다 — 「Save as my default」·Reset·다섯 버튼 푸터·`source: "review_dialog"` 계측이
+> 모두 사라졌으므로 이 줄들은 확인할 화면이 없다. 네 번째 줄(커스텀 클립이 형제와 같은 스타일로
+> 렌더된다)만 결과가 살아남되 **경로가 바뀌었다** — 드래프트 시드가 아니라 백엔드의 요청 스냅샷
+> 폴백(FEAT-51)이 같은 결과를 낸다. 그 확인은 아래 FEAT-52 절의 실렌더 줄이 받는다.
+> FEAT-50은 프로덕션에 배포되지 않은 채 대체됐다.
+
 ## FEAT-48 — 검토 카드에 참고 번역 저장·표시 (web, 구현 2026-09-16)
 
-원천: `docs/agents/web-dev/FEAT-48.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **아직 배포되지 않았다** — 코드는 `dev`만이고 `main` 미합류(PR 없음). 선행 둘은 이미 실물에 있다: FEAT-46(백엔드, 2026-09-15 배포, Modal v27)과 FEAT-47(컬럼, 2026-09-16 프로덕션 Neon 적용).
+원천: `docs/agents/web-dev/FEAT-48.md`의 「테스트로 못 덮는 범위」와 계획서 「못 덮는 범위」. **배포됨 — 2026-09-16 14:02 KST**, PR #121 `main` 합류(`2d32588`, 13:59 KST 소유자) → Vercel `Production – apc-h` success(배포 id 6474129936, sha `2d32588`). 선행 둘은 이미 실물에 있다: FEAT-46(백엔드, 2026-09-15 배포, Modal v27)과 FEAT-47(컬럼, 2026-09-16 프로덕션 Neon 적용).
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **176/176 · suites 41**(162→176, 인수 시 메인 루프 재실행). 인수 때 계획서 스케치 블록을 기계 추출해 구현본과 대조했고(추가된 줄이 전부 승인된 블록에서 나왔으며 스케치 밖 누출 0·삭제 0), 신규 순수 함수는 스케치와 바이트 동일(1831), 골든 문구 두 줄은 승인본 그대로였다.
 **이 절이 앞 두 절의 미완을 이어받는다** — FEAT-47 절 셋째 줄(컬럼에 값이 채워지는가)과 FEAT-46 절 넷째 줄(번역이 그 후보의 뜻인가)이 예고한 대로다. 그 둘은 `대체(FEAT-48)`로 닫았다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 `review_pending` Korean 업로드의 검토 화면에서만 판정되고, 값이 채워지는지는 DB·실제 analyze 실행이 필요하다.
@@ -39,7 +82,7 @@
 
 ## FEAT-47 — `ClipDraft.referenceTranslation` 컬럼 (db, 구현 2026-09-16)
 
-원천: `docs/agents/main-loop/FEAT-47.md`의 「원장」과 계획서 「못 덮는 범위」. **마이그레이션은 프로덕션 Neon에 적용 완료 — 2026-09-16**, 소유자 승인("적용 진행") 뒤 메인 루프가 `migrate deploy` 실행. 코드(스키마·생성 클라이언트)는 `dev`만(`main` 미합류).
+원천: `docs/agents/main-loop/FEAT-47.md`의 「원장」과 계획서 「못 덮는 범위」. **마이그레이션은 프로덕션 Neon에 적용 완료 — 2026-09-16**, 소유자 승인("적용 진행") 뒤 메인 루프가 `migrate deploy` 실행. 코드(스키마·생성 클라이언트)도 **배포됨 — 2026-09-16 14:02 KST**, PR #121 `main` 합류(`2d32588`) → Vercel `Production – apc-h`·`Production – apch-admin` 둘 다 success.
 게이트는 `npm run check --workspaces --if-present` EXIT 0 · `npm test -w apps/web` **162/0** · `-w apps/admin` **334/0** · `prisma generate` 7파일(인수 시 메인 루프 재실행). 인수 때 계획서 코드 블록 다섯을 기계 추출해 실파일과 바이트 대조했고, 스키마에서 바뀐 줄이 추가 11·삭제 4뿐임을 전수로 확인했다.
 **이 항목만으로는 사용자 체감 변화가 없다** — 값을 채우는 저장 매핑과 카드 표시는 FEAT-48이다. 그때까지 모든 행이 null이므로 아래 셋째 줄은 FEAT-48 절이 이어받는다.
 **`〔auto〕` 태그를 붙이지 않는다**: DB 카탈로그와 로그인 뒤 검토 화면에서만 판정된다.

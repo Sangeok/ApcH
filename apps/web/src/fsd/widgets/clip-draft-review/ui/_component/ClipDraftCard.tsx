@@ -6,9 +6,7 @@ import { clipTypeLabel } from "~/fsd/entities/clip";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
-  CAPTION_STYLE_OPTIONS,
   CLIP_DURATION_LIMITS,
-  type CaptionStyle,
   isClipDurationWithinLimits,
 } from "~/fsd/shared/config/constants";
 import {
@@ -24,30 +22,9 @@ import { getPreviewRange } from "../../model/preview-range";
 import { snapToAdjacentBoundary } from "../../model/boundary-snap";
 import { showsEnglishSourceForTranslation } from "../../model/review-language-notice";
 import { resolveReferenceTranslationDisplay } from "../../model/reference-translation";
-import CaptionStyleDialog from "./CaptionStyleDialog";
 
 const STEP_SECONDS = 0.5;
 const AUTO_SAVE_DEBOUNCE_MS = 600;
-
-// draft.captionStyle(Prisma JsonValue) → shared CaptionStyle 강제 변환의 단일 지점.
-// 필드가 늘기 전에 저장된 행에는 신규 키가 없다. 그대로 다이얼로그에 넣으면
-// 아무것도 고치지 않고 Apply 했을 때 zod(required-but-nullable)가 거부하므로
-// 누락 키를 null(= 백엔드 언어별 기본값)로 채운다.
-function toCaptionStyle(raw: ClipDraft["captionStyle"]): CaptionStyle | null {
-  if (raw === null || raw === undefined) return null;
-  // Partial로 받는다 — 저장된 행에 신규 키가 없을 수 있다는 사실을 타입에도
-  // 남겨야 아래 기본값이 죽은 코드로 취급되지 않는다.
-  const stored = raw as Partial<CaptionStyle>;
-  return {
-    position: stored.position ?? CAPTION_STYLE_OPTIONS.DEFAULT_POSITION,
-    fontSize: stored.fontSize ?? null,
-    color: stored.color ?? null,
-    maxWordsPerLine: stored.maxWordsPerLine ?? null,
-    outlineColor: stored.outlineColor ?? null,
-    outlineWidth: stored.outlineWidth ?? null,
-    uppercase: stored.uppercase ?? null,
-  };
-}
 
 interface ClipDraftCardProps {
   draft: ClipDraft;
@@ -56,8 +33,6 @@ interface ClipDraftCardProps {
   transcriptWords: TranscriptWord[];
   onPreview: (range: ClipRange) => void;
   onSave: (input: SaveDraftInput) => Promise<void>;
-  onApplyToAll: (style: CaptionStyle) => void;
-  isApplyingToAll: boolean;
   isOverlapping: boolean;
   isBudgetFull: boolean;
   playUrl: string | null;
@@ -74,8 +49,6 @@ export default function ClipDraftCard({
   transcriptWords,
   onPreview,
   onSave,
-  onApplyToAll,
-  isApplyingToAll,
   isOverlapping,
   isBudgetFull,
   playUrl,
@@ -88,10 +61,6 @@ export default function ClipDraftCard({
   // 편집 중에만 원시 텍스트를 담는다. null = 편집 아님(초 state에서 포맷). 커밋은 blur에서만.
   const [startText, setStartText] = useState<string | null>(null);
   const [endText, setEndText] = useState<string | null>(null);
-  // 캡션 스타일은 로컬 state로 두지 않는다. 편집은 다이얼로그의 작업본에서만
-  // 일어나고 Apply가 곧바로 저장하므로, 구간 자동 저장은 스타일을 건드리지 않는다
-  // (captionStyle: undefined = 변경 없음).
-  const [isStyleDialogOpen, setIsStyleDialogOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const skipInitialAutoSaveRef = useRef(true);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -184,9 +153,6 @@ export default function ClipDraftCard({
         startSeconds,
         endSeconds,
         selected: draft.selected,
-        // 스타일은 다이얼로그 Apply만 저장한다. 여기서 값을 실으면 다른
-        // 카드의 Apply to all 결과를 오래된 값으로 덮을 수 있다.
-        captionStyle: undefined,
       });
     }, AUTO_SAVE_DEBOUNCE_MS);
 
@@ -212,20 +178,6 @@ export default function ClipDraftCard({
       startSeconds: isDurationWithinLimits ? startSeconds : draft.startSeconds,
       endSeconds: isDurationWithinLimits ? endSeconds : draft.endSeconds,
       selected: nextSelected,
-      captionStyle: undefined,
-    });
-  };
-
-  // 다이얼로그 Apply. 구간 자동 저장과 경합하지 않도록 대기 중인 타이머를
-  // 취소하고 현재 구간과 함께 한 번에 저장한다.
-  const handleApplyStyle = (style: CaptionStyle | null) => {
-    clearPendingAutoSave();
-    void runSave({
-      clipDraftId: draft.id,
-      startSeconds: isDurationWithinLimits ? startSeconds : draft.startSeconds,
-      endSeconds: isDurationWithinLimits ? endSeconds : draft.endSeconds,
-      selected: draft.selected,
-      captionStyle: style,
     });
   };
 
@@ -523,33 +475,7 @@ export default function ClipDraftCard({
         >
           Reset to AI suggestion
         </Button>
-        {/* 구간이 길이 제한 밖이면 서버가 저장 자체를 거부하므로, 스타일만
-            따로 저장할 방법이 없다. 구간을 먼저 고치게 막는다. */}
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={!isDurationWithinLimits}
-          className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
-          onClick={() => setIsStyleDialogOpen(true)}
-        >
-          Caption style
-        </Button>
       </div>
-
-      <CaptionStyleDialog
-        open={isStyleDialogOpen}
-        onOpenChange={setIsStyleDialogOpen}
-        language={language}
-        initialValue={toCaptionStyle(draft.captionStyle)}
-        playUrl={playUrl}
-        clipStart={startSeconds}
-        clipEnd={endSeconds}
-        words={wordsInRange}
-        onApply={handleApplyStyle}
-        onApplyToAll={onApplyToAll}
-        isApplyingToAll={isApplyingToAll}
-      />
     </div>
   );
 }

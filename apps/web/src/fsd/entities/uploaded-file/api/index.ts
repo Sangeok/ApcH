@@ -514,7 +514,7 @@ export async function findCurrentProcessingAttemptContext(
       userId: true,
       s3Key: true,
       status: true,
-      captionStyle: true, // auto 요청 스냅샷 · 분석 드래프트 시드가 읽는다
+      captionStyle: true, // auto·render 요청 스냅샷이 읽는다
       user: {
         select: {
           credits: true,

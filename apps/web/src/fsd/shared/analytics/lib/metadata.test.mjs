@@ -48,11 +48,11 @@ describe("sanitizeAnalyticsMetadata", () => {
     // 허용 키 목록이 지킨다.
     assert.deepEqual(
       sanitizeAnalyticsMetadata("settings_defaults_saved", {
-        source: "review_dialog",
+        source: "settings_page",
         preset: "bold-yellow",
         uploadedFileId: "should-be-dropped",
       }),
-      { source: "review_dialog", preset: "bold-yellow" },
+      { source: "settings_page", preset: "bold-yellow" },
     );
   });
 });

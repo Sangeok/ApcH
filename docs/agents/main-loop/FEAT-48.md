@@ -159,3 +159,16 @@ web-dev 보고가 아니라 메인 루프가 직접 재현했다.
 - `apps/web/CLAUDE.md` 테스트 표: 머리 수치 `23개 파일, 37 suite, 162개 테스트` → `25개 파일, 41 suite, 176개 테스트`, 행 2개 추가(`inngest/modal-contract.test.mjs`는 `caption-style-request` 행 뒤, `widgets/clip-draft-review/model/reference-translation.test.mjs`는 `review-language-notice` 행 뒤). web-dev에게 읽기 전용이라 비고로 받은 문안을 반영했다.
 - `docs/release-checks.md`에 FEAT-48 절 등재(줄 다섯, `〔auto〕` 없음 — 로그인 뒤 Korean 검토 화면에서만 판정된다). 동시에 **FEAT-47 절 셋째 줄**과 **FEAT-46 절 넷째 줄**을 `대체(FEAT-48)`로 닫았다 — 두 줄 모두 "FEAT-48 절이 생기면 그 절이 이어받는다"고 스스로 예고했고, 한 확인이 두 곳에서 열려 있으면 어느 쪽을 닫아야 하는지가 흐려진다.
 - 「범위 밖 의존」에 막힌 것이 없어(계획서가 미리 따라가 확인했다) **백로그 후보로 올릴 후속이 없다**. 사용자 승인을 요청할 등재 항목 없음.
+
+## 배포 (2026-09-16) — PR #121 `main` 합류
+
+소유자가 머지·배포했고("배포 완료"), 메인 루프가 보고가 아니라 직접 검산했다.
+
+- PR #121 **MERGED** 04:59:23Z(13:59 KST), 머지 커밋 `2d32588` → `main`.
+- `main`이 구현 커밋을 포함한다 — `git merge-base --is-ancestor`로 `a0a3526`(FEAT-48 구현·인수)·`71bf498`(FEAT-47 컬럼)·`d1a26bd`(13차 감사) 셋 다 확인.
+- `main`의 실파일에 구현이 있다 — `git show origin/main:…/reference-translation.ts` 머리 주석과 `functions.ts:942` `referenceTranslation: moment.referenceTranslation ?? null,`.
+- Vercel: `Production – apc-h` 배포 id **6474129936**(sha `2d32588`, 05:02:00Z = 14:02 KST) **success**, `Production – apch-admin` id 6474117257(05:00:54Z) success. 커밋 전체 상태 `success`. 직전 web 프로덕션은 `2af048b`(2026-09-15)였으므로 빌드가 실제로 교체됐다.
+
+**첫 조회에서는 `Vercel – apc-h`가 `pending`이었고 `Production – apc-h` 배포 기록이 없었다** — 머지 직후라 빌드 중이었다. 그 상태로 원장에 "배포됨"을 적으면 거짓 기록이 되므로 적지 않고 다시 조회해 `success`를 본 뒤에 기록했다. 공개 표면의 `HTTP 200`은 새 빌드의 증거가 아니다 — 이번에 바뀐 화면이 전부 로그인 뒤라 공개 응답으로는 판정되지 않는다(그래서 이 절들에 `〔auto〕` 태그가 없다).
+
+이제 원장 FEAT-48 절 다섯 줄과 FEAT-47 절 둘째 줄이 소유자 실물 관측 대상이 됐다. 값이 실제로 채워지는지는 **FEAT-46 배포(2026-09-15) 이후 새로 분석한** Korean 업로드에서만 보인다 — 백필이 없어 기존 드래프트는 계속 null이다.

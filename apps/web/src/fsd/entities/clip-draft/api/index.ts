@@ -1,9 +1,7 @@
 import "server-only";
 
-// Prisma.JsonNull 값을 쓰므로 type-only import가 아니어야 한다.
-import { Prisma } from "@repo/db";
+import type { Prisma } from "@repo/db";
 import { db } from "~/server/db";
-import type { CaptionStyle } from "~/fsd/shared/config/constants";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 
@@ -70,21 +68,12 @@ export async function updateClipDraftEdit(
     startSeconds: number;
     endSeconds: number;
     selected: boolean;
-    // undefined = 스타일 변경 없음, null = 기본 스타일로 리셋
-    captionStyle?: Prisma.InputJsonValue | null;
   },
   options?: { tx?: Prisma.TransactionClient },
 ) {
-  const { captionStyle, ...rest } = data;
-
   return getClient(options?.tx).clipDraft.update({
     where: { id: clipDraftId },
-    data: {
-      ...rest,
-      ...(captionStyle !== undefined
-        ? { captionStyle: captionStyle ?? Prisma.JsonNull }
-        : {}),
-    },
+    data,
   });
 }
 
@@ -107,8 +96,6 @@ export async function getSelectedRenderMomentsForAttempt(
     type: draft.clipType,
     hook: draft.hook,
     payoff: draft.payoff,
-    // 저장 시 captionStyleSchema(shared CaptionStyle)로 검증된 JSON.
-    caption_style: (draft.captionStyle as CaptionStyle | null) ?? undefined,
   }));
 }
 
@@ -117,7 +104,10 @@ export async function getSelectedRenderMomentsForAttempt(
 export async function createCustomClipDraft(
   uploadedFileId: string,
   attempt: number,
-  args: { startSeconds: number; endSeconds: number },
+  args: {
+    startSeconds: number;
+    endSeconds: number;
+  },
 ) {
   // 이 함수는 sibling 엔티티 함수들과 달리 자체 트랜잭션을 소유한다(호출자 tx를 받지 않음):
   // max(index)+1 읽기와 create를 한 트랜잭션에 묶기 위해서다. 단, Prisma 기본 격리

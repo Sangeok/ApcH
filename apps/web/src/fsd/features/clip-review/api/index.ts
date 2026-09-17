@@ -17,7 +17,6 @@ import {
 import {
   addCustomClipDraftSchema,
   updateClipDraftSchema,
-  type CaptionStyleInput,
 } from "../model/schemas";
 import { type TranscriptWord, parseTranscriptWords } from "../model/transcript";
 
@@ -48,13 +47,12 @@ export async function getTranscript(
   }
 }
 
-// Persists a single draft edit (range, selection, caption style) while under review.
+// Persists a single draft edit (range, selection) while under review.
 export async function saveClipDraftEdit(input: {
   clipDraftId: string;
   startSeconds: number;
   endSeconds: number;
   selected: boolean;
-  captionStyle?: CaptionStyleInput | null;
 }): Promise<ActionResult<void>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
@@ -65,8 +63,7 @@ export async function saveClipDraftEdit(input: {
     return failure(validated.error.issues[0]?.message ?? "Invalid edit");
   }
 
-  const { clipDraftId, startSeconds, endSeconds, selected, captionStyle } =
-    validated.data;
+  const { clipDraftId, startSeconds, endSeconds, selected } = validated.data;
 
   try {
     const draft = await findClipDraftWithUpload(
@@ -95,7 +92,6 @@ export async function saveClipDraftEdit(input: {
       startSeconds,
       endSeconds,
       selected,
-      captionStyle,
     });
 
     revalidatePath(`/dashboard/uploads/${draft.uploadedFile.id}`);

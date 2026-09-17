@@ -1,5 +1,4 @@
 import { EventSchemas, Inngest } from "inngest";
-import type { CaptionStyle } from "~/fsd/shared/config/constants";
 // wire 계약의 정본은 ./modal-contract 하나다. 여기서 다시 선언하지 않는다.
 import type {
   AnalyzedMoment,
@@ -8,10 +7,6 @@ import type {
 
 export type { AnalyzedMoment } from "./modal-contract";
 
-// 캡션 계약의 원천은 shared/config의 CaptionStyle 단일 타입이다.
-// 여기서는 wire 명칭만 별칭으로 유지한다 (스키마-이벤트-디스패처 드리프트 방지).
-export type RenderCaptionStyle = CaptionStyle;
-
 type RenderMoment = {
   index: number;
   start: number;
@@ -19,8 +14,6 @@ type RenderMoment = {
   type?: string | null;
   hook?: string | null;
   payoff?: string | null;
-  // 백엔드 ProcessVideoRequest.moments[].caption_style와 동일 키 (snake_case 유지)
-  caption_style?: RenderCaptionStyle | null;
 };
 
 type Events = {

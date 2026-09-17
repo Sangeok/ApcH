@@ -34,7 +34,8 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Skill(dev-doc-review)",
-      "Bash(npm ls *)"
+      "Bash(npm ls *)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
