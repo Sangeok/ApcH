@@ -43,7 +43,7 @@
 - [ ] FEAT-52: 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 — `Video style` 카드 + 업로드 폼 표시
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/clip-review + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/fsd/shared/analytics + apps/web/src/inngest
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-17, 독립 무편집 1사이클 — 결함 0, 필수 7경로 전수. 앞선 메인 루프 라운드에서 구현 영향 1건·문서 위생 2건 반영)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-51 완료·배포 — 백엔드가 요청 스냅샷을 받을 준비를 마쳤다. 사용자가 보는 변화는 전부 이 항목에 있다.
 
