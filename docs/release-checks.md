@@ -24,7 +24,7 @@
 
 ## FEAT-51 — `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 (backend, 구현 2026-09-17)
 
-원천: `docs/agents/backend-dev/FEAT-51.md`의 「못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있고 `modal deploy`를 돌리지 않았다. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 113 tests ... OK`**(기준선 117, 이 모듈 12→8) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했고, 구현 결과물이 계획서 스케치와 **바이트 동일**임도 확인했다.
+원천: `docs/agents/backend-dev/FEAT-51.md`의 「못 덮는 범위」와 계획서 「테스트」. **배포됨(2026-09-17)** — 소유자 승인 후 `PYTHONUTF8=1 python -m modal deploy main.py`(이 머신은 `modal`이 PATH에 없어 `python -m modal`로 돈다). `✓ App deployed in 6.486s`, 로컬 모듈 마운트에 `PythonPackage:caption_style_source` 재생성 확인, 엔드포인트 `https://sangeok--ai-podcast-clipper-process-video.modal.run`. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 113 tests ... OK`**(기준선 117, 이 모듈 12→8) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했고, 구현 결과물이 계획서 스케치와 **바이트 동일**임도 확인했다.
 **`〔auto〕` 태그를 붙이지 않는다**: 세 줄 전부 GPU·ffmpeg·pysubs2가 만든 `.mp4` 자막이나 Modal 워커 내부 전달이라 공개 HTTP 응답으로 판정되지 않는다.
 **⚠️ 두 줄은 FEAT-52 배포 전까지 판정할 수 없다** — 그 전까지 웹은 render 요청에 요청 단위 `caption_style`을 싣지 않아(`autoRequestCaptionStyle`이 render에서 `undefined` 반환) 새 폴백 경로가 **휴면**이다. 순서를 뒤집어 확인하려 들면 안 된다.
 

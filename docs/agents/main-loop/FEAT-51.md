@@ -183,3 +183,42 @@ docs/plans`는 빈 출력, `git diff --stat HEAD -- apps/backend docs/plans`도 
 공산이 크므로 단순 축소는 하지 않는다.
 
 **다음은 게이트② — 소유자만 연다.**
+
+## 인수 + 배포 (2026-09-17)
+
+인수 조건 다섯을 직접 재현했다. ① 변경 3파일이 계획 「고칠 파일」과 일치(범위 밖 코드 0).
+② 구현 결과물 `caption_style_source.py`가 계획서 스케치와 **바이트 동일**(추출 후 문자열 비교),
+`main.py`는 지정된 두 곳만. ③ `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p
+"test_*.py"` → `Ran 113 tests ... OK`(계획 기대값 일치), 모듈 단독 `Ran 8 tests ... OK`,
+`py_compile` EXIT 0 — 셋 다 내가 재실행. ④ 백로그 FEAT-51 **항목 정의 0건**, 남은 언급 3건은
+FEAT-52·53의 교차 참조이고 FEAT-52·53·54 보존. ⑤ `docs/agents/backend-dev/FEAT-51.md` 58줄
+실재, 게이트 실측 출력 포함.
+
+메인 루프 몫 둘:
+
+- **`apps/backend/CLAUDE.md`의 auto-only 서술 갱신.** 계획서가 「범위 밖 의존」으로 지목한
+  문서 드리프트다(backend-dev 쓰기 범위 밖, FEAT-43 전례). "모든 모드에서 폴백한다"로 고치고,
+  `auto`-only 게이트가 왜 있었고 왜 죽었는지, `moment_style`이 왜 남아 있는지를 함께 적었다.
+- **`docs/release-checks.md`에 못 덮는 범위 3줄 등재.** `〔auto〕` 태그는 붙이지 않는다 —
+  셋 다 GPU·ffmpeg·pysubs2 산출물이거나 Modal 워커 내부 전달이라 공개 HTTP 응답으로 판정되지
+  않는다. **두 줄은 FEAT-52 배포 전까지 판정 불가**라는 사실을 원장에 박았다(그전까지 웹이
+  render 요청에 스냅샷을 안 실어 새 폴백이 휴면이다). 순서를 뒤집어 확인하려는 시도를 막는다.
+
+### 배포
+
+소유자 승인 후 배포했다. 이 머신은 `modal`이 PATH에 없어 `python -m modal`로 돈다(client 1.2.1).
+
+```
+cd apps/backend && PYTHONUTF8=1 python -m modal deploy main.py
+→ ✓ App deployed in 6.486s
+→ PythonPackage:caption_style_source 마운트 재생성
+→ https://sangeok--ai-podcast-clipper-process-video.modal.run
+```
+
+이미지 레이어는 재빌드되지 않았다 — 이 항목이 바꾼 것이 로컬 파이썬 소스뿐이라
+`add_local_python_source` 마운트만 갱신됐다. 6초가 그 증거다.
+
+**배포해도 사용자 화면·렌더 결과는 그대로다.** 웹이 render 요청에 요청 단위 `caption_style`을
+아직 안 싣기 때문이다(`autoRequestCaptionStyle`이 render에서 `undefined`). 새 폴백 경로는
+FEAT-52 배포 전까지 휴면이며, 이것이 이 배포를 **먼저** 하는 이유다 — 웹이 클립별 스타일을
+끊는 순간 백엔드가 이미 받을 준비가 돼 있어야 한다.
