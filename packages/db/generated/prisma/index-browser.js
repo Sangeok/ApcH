@@ -219,7 +219,6 @@ exports.Prisma.ClipDraftScalarFieldEnum = {
   payoff: 'payoff',
   referenceTranslation: 'referenceTranslation',
   selected: 'selected',
-  captionStyle: 'captionStyle',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

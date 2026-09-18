@@ -8281,7 +8281,6 @@ export namespace Prisma {
     payoff: number
     referenceTranslation: number
     selected: number
-    captionStyle: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -8356,7 +8355,6 @@ export namespace Prisma {
     payoff?: true
     referenceTranslation?: true
     selected?: true
-    captionStyle?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -8462,7 +8460,6 @@ export namespace Prisma {
     payoff: string | null
     referenceTranslation: string | null
     selected: boolean
-    captionStyle: JsonValue | null
     createdAt: Date
     updatedAt: Date
     _count: ClipDraftCountAggregateOutputType | null
@@ -8500,7 +8497,6 @@ export namespace Prisma {
     payoff?: boolean
     referenceTranslation?: boolean
     selected?: boolean
-    captionStyle?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
@@ -8520,7 +8516,6 @@ export namespace Prisma {
     payoff?: boolean
     referenceTranslation?: boolean
     selected?: boolean
-    captionStyle?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
@@ -8540,7 +8535,6 @@ export namespace Prisma {
     payoff?: boolean
     referenceTranslation?: boolean
     selected?: boolean
-    captionStyle?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
@@ -8560,12 +8554,11 @@ export namespace Prisma {
     payoff?: boolean
     referenceTranslation?: boolean
     selected?: boolean
-    captionStyle?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ClipDraftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "index" | "aiStartSeconds" | "aiEndSeconds" | "startSeconds" | "endSeconds" | "clipType" | "hook" | "payoff" | "referenceTranslation" | "selected" | "captionStyle" | "createdAt" | "updatedAt", ExtArgs["result"]["clipDraft"]>
+  export type ClipDraftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "index" | "aiStartSeconds" | "aiEndSeconds" | "startSeconds" | "endSeconds" | "clipType" | "hook" | "payoff" | "referenceTranslation" | "selected" | "createdAt" | "updatedAt", ExtArgs["result"]["clipDraft"]>
   export type ClipDraftInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }
@@ -8595,7 +8588,6 @@ export namespace Prisma {
       payoff: string | null
       referenceTranslation: string | null
       selected: boolean
-      captionStyle: Prisma.JsonValue | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["clipDraft"]>
@@ -9035,7 +9027,6 @@ export namespace Prisma {
     readonly payoff: FieldRef<"ClipDraft", 'String'>
     readonly referenceTranslation: FieldRef<"ClipDraft", 'String'>
     readonly selected: FieldRef<"ClipDraft", 'Boolean'>
-    readonly captionStyle: FieldRef<"ClipDraft", 'Json'>
     readonly createdAt: FieldRef<"ClipDraft", 'DateTime'>
     readonly updatedAt: FieldRef<"ClipDraft", 'DateTime'>
   }
@@ -15200,7 +15191,6 @@ export namespace Prisma {
     payoff: 'payoff',
     referenceTranslation: 'referenceTranslation',
     selected: 'selected',
-    captionStyle: 'captionStyle',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -15962,7 +15952,6 @@ export namespace Prisma {
     payoff?: StringNullableFilter<"ClipDraft"> | string | null
     referenceTranslation?: StringNullableFilter<"ClipDraft"> | string | null
     selected?: BoolFilter<"ClipDraft"> | boolean
-    captionStyle?: JsonNullableFilter<"ClipDraft">
     createdAt?: DateTimeFilter<"ClipDraft"> | Date | string
     updatedAt?: DateTimeFilter<"ClipDraft"> | Date | string
     uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
@@ -15982,7 +15971,6 @@ export namespace Prisma {
     payoff?: SortOrderInput | SortOrder
     referenceTranslation?: SortOrderInput | SortOrder
     selected?: SortOrder
-    captionStyle?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     uploadedFile?: UploadedFileOrderByWithRelationInput
@@ -16006,7 +15994,6 @@ export namespace Prisma {
     payoff?: StringNullableFilter<"ClipDraft"> | string | null
     referenceTranslation?: StringNullableFilter<"ClipDraft"> | string | null
     selected?: BoolFilter<"ClipDraft"> | boolean
-    captionStyle?: JsonNullableFilter<"ClipDraft">
     createdAt?: DateTimeFilter<"ClipDraft"> | Date | string
     updatedAt?: DateTimeFilter<"ClipDraft"> | Date | string
     uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
@@ -16026,7 +16013,6 @@ export namespace Prisma {
     payoff?: SortOrderInput | SortOrder
     referenceTranslation?: SortOrderInput | SortOrder
     selected?: SortOrder
-    captionStyle?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ClipDraftCountOrderByAggregateInput
@@ -16053,7 +16039,6 @@ export namespace Prisma {
     payoff?: StringNullableWithAggregatesFilter<"ClipDraft"> | string | null
     referenceTranslation?: StringNullableWithAggregatesFilter<"ClipDraft"> | string | null
     selected?: BoolWithAggregatesFilter<"ClipDraft"> | boolean
-    captionStyle?: JsonNullableWithAggregatesFilter<"ClipDraft">
     createdAt?: DateTimeWithAggregatesFilter<"ClipDraft"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ClipDraft"> | Date | string
   }
@@ -17079,7 +17064,6 @@ export namespace Prisma {
     payoff?: string | null
     referenceTranslation?: string | null
     selected?: boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     uploadedFile: UploadedFileCreateNestedOneWithoutClipDraftsInput
@@ -17099,7 +17083,6 @@ export namespace Prisma {
     payoff?: string | null
     referenceTranslation?: string | null
     selected?: boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17117,7 +17100,6 @@ export namespace Prisma {
     payoff?: NullableStringFieldUpdateOperationsInput | string | null
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     uploadedFile?: UploadedFileUpdateOneRequiredWithoutClipDraftsNestedInput
@@ -17137,7 +17119,6 @@ export namespace Prisma {
     payoff?: NullableStringFieldUpdateOperationsInput | string | null
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17156,7 +17137,6 @@ export namespace Prisma {
     payoff?: string | null
     referenceTranslation?: string | null
     selected?: boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17174,7 +17154,6 @@ export namespace Prisma {
     payoff?: NullableStringFieldUpdateOperationsInput | string | null
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17193,7 +17172,6 @@ export namespace Prisma {
     payoff?: NullableStringFieldUpdateOperationsInput | string | null
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -18334,7 +18312,6 @@ export namespace Prisma {
     payoff?: SortOrder
     referenceTranslation?: SortOrder
     selected?: SortOrder
-    captionStyle?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -20333,7 +20310,6 @@ export namespace Prisma {
     payoff?: string | null
     referenceTranslation?: string | null
     selected?: boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -20351,7 +20327,6 @@ export namespace Prisma {
     payoff?: string | null
     referenceTranslation?: string | null
     selected?: boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -20496,7 +20471,6 @@ export namespace Prisma {
     payoff?: StringNullableFilter<"ClipDraft"> | string | null
     referenceTranslation?: StringNullableFilter<"ClipDraft"> | string | null
     selected?: BoolFilter<"ClipDraft"> | boolean
-    captionStyle?: JsonNullableFilter<"ClipDraft">
     createdAt?: DateTimeFilter<"ClipDraft"> | Date | string
     updatedAt?: DateTimeFilter<"ClipDraft"> | Date | string
   }
@@ -21734,7 +21708,6 @@ export namespace Prisma {
     payoff?: string | null
     referenceTranslation?: string | null
     selected?: boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -21851,7 +21824,6 @@ export namespace Prisma {
     payoff?: NullableStringFieldUpdateOperationsInput | string | null
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21869,7 +21841,6 @@ export namespace Prisma {
     payoff?: NullableStringFieldUpdateOperationsInput | string | null
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21887,7 +21858,6 @@ export namespace Prisma {
     payoff?: NullableStringFieldUpdateOperationsInput | string | null
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
-    captionStyle?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

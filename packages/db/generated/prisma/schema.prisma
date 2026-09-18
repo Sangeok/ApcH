@@ -57,7 +57,7 @@ model User {
   defaultClipCount            Int?
   defaultReviewBeforeGenerate Boolean?
   // 검증은 captionStyleSchema(features/clip-review/model/schemas.ts) 한 곳.
-  // ClipDraft.captionStyle과 같은 CaptionStyle 모양이다.
+  // UploadedFile.captionStyle(업로드 시점 스냅샷)과 같은 CaptionStyle 모양이다.
   defaultCaptionStyle         Json?
 
   accounts Account[]
@@ -187,11 +187,6 @@ model ClipDraft {
   // 원문은 AI 구간(aiStartSeconds~aiEndSeconds) 기준이라 사용자가 구간을 옮기면 낡는다.
   referenceTranslation String?
   selected             Boolean @default(true)
-
-  // Per-clip caption style override. null = language defaults (backend hardcoded values).
-  // Shape: shared CaptionStyle type (src/fsd/shared/config/constants.ts),
-  // validated by captionStyleSchema (features/clip-review/model/schemas.ts).
-  captionStyle Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
