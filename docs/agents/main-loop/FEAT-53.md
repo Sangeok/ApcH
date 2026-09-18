@@ -136,3 +136,103 @@ SELECT하므로(위 다섯 쿼리), DB에서 먼저 지우면 검토 화면·편
 계획서의 넷(깨짐) + 넷(안전) 분해와 맞물린다.
 
 **라운드 3 소득 0.** 독립 패스를 한 번 더 받는다 — 1차가 결함을 냈으므로 무소득 패스가 아직 없다.
+
+## 독립 패스 2차 (`plan-verifier`) — 2026-09-17 · **클린 패스**
+
+브리핑은 계약대로 셋만. 검증자가 판정 자격을 확인했다. **결함 0건, 필수 6경로 전부 실행.**
+
+독립적으로 재현·확장된 것:
+
+- 경로 1 — 계획서의 모든 인용을 재독 대조, **함수 소속과 `select` 유무까지** 확인. `package.json`의
+  네 스크립트(`postinstall`·`db:generate:client`·`db:generate`·`db:migrate`)도 대조해 계획서의
+  "`db:generate`는 `migrate dev`라 쓰면 안 된다"는 서술이 정확함을 확인했다.
+- 경로 3 — `sed 191,195d`로 실제 삭제를 적용해 산출이 스케치 after와 정확히 일치함을 보였다.
+  `:60` 주석 재지정이 before/after 블록 없이 산문 지시로만 있는 점을 짚되, 대상(`UploadedFile.captionStyle`)이
+  실재·활성이라 **지시 불명확이 아니라고 판정**했다 — 내가 스케치를 안 쓴 선택을 받아 준 것이다.
+- 경로 4 — 「여덟」·「넷/넷」·「활성 참조 0」·「`ClipDraft` 생성 마이그레이션 없음」을 전부 재열거.
+  마지막 것은 `CREATE TABLE ClipDraft`를 대소문자·공백 관대 grep으로도 0건 확인했다(내가 안 한 것).
+- **경로 7 — 진짜 음성 시험을 했다.** 생성 클라이언트의 `ClipDraft` 타입에서
+  `Omit<ClipDraft,"captionStyle">`로 마이그레이션 후 상태를 흉내 내 `tsc`를 돌렸고,
+  `draft.captionStyle` 읽기가 **`TS2339: Property 'captionStyle' does not exist`로 실패**하고
+  `draft.selected`는 무오류임을 보였다. 계획서의 "`tsc`가 진짜 게이트"가 **장식이 아님을 실증**했다.
+  나는 이 주장을 쓰기만 하고 시험하지 않았다.
+- 경로 9 — `prisma validate` 통과에 더해, `@@unique`·`@@index`·relation이 그 컬럼을 참조하지 않음과,
+  신규 타임스탬프 `20260917000000`이 기존 최신보다 뒤로 정렬돼 충돌이 없음을 구조로 확인했다.
+  1차 패스는 여기에 더해 `prisma migrate diff`로 마이그레이션을 **구조적으로 생성**해 내
+  `migration.sql`과 **바이트 일치**함을 보였다.
+
+프로덕션 DDL만 실행하지 않았다 — 계획서가 소유자 승인 단계로 명시한 부분이고, 명령 **형태**는
+검증됐다(`node_modules/prisma/build/index.js` 6.19.1 실재, `.env`에 `DATABASE_URL`·
+`DATABASE_URL_UNPOOLED` 둘 다 존재).
+
+**무수정 준수 — 직접 검산했다.** `git status --short`는 `?? nul`(세션 시작 전부터 있던 미추적
+파일)뿐이고 `git diff --stat HEAD -- packages docs apps`는 **빈 출력**이다.
+
+### 판정
+
+보드에 `검증: 클린 패스`를 기록한다. 카운트는 이 2차 패스 하나 — 1차는 결함 2건을 냈으므로
+무소득이 아니다. 누적 소득은 **메인 루프 라운드 2건 + 독립 패스 1차 2건 = 4건**이고, 그중
+구현 산출물을 바꾸는 것은 **0건**이었다(전부 근거·열거·검증 대상 목록의 정확성).
+
+정지 규칙에 걸리지 않는다 — 독립 패스가 구현 영향 결함을 3사이클 연속 낸 적이 없다.
+
+**남길 교훈 하나**: 이 항목의 소득 4건 중 **3건이 "수를 세는 전칭 문장"**이었다(다섯→넷, 하나→둘,
+여집합 누락). 저자=검증자인 main-loop 항목에서는 그 문장들을 먼저 의심하는 편이 싸다.
+
+**다음은 게이트② — 소유자만 연다.**
+
+## 구현 (2026-09-18) — 코드만, DB 적용은 별개 단계
+
+게이트②가 열려 구현했다. 계획서 「고칠 파일」 그대로 둘을 고쳤다.
+
+1. `packages/db/prisma/schema.prisma` — ① `ClipDraft`에서 주석 3줄 + `captionStyle   Json?` +
+   앞 빈 줄 제거(스케치 before/after 그대로 적용). ② `User.defaultCaptionStyle`의
+   `    // ClipDraft.captionStyle과 같은 CaptionStyle 모양이다.`를
+   `    // UploadedFile.captionStyle(업로드 시점 스냅샷)과 같은 CaptionStyle 모양이다.`로.
+2. `packages/db/prisma/migrations/20260917000000_drop_clip_draft_caption_style/migration.sql` 신규 —
+   `-- AlterTable` + `ALTER TABLE "ClipDraft" DROP COLUMN "captionStyle";`.
+
+**마이그레이션 디렉터리 이름의 날짜(0917)가 오늘(0918)과 다르다.** 계획·검증이 그 이름으로
+확정됐고 이 문자열은 정렬 키이지 적용 시각의 주장이 아니므로 그대로 뒀다. 사이클 중 날짜가
+넘어간 것뿐이다.
+
+### 생성 클라이언트 — 계획서 「고칠 파일」의 누락
+
+`npm run db:generate:client -w @repo/db`로 재생성했다(DB 무접속). 그 결과
+**`packages/db/generated/prisma/` 7파일이 변경됐고, 이 파일들은 추적 대상이다.**
+
+**계획서 「고칠 파일」은 둘만 적었다.** §3이 재생성을 "읽기 전용"이라 부른 것도 절반만 맞다 —
+DB에 안 닿는다는 뜻이었지 파일을 안 쓴다는 뜻이 아닌데, 그렇게 읽힌다.
+
+선례로 판정했다: FEAT-47(`71bf498`, 컬럼 추가)의 커밋이 **정확히 같은 9파일 모양**
+(생성 7 + 마이그레이션 + 스키마)이다. 커밋에 포함하는 것이 이 저장소의 방식이므로 그대로 따랐다.
+
+**이 누락은 내 라운드 셋도, 독립 패스 두 번도 잡지 못했다.** 여섯 경로가 전부 "계획서가 말하는
+것"을 검사했고, "계획서가 말하지 않은 산출물"은 아무 경로도 보지 않았다. FEAT-52에서 나온
+「삭제로 죽는 식별자를 아무도 열거하지 않았다」와 같은 모양의 구멍이다 — 그때는 삭제, 이번엔
+생성이다. **카탈로그 갱신 규칙(「표 밖에서 잡힌 결함은 표의 결함이다」)에 해당할 수 있다.**
+사용자에게 제시한다.
+
+### 게이트 — 전부 직접 실행
+
+| 게이트 | 결과 |
+| --- | --- |
+| `npm run check -w apps/web` | **EXIT 0** (verify:fsd:test → verify:fsd "passed" → next lint → tsc). 경고 1건은 FEAT-52가 남긴 `ClipDraftCard.tsx:54 'playUrl'`로 이 항목과 무관하며 FEAT-56이 받는다 |
+| `npm test -w apps/web` | **`suites 42 / pass 178 / fail 0`** — 계획서가 못박은 "같은 숫자"와 정확히 일치 |
+| `python -m unittest discover -s apps/backend` | **`Ran 113 tests ... OK`** — 불변(백엔드는 Prisma를 쓰지 않는다) |
+
+**`tsc`가 이 항목의 진짜 게이트라는 계획서 주장이 여기서 실증됐다.** `captionStyle`이 없는 새
+클라이언트로 `tsc --noEmit`이 통과했다 — 남은 활성 참조가 하나라도 있었으면 `TS2339`로
+깨졌을 자리다(독립 패스 2차가 음성 시험으로 그 사실을 미리 보였다).
+
+구조 확인도 했다: `ClipDraftScalarFieldEnum`에서 `captionStyle` **소멸**,
+`UploadedFileScalarFieldEnum`에는 **잔존**, `ClipDraftPayload` 인근 0건.
+
+### 아직 하지 않은 것 — DB 적용
+
+**마이그레이션을 적용하지 않았다.** 계획서 「적용 순서」대로 **커밋·푸시 → `main` 합류·배포(새
+클라이언트) → 그 뒤에 별도 승인 → `migrate deploy`** 순서다. 지금 적용하면 프로덕션에 떠 있는
+옛 클라이언트가 없는 컬럼을 SELECT해 검토 화면·편집 저장·렌더 디스패치·업로드 상세가 깨진다.
+
+적용 직전에 `SELECT count(*) FROM "ClipDraft" WHERE "captionStyle" IS NOT NULL;`로 **지워지는
+행 수를 소유자에게 보고한 뒤** 승인을 받는다.
