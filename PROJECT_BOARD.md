@@ -43,10 +43,10 @@
 - [x] FEAT-53: `ClipDraft.captionStyle` 컬럼 제거 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-17, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 1차 독립 패스 결함 2건·메인 루프 라운드 소득 2건 반영 뒤)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-52 배포 완료로 활성 참조 0이 됐다 — 그 전제는 앞으로의 작업이 조용히 깨뜨릴 수 있어 지금이 적기다. FEAT-55를 여는 유일한 항목.
-  결과: 계획대로 schema 2곳+마이그레이션 신규, 생성 클라이언트 7파일 동반(FEAT-47 선례). check EXIT0·test 178/42/0 불변·backend 113 불변. **DB 미적용** — 배포 뒤 별도 승인. 상세 main-loop/FEAT-53
+  결과: 계획대로 schema 2곳+마이그레이션 신규, 생성 클라이언트 7파일 동반(FEAT-47 선례). check EXIT0·test 178/42/0·backend 113 불변. **DB 적용 완료**(2026-09-19, 6/70행 소멸) — db pull로 컬럼 소멸 확인. 상세 main-loop/FEAT-53
 - [x] FEAT-52: 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 — `Video style` 카드 + 업로드 폼 표시
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/clip-review + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/fsd/shared/analytics + apps/web/src/inngest

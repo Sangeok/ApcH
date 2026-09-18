@@ -228,11 +228,69 @@ DB에 안 닿는다는 뜻이었지 파일을 안 쓴다는 뜻이 아닌데, �
 구조 확인도 했다: `ClipDraftScalarFieldEnum`에서 `captionStyle` **소멸**,
 `UploadedFileScalarFieldEnum`에는 **잔존**, `ClipDraftPayload` 인근 0건.
 
-### 아직 하지 않은 것 — DB 적용
+### DB 적용 — 계획한 순서
 
-**마이그레이션을 적용하지 않았다.** 계획서 「적용 순서」대로 **커밋·푸시 → `main` 합류·배포(새
+**구현 시점에는 적용하지 않았다.** 계획서 「적용 순서」대로 **커밋·푸시 → `main` 합류·배포(새
 클라이언트) → 그 뒤에 별도 승인 → `migrate deploy`** 순서다. 지금 적용하면 프로덕션에 떠 있는
 옛 클라이언트가 없는 컬럼을 SELECT해 검토 화면·편집 저장·렌더 디스패치·업로드 상세가 깨진다.
 
 적용 직전에 `SELECT count(*) FROM "ClipDraft" WHERE "captionStyle" IS NOT NULL;`로 **지워지는
 행 수를 소유자에게 보고한 뒤** 승인을 받는다.
+
+## DB 적용 실행 기록 (2026-09-19)
+
+계획한 순서를 그대로 밟았다. 각 단계는 다음 단계의 전제였고, 전제가 서기 전에는 넘어가지 않았다.
+
+### ① `main` 합류 — PR #124
+
+`dev` 8커밋(FEAT-53 전체 + 15차 감사 기록 + 백로그 정리)을 묶어 PR로 올렸고 소유자가 머지했다.
+머지 커밋 `9b0b34f`. `git log origin/main..origin/dev`가 비어 합류를 검산했다.
+
+### ② 배포 — 여기서 한 번 멈췄다
+
+머지 직후 상태는 이랬다:
+
+| Vercel | 상태 |
+| --- | --- |
+| `apch-admin` | success |
+| **`apc-h`(웹)** | **pending — 빌드 중** |
+
+**옛 클라이언트가 아직 떠 있을 수 있어 적용하지 않고 대기했다.** 계획서가 막으려던 사고가
+정확히 이 창에서 난다. 폴링 워처로 기다려 약 100초 뒤 `success`를 확인한 뒤에 진행했다.
+
+이 대기는 계획서에 「배포 뒤」라고만 적혀 있던 것을 **기계로 확인 가능한 조건**
+(`gh api .../commits/9b0b34f/status` → `apc-h` 상태가 `pending`이 아님)으로 구체화한 것이다.
+
+### ③ 적용 전 보고 — 지워지는 데이터
+
+```
+ClipDraft 전체:               70
+captionStyle IS NOT NULL:      6
+```
+
+`migrate status`는 `20260917000000_drop_clip_draft_caption_style` 하나가 미적용이라고 답했다.
+**6행이 값을 잃고 되돌릴 수 없다**는 것과, 그 6행의 값은 FEAT-52 배포 이후 아무 코드도 읽지 않는
+죽은 값이라는 것을 함께 보고한 뒤 소유자 승인을 받았다.
+
+### ④ `migrate deploy`
+
+```
+Applying migration `20260917000000_drop_clip_draft_caption_style`
+All migrations have been successfully applied.
+```
+
+### ⑤ 검산 — 셋
+
+| 검사 | 결과 |
+| --- | --- |
+| `migrate status` | `Database schema is up to date!` |
+| `db pull --print` (실 DB 인트로스펙션) | `model ClipDraft`에 `captionStyle` **없음**, `model UploadedFile`에 `captionStyle Json?` **잔존** |
+| 스모크 — `select` 없는 실 쿼리 | `clipDraft.findFirst({ include: { uploadedFile: true } })` **OK**, 반환 객체에 `captionStyle` 키 없음, `clipDraft.aggregate` **OK**(`_count` 70) |
+
+셋째가 이 항목의 진짜 사후 게이트다. 계획서가 "순서를 뒤집으면 깨진다"고 지목한 바로 그 경로
+(`select` 없는 `ClipDraft` 조회)를 **적용 후 실 DB에 대고 돌려** 살아 있음을 보였다.
+`aggregate`는 1차 독립 패스가 여집합 열거에서 빠뜨렸다고 잡아낸 그 쿼리다.
+
+### 후속
+
+**FEAT-55가 열렸다.** 백로그가 못박은 선행 「FEAT-52 배포 + FEAT-53」이 이로써 둘 다 섰다.
