@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-20
+- [ ] FEAT-55: FEAT-52 뒤 죽는 클립별 캡션 스타일 경로 제거 — `moment_style` 인자 · moments `caption_style` 키 · 주석
+  agent: backend-dev
+  area: apps/backend/caption_style_source.py + apps/backend/main.py
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-52 배포·FEAT-53 DB 적용이 어제 둘 다 섰다 — `moment.caption_style`이 영구히 None이 된 직후다. 캡션 체인의 마지막 조각.
+
 ## 2026-09-17
 - [x] FEAT-53: `ClipDraft.captionStyle` 컬럼 제거 (마이그레이션 1회)
   agent: main-loop
