@@ -27,7 +27,7 @@ FEAT-51은 클립별 우선순위(`moment_style`)를 **의도적으로 남겼다
 | 파일 | 변경 |
 | --- | --- |
 | `apps/backend/caption_style_source.py` | `select_caption_style`을 1-인자 `select_caption_style(request_style)`로 축소 — `moment_style` 인자와 그 우선순위 분기(`:31-32`)를 제거한다. 남는 규칙: request_style이 dict면 그것, 아니면 None. 모듈·함수 독스트링을 새 계약(클립별 경로 소멸)으로 다시 쓴다. **모듈은 유지한다**(「대안」 (A) 채택) |
-| `apps/backend/test_caption_style_source.py` | 1-인자 새 계약으로 케이스를 다시 쓴다(8→4). 「테스트」 목록 참조 |
+| `apps/backend/test_caption_style_source.py` | 1-인자 새 계약으로 케이스를 다시 쓴다(8→4). 「테스트」 목록 참조. **모듈 독스트링(`:1-6`)도 함께 고친다** — 지금 문장이 FEAT-51 계약(`moment 스타일 우선, 없으면 요청 단위 스냅샷으로 폴백`)을 서술하므로 그대로 두면 거짓이 된다 |
 | `apps/backend/main.py` | ① 호출부 `:1169`에서 `moment.get("caption_style")` 인자를 뺀다(1-인자 호출). ② render 조립의 moment `caption_style` 키 `:1123`을 삭제한다. ③ moments 주석 `:62-64`에서 `caption_style` 서술 줄을 제거한다. ④ `ProcessVideoRequest.caption_style` 위 주석 `:72-75`에서 "클립별 스타일이 있으면 그것이 우선" 서술을 제거하고 요청 스냅샷 단일 소스로 갱신한다. **`:45` import·`:93` add_local_python_source·`:172-177` resolve_caption_style은 무변경** |
 
 여기 적히지 않은 파일은 구현 단계에서 고치지 않는다. `apps/backend/CLAUDE.md:139`는 이 변경으로 낡지만 읽기 전용 지시 문서라 내가 고치지 않는다(「범위 밖 의존」).
@@ -104,7 +104,7 @@ after (요청 스냅샷 단일 소스로 갱신):
     caption_style: dict | None = None
 ```
 
-render 조립 moment 키 — before(`:1117-1126`):
+render 조립 moment 키 — before(`:1117-1125`):
 
 ```python
                             {
@@ -151,7 +151,21 @@ after (1-인자 호출):
   3. `test_empty_dict_is_returned` — request `{}` → `{}` 반환(`assertIs`). 빈 dict는 "존재하는 스타일"이라 None으로 안 떨어짐(경계 보존 — 구 케이스 8과 대칭).
   4. `test_non_dict_is_none` — request 비-dict(`"not-a-dict"`, `["y"]`를 `subTest`) → `None`. dict가 아니면 없는 것으로 봄.
 
-  구 8케이스 중 `moment_style` 분기를 다루던 것들(`test_moment_style_wins_over_request`·`test_moment_none_falls_back_to_request`·`test_moment_dict_request_none`·`test_non_dict_moment_falls_back_to_request`·`test_both_non_dict_is_none`)은 인자 제거로 사라지거나 위 4케이스로 접힌다. 순 감소 **8→4**.
+  **구 8케이스 전수 매핑**(여집합 없이):
+
+  | 구 케이스 | 새 케이스 |
+  | --- | --- |
+  | 1 `test_moment_style_wins_over_request` | 소멸 — 우선순위 자체가 사라짐 |
+  | 2 `test_moment_none_falls_back_to_request` | 1 `test_dict_request_is_returned`로 접힘 |
+  | 3 `test_both_none_is_none` | 2 `test_none_is_none`으로 접힘 |
+  | 4 `test_empty_dict_moment_is_kept` | 소멸 — moment 쪽 빈 dict 경계가 사라짐 |
+  | 5 `test_non_dict_moment_falls_back_to_request` | 1로 접힘(비-dict moment 축이 사라짐) |
+  | 6 `test_both_non_dict_is_none` | 4 `test_non_dict_is_none`으로 접힘 |
+  | 7 `test_moment_dict_request_none` | 소멸 — moment 축이 사라짐 |
+  | 8 `test_request_empty_dict_is_returned` | 3 `test_empty_dict_is_returned`로 접힘 |
+
+  소멸 3 · 접힘 5 → 새 4케이스. 순 감소 **8→4**. 새 4케이스는 1-인자 함수의 입력 공간을
+  **dict / 빈 dict / None / 비-dict**로 분할해 덮으므로 여집합이 없다.
 
   **게이트와 기대값**: `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"`. 착수 기준선은 실측 `Ran 113 tests ... OK`이고, 이 모듈이 8→4로 줄므로 구현 후 기대값은 **`Ran 109 tests ... OK`**다. 다른 숫자가 나오면 이 계획 밖의 무언가가 함께 바뀐 것이므로 멈추고 원인을 밝힌다. `python -m py_compile apps/backend/main.py`도 통과해야 한다. (`PYTHONUTF8=1`은 이 머신의 요구 — 없으면 한글 출력이 cp949로 크래시한다.)
 
