@@ -114,10 +114,15 @@ agent: main-loop
 
 ## 테스트
 
-- **덮는 것**: 새 테스트를 만들지 않는다. 기존 둘이 이 변경을 정확히 지킨다.
-  - `event-catalog.test.mjs:26-33` — `ANALYTICS_EVENT_NAMES`를 전수 순회하며 각 이름에 metadata 정의가 있는지 단언한다. **계약과 `metadata.ts` 중 한쪽만 고치면 여기서 죽는다.**
-  - `tsc --noEmit`(web) — `apps/web/src/fsd/shared/analytics/lib/metadata.ts:63`의 `satisfies Record<AnalyticsEventName, …>`가 반대 방향(맵에만 남은 키)을 잡는다. 계약에서 지우고 맵에 남기면 잉여 키로, 맵에서 지우고 계약에 남기면 `TS1360` 누락으로 각각 실패한다.
-- **음성 시험으로 확인할 것**(검증 단계): 위 두 방어선이 장식이 아닌지 — 한쪽만 고친 상태를 만들어 실제로 실패하는지 본다.
+- **덮는 것**: 새 테스트를 만들지 않는다. 기존 방어선이 **양방향 불일치를 모두** 잡는다 — 다만 방향마다 잡는 주체가 다르다. 계획 검증에서 한쪽씩 깨 실측했다(실트리, 적용 후 `git checkout --` 되돌림).
+
+  | 불일치 방향 | 잡는 주체 | 실측 |
+  | --- | --- | --- |
+  | **맵에서만 제거**(계약에 이름이 남음) | `apps/web/src/fsd/shared/analytics/event-catalog.test.mjs:26-33`의 전수 순회 **와** 타입 | `npm test -w apps/web` 1 fail(`모든 이벤트 이름에 metadata 정의가 있다`) · `npm run check -w apps/web` EXIT 1 — 체인에서 **`next lint`가 먼저** 걸린다(`satisfies` 불성립으로 맵이 error 타입이 되어 `no-unsafe-*` Error 4줄). `npx tsc --noEmit` 단독으로는 **TS1360** |
+  | **계약에서만 제거**(맵에 키가 남음) | `tsc --noEmit`만 | `npx tsc --noEmit` EXIT 2 **TS2353**(알려지지 않은 속성). `next lint` 통과, `event-catalog.test.mjs`도 **3/0 통과** — 그 테스트는 "이름마다 맵 항목이 있는가"만 보므로 **맵에 남은 잉여 키는 못 본다** |
+
+  즉 `event-catalog.test.mjs`는 **한쪽 방향만** 지킨다. 반대쪽은 `apps/web/src/fsd/shared/analytics/lib/metadata.ts:63`의 `satisfies`가 홀로 지키므로, `check`에서 `tsc --noEmit` 단계를 빼면 그 방향이 무방비가 된다.
+- **둘을 함께 고쳐야 게이트가 통과한다**: 셋을 전량 적용한 상태에서 게이트 넷이 전부 EXIT 0이다(web 170/40/0 · admin 334/75/0, 계획 검증 실측).
 - **못 덮는 범위**(배포 후 확인):
   - admin 분석 화면의 90일 창에서 총계가 1 줄고 이탈 상위 25에서 그 줄이 빠지는 것 — 실물에서만 보인다(위 실측대로 7·30일 창은 변화 없음)
   - 수집 엔드포인트(`apps/web/src/app/api/analytics/events/route.ts:15` `z.enum`)가 그 이름을 이제 거부하는 것 — 발신자가 0이라 실제로 도달하지 않는다
