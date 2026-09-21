@@ -24,7 +24,7 @@
 
 ## FEAT-55 — FEAT-52 뒤 죽는 클립별 캡션 스타일 경로 제거 (backend, 구현 2026-09-21)
 
-원천: `docs/agents/backend-dev/FEAT-55.md`의 「못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있고 Modal 엔드포인트는 여전히 FEAT-51 코드로 돈다. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 109 tests ... OK`**(기준선 113, 이 모듈 8→4 — 계획서가 못박은 기대값과 정확히 일치) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했다. 구현 결과물이 계획서 스케치와 **바이트 동일**이고, `main.py`가 검증 라운드의 기계 패치본과 **바이트 동일**임도 확인했다.
+원천: `docs/agents/backend-dev/FEAT-55.md`의 「못 덮는 범위」와 계획서 「테스트」. **배포됨(2026-09-21)** — 소유자 승인 후 `PYTHONUTF8=1 python -m modal deploy main.py`(이 머신은 `modal`이 PATH에 없어 `python -m modal`로 돈다). `✓ App deployed in 6.717s`, 로컬 모듈 마운트에 `PythonPackage:caption_style_source` 재생성 확인(필수 6경로 중 **경로 7 음성 시험**이 "여기가 틀리면 컨테이너 시작에서만 죽는다"고 지목한 자리다), 엔드포인트 `https://sangeok--ai-podcast-clipper-process-video.modal.run`. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 109 tests ... OK`**(기준선 113, 이 모듈 8→4 — 계획서가 못박은 기대값과 정확히 일치) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했다. 구현 결과물이 계획서 스케치와 **바이트 동일**이고, `main.py`가 검증 라운드의 기계 패치본과 **바이트 동일**임도 확인했다.
 **이 항목은 동작 무변경이다** — 지운 `moment_style` 인자가 FEAT-52 배포·FEAT-53 DB 제거로 이미 항상 `None`이었다. 그래서 아래 두 줄의 확인 성격은 "새 기능이 보이는가"가 아니라 **"회귀가 없는가"**다.
 **배포 순서 제약 없음** — FEAT-51과 달리 선행·후행이 없다.
 **`〔auto〕` 태그를 붙이지 않는다**: 둘 다 Modal 워커 내부 전달이거나 GPU·ffmpeg·pysubs2가 만든 `.mp4` 자막이라 공개 HTTP 응답으로 판정되지 않는다.

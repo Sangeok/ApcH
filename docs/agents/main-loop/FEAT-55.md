@@ -160,3 +160,15 @@ FEAT-55 절을 새로 등재했다(실배선 1줄 + 실렌더 회귀 0 1줄, `�
 
 없다. 계획서가 든 둘 중 `CLAUDE.md:139`는 이 인수에서 내가 처리했고, 나머지는 배포(소유자 몫)다.
 
+## 배포 (2026-09-21)
+
+소유자 승인 후 `apps/backend`에서 `PYTHONUTF8=1 python -m modal deploy main.py`.
+`✓ App deployed in 6.717s`. 엔드포인트 `https://sangeok--ai-podcast-clipper-process-video.modal.run`.
+
+출력의 로컬 모듈 마운트에 **`PythonPackage:caption_style_source`가 재생성**됐다.
+필수 경로 7(음성 시험)이 실측으로 보인 것이 바로 이 자리다 — 모듈을 지우고 등록을 남기거나
+반대로 하면 로컬 게이트를 전부 통과하고 **배포 컨테이너 시작에서만** 죽는다. 계획이 (A)를
+고른 이유가 배포 출력에서 한 번 더 확인된 셈이다.
+
+배포 순서 제약은 없었다(동작 무변경). 남은 확인 둘은 실렌더가 필요해 소유자 몫이다.
+
