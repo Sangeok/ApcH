@@ -22,21 +22,34 @@
 
 ---
 
+## FEAT-55 — FEAT-52 뒤 죽는 클립별 캡션 스타일 경로 제거 (backend, 구현 2026-09-21)
+
+원천: `docs/agents/backend-dev/FEAT-55.md`의 「못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있고 Modal 엔드포인트는 여전히 FEAT-51 코드로 돈다. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 109 tests ... OK`**(기준선 113, 이 모듈 8→4 — 계획서가 못박은 기대값과 정확히 일치) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했다. 구현 결과물이 계획서 스케치와 **바이트 동일**이고, `main.py`가 검증 라운드의 기계 패치본과 **바이트 동일**임도 확인했다.
+**이 항목은 동작 무변경이다** — 지운 `moment_style` 인자가 FEAT-52 배포·FEAT-53 DB 제거로 이미 항상 `None`이었다. 그래서 아래 두 줄의 확인 성격은 "새 기능이 보이는가"가 아니라 **"회귀가 없는가"**다.
+**배포 순서 제약 없음** — FEAT-51과 달리 선행·후행이 없다.
+**`〔auto〕` 태그를 붙이지 않는다**: 둘 다 Modal 워커 내부 전달이거나 GPU·ffmpeg·pysubs2가 만든 `.mp4` 자막이라 공개 HTTP 응답으로 판정되지 않는다.
+
+- [ ] `main.py` 호출부의 실배선 — 엔드포인트 → `.spawn`/`.remote` → `_do_process_video` → 1-인자 `select_caption_style(request_caption_style)` 주입까지 요청 스냅샷이 실제로 전달된다. `main.py`가 `whisperx`→`torch`를 import해 unittest 러너로 안 돌아 `py_compile`+`git diff`로만 덮였다. `modal run` 실물 필요 (FEAT-51 절의 같은 줄을 대체한다)
+- [ ] 실렌더 회귀 0 — 배포 후 첫 렌더의 `.mp4` 자막이 배포 전과 같은 스타일로 나온다(설정한 스타일이면 그것, 미설정이면 언어 기본값). auto·render 양쪽. **FEAT-52 절의 「render 실렌더가 업로드 스냅샷 스타일로 나온다」와 같은 렌더 한 번으로 함께 판정된다**
+
+---
+
 ## FEAT-51 — `render` 모드도 요청 단위 캡션 스냅샷으로 폴백 (backend, 구현 2026-09-17)
 
 원천: `docs/agents/backend-dev/FEAT-51.md`의 「못 덮는 범위」와 계획서 「테스트」. **배포됨(2026-09-17)** — 소유자 승인 후 `PYTHONUTF8=1 python -m modal deploy main.py`(이 머신은 `modal`이 PATH에 없어 `python -m modal`로 돈다). `✓ App deployed in 6.486s`, 로컬 모듈 마운트에 `PythonPackage:caption_style_source` 재생성 확인, 엔드포인트 `https://sangeok--ai-podcast-clipper-process-video.modal.run`. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 113 tests ... OK`**(기준선 117, 이 모듈 12→8) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했고, 구현 결과물이 계획서 스케치와 **바이트 동일**임도 확인했다.
 **`〔auto〕` 태그를 붙이지 않는다**: 세 줄 전부 GPU·ffmpeg·pysubs2가 만든 `.mp4` 자막이나 Modal 워커 내부 전달이라 공개 HTTP 응답으로 판정되지 않는다.
-**⚠️ 두 줄은 FEAT-52 배포 전까지 판정할 수 없다** — 그 전까지 웹은 render 요청에 요청 단위 `caption_style`을 싣지 않아(`autoRequestCaptionStyle`이 render에서 `undefined` 반환) 새 폴백 경로가 **휴면**이다. 순서를 뒤집어 확인하려 들면 안 된다.
+**전제 변경(2026-09-19)**: FEAT-52가 배포돼 웹이 render 요청에도 요청 단위 `caption_style`을 싣는다 — 폴백 경로의 휴면이 풀렸다. 그리고 그 배포로 **첫 줄의 확인 창이 닫혔다**(아래 참조). FEAT-55(2026-09-21 구현)는 이 절이 가리키는 `select_caption_style` 호출부를 다시 고쳤다.
 
-- [ ] 전이 구간 회귀 0 — FEAT-51만 배포된 상태에서 검토 확정 렌더가 오늘과 같은 자막으로 나온다(클립별 스타일이 계속 이김). **FEAT-52 배포 전에 확인해야 하는 유일한 줄이다.**
-- [ ] `main.py` 호출부의 실배선 — 엔드포인트 → `.spawn`/`.remote` → `_do_process_video` → `select_caption_style` 주입까지 요청 스냅샷이 실제로 전달된다. `main.py`가 `whisperx`→`torch`를 import해 unittest 러너로 안 돌아 `py_compile`+`git diff`로만 덮였다. `modal run` 실물 필요
-- [ ] render 폴백의 실효 — 사용자가 설정한 스타일이 render 클립의 실제 `.mp4` 자막에 나타난다. **선행: FEAT-52 배포**(그전까지 휴면)
+- [x] 전이 구간 회귀 0 — FEAT-51만 배포된 상태에서 검토 확정 렌더가 오늘과 같은 자막으로 나온다(클립별 스타일이 계속 이김) — **대체(FEAT-52)**: 이 줄은 「FEAT-51만 배포된 상태」를 전제했는데 2026-09-19 FEAT-52 배포로 그 상태가 끝났다. **확인 창이 관측 없이 지났다** — 회귀 보고는 없었으나 확인했다는 뜻이 아니다. FEAT-55가 `moment_style` 경로 자체를 지워 이 줄이 지키려던 위험은 더 이상 존재하지 않는다.
+- [x] `main.py` 호출부의 실배선 — 엔드포인트 → `.spawn`/`.remote` → `_do_process_video` → `select_caption_style` 주입까지 요청 스냅샷이 실제로 전달된다 — **대체(FEAT-55)**: FEAT-55가 바로 그 호출부를 1-인자로 고쳤다. 지금 확인해야 할 것은 FEAT-51 시점의 배선이 아니라 FEAT-55 이후의 배선이므로, FEAT-55 절이 같은 확인을 재선언한다.
+- [ ] render 폴백의 실효 — 사용자가 설정한 스타일이 render 클립의 실제 `.mp4` 자막에 나타난다. **선행 충족(2026-09-19 FEAT-52 배포) — 지금 판정 가능하다.** 단 FEAT-55 배포 뒤에 보는 편이 낫다(같은 렌더 한 번으로 FEAT-55 절의 회귀 확인까지 닫힌다)
 
 ---
 
 ## FEAT-52 — 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 (web, 구현 2026-09-17)
 
 원천: `docs/agents/web-dev/FEAT-52.md`의 「못 덮는 범위」와 계획서 「테스트」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` EXIT 0(verify:fsd 통과·tsc 통과) · `npm test -w apps/web` **`tests 178 / suites 42 / pass 178`**(기준선 183→178, 파일 26→25) — 둘 다 인수 시 메인 루프가 직접 재실행했고 계획서가 못박은 기대값과 정확히 일치했다. 선행 **FEAT-51은 이미 프로덕션에 배포**돼 백엔드가 요청 스냅샷 폴백을 받을 준비를 마쳤다.
+**2026-09-19 배포됨**(PR #122 `dev`→`main` 머지 → Vercel). 머리말의 「미배포」는 인수 시점 기준이며, **아래 여섯 줄은 지금 전부 판정 가능하다.**
 **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 화면(설정·업로드 폼·검토)이거나 GPU·ffmpeg·pysubs2 렌더 산출물이라 공개 HTTP 응답으로 판정되지 않는다.
 
 - [ ] 설정 화면 카드가 **`Video style`** 제목으로 뜨고, 설명이 "업로드 시점에 고정된다"를 말하며, 안에 **`Captions` 섹션 헤더**가 보인다

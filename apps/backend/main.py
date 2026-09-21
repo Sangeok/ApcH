@@ -60,8 +60,7 @@ class ProcessVideoRequest(BaseModel):
     # auto: 기존 단일 파이프라인 / analyze: 전사+후보 추출만 / render: 전달받은 구간만 렌더링
     mode: str = "auto"
     # render 모드 전용: [{"index": int, "start": float, "end": float, "type": str|None,
-    #   "hook": str|None, "payoff": str|None,
-    #   "caption_style": {"position": str, "fontSize": int|None, "color": str|None, "maxWordsPerLine": int|None} | None}]
+    #   "hook": str|None, "payoff": str|None}]
     moments: list[dict] | None = None
     # render 모드 전용: 분석 단계에서 저장한 전사 JSON의 S3 키 (없거나 로드 실패 시 재전사)
     transcript_s3_key: str | None = None
@@ -69,10 +68,9 @@ class ProcessVideoRequest(BaseModel):
     output_prefix: str | None = None
     callback_url: str | None = None
     uploaded_file_id: str | None = None
-    # 요청 단위 캡션 스타일 스냅샷(업로드 시점). auto·render 공통 폴백이다(FEAT-51) —
-    # 클립별 caption_style이 없으면 이 값이 언어 기본값 위에 얹힌다.
-    # 클립별 스타일이 있으면 그것이 우선(FEAT-52 배포 전 웹이 여전히 보낸다).
-    # 선택·기본 None → 웹이 안 보내면 언어 기본값(기존 동작과 동일).
+    # 요청 단위 캡션 스타일 스냅샷(업로드 시점). auto·render 공통 폴백이다(FEAT-51/55) —
+    # 이 값이 dict면 언어 기본값 위에 얹히고, 아니면 언어 기본값(기존 동작과 동일).
+    # 선택·기본 None → 웹이 안 보내면 언어 기본값. 클립별 스타일 경로는 FEAT-52로 사라졌다.
     caption_style: dict | None = None
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
@@ -1120,7 +1118,6 @@ class AiPodcastClipper:
                                 "type": m.get("type"),
                                 "hook": m.get("hook"),
                                 "payoff": m.get("payoff"),
-                                "caption_style": m.get("caption_style"),
                             }
                             for m in (moments or [])
                         ],
@@ -1166,7 +1163,7 @@ class AiPodcastClipper:
                         self.gemini_client,
                         language,
                         output_prefix,
-                        caption_style=select_caption_style(moment.get("caption_style"), request_caption_style),
+                        caption_style=select_caption_style(request_caption_style),
                     )
 
                     clip_result["clipType"] = moment.get("type")

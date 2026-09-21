@@ -116,11 +116,11 @@ GPU·S3·Gemini·Modal이 필요한 경로는 이 러너로 덮을 수 없다. �
 
 - Gemini 2.5 Flash with structured JSON output
 - Prompt engineering for Q&A extraction (30-90s clips)
-- Critical constraints: no overlap, sentence boundaries, max 90s. The bounds live in `MAX_CLIP_DURATION` / `MIN_CLIP_DURATION` (`main.py:124-125`) and are shared by the analyze, render, and auto paths
-- Returns: `[{"start": seconds, "end": seconds, "type": "qa" | "insight", "hook": str, "payoff": str}, ...]`. `type`, `hook`, and `payoff` were added after the original start/end pair and are consumed at `main.py:1088-1090`·`main.py:1172-1174`
+- Critical constraints: no overlap, sentence boundaries, max 90s. The bounds live in `MAX_CLIP_DURATION` / `MIN_CLIP_DURATION` (`main.py:122-123`) and are shared by the analyze, render, and auto paths
+- Returns: `[{"start": seconds, "end": seconds, "type": "qa" | "insight", "hook": str, "payoff": str}, ...]`. `type`, `hook`, and `payoff` were added after the original start/end pair and are consumed at `main.py:1086-1088`·`main.py:1169-1171`
 - The prompt template and the per-language `hook`/`payoff` directive live in the stdlib-pure `moment_prompt.py` (`build_moment_prompt`, FEAT-43). `identify_moments` passes the upload `language`; only `"Korean"` adds a directive, and every other value yields the original English prompt byte-for-byte (`test_moment_prompt.py` freezes both). `type`, `start`, and `end` are never translated
 - In `analyze` mode, Korean uploads also get a **reference translation** per candidate (FEAT-46). After `validate_moments`, `build_reference_translations` (`main.py`) makes one separate Gemini call — never mixed into the `identify_moments` prompt, so candidate selection is untouched — and every callback moment carries `referenceTranslation` (`str | null`). The source text for each candidate uses the same word rule as the web review card (`word.start >= start && word.end <= end`, joined with spaces). Language gating, prompt assembly, fence stripping, index matching, and attaching live in the stdlib-pure `reference_translation.py` (`test_reference_translation.py`). Every failure — the call itself, the request timeout (`HttpOptions(timeout=120000)`, milliseconds), unparsable JSON, missing indices, an empty range — becomes `null` and never fails the analyze. English (any value other than exactly `"Korean"`) makes no call and adds no key, so its payload is byte-identical to before. It is a reading aid only: the render path never reads it
-- **Every local pure module must also be listed in `add_local_python_source` (`main.py:93`).** A module missing there passes every local gate (`unittest`, `py_compile`) and only fails in the deployed container, at startup, for all modes. `test_modal_image_sources.py` checks that list against `main.py`'s imports
+- **Every local pure module must also be listed in `add_local_python_source` (`main.py:91`).** A module missing there passes every local gate (`unittest`, `py_compile`) and only fails in the deployed container, at startup, for all modes. `test_modal_image_sources.py` checks that list against `main.py`'s imports
 
 **Stage 3: Clip Processing** (`process_clip()` for each moment)
 
@@ -135,20 +135,20 @@ GPU·S3·Gemini·Modal이 필요한 경로는 이 러너로 덮을 수 없다. �
    - Fallback: blurred background with centered content
    - 1080x1920 output with GPU-accelerated encoding
 4. **Subtitle Overlay**: `create_subtitles_with_ffmpeg()` (English) / `create_korean_subtitles_with_ffmpeg()` (Korean)
-   - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:172`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
-   - Which `caption_style` object reaches `resolve_caption_style()` is decided by `select_caption_style` in the stdlib-pure `caption_style_source.py` (FEAT-41, FEAT-51): the clip's own style wins when present; otherwise it falls back to the request-level `ProcessVideoRequest.caption_style` snapshot — **in every mode, `render` included** (FEAT-51 removed the earlier `auto`-only gate). Only when neither is a dict do the language defaults apply. The `auto`-only gate existed to keep the web review preview and the real render identical for per-clip styles; FEAT-52 removes per-clip style editing from the review screen, so that premise is gone. `moment_style` and its priority stay only to keep the transition window regression-free while the web still sends per-clip styles
+   - ASS format. The style is not fixed: `resolve_caption_style()` (`main.py:170`) layers a user-supplied `caption_style` over per-language defaults, silently falling back on anything missing or invalid — a default-styled render beats a failed one
+   - Which `caption_style` object reaches `resolve_caption_style()` is decided by `select_caption_style` in the stdlib-pure `caption_style_source.py` (FEAT-41, FEAT-51, FEAT-55). **There is exactly one source: the request-level `ProcessVideoRequest.caption_style` snapshot**, frozen at upload time, applied **in every mode, `render` included** (FEAT-51 removed the earlier `auto`-only gate). It wins whenever it is a dict — an empty `{}` counts as "a style exists" — and the language defaults apply only when it is not. Per-clip style no longer exists anywhere: FEAT-52 removed the review-screen editor so the web stopped sending one, FEAT-53 dropped the `ClipDraft.captionStyle` column, and FEAT-55 removed the then-dead `moment_style` argument and its priority. The function is now one argument wide (`select_caption_style(request_style)`) and `test_caption_style_source.py` freezes the four-way split `dict / {} / None / non-dict`
    - Defaults differ by language:
 
-     | | English (`main.py:306-312`) | Korean (`main.py:422-428`) |
+     | | English (`main.py:304-310`) | Korean (`main.py:420-426`) |
      |---|---|---|
-     | font | Anton (`main.py:375`) | Noto Sans KR (`main.py:570`) |
+     | font | Anton (`main.py:373`) | Noto Sans KR (`main.py:568`) |
      | fontsize | 122 | 130 |
      | words per line | 5 | 3 |
      | marginv | 165 | 155 |
      | outline width | 1.1 | 1.3 |
 
-   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:148-152`)
-   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:155-158`)
+   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`main.py:146-150`)
+   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`main.py:153-156`)
    - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` and `outlineColor` as `#RRGGBB` (defaulting to white and black), `outlineWidth` 0–6, `uppercase` as a boolean (applied to the event text, so it only changes Latin characters in a Korean line)
    - **pysubs2 `SSAStyle` attribute names carry no underscore** — `primarycolor`, `outlinecolor`, `borderstyle`, `backcolor`. It is a dataclass, so assigning `primary_color` raises nothing and silently renders the default. That exact typo shipped once and made every user-picked caption color render white
 5. **S3 Upload**: Final clip uploaded to same directory as source. Transient failures (throttling, timeouts, connection errors) retry with capped exponential backoff via `_s3_call_with_retry` (`main.py`), whose decisions live in the stdlib-pure `s3_upload_policy.py`; a final failure raises with the operation, key, and attempt count in the message (BUG-03)
