@@ -167,7 +167,7 @@ export * from "./analytics-contract"   // 아래 참조
 
 ### analytics 계약 — 손댈 때 주의
 
-`packages/db/src/analytics-contract.ts`가 이벤트 이름 31개, 퍼널 정의, 관련 타입을 **한 곳에서** 정의한다. web이 쓰고(기록), 앞으로 admin이 읽는다(집계).
+`packages/db/src/analytics-contract.ts`가 이벤트 이름 30개, 퍼널 정의, 관련 타입을 **한 곳에서** 정의한다. web이 쓰고(기록), 앞으로 admin이 읽는다(집계).
 
 `ANALYTICS_FUNNELS`의 `satisfies Record<FunnelId, readonly AnalyticsEventName[]>` 절이 "퍼널 단계는 실제 존재하는 이벤트 이름이어야 한다"를 컴파일 타임에 강제한다. **이 방어선은 양쪽이 같은 파일을 볼 때만 작동한다.** 계약을 복사해 두 벌로 만들면 한쪽에서 rename해도 다른 쪽은 통과하고, 대시보드가 에러 없이 0을 보여준다.
 

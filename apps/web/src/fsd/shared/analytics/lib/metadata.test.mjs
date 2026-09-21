@@ -43,9 +43,9 @@ describe("sanitizeAnalyticsMetadata", () => {
   });
 
   it("keeps source and preset for settings_defaults_saved, dropping the rest", () => {
-    // 이 이벤트는 User만 바꾼다. clip_review_caption_style_edited로 재사용하면
-    // 그쪽 appliedToAll 집계가 오염되므로 별 이벤트로 두고, 그 사실을
-    // 허용 키 목록이 지킨다.
+    // 이 이벤트는 User의 기본값만 바꾼다(클립별 편집이 아니다). 클립 검토
+    // 쪽 이벤트에 얹지 않고 별 이벤트로 두며, 허용 키를 source·preset 둘로
+    // 묶어 uploadedFileId 같은 클립 스코프 값이 섞이지 않게 한다.
     assert.deepEqual(
       sanitizeAnalyticsMetadata("settings_defaults_saved", {
         source: "settings_page",

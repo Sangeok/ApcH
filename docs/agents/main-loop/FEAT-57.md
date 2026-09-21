@@ -208,3 +208,48 @@ TS1360·TS2353과 런타임 순회 실패는 독립적으로 재현했다.
    적용이 *소비된다*는 증거가 아니다.
 3. **범위 인용은 여는 줄과 닫는 줄을 파일에서 직접 보고 적는다.** 이 항목에서 둘, FEAT-50에서
    하나 — 전부 경계가 한 칸 어긋난 형태였다.
+
+
+## 구현 (2026-09-22)
+
+게이트②가 열려 직접 구현했다(담당 main-loop — 쓰기 범위가 `packages/db`·web·admin 셋으로 갈린다).
+
+계획서를 파일에서 다시 읽고 「구현 스케치」의 before/after **3쌍**을 기계 적용했다 —
+before가 각각 트리에 **정확히 1회** 출현했고 손 개입 없이 치환됐다.
+
+| 파일 | 변경 |
+| --- | --- |
+| `packages/db/src/analytics-contract.ts` | `ANALYTICS_EVENT_NAMES`에서 이름 한 줄 제거 — **31 → 30** (기계 계수) |
+| `apps/web/src/fsd/shared/analytics/lib/metadata.ts` | 허용 키 한 줄 + 그 설명 주석 두 줄 제거 |
+| `apps/web/src/fsd/shared/analytics/lib/metadata.test.mjs` | 사라진 이름을 근거로 들던 주석을 같은 취지의 새 문장으로 교체 |
+
+**계획서가 지목한 3파일과 정확히 일치. 초과 0.** 코드 전역에 `clip_review_caption_style_edited` **0건**.
+
+### 게이트 넷 — 전부 직접 실행
+
+| | 결과 |
+| --- | --- |
+| `npm run check -w apps/web` | **EXIT 0 · `✔ No ESLint warnings or errors`** |
+| `npm test -w apps/web` | **170 / suites 40 / fail 0** |
+| `npm run check -w apps/admin` | **EXIT 0 · `✔ No ESLint warnings or errors`** |
+| `npm test -w apps/admin` | **334 / suites 75 / fail 0** |
+
+넷 다 계획서 「테스트」가 못박은 숫자와 일치한다(web 170/40/0 · admin 334/75/0).
+
+**둘을 함께 고쳐야 통과한다는 계획서 주장이 여기서 성립했다** — 계약과 맵 중 한쪽만 고쳤으면
+계획서가 실측해 둔 대로 `event-catalog.test.mjs`(맵만 제거 시) 또는 `tsc TS2353`(계약만 제거 시)이
+잡는다. 전량 적용이라 넷 다 EXIT 0이다.
+
+### 문서 드리프트 — 하나 있었다
+
+`apps/web/CLAUDE.md:170` 「이벤트 이름 **31개**」 → **30개**. 계획서도 구현 보고도 지목하지 않았고,
+내가 인수 절차에 넣은 「수를 세는 문장」 훑기가 잡았다. FEAT-55의 `CLAUDE.md` 줄번호 11건과
+같은 부류다 — **계획서가 말하지 않은 파급**.
+
+`docs/` 아래에는 이 이름을 세는 문장이 없었다(보드·백로그의 항목 제목뿐이고 둘 다 이 인수에서 처리).
+
+### 소유자 결정이 걸려 있던 지점
+
+백로그가 「결정 없이 지우면 이력이 조용히 사라진다」고 못박은 자리다. 계획서가 실측으로 답했다 —
+걸린 행이 **1건**이고 7·30일 창에서는 **0**, 90일 창에서만 총계 1116 → 1115다. 그 1건도
+2026-11-12경 창 밖으로 나가 자연 소멸한다. 소유자가 그 수치를 보고 승인했다.
