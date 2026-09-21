@@ -44,6 +44,7 @@
   agent: main-loop
   area: packages/db/src/analytics-contract.ts + apps/web/src/fsd/shared/analytics/lib/metadata.ts + apps/admin/src/fsd/entities/analytics-event/api/queries.test.mjs
   status: 검토대기
+  검증: 클린 패스 (2026-09-22, 독립 무편집 2사이클 — 결함 0. 1차 위생 1건(범위 인용) 반영 뒤 2차가 필수 5경로 전수·무편집으로 결함 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-52가 발신부를 지워 죽은 등록만 남았다. 쓰기 범위가 packages/db·web·admin 셋으로 갈려 담당은 main-loop(백로그 지정).
 - [x] FEAT-56: FEAT-52·53이 남긴 죽은 코드 여섯 정리 — `playUrl` prop · 낡은 주석 3곳 · 소비자 없는 재수출 · 잔여 문구 둘 · 도달 불가가 된 라이브 미리보기 경로
   agent: web-dev
