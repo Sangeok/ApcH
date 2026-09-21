@@ -3,10 +3,11 @@
 agent: web-dev
 
 > 백로그 `source`가 여섯 잔재를 `파일:줄`로 지목했다. 아래 「현재 동작」의 인용은
-> 계획 작성 시점에 각 줄을 다시 읽어 확인했다. **area 필드가 불완전하다** —
-> 보드 area는 `widgets/clip-draft-review + features/clip-review + shared/config/constants.ts`뿐이지만,
-> 관측 5는 `features/caption-style/`(3파일), 관측 6은 `shared/config/caption-style-schema.ts`도 대상이다.
-> 셋 다 `apps/web/src` 안이라 web-dev 쓰기 범위 내다. area 값 자체는 고치지 않는다.
+> 계획 작성 시점에 각 줄을 다시 읽어 확인했다. **area 필드가 관측 6의 파일 하나를 빠뜨린다** —
+> 보드 area는 `widgets/clip-draft-review + features/clip-review + features/caption-style + shared/config/constants.ts`이고
+> (`features/caption-style`는 게이트① 때 메인 루프가 백로그 원본에 더한 것이다 — 관측 5의 3파일이 거기 있다),
+> 관측 6의 `shared/config/caption-style-schema.ts`만 `shared/config/` 아래 다른 파일이라 이름이 빠져 있다.
+> `apps/web/src` 안이라 web-dev 쓰기 범위 내다. area 값 자체는 고치지 않는다.
 
 ## 현재 동작
 
@@ -298,4 +299,5 @@ after:
 
 - **③ 재수출 범위**: 백로그는 배럴 줄(`index.ts:7`)만 지목했다. 그 줄만 지우면 `schemas.ts:12`가 소비자 0인 고아 재수출로 남는다(`CaptionStyleInput`은 전역에서 정의 1 + 재수출 2뿐). 완전한 죽은 코드 제거를 위해 두 재수출을 함께 지운다. 정의(`shared:44`)와 `captionStyleSchema` 재수출(딥 임포트 소비자 있음)은 손대지 않는다.
 - **⑤ 절단 깊이**: (A) 지목된 분기만 지우고 `previewCaptionCues`를 `return cues` 항등으로 남기는 안 — 무의미한 함수가 새 잔재로 남아 기각. (B) `sample`·`playUrl` prop과 `CaptionPreviewPlayer`의 영상 재생 machinery(`playUrl !== null` 경로)까지 전부 제거하는 안 — `playUrl`은 현재도 항상 null이라 그 machinery도 도달 불가지만, 백로그 ⑤는 `sample=false` 경로로 범위를 한정했고(요구 ②b) ⚠️ 주석이 `sample`·`playUrl`을 "타입상 쓰이는 prop"으로 남긴다고 명시했다. 폭이 크고 FEAT-54(설정 언어 토글을 편집 대상 전환으로 승격)의 영역에 닿아 기각. 채택: `sample=false` 기반 죽은 코드(라이브 안내 둘 + `koreanSampleCues` + `previewCaptionCues`)만 제거하고 `playUrl` 파라미터화 machinery는 그대로 둔다.
-  - **관측(범위 밖)**: `CaptionPreviewPlayer`의 `playUrl`-기반 `<video>` 재생 경로도 현재 유일 소비자가 `playUrl={null}`이라 도달 불가다. 이 항목에서는 남기지만, 후속 정리 후보로 보고한다.
+  - **`sample=false` 기반 죽은 코드 여집합(전수)**: 이 항목 적용 후 `features/caption-style`에서 `sample`에 의존하는 코드는 넷이다 — `CaptionStyleEditor.tsx:77`(기본값 `false`), `:331`(전달), `CaptionPreviewPlayer.tsx:36`(prop 타입), `:125` `const displayText = props.sample === true ? firstCueText(cues) : activeText;`. **앞 셋은 분기가 아니고, 넷째 `:125`의 `: activeText` 갈래는 도달 불가로 남는다.** 지우지 않는 이유는 그것이 **유지하기로 한 `playUrl` machinery와의 접합부**이기 때문이다 — `activeText`는 재생 이펙트가 세팅하므로 그 갈래를 지우려면 machinery도 함께 지워야 하고, 그건 위 (B)다. 즉 이 항목이 「`sample=false` 기반 죽은 코드를 전부 제거한다」고 말하지 않는다 — **셋을 제거하고 하나(`:125`)는 (B)에 딸려 남긴다.**
+  - **관측(범위 밖)**: `CaptionPreviewPlayer`의 `playUrl`-기반 `<video>` 재생 경로도 현재 유일 소비자가 `playUrl={null}`이라 도달 불가다. 이 항목에서는 남기지만, `:125`의 잔여 갈래와 함께 **후속 정리 후보**로 보고한다(둘은 한 덩어리다).
