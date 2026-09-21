@@ -43,7 +43,7 @@
 - [ ] FEAT-57: `clip_review_caption_style_edited` 계측 이름을 계약에서 완전 제거 — 지금은 죽은 등록으로 남아 있다
   agent: main-loop
   area: packages/db/src/analytics-contract.ts + apps/web/src/fsd/shared/analytics/lib/metadata.ts + apps/admin/src/fsd/entities/analytics-event/api/queries.test.mjs
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-52가 발신부를 지워 죽은 등록만 남았다. 쓰기 범위가 packages/db·web·admin 셋으로 갈려 담당은 main-loop(백로그 지정).
 - [x] FEAT-56: FEAT-52·53이 남긴 죽은 코드 여섯 정리 — `playUrl` prop · 낡은 주석 3곳 · 소비자 없는 재수출 · 잔여 문구 둘 · 도달 불가가 된 라이브 미리보기 경로
   agent: web-dev
