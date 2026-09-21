@@ -9,7 +9,7 @@ agent: main-loop
 - `packages/db/src/analytics-contract.ts:9-41` `ANALYTICS_EVENT_NAMES`가 이름 **31개**를 `as const` 배열로 정의하고, `:30`이 `  "clip_review_caption_style_edited",`다. `:43` `export type AnalyticsEventName = (typeof ANALYTICS_EVENT_NAMES)[number];`가 그 배열에서 타입을 뽑는다.
 - `apps/web/src/fsd/shared/analytics/lib/metadata.ts:48` `  clip_review_caption_style_edited: ["uploadedFileId", "preset", "appliedToAll"],`가 허용 메타데이터 키를 정의하고, 그 위 `:46-47`에 설명 주석 두 줄이 붙어 있다. 이 맵은 `:63` `} as const satisfies Record<AnalyticsEventName, readonly string[]>;`로 계약에 묶여 있다 — **이름 31개 전부에 항목이 있어야 컴파일된다.**
 - 이름 목록 **전체**를 소비하는 곳은 넷이다(전수 열거): `apps/web/src/app/api/analytics/events/route.ts:15` `  name: z.enum(ANALYTICS_EVENT_NAMES),`(수집 엔드포인트 검증) · `apps/admin/src/fsd/entities/analytics-event/api/queries.ts:74`와 `:90`(범위 조회) · `apps/web/src/fsd/shared/analytics/event-catalog.test.mjs:27` `  for (const name of ANALYTICS_EVENT_NAMES) {`(모든 이름에 metadata 정의가 있는지 단언).
-- admin 조회는 이름 집합을 `where`에 넣는다 — `apps/admin/src/fsd/entities/analytics-event/api/queries.ts:48-70` `listRangeEvents`의 `      ...(names ? { name: { in: [...names] } } : {}),`. 그 집합을 `ANALYTICS_EVENT_NAMES`로 부르는 것은 `getAnalyticsOverview`(`:74`)와 `getDropOffReport`(`:90`) **둘뿐**이다. `getFunnelReport`는 `ANALYTICS_FUNNELS[input.funnel]`을, `getRecentFailureEvents`는 `FAILURE_EVENT_NAMES`를 쓴다.
+- admin 조회는 이름 집합을 `where`에 넣는다 — `apps/admin/src/fsd/entities/analytics-event/api/queries.ts:48-71` `listRangeEvents`의 `      ...(names ? { name: { in: [...names] } } : {}),`. 그 집합을 `ANALYTICS_EVENT_NAMES`로 부르는 것은 `getAnalyticsOverview`(`:74`)와 `getDropOffReport`(`:90`) **둘뿐**이다. `getFunnelReport`는 `ANALYTICS_FUNNELS[input.funnel]`을, `getRecentFailureEvents`는 `FAILURE_EVENT_NAMES`를 쓴다.
 - 퍼널 정의(`packages/db/src/analytics-contract.ts:95-122`) 넷 어디에도 이 이름이 없다 — `review`는 `clip_review_opened`·`clip_review_confirmed`·`clip_viewed` 셋이다.
 
 **발신부는 이미 없다.** FEAT-52가 검토 다이얼로그와 훅을 지워, 이 이름으로 `trackAnalyticsEvent`를 부르는 코드가 0이다. `apps/web/src/fsd/shared/analytics/lib/metadata.ts:59` 주석이 그 사실을 이미 적고 있다 — `  // source는 "settings_page"(검토 다이얼로그 진입점은 FEAT-52에서 폐지).`
@@ -48,7 +48,7 @@ agent: main-loop
 | `apps/web/src/fsd/shared/analytics/lib/metadata.ts` | `:46-48` 세 줄(설명 주석 2 + 키 1) 제거 |
 | `apps/web/src/fsd/shared/analytics/lib/metadata.test.mjs` | `:46-48` 주석에서 사라진 이름 참조를 걷어내고 같은 취지를 남긴다 |
 
-**백로그의 `apps/admin/.../queries.test.mjs`는 대상이 아니다.** 그 파일 `:6`의 `ANALYTICS_EVENT_NAMES`는 계약 사본이 아니라 `mock.module("@repo/db", …)`(`:15-19`)로 주입하는 **세 개짜리 목 픽스처**다(`"landing_view"`·`"dashboard_viewed"`·`"upload_prepare_failed"`). 계약은 31개이므로 애초에 일치시킬 의도가 없고, 이름을 지워도 이 파일은 깨지지 않는다. 백로그 요구 ③의 진단("하드코딩 사본이 계약과 어긋나 깨진다")이 사실과 다르다.
+**백로그의 `apps/admin/.../queries.test.mjs`는 대상이 아니다.** 그 파일의 `ANALYTICS_EVENT_NAMES`는 계약 사본이 아니라 **세 개짜리 목 픽스처**다 — 정의가 `apps/admin/src/fsd/entities/analytics-event/api/queries.test.mjs:6-10`이고, `mock.module("@repo/db", {`가 여는 목 인자(`apps/admin/src/fsd/entities/analytics-event/api/queries.test.mjs:16-29`) 안 `:18`에서 주입된다(바로 위 `:15`는 `server-only`를 무력화하는 별개 목 호출이다)(`"landing_view"`·`"dashboard_viewed"`·`"upload_prepare_failed"`). 계약은 31개이므로 애초에 일치시킬 의도가 없고, 이름을 지워도 이 파일은 깨지지 않는다. 백로그 요구 ③의 진단("하드코딩 사본이 계약과 어긋나 깨진다")이 사실과 다르다.
 
 **`event-catalog.test.mjs`도 대상이 아니다.** `:27`이 목록을 순회할 뿐 이름을 박지 않으므로, 계약과 `metadata.ts`를 **함께** 고치면 그대로 통과한다. 한쪽만 고치면 이 테스트(또는 `tsc`)가 잡는다 — 이번 변경의 안전망이다.
 
