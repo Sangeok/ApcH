@@ -35,7 +35,6 @@ interface ClipDraftCardProps {
   onSave: (input: SaveDraftInput) => Promise<void>;
   isOverlapping: boolean;
   isBudgetFull: boolean;
-  playUrl: string | null;
 }
 
 function roundTenth(value: number): number {
@@ -51,7 +50,6 @@ export default function ClipDraftCard({
   onSave,
   isOverlapping,
   isBudgetFull,
-  playUrl,
 }: ClipDraftCardProps) {
   // 구간·스타일은 사용자가 편집 중인 값이라 로컬 state로 두지만, 선택 여부는
   // detail 캐시(draft.selected)에서 직접 읽는다. 로컬로 복사하면 위젯 헤더의

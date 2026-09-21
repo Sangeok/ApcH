@@ -39,14 +39,32 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-21
+- [x] FEAT-56: FEAT-52·53이 남긴 죽은 코드 여섯 정리 — `playUrl` prop · 낡은 주석 3곳 · 소비자 없는 재수출 · 잔여 문구 둘 · 도달 불가가 된 라이브 미리보기 경로
+  agent: web-dev
+  area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/clip-review + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/shared/config/constants.ts
+  status: 완료
+  검증: 클린 패스 (2026-09-21, 독립 무편집 1사이클 — 결함 0. 필수 7경로 중 6을 명세대로 실행하고 경로 5는 「신설·변경된 판정 로직 부재」로 경로 2·4·8이 대체했다. 경로 5 자체는 메인 루프 라운드가 전수 실행해 잃은 커버리지 0을 확인했다)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 2026-09-21 원장 분류가 관측 5를 독립 재확인했다 — 라이브 미리보기 도달 불가로 배포 확인 13줄이 함께 죽었다. 선행 FEAT-52·53 완료.
+  결과: 계획대로 11파일 정리 — playUrl prop·죽은 주석3·CaptionStyleInput 재수출2·라이브 미리보기 경로·컬럼수 주석. 동작무변경·스케치 동일. check EXIT0·test 170/40/0(178→170·suite42→40). 상세 web-dev/FEAT-56
+
+## 2026-09-20
+- [x] FEAT-55: FEAT-52 뒤 죽는 클립별 캡션 스타일 경로 제거 — `moment_style` 인자 · moments `caption_style` 키 · 주석
+  agent: backend-dev
+  area: apps/backend/caption_style_source.py + apps/backend/main.py
+  status: 완료
+  검증: 클린 패스 (2026-09-20, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 메인 루프 라운드 소득 3건(전부 문서 위생) 반영 뒤)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-52 배포·FEAT-53 DB 적용이 어제 둘 다 섰다 — `moment.caption_style`이 영구히 None이 된 직후다. 캡션 체인의 마지막 조각.
+  결과: 계획대로 3파일 — moment_style 인자·우선순위 제거(1-인자화)·render caption_style 키·주석2 갱신. 동작무변경. unittest 109/0·py_compile 0. 상세 backend-dev/FEAT-55
+
 ## 2026-09-17
 - [x] FEAT-53: `ClipDraft.captionStyle` 컬럼 제거 (마이그레이션 1회)
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-17, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 1차 독립 패스 결함 2건·메인 루프 라운드 소득 2건 반영 뒤)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-52 배포 완료로 활성 참조 0이 됐다 — 그 전제는 앞으로의 작업이 조용히 깨뜨릴 수 있어 지금이 적기다. FEAT-55를 여는 유일한 항목.
-  결과: 계획대로 schema 2곳+마이그레이션 신규, 생성 클라이언트 7파일 동반(FEAT-47 선례). check EXIT0·test 178/42/0 불변·backend 113 불변. **DB 미적용** — 배포 뒤 별도 승인. 상세 main-loop/FEAT-53
+  결과: 계획대로 schema 2곳+마이그레이션 신규, 생성 클라이언트 7파일 동반(FEAT-47 선례). check EXIT0·test 178/42/0·backend 113 불변. **DB 적용 완료**(2026-09-19, 6/70행 소멸) — db pull로 컬럼 소멸 확인. 상세 main-loop/FEAT-53
 - [x] FEAT-52: 캡션 스타일을 검토 화면에서 제거하고 설정 전용으로 — `Video style` 카드 + 업로드 폼 표시
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/features/clip-review + apps/web/src/fsd/entities/clip-draft/api + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/fsd/shared/analytics + apps/web/src/inngest

@@ -451,7 +451,6 @@ export default function ClipDraftReviewSection({
               onSave={saveDraft}
               isOverlapping={overlappingDraftIds.has(draft.id)}
               isBudgetFull={budget.isFull}
-              playUrl={readyPlayUrl}
             />
           ))}
         </div>

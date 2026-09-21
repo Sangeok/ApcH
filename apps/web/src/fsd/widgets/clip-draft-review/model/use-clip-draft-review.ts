@@ -125,9 +125,6 @@ export function useClipDraftReview(
                   startSeconds: input.startSeconds,
                   endSeconds: input.endSeconds,
                   selected: input.selected,
-                  // captionStyle은 의도적으로 낙관 반영하지 않는다. 헤더 카운트와
-                  // Generate 가드는 selected/start/end만 소비하며, 스타일은
-                  // onSettled의 invalidate가 서버 값으로 재동기화한다.
                 }
               : draft,
           ),
@@ -203,7 +200,7 @@ export function useClipDraftReview(
     },
   });
 
-  // 전체 선택/해제. applyStyleMutation과 같은 순차 루프 패턴을 따르되,
+  // 전체 선택/해제. 순차 루프로 대상 전체를 저장하되,
   // 단일 카드 토글(saveMutation)과 동일하게 낙관적 갱신으로 헤더 카운트를
   // 즉시 일치시킨다. 일부만 성공한 채 실패할 수 있으므로 onSettled에서
   // 성공/실패 모두 서버 상태로 재동기화한다.
@@ -213,7 +210,7 @@ export function useClipDraftReview(
       // onMutate가 detail 캐시의 모든 draft.selected를 낙관적으로 뒤집은 뒤에
       // 실행되고, 그 사이 리렌더가 끼면 여기 clipDrafts가 갱신된 값으로
       // 교체되어 전부 skip될 수 있다(= 서버에 아무것도 저장되지 않음).
-      // applyStyleMutation과 동일하게 대상 전체를 무조건 저장한다.
+      // 그래서 대상 전체를 무조건 저장한다.
       for (const draft of clipDrafts) {
         const result = await saveClipDraftEdit({
           clipDraftId: draft.id,

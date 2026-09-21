@@ -330,28 +330,11 @@ export default function CaptionStyleEditor({
           position={effectivePosition}
           sample={sample}
         />
-        {/* 못 닫는 근사 둘을 말한다: 미리보기는 전체 프레임(resize 모드)을 보여주지만
-            실렌더는 화자를 따라 크롭하고, 한국어는 렌더 시 번역되므로 여기선 영어 원문이다.
-            정지 샘플(설정 화면)은 사용자 영상·전사가 없으므로 다른 안내를 낸다. */}
-        {sample ? (
-          <p className="text-center text-[11px] text-muted-foreground">
-            This is a sample. Your clips use your own video and words — here
-            you&apos;re setting the size, color, position, and words per line.
-          </p>
-        ) : language === "Korean" ? (
-          <p className="text-center text-[11px] text-muted-foreground">
-            Live preview on your video — the whole frame is shown here. The final
-            clip crops to follow whoever is speaking, so framing will differ. The
-            Korean words shown are a sample — your captions are translated from the
-            video when you generate, so the exact wording and line length will
-            differ.
-          </p>
-        ) : (
-          <p className="text-center text-[11px] text-muted-foreground">
-            Live preview on your video — the whole frame is shown here. The final
-            clip crops to follow whoever is speaking, so framing will differ.
-          </p>
-        )}
+        {/* 정지 샘플 안내: 실제 클립은 사용자 영상·전사를 쓴다. */}
+        <p className="text-center text-[11px] text-muted-foreground">
+          This is a sample. Your clips use your own video and words — here
+          you&apos;re setting the size, color, position, and words per line.
+        </p>
       </div>
     </div>
   );

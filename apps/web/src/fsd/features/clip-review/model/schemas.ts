@@ -9,7 +9,6 @@ import { captionStyleSchema } from "~/fsd/shared/config/caption-style-schema";
 // (shared/config/caption-style-schema.ts). 검토 편집 스키마는 이 슬라이스가 계속 소유한다.
 // 배럴(features/clip-review/index.ts)과 기존 딥 임포트 소비자를 위해 재수출을 유지한다.
 export { captionStyleSchema };
-export type { CaptionStyleInput } from "~/fsd/shared/config/caption-style-schema";
 
 export const updateClipDraftSchema = z
   .object({
