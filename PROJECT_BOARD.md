@@ -43,7 +43,7 @@
 - [ ] FEAT-56: FEAT-52·53이 남긴 죽은 코드 여섯 정리 — `playUrl` prop · 낡은 주석 3곳 · 소비자 없는 재수출 · 잔여 문구 둘 · 도달 불가가 된 라이브 미리보기 경로
   agent: web-dev
   area: apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/fsd/features/clip-review + apps/web/src/fsd/features/caption-style + apps/web/src/fsd/shared/config/constants.ts
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-21, 독립 무편집 1사이클 — 결함 0. 필수 7경로 중 6을 명세대로 실행하고 경로 5는 「신설·변경된 판정 로직 부재」로 경로 2·4·8이 대체했다. 경로 5 자체는 메인 루프 라운드가 전수 실행해 잃은 커버리지 0을 확인했다)
   근거: 소유자 직접 발주(게이트① 세션 지시). 2026-09-21 원장 분류가 관측 5를 독립 재확인했다 — 라이브 미리보기 도달 불가로 배포 확인 13줄이 함께 죽었다. 선행 FEAT-52·53 완료.
 
