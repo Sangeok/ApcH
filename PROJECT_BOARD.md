@@ -43,7 +43,7 @@
 - [ ] FEAT-55: FEAT-52 뒤 죽는 클립별 캡션 스타일 경로 제거 — `moment_style` 인자 · moments `caption_style` 키 · 주석
   agent: backend-dev
   area: apps/backend/caption_style_source.py + apps/backend/main.py
-  status: 검토대기
+  status: 구현승인
   검증: 클린 패스 (2026-09-20, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 메인 루프 라운드 소득 3건(전부 문서 위생) 반영 뒤)
   근거: 소유자 직접 발주(게이트① 세션 지시). 선행 FEAT-52 배포·FEAT-53 DB 적용이 어제 둘 다 섰다 — `moment.caption_style`이 영구히 None이 된 직후다. 캡션 체인의 마지막 조각.
 
