@@ -44,6 +44,16 @@
 
 ---
 
+## FEAT-56 — FEAT-52·53이 남긴 죽은 코드 여섯 정리 (web, 구현 2026-09-21)
+
+원천: `docs/agents/web-dev/FEAT-56.md`의 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` **EXIT 0 · `✔ No ESLint warnings or errors`**(백로그 요구 ②a — 기존 `playUrl` 경고 1건 소멸) · `npm test -w apps/web` **tests 170 / suites 40 / fail 0**(178→170, 42→40, 파일 25 불변 — 계획서 예측과 정확히 일치) — 둘 다 인수 시 메인 루프가 직접 재실행했다. 구현 11파일이 계획서 스케치를 기계 적용한 패치본과 **11/11 바이트 동일**이다.
+
+**줄을 하나만 등재한다.** 이 항목의 화면 확인 대부분은 **검증 단계에서 이미 닫혔다** — 필수 경로 8(실물 렌더)로 `CaptionStyleEditor`의 before/after JSX를 `renderToStaticMarkup`으로 실제 렌더해 **도달하는 상태(`sample=true`)의 마크업이 EN·KR 모두 바이트 동일**함을 보였고(`docs/agents/main-loop/FEAT-56.md`), `previewCaptionCues` 제거의 등가성은 원본 함수 실행으로 증명했다. `ClipDraftCard`의 `playUrl`은 본문 소비가 0이라 마크업에 닿지 않는다(lint 경고가 그 증거였다). **남는 것은 「조합된 화면이 런타임에 뜨는가」 하나뿐이라 그것만 적는다** — 확인할 수 없는 줄을 쌓지 않는 것이 2026-09-21 분류의 교훈이다.
+
+- [ ] 배포 후 **설정 화면과 검토 화면이 오류 없이 열린다** — `/dashboard/settings`의 `Video style` 카드에 샘플 미리보기가 그려지고, `review_pending` 업로드의 검토 화면에서 클립 카드·구간 편집·전체 선택이 그대로 동작한다. 마크업 동일성은 검증 단계에서 닫혔고 여기서 보는 것은 **임포트 해석과 런타임 렌더**뿐이다(11파일 중 3개가 렌더 경로다)
+
+---
+
 ## FEAT-55 — FEAT-52 뒤 죽는 클립별 캡션 스타일 경로 제거 (backend, 구현 2026-09-21)
 
 원천: `docs/agents/backend-dev/FEAT-55.md`의 「못 덮는 범위」와 계획서 「테스트」. **배포됨(2026-09-21)** — 소유자 승인 후 `PYTHONUTF8=1 python -m modal deploy main.py`(이 머신은 `modal`이 PATH에 없어 `python -m modal`로 돈다). `✓ App deployed in 6.717s`, 로컬 모듈 마운트에 `PythonPackage:caption_style_source` 재생성 확인(필수 6경로 중 **경로 7 음성 시험**이 "여기가 틀리면 컨테이너 시작에서만 죽는다"고 지목한 자리다), 엔드포인트 `https://sangeok--ai-podcast-clipper-process-video.modal.run`. 게이트는 `PYTHONUTF8=1 python -m unittest discover -s apps/backend -p "test_*.py"` **`Ran 109 tests ... OK`**(기준선 113, 이 모듈 8→4 — 계획서가 못박은 기대값과 정확히 일치) · `python -m py_compile apps/backend/main.py` exit 0 — 인수 시 메인 루프가 직접 재실행했다. 구현 결과물이 계획서 스케치와 **바이트 동일**이고, `main.py`가 검증 라운드의 기계 패치본과 **바이트 동일**임도 확인했다.
