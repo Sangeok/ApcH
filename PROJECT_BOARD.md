@@ -39,6 +39,18 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-22
+- [ ] BUG-15: 홈페이지가 만들지 못하는 화면비를 약속한다 — `square`·`landscape` 문구 철회
+  agent: web-dev
+  area: apps/web/src/fsd/pages/home/config/index.ts
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 유저 대면 거짓이고 같은 파일 `:51`과 자기모순이다. 파일 1개·동작 무변경이라 FEAT-44와 파일이 겹치지 않아 병행한다(FEAT-45·46 전례).
+- [ ] FEAT-44: 낡는 줄번호 인용을 함수명·코드 내용 앵커로 교체 — **동작 무변경**
+  agent: main-loop
+  area: apps/web/src/fsd/features/caption-style + apps/web/src/fsd/shared/config/constants.ts + apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/app/layout.tsx + apps/backend/*.py + apps/backend/CLAUDE.md + apps/web/CLAUDE.md + .claude/agents/
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 범위를 소유자와 좁혔다 — 두 CLAUDE.md를 **넣고**(제외가 인수마다 손 교정을 낳았다) TASK_BACKLOG 17건은 **뺀다**(시점 관측). 실측 49건.
+
 ## 2026-09-21
 - [x] FEAT-57: `clip_review_caption_style_edited` 계측 이름을 계약에서 완전 제거 — 지금은 죽은 등록으로 남아 있다
   agent: main-loop
