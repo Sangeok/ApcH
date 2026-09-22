@@ -121,6 +121,22 @@ FEAT-55에서 `apps/backend/CLAUDE.md` 11건, FEAT-56에서 FEAT-44 자신의 �
 **그 줄의 코드를 짧게 인용**한다(`start_rel = max(0.0, ...)`처럼). 코드 인용은 파일이 밀려도
 `grep`으로 찾힌다.
 
+⚠️ **코드 인용만으로는 부족한 경우가 있다.** `create_subtitles_with_ffmpeg`(영어)와
+`create_korean_subtitles_with_ffmpeg`(한국어)는 거의 같은 코드를 갖고 있어, 묶기 로직의
+줄들(`start_rel = ...` · `end_rel = ...` · `if end_rel <= 0:` · `elif len(current_words) >= max_word:` ·
+`current_words.append(word)` · `if current_words:` · `resolved["uppercase"]` · `subs.info["PlayResY"]` ·
+`clip_segments = [segment` 등)이 **`main.py`에 각각 2회씩 나온다**(검증 라운드 1, 경로 7 실측).
+
+그래서 규칙은 이렇다:
+
+- **파일 머리에 함수 문맥이 이미 있으면** 그 아래 per-line 앵커는 코드 인용만 쓴다.
+  `caption-preview.ts`가 그 경우다 — `:10`이 「`create_subtitles_with_ffmpeg`의 큐 묶기를
+  그대로 옮긴다」로 파일 전체의 문맥을 세운다.
+- **머리가 없으면 앵커에 함수명을 넣는다.** `caption-preview.test.mjs`·`constants.ts`가 그 경우다.
+
+이 규칙을 지켜야 새 앵커가 **줄번호보다 나아진다.** 안 지키면 `grep` 결과가 둘이라
+독자가 여전히 어느 쪽인지 모른다.
+
 ### `caption-preview.ts` (10)
 
 | 줄 | before → after |
@@ -163,7 +179,7 @@ FEAT-55에서 `apps/backend/CLAUDE.md` 11건, FEAT-56에서 FEAT-44 자신의 �
 
 | 줄 | before → after |
 | --- | --- |
-| `:18` | `(main.py:344-345 잔여 flush)` → `(main.py 루프 뒤 if current_words: 잔여 flush)` |
+| `:18` | `(main.py:344-345 잔여 flush)` → `(main.py create_subtitles_with_ffmpeg 루프 뒤 if current_words: 잔여 flush)` — 이 파일엔 함수 문맥 머리가 없어 **함수명을 넣는다** |
 | `:54` | `main.py:300-305 — start >= clipStart && end <= clipEnd` → `main.py create_subtitles_with_ffmpeg의 clip_segments 필터 — start >= clipStart && end <= clipEnd` |
 
 ### `clip-draft-review/ui/index.tsx` (2 + 웹 내부 1)
@@ -210,10 +226,14 @@ after: `previewText는 영어 원문이다(위 const previewText 선언).`
 | `moment_prompt.py:12` | `main.py:937-1004의 prompt_template` → `main.py identify_moments의 prompt_template` |
 | `test_moment_prompt.py:5` | `main.py:937-1004의 prompt_template` → `main.py identify_moments의 prompt_template` |
 | `test_moment_prompt.py:103` | `구현 전 main.py:1006-1009의 조립식 재현` → `구현 전 main.py identify_moments 호출부의 조립식 재현` |
-| `test_reference_translation.py:21` | `main.py:1019-1025 analyze 인라인 코드 펜스 제거의 재현식` → `구현 전 main.py analyze 경로 인라인 코드 펜스 제거의 재현식` |
-| `test_reference_translation.py:204` | `main.py:1019-1025 인라인 복제와 동일 동작` → `구현 전 main.py analyze 인라인 복제와 동일 동작` |
+| `test_reference_translation.py:21` | **줄 전체로 치환한다**(아래 ⚠️) — `    """main.py:1019-1025 analyze 인라인 코드 펜스 제거의 재현식(골든 비교용)."""` → `    """구현 전 main.py analyze 경로 인라인 코드 펜스 제거의 재현식(골든 비교용)."""` |
+| `test_reference_translation.py:204` | 같음 — `        # main.py:1019-1025 인라인 복제와 동일 동작.` → `        # 구현 전 main.py analyze 인라인 복제와 동일 동작.` |
 | `translation_fallback.py:21` | `기존 main.py:516-524와 동치` → `기존 main.py create_korean_subtitles_with_ffmpeg의 인라인 번역 맵 조립과 동치` |
 | `translation_fallback.py:45` | `기존 main.py:526-532의 줄 단위 폴백과 동치` → `기존 main.py create_korean_subtitles_with_ffmpeg의 줄 단위 폴백과 동치` |
+
+> ⚠️ **`main.py:1019-1025` 조각은 이 파일에 2회 나온다**(`:21`·`:204`). 조각만으로 치환하면
+> 어느 쪽이 바뀌는지 정해지지 않으므로 **두 줄은 줄 전체를 before로 삼는다.** 나머지 50개
+> 편집은 조각이 해당 파일에서 유일함을 기계로 확인했다(검증 라운드 1, 경로 3).
 
 **요구 ② 판정(줄마다)**: 일곱 중 넷(`test_*` 둘씩)은 **「구현 전」 스냅샷**을 가리키므로 숫자를
 지우고 「구현 전」을 문장에 명시해 **역사적 서술임을 문면에 남긴다.** `translation_fallback.py`
