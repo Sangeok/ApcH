@@ -50,6 +50,7 @@
   agent: main-loop
   area: apps/web/src/fsd/features/caption-style + apps/web/src/fsd/shared/config/constants.ts + apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/app/layout.tsx + apps/backend/*.py + apps/backend/CLAUDE.md + apps/web/CLAUDE.md + .claude/agents/
   status: 검토대기
+  검증: 클린 패스 (2026-09-22, 독립 무편집 2사이클 — 1차가 구현 영향 결함 1건(feature-scout 앵커가 낡은 줄번호를 따라가 엉뚱한 함수를 짚음) 반영 뒤 2차 필수 4경로 전수 결함 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). 범위를 소유자와 좁혔다 — 두 CLAUDE.md를 **넣고**(제외가 인수마다 손 교정을 낳았다) TASK_BACKLOG 17건은 **뺀다**(시점 관측). 실측 49건.
 
 ## 2026-09-21
