@@ -117,9 +117,9 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
       style={{ width: PREVIEW_WIDTH_PX, height: PREVIEW_HEIGHT_PX }}
     >
       {playUrl !== null && (
-        // 백엔드 resize 모드(main.py:245-262) 재현: 블러 배경(cover + 살짝 확대) 위에
+        // 백엔드 resize 모드(main.py create_vertical_video의 mode == "resize" 갈래) 재현: 블러 배경(cover + 살짝 확대) 위에
         // 원본 전체(contain, 레터박스)를 얹는다. 얼굴이 잡히면 실렌더는 화자 x 크롭
-        // (crop 모드, main.py:265-275)이라 이와 다르다 — 아래 안내가 그 한계를 말한다.
+        // (crop 모드, main.py create_vertical_video의 mode == "crop" 갈래)이라 이와 다르다 — 아래 안내가 그 한계를 말한다.
         <>
           <video
             ref={bgVideoRef}

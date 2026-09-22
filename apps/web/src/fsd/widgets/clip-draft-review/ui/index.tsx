@@ -275,9 +275,10 @@ export default function ClipDraftReviewSection({
               : "Swap one out to change your pick. "}
             {`Each clip uses 1 credit; you have ${currentUserCredits}.`}
           </p>
-          {/* 번역은 렌더 단계에서만 일어나므로(apps/backend/main.py:837/840) 검토
-              화면은 영어 원문을 보여준다. 유일한 기존 안내(CaptionStyleEditor
-              :310-311)는 기본 닫힘 다이얼로그 안 11px라 소유자조차 못 봤다 — 항상
+          {/* 번역은 렌더 단계에서만 일어나므로(apps/backend/main.py process_clip의 elif selected_language == "Korean" → create_korean_subtitles_with_ffmpeg) 검토
+              화면은 영어 원문을 보여준다. 그 전까지 유일한 안내는 검토 화면 캡션
+              다이얼로그 안 11px 문구였고 소유자조차 못 봤다(그 다이얼로그는 FEAT-52가
+              없앴다) — 항상
               보이는 헤더에 두되, 주변 muted 산문에 묻히지 않게 bg-muted 박스로
               구분한다. English일 때 languageNotice === null이라 렌더되지 않는다. */}
           {languageNotice && (
@@ -288,7 +289,7 @@ export default function ClipDraftReviewSection({
           {/* 예산을 바꾸는 버튼이므로 예산 표시 옆에 둔다. 카드 목록 안에 두면
               목록을 스크롤하는 순간 함께 화면 밖으로 나간다.
               draft 개수는 목표와 무관하다 — 백엔드는 2배를 "요청"할 뿐이고
-              (main.py:904 "Return exactly TARGET_COUNT moments if possible")
+              (moment_prompt.py "Return exactly TARGET_COUNT moments if possible")
               강제 장치가 없어 목표보다 많이도, 적게도 온다. 그래서 상한을
               넘길 수 있는 "전체 선택" 대신 예산만큼만 랭킹 상위에서 채운다.
               slice(0, limit)은 draft가 상한보다 적어도 그대로 동작한다. */}

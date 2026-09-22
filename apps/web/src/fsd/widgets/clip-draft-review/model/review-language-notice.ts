@@ -1,8 +1,8 @@
 // 검토 화면은 언어 선택과 무관하게 영어 전사를 보여준다 — previewText는 wordsInRange의
-// 영어 단어들이고(ClipDraftCard.tsx:113), 한국어 번역은 렌더 단계에서만 만들어진다
-// (apps/backend/main.py:837 elif selected_language == "Korean" → :840
-// create_korean_subtitles_with_ffmpeg, :474 Gemini 번역, 실패 시 :535
-// korean_texts = english_texts 영어 폴백). 그래서 "Korean을 골랐는데 화면이 영어"라는
+// 영어 단어들이고(ClipDraftCard.tsx의 const previewText 선언), 한국어 번역은 렌더
+// 단계에서만 만들어진다 (apps/backend/main.py process_clip의
+// elif selected_language == "Korean" → create_korean_subtitles_with_ffmpeg, 그 안에서
+// Gemini 번역, 실패 시 korean_texts = english_texts 영어 폴백). 그래서 "Korean을 골랐는데 화면이 영어"라는
 // 오독을 막는 안내는 English가 아닌 언어에서만 필요하다.
 //
 // 언어 이름은 전달된 값(SUPPORTED_LANGUAGES[].value: "English"|"Korean")을 그대로

@@ -18,7 +18,7 @@ def parse_translations(payload):
 
     payload가 list가 아니면(예: {"error":"cannot-translate"}) 빈 맵.
     각 항목은 dict, index는 int, translation은 strip 후 비어 있지 않은 str이어야 한다.
-    (기존 main.py:516-524와 동치 — 단, 빈 문자열은 맵에 넣지 않고 아래 조립에서
+    (기존 main.py create_korean_subtitles_with_ffmpeg의 인라인 번역 맵 조립과 동치 — 단, 빈 문자열은 맵에 넣지 않고 아래 조립에서
     폴백으로 흘려보낸다. 렌더 결과는 기존과 동일하고, 누락 집계에만 포함된다.)
     """
     result = {}
@@ -42,7 +42,7 @@ def assemble_korean_texts(english_texts, translations_map):
     반환: (korean_texts, missing_indices)
     - korean_texts: 자막에 실제로 쓸 텍스트 리스트(길이 == len(english_texts))
     - missing_indices: 번역이 없어 영어로 폴백된 index 리스트(오름차순)
-    (기존 main.py:526-532의 줄 단위 폴백과 동치 — 폴백된 index만 추가로 모은다.)
+    (기존 main.py create_korean_subtitles_with_ffmpeg의 줄 단위 폴백과 동치 — 폴백된 index만 추가로 모은다.)
     """
     korean_texts = []
     missing_indices = []

@@ -151,3 +151,56 @@ language만」). 실제 위치는 `def generate_youtube_metadata` `:608`, 호출
 **그러나 ②의 둘째는 이 항목이 고치려는 병의 실제 사례이고, 이미 고치는 파일 안에 있다.**
 2건을 범위에 넣을지는 **소유자 결정**이라 게이트②에 함께 올린다.
 
+## 구현 (2026-09-22)
+
+게이트②가 열려 직접 구현했다(담당 main-loop — 쓰기 범위가 web·backend·`.claude/agents/`·`docs/` 넷으로 갈린다).
+**소유자는 계획서 그대로 승인했다** — 독립 패스가 올린 웹 내부 2건 추가는 **미포함**이다.
+
+계획서를 파일에서 다시 읽고 **52개 편집 / 17파일**을 적용했다. 모든 치환은 before가
+해당 파일에 **정확히 1회**임을 단언한 뒤 수행했다(`assert s.count(o)==1`) — 하나라도
+어긋났으면 즉시 멈췄다.
+
+| 묶음 | 파일 | 편집 |
+| --- | --- | --- |
+| caption-style·config | `caption-preview.ts` 10 · `constants.ts` 4 · `layout.tsx` 2 · `CaptionPreviewPlayer.tsx` 2 · `caption-preview.test.mjs` 2 | 20 |
+| clip-draft-review | `ui/index.tsx` 3 · `review-language-notice.ts` 2 · `ClipDraftCard.tsx` 1 | 6 |
+| backend `.py` | `moment_prompt.py` 1 · `test_moment_prompt.py` 2 · `test_reference_translation.py` 2 · `translation_fallback.py` 2 | 7 |
+| 에이전트 정의 | `backend-dev.md` 1 · `feature-scout.md` 5 | 6 |
+| 문서 | `apps/backend/CLAUDE.md` 11 · `apps/web/CLAUDE.md` 1 · `docs/release-checks.md` 1 | 13 |
+| **합** | **17파일** | **52** |
+
+`git status`의 변경 파일이 **정확히 17개**로 계획서 「고칠 파일」과 일치했다(초과 0).
+
+### 재앵커로 안 끝난 것 둘 — 계획대로 다시 썼다
+
+- `clip-draft-review/ui/index.tsx`의 「유일한 기존 안내(`CaptionStyleEditor :310-311`)」는
+  FEAT-52가 그 다이얼로그를 지워 **존재하지 않는 것을 현재형으로** 서술했다. 과거형으로
+  다시 썼다 — 「그 전까지 유일한 안내는 … 문구였고 … (그 다이얼로그는 FEAT-52가 없앴다)」.
+- `review-language-notice.ts:1-6` 블록은 `main.py` 인용 셋과 웹 내부 인용 하나가 한 문장에
+  엉켜 있어 **블록째** 다시 썼다.
+
+### 요구 ④ — 완료 판정
+
+`main\.py:\d+`를 대상 17파일에 다시 돌려 **0건**. (`caption-style-schema.ts:12`·`constants.ts:44`의
+`main.py:`는 뒤에 숫자가 없는 산문이라 인용이 아니다 — 처음 grep이 `[0-9]*`로 0자리를 허용해
+걸린 것이고, `[0-9]+`로 다시 돌려 0을 확인했다.)
+
+웹 내부 3건 원문(`ClipDraftCard.tsx:113` · `(:113)` · `CaptionStyleEditor` 뒤 `:310-311`)도 **0건**.
+남은 `CaptionStyleEditor` 매치 둘은 `settings/ui/index.tsx:260`의 실제 컴포넌트 사용과
+`ui/index.tsx:424`의 줄번호 없는 언급이라 대상이 아니다.
+
+### 게이트 넷 — 전부 직접 실행
+
+| | 결과 |
+| --- | --- |
+| `npm run check -w apps/web` | **EXIT 0 · `✔ No ESLint warnings or errors`** |
+| `npm test -w apps/web` | **170 / suites 40 / fail 0** — 착수 기준선 그대로 |
+| `PYTHONUTF8=1 python -m unittest discover -s apps/backend` | **`Ran 109 tests ... OK`** — 착수 기준선 그대로 |
+| `python -m py_compile apps/backend/main.py` | **EXIT 0** |
+
+계획서가 못박은 대로 **숫자가 하나도 바뀌지 않았다.** 독스트링만 고친 두 테스트 파일도
+테스트 수가 그대로다 — 잘못 지운 것이 없다는 뜻이다.
+
+> 이 게이트 실행 시점에 `pages/home/config/index.ts`가 함께 수정돼 있었다 — **BUG-15를
+> 병행 처리 중인 `web-dev`의 작업**이고 내 17파일과 겹치지 않는다. 커밋에는 내 파일만 담았다.
+

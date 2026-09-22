@@ -40,18 +40,20 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-22
-- [ ] BUG-15: 홈페이지가 만들지 못하는 화면비를 약속한다 — `square`·`landscape` 문구 철회
+- [x] BUG-15: 홈페이지가 만들지 못하는 화면비를 약속한다 — `square`·`landscape` 문구 철회
   agent: web-dev
   area: apps/web/src/fsd/pages/home/config/index.ts
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-22, 독립 무편집 1사이클 — 결함 0, 필수 3경로 전수. 메인 루프 라운드도 무소득)
   근거: 소유자 직접 발주(게이트① 세션 지시). 유저 대면 거짓이고 같은 파일 `:51`과 자기모순이다. 파일 1개·동작 무변경이라 FEAT-44와 파일이 겹치지 않아 병행한다(FEAT-45·46 전례).
-- [ ] FEAT-44: 낡는 줄번호 인용을 함수명·코드 내용 앵커로 교체 — **동작 무변경**
+  결과: 계획대로 home/config 1파일 — workflowSteps 3단계에서 square·landscape 걷고 vertical 9:16 문구로. 스케치 동일·동작무변경. check EXIT0·test 170/40/0. 상세 web-dev/BUG-15
+- [x] FEAT-44: 낡는 줄번호 인용을 함수명·코드 내용 앵커로 교체 — **동작 무변경**
   agent: main-loop
   area: apps/web/src/fsd/features/caption-style + apps/web/src/fsd/shared/config/constants.ts + apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/app/layout.tsx + apps/backend/*.py + apps/backend/CLAUDE.md + apps/web/CLAUDE.md + .claude/agents/
   status: 구현승인
   검증: 클린 패스 (2026-09-22, 독립 무편집 2사이클 — 1차가 구현 영향 결함 1건(feature-scout 앵커가 낡은 줄번호를 따라가 엉뚱한 함수를 짚음) 반영 뒤 2차 필수 4경로 전수 결함 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). 범위를 소유자와 좁혔다 — 두 CLAUDE.md를 **넣고**(제외가 인수마다 손 교정을 낳았다) TASK_BACKLOG 17건은 **뺀다**(시점 관측). 실측 49건.
+  결과: 계획대로 52편집/17파일, 초과 0. 치환마다 before 1회 단언. main.py:N 잔존 0·웹내부 3건 0. 게이트 넷 불변(web 170/40/0·경고0, backend 109, py_compile 0). 상세 main-loop/FEAT-44
 
 ## 2026-09-21
 - [x] FEAT-57: `clip_review_caption_style_edited` 계측 이름을 계약에서 완전 제거 — 지금은 죽은 등록으로 남아 있다

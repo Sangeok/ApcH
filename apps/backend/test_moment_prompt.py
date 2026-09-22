@@ -2,7 +2,7 @@
 
 main.py는 import하지 않는다 — whisperx→torch 의존 때문에 맨 파이썬으로 돌지 않는다.
 
-EXPECTED_TEMPLATE는 main.py:937-1004의 prompt_template을 바이트 그대로 복사한 독립 사본이다
+EXPECTED_TEMPLATE는 main.py identify_moments의 prompt_template을 바이트 그대로 복사한 독립 사본이다
 (모듈 상수와 별개로 둔다 — 모듈이 바뀌어도 이 사본은 안 바뀌어야 frozen 단언이 드리프트를 잡는다).
 """
 
@@ -100,7 +100,7 @@ SAMPLE_TRANSCRIPT = [
 
 
 def current_formula(transcript, target_count):
-    """구현 전 main.py:1006-1009의 조립식 재현 (영어 기준값)."""
+    """구현 전 main.py identify_moments 호출부의 조립식 재현 (영어 기준값)."""
     return (
         EXPECTED_TEMPLATE.replace("TARGET_COUNT", str(target_count))
         + json.dumps(transcript, ensure_ascii=False)

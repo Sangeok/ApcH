@@ -151,7 +151,7 @@ apps/backend/
 
 - **pysubs2 `SSAStyle` 속성명에는 밑줄이 없다** — `primarycolor`·`outlinecolor`·`borderstyle`·`backcolor`. dataclass라서 `primary_color`를 대입하면 **아무 오류 없이 기본값으로 렌더된다.** 이 오타가 실제로 배포돼 사용자가 고른 자막 색이 전부 흰색으로 나갔다
 - **자막 타임스탬프는 항상 `max(0.0, timestamp - clip_start)`로 상대화한다** — WhisperX는 원본 영상 기준이고 클립 자막은 클립 기준이다. 안 빼면 자막이 통째로 밀린다
-- **`resolve_caption_style()`은 잘못된 입력을 조용히 기본값으로 떨어뜨린다**(`main.py:136`). 이건 의도된 설계다 — "기본 스타일 렌더가 실패한 렌더보다 낫다". 이 폴백을 다른 곳에 복사하기 전에 그 자리에서도 조용한 실패가 옳은지 판단한다
+- **`resolve_caption_style()`은 잘못된 입력을 조용히 기본값으로 떨어뜨린다**(`main.py`의 `resolve_caption_style()`). 이건 의도된 설계다 — "기본 스타일 렌더가 실패한 렌더보다 낫다". 이 폴백을 다른 곳에 복사하기 전에 그 자리에서도 조용한 실패가 옳은지 판단한다
 - **Columbia ASD는 초기화 시 `savePath` 디렉터리를 지운다.** 클립 세그먼트를 그 아래 두면 사라진다 — `base_dir/{clip_name}.mp4`로 밖에 두고 `--videoFolder`로 가리키는 현재 구조를 유지한다
 
 계획서 「테스트」 절의 "덮는 것"을 실제로 쓴다. 테스트는 `apps/backend/test_<모듈명>.py`에 `unittest.TestCase`로 둔다. **`main.py`를 import하지 않는다** — 그러면 torch가 필요해져 B-5가 돌지 않는다.

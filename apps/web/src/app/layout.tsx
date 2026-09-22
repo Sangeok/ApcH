@@ -68,7 +68,7 @@ const geist = Geist({
 
 const anton = Anton({
   subsets: ["latin"],
-  weight: "400", // main.py:360 Anton-Regular
+  weight: "400", // main.py 이미지 빌드의 Anton-Regular.ttf
   variable: "--font-anton",
 });
 
@@ -76,7 +76,7 @@ const anton = Anton({
 // 한글 서브셋은 크므로 preload하지 않는다 — 필요한 것은 폰트 메트릭(EM_SCALE)과 패밀리다.
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
-  weight: "700", // main.py:74 NotoSansKR-Bold
+  weight: "700", // main.py 이미지 빌드의 NotoSansKR-Bold.otf
   variable: "--font-noto-sans-kr",
   preload: false,
 });
