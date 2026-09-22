@@ -74,3 +74,51 @@
 확인했다. 수 주장 넷(66·49·52/17파일·표본 12건)이 편집 뒤에도 그대로다.
 
 **소득 0 → `plan-verifier` 독립 패스 디스패치 자격.**
+
+## 라운드 3 — `plan-verifier` 독립 무편집 패스 1차 (2026-09-22)
+
+**결함 1건 — 구현 영향.** 무편집(직접 검산: `git status`에 `?? nul`뿐, 대상 파일 diff 공란).
+
+### 잡힌 것
+
+`feature-scout.md:166`·`:174`의 `main.py:585`를 내가 **「한국어 번역 프롬프트 /
+`create_korean_subtitles_with_ffmpeg`」로 앵커했는데 틀렸다.** 그 자리 산문은
+`generate_youtube_metadata`를 말한다(`:165` 「generate_youtube_metadata는 script_text와
+language만」). 실제 위치는 `def generate_youtube_metadata` `:608`, 호출 `:869`(=`process_clip` 안).
+
+**왜 틀렸나**: `main.py:585`가 **지금** `create_korean_subtitles_with_ffmpeg`(`:416-607`) 범위
+안에 떨어진다는 이유로 그 함수를 앵커로 삼았다. **낡은 숫자가 가리키는 곳을 보고 앵커를 정한
+것이다** — 그 숫자는 정의상 틀렸는데도.
+
+**이 항목이 없애려는 바로 그 실패를 계획서가 저질렀다.** 게다가 더 나쁜 방향이다 —
+낡은 줄번호는 낡아 보이기라도 하지만, **틀린 심볼명은 권위 있는 얼굴로 박힌다.**
+구현했으면 에이전트가 매 세션 읽는 문서가 자기모순 거짓이 됐을 것이다.
+
+### 고친 것
+
+- 두 행을 `generate_youtube_metadata`(호출은 `process_clip`)로 정정
+- 「앵커 형식」에 절을 하나 추가했다 — **「산문이 대상을 말한다 — 낡은 숫자가 가리키는 곳이
+  아니라」**. 구현 절차로 못박았다: ① 인용하는 쪽 산문을 읽어 대상을 정하고 ② 그 대상을
+  심볼로 찾아 앵커를 쓴다. **낡은 줄번호는 읽지 않는다.** 실패 사례로 이번 건을 그대로 적었다.
+
+### 자가 감사 — 같은 실수가 더 있나
+
+나머지 앵커 **11개**를 「인용하는 쪽 산문이 말하는 대상」 기준으로 다시 대조했다
+(`feature-scout.md:64`·`:122` · `backend-dev.md:154` · `constants.ts:75`·`:78` ·
+`layout.tsx:71`·`:79` · `CaptionPreviewPlayer.tsx:120`·`:122` · `apps/web/CLAUDE.md:77` ·
+`release-checks.md:355`). **전부 산문과 일치** — 썩은 포인터를 따라간 것은 그 둘뿐이었다.
+
+### 독립 패스가 보탠 관측
+
+- **경로 7을 나보다 정밀하게 돌렸다** — 묶기 조각 9종이 각각 **정확히 2회**(`:397`/`:589` 등
+  영·한 함수 쌍)임을 세어, disambiguator를 빼면 검사가 **실제로 실패**함을 보였다.
+  더해서 단일 출현 조각(`new_style.shadow`·`korean_style.shadow`·`new_style.fontname = "Anton"`·
+  `korean_style.fontname` 각 1회)은 함수명 없이도 유일함을 확인했다 — 내 규칙이 **과하지도
+  않다**는 반대 방향 증거다.
+- `clip-draft-review/ui/index.tsx`에 `CaptionStyleEditor` **임포트·렌더가 없고 주석 언급뿐**임을
+  확인해, 「그 다이얼로그는 FEAT-52가 없앴다」 정정의 근거를 하나 더 세웠다.
+- `feature-scout.md:64`의 한국어 폴백 앵커가 옳음을 코드로 확인했다(`:541-544` 줄 폴백,
+  `:548` 클립 폴백).
+
+**다음**: 계획서가 바뀌었으므로 독립 패스 2차를 돌린다.
+

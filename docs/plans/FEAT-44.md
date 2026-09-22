@@ -137,6 +137,25 @@ FEAT-55에서 `apps/backend/CLAUDE.md` 11건, FEAT-56에서 FEAT-44 자신의 �
 이 규칙을 지켜야 새 앵커가 **줄번호보다 나아진다.** 안 지키면 `grep` 결과가 둘이라
 독자가 여전히 어느 쪽인지 모른다.
 
+### ⚠️ 산문이 대상을 말한다 — 낡은 숫자가 가리키는 곳이 아니라
+
+**앵커는 인용하는 쪽 산문에서 읽는다.** 낡은 줄번호가 **지금** 가리키는 코드를 보고 앵커를
+정하면 안 된다 — 그 숫자는 정의상 틀렸으므로, 그 자리에 우연히 있는 함수를 앵커로 삼으면
+**틀린 앵커가 권위 있는 얼굴로 박힌다.** 낡은 숫자는 낡아 보이기라도 하지만 틀린 심볼명은
+그렇지 않다.
+
+**이 계획서가 실제로 그 실수를 했다**(2026-09-22 독립 패스가 잡았다). `feature-scout.md:166`의
+`main.py:585`를 재앵커하며, 그 줄번호가 지금 `create_korean_subtitles_with_ffmpeg`(`:416-607`)
+범위 안에 떨어진다는 이유로 「한국어 번역 프롬프트」로 앵커했다. 그런데 **그 자리 산문은
+`generate_youtube_metadata`를 말한다**(`:165` 「generate_youtube_metadata는 script_text와
+language만」). 실제 위치는 `def generate_youtube_metadata` `:608`, 호출 `:869`다.
+계획대로 구현했으면 에이전트가 매 세션 읽는 문서가
+「`generate_youtube_metadata`는 … 받는다(한국어 번역 프롬프트, 호출은
+`create_korean_subtitles_with_ffmpeg`)」라는 **자기모순 거짓**이 됐을 것이다.
+
+**구현 절차에 넣는다**: 각 편집마다 ① 인용하는 쪽 산문을 읽어 **대상이 무엇인지 정하고**
+② 그 대상을 `main.py`에서 심볼로 찾아 앵커를 쓴다. **낡은 줄번호는 읽지 않는다.**
+
 ### `caption-preview.ts` (10)
 
 | 줄 | before → after |
@@ -247,8 +266,8 @@ after: `previewText는 영어 원문이다(위 const previewText 선언).`
 | `backend-dev.md:154` | `(main.py:136)` → `(main.py의 resolve_caption_style())` |
 | `feature-scout.md:64` | `main.py:519-521` · `main.py:524-...` → `create_korean_subtitles_with_ffmpeg의 줄 단위 폴백` · `같은 함수의 클립 전체 폴백` |
 | `feature-scout.md:122` | `ProcessVideoRequest(main.py:26-41)` → `ProcessVideoRequest(main.py의 class ProcessVideoRequest(BaseModel))` |
-| `feature-scout.md:166` | `main.py:585, 호출 :792` → `main.py의 한국어 번역 프롬프트, 호출은 create_korean_subtitles_with_ffmpeg` |
-| `feature-scout.md:174` | `프롬프트(main.py:585)` → `프롬프트(main.py의 한국어 번역 프롬프트)` |
+| `feature-scout.md:166` | `main.py:585, 호출 :792` → `main.py의 generate_youtube_metadata, 호출은 process_clip` — ⚠️ 아래 「산문이 대상을 말한다」 참조 |
+| `feature-scout.md:174` | `프롬프트(main.py:585)` → `프롬프트(main.py의 generate_youtube_metadata)` |
 | `apps/web/CLAUDE.md:77` | `apps/backend/main.py:302-360 이식` → `apps/backend/main.py create_subtitles_with_ffmpeg 이식` |
 | `docs/release-checks.md:355` | `자막 넣기 직전의 세로 영상(apps/backend/main.py:762)` → `자막 넣기 직전의 세로 영상(apps/backend/main.py process_clip의 vertical_mp4_path)` |
 
