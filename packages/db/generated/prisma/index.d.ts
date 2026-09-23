@@ -4202,6 +4202,8 @@ export namespace Prisma {
     defaultLanguage: number
     defaultClipCount: number
     defaultReviewBeforeGenerate: number
+    defaultCaptionStyleEnglish: number
+    defaultCaptionStyleKorean: number
     defaultCaptionStyle: number
     _all: number
   }
@@ -4257,6 +4259,8 @@ export namespace Prisma {
     defaultLanguage?: true
     defaultClipCount?: true
     defaultReviewBeforeGenerate?: true
+    defaultCaptionStyleEnglish?: true
+    defaultCaptionStyleKorean?: true
     defaultCaptionStyle?: true
     _all?: true
   }
@@ -4359,6 +4363,8 @@ export namespace Prisma {
     defaultLanguage: string | null
     defaultClipCount: number | null
     defaultReviewBeforeGenerate: boolean | null
+    defaultCaptionStyleEnglish: JsonValue | null
+    defaultCaptionStyleKorean: JsonValue | null
     defaultCaptionStyle: JsonValue | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
@@ -4393,6 +4399,8 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyleEnglish?: boolean
+    defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -4416,6 +4424,8 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyleEnglish?: boolean
+    defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -4431,6 +4441,8 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyleEnglish?: boolean
+    defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -4446,10 +4458,12 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultCaptionStyleEnglish?: boolean
+    defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "polarCustomerId" | "image" | "defaultLanguage" | "defaultClipCount" | "defaultReviewBeforeGenerate" | "defaultCaptionStyle", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "polarCustomerId" | "image" | "defaultLanguage" | "defaultClipCount" | "defaultReviewBeforeGenerate" | "defaultCaptionStyleEnglish" | "defaultCaptionStyleKorean" | "defaultCaptionStyle", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -4486,6 +4500,8 @@ export namespace Prisma {
       defaultLanguage: string | null
       defaultClipCount: number | null
       defaultReviewBeforeGenerate: boolean | null
+      defaultCaptionStyleEnglish: Prisma.JsonValue | null
+      defaultCaptionStyleKorean: Prisma.JsonValue | null
       defaultCaptionStyle: Prisma.JsonValue | null
     }, ExtArgs["result"]["user"]>
     composites: {}
@@ -4928,6 +4944,8 @@ export namespace Prisma {
     readonly defaultLanguage: FieldRef<"User", 'String'>
     readonly defaultClipCount: FieldRef<"User", 'Int'>
     readonly defaultReviewBeforeGenerate: FieldRef<"User", 'Boolean'>
+    readonly defaultCaptionStyleEnglish: FieldRef<"User", 'Json'>
+    readonly defaultCaptionStyleKorean: FieldRef<"User", 'Json'>
     readonly defaultCaptionStyle: FieldRef<"User", 'Json'>
   }
     
@@ -15119,6 +15137,8 @@ export namespace Prisma {
     defaultLanguage: 'defaultLanguage',
     defaultClipCount: 'defaultClipCount',
     defaultReviewBeforeGenerate: 'defaultReviewBeforeGenerate',
+    defaultCaptionStyleEnglish: 'defaultCaptionStyleEnglish',
+    defaultCaptionStyleKorean: 'defaultCaptionStyleKorean',
     defaultCaptionStyle: 'defaultCaptionStyle'
   };
 
@@ -15563,6 +15583,8 @@ export namespace Prisma {
     defaultLanguage?: StringNullableFilter<"User"> | string | null
     defaultClipCount?: IntNullableFilter<"User"> | number | null
     defaultReviewBeforeGenerate?: BoolNullableFilter<"User"> | boolean | null
+    defaultCaptionStyleEnglish?: JsonNullableFilter<"User">
+    defaultCaptionStyleKorean?: JsonNullableFilter<"User">
     defaultCaptionStyle?: JsonNullableFilter<"User">
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
@@ -15585,6 +15607,8 @@ export namespace Prisma {
     defaultLanguage?: SortOrderInput | SortOrder
     defaultClipCount?: SortOrderInput | SortOrder
     defaultReviewBeforeGenerate?: SortOrderInput | SortOrder
+    defaultCaptionStyleEnglish?: SortOrderInput | SortOrder
+    defaultCaptionStyleKorean?: SortOrderInput | SortOrder
     defaultCaptionStyle?: SortOrderInput | SortOrder
     accounts?: AccountOrderByRelationAggregateInput
     sessions?: SessionOrderByRelationAggregateInput
@@ -15610,6 +15634,8 @@ export namespace Prisma {
     defaultLanguage?: StringNullableFilter<"User"> | string | null
     defaultClipCount?: IntNullableFilter<"User"> | number | null
     defaultReviewBeforeGenerate?: BoolNullableFilter<"User"> | boolean | null
+    defaultCaptionStyleEnglish?: JsonNullableFilter<"User">
+    defaultCaptionStyleKorean?: JsonNullableFilter<"User">
     defaultCaptionStyle?: JsonNullableFilter<"User">
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
@@ -15632,6 +15658,8 @@ export namespace Prisma {
     defaultLanguage?: SortOrderInput | SortOrder
     defaultClipCount?: SortOrderInput | SortOrder
     defaultReviewBeforeGenerate?: SortOrderInput | SortOrder
+    defaultCaptionStyleEnglish?: SortOrderInput | SortOrder
+    defaultCaptionStyleKorean?: SortOrderInput | SortOrder
     defaultCaptionStyle?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
@@ -15655,6 +15683,8 @@ export namespace Prisma {
     defaultLanguage?: StringNullableWithAggregatesFilter<"User"> | string | null
     defaultClipCount?: IntNullableWithAggregatesFilter<"User"> | number | null
     defaultReviewBeforeGenerate?: BoolNullableWithAggregatesFilter<"User"> | boolean | null
+    defaultCaptionStyleEnglish?: JsonNullableWithAggregatesFilter<"User">
+    defaultCaptionStyleKorean?: JsonNullableWithAggregatesFilter<"User">
     defaultCaptionStyle?: JsonNullableWithAggregatesFilter<"User">
   }
 
@@ -16599,6 +16629,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -16621,6 +16653,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -16643,6 +16677,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -16665,6 +16701,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -16687,6 +16725,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -16702,6 +16742,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -16717,6 +16759,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -17938,6 +17982,8 @@ export namespace Prisma {
     defaultLanguage?: SortOrder
     defaultClipCount?: SortOrder
     defaultReviewBeforeGenerate?: SortOrder
+    defaultCaptionStyleEnglish?: SortOrder
+    defaultCaptionStyleKorean?: SortOrder
     defaultCaptionStyle?: SortOrder
   }
 
@@ -19499,6 +19545,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
@@ -19520,6 +19568,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
@@ -19557,6 +19607,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
@@ -19578,6 +19630,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
@@ -19599,6 +19653,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
@@ -19620,6 +19676,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
@@ -19657,6 +19715,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
@@ -19678,6 +19738,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
@@ -20353,6 +20415,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -20374,6 +20438,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -20498,6 +20564,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -20519,6 +20587,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -20601,6 +20671,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -20622,6 +20694,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -20726,6 +20800,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -20747,6 +20823,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -21024,6 +21102,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -21045,6 +21125,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -21082,6 +21164,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -21103,6 +21187,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -21124,6 +21210,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -21145,6 +21233,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -21182,6 +21272,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -21203,6 +21295,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -21224,6 +21318,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -21245,6 +21341,8 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -21282,6 +21380,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -21303,6 +21403,8 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput

@@ -116,3 +116,54 @@ defaultLanguage 분포: [{ null, 7 }]
 넣었다 — 실 DB 읽기 전용 리허설로 `WHERE` 분할 확인, 합성 도메인 돌연변이, `Json?` ↔ `JSONB`
 형태 일치.
 
+## 구현 (2026-09-23)
+
+게이트②가 열려 직접 구현했다. 계획서를 파일에서 다시 읽고 **14행 전부**를 적용했다 —
+모든 치환은 before가 그 파일에 **정확히 1회**임을 단언한 뒤 수행했다.
+
+| 묶음 | 파일 |
+| --- | --- |
+| DB | `schema.prisma`(②포함) · 신규 `20260923000000_user_default_caption_style_per_language/migration.sql` · 생성 클라이언트 7 |
+| 서버 | `entities/user/api` · `features/settings/api` · `features/upload/api` |
+| 페이지 | `app/dashboard/page.tsx` · `app/dashboard/settings/page.tsx` |
+| 화면 | `pages/settings/ui` · `pages/dashboard/ui` · `UploadPodcast.tsx` |
+| 공용 | `shared/config/constants.ts`(`CaptionStyleDefaults` 신설) · `caption-style-schema.ts` · `entities/uploaded-file/api` |
+
+`git status`의 변경이 계획서 「고칠 파일」과 **정확히 일치**하고 **초과 0**이다.
+
+### 구현 중 걸린 것 — 부분문자열 오매치
+
+`  initialCaptionStyle,`(2칸)로 치환하려는데 **2회** 잡혔다. `:59`의
+`    initialCaptionStyle,`(4칸)이 그 패턴을 **부분문자열로 포함**했기 때문이다.
+앵커를 앞뒤 줄까지 넓혀 다시 했다. **계획서 결함이 아니라 내 치환 방식의 문제**이고,
+`assert count==1`이 잡았다 — 그 단언이 없었으면 엉뚱한 줄이 바뀌었을 것이다.
+
+### 게이트 — 전부 직접 실행
+
+| | 결과 |
+| --- | --- |
+| `npx tsc --noEmit` | **EXIT 0** — 이 항목의 진짜 게이트 |
+| `npm run check -w apps/web` | **EXIT 0 · `✔ No ESLint warnings or errors`** |
+| `npm test -w apps/web` | **170 / suites 40 / fail 0** — 착수 기준선 그대로 |
+
+**`tsc` 통과가 「아홉 곳을 다 고쳤다」의 기계 판정이다.** 검증 라운드 1에서 센 아홉 곳
+(구조분해 3 · prop 타입 3 · 호출 3) 중 하나라도 빠뜨렸으면 EXIT 0이 안 나온다.
+
+### 구조 확인
+
+생성 클라이언트에 `defaultCaptionStyle` · `defaultCaptionStyleEnglish` ·
+`defaultCaptionStyleKorean` **셋 다** 있다 — 새 둘이 생겼고 구 하나가 남았다(계획대로).
+
+### 아직 하지 않은 것 — 마이그레이션 적용
+
+**적용하지 않았다.** 이 항목은 **DB 먼저**다(ADD라 FEAT-53과 반대):
+
+```
+① 마이그레이션 적용  ← 별도 승인, 아직
+② 코드 main 합류 → Vercel 배포
+```
+
+②를 먼저 하면 새 클라이언트가 **없는 컬럼을 SELECT해** 설정·대시보드·업로드가 동시에 깨진다.
+적용 직전에 `migrate status`와 영향 행 수를 보고한다(현재 실측: `defaultCaptionStyle`
+non-null **0행**이라 두 `UPDATE`는 0행을 건드린다).
+

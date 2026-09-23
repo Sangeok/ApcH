@@ -33,7 +33,7 @@ import {
   SUPPORTED_LANGUAGES,
   CLIP_COUNT_OPTIONS,
   CLIP_DURATION_LIMITS,
-  type CaptionStyle,
+  type CaptionStyleDefaults,
 } from "~/fsd/shared/config/constants";
 import type { ResolvedUploadDefaults } from "~/fsd/entities/user";
 import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
@@ -65,13 +65,13 @@ type UploadOptionsPayload = {
 interface UploadPodcastProps {
   onOptimisticAdd: (file: UploadedFileSummary) => void;
   defaults: ResolvedUploadDefaults;
-  defaultCaptionStyle: CaptionStyle | null;
+  defaultCaptionStyles: CaptionStyleDefaults;
 }
 
 export default function UploadPodcast({
   onOptimisticAdd,
   defaults,
-  defaultCaptionStyle,
+  defaultCaptionStyles,
 }: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [language, setLanguage] = useState<string>(defaults.language);
@@ -299,7 +299,11 @@ export default function UploadPodcast({
                   <p className="mt-1.5 text-sm font-medium">Video style:</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">
-                      {captionStyleLabel(defaultCaptionStyle)}
+                      {captionStyleLabel(
+                        language === "Korean"
+                          ? defaultCaptionStyles.korean
+                          : defaultCaptionStyles.english,
+                      )}
                     </span>
                     <Link
                       href="/dashboard/settings"

@@ -127,6 +127,16 @@ export type CaptionStyle = {
 };
 
 /**
+ * 언어별 캡션 기본값 한 쌍(FEAT-54). User.defaultCaptionStyleEnglish·Korean과 같은 모양이고,
+ * 설정 화면·대시보드·업로드 폼·저장 액션·쓰기 창구 다섯 곳이 이 타입을 공유한다 —
+ * 인라인으로 두면 한 곳을 고칠 때 나머지가 조용히 어긋난다.
+ */
+export type CaptionStyleDefaults = {
+  english: CaptionStyle | null;
+  korean: CaptionStyle | null;
+};
+
+/**
  * 이름 붙인 캡션 룩. 선택하면 스타일 필드를 통째로 덮어쓴다.
  * position은 프리셋 소속이 아니다 — 사용자가 고른 위치는 프리셋을 바꿔도 유지된다
  * (CaptionStyleEditor의 emit이 effective 위에 병합하므로 자동 보존).

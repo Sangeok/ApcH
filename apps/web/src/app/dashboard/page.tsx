@@ -33,7 +33,7 @@ export default async function DashboardPage() {
     recoverableDrafts,
     activeQueue,
     userDefaults,
-    { defaultCaptionStyle },
+    captionStyles,
   ] = await Promise.all([
     listUploadedFileSummariesByUserId(session.user.id),
     listRecoverableUploadDraftsByUserId(session.user.id),
@@ -49,7 +49,10 @@ export default async function DashboardPage() {
       recoverableDrafts={recoverableDrafts}
       initialActiveQueue={activeQueue}
       uploadDefaults={resolveUploadDefaults(userDefaults)}
-      defaultCaptionStyle={defaultCaptionStyle as CaptionStyle | null}
+      defaultCaptionStyles={{
+        english: captionStyles.defaultCaptionStyleEnglish as CaptionStyle | null,
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
     />
   );
 }

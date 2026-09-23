@@ -3,7 +3,7 @@ import "server-only";
 // Prisma.JsonNull 값을 쓰므로 type-only import가 아니어야 한다.
 import { Prisma } from "@repo/db";
 import { db } from "~/server/db";
-import type { CaptionStyle } from "~/fsd/shared/config/constants";
+import type { CaptionStyleDefaults } from "~/fsd/shared/config/constants";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 
@@ -167,18 +167,26 @@ export async function updateUserUploadDefaults(
 export async function getUserDefaultCaptionStyle(userId: string) {
   return db.user.findUniqueOrThrow({
     where: { id: userId },
-    select: { defaultCaptionStyle: true },
+    select: {
+      defaultCaptionStyleEnglish: true,
+      defaultCaptionStyleKorean: true,
+    },
   });
 }
 
 export async function updateUserDefaultCaptionStyle(
   userId: string,
-  style: CaptionStyle | null,
+  styles: CaptionStyleDefaults,
 ) {
   return db.user.update({
     where: { id: userId },
     // null = 비우기(언어 기본값). Prisma는 JSON 컬럼에 명시적 null을 JsonNull로 쓴다
-    // (updateClipDraftEdit :85와 같은 관용).
-    data: { defaultCaptionStyle: style ?? Prisma.JsonNull },
+    // (updateClipDraftEdit와 같은 관용).
+    // 둘 다 쓴다 — 화면이 두 값을 함께 들고 있어 부분 갱신이면 "한쪽을 저장했더니
+    // 다른 쪽은?"을 호출부마다 따져야 한다.
+    data: {
+      defaultCaptionStyleEnglish: styles.english ?? Prisma.JsonNull,
+      defaultCaptionStyleKorean: styles.korean ?? Prisma.JsonNull,
+    },
   });
 }
