@@ -69,7 +69,7 @@ defaultLanguage = 'Korean'         0
 
 | 파일 | 변경 |
 | --- | --- |
-| `packages/db/prisma/schema.prisma` | `User`에 `defaultCaptionStyleEnglish`·`defaultCaptionStyleKorean` **추가**. `defaultCaptionStyle`은 **이 항목에서 지우지 않는다**(「적용 순서」) |
+| `packages/db/prisma/schema.prisma` | `User`에 `defaultCaptionStyleEnglish`·`defaultCaptionStyleKorean` **추가**. `defaultCaptionStyle`은 **이 항목에서 지우지 않는다**(「적용 순서」). 더해서 `UploadedFile.captionStyle` 위 주석(「User.defaultCaptionStyle을 복사한 스냅샷」)도 갱신한다 — 안 고치면 거짓이 된다 |
 | `packages/db/prisma/migrations/<신규>/migration.sql` | 컬럼 둘 `ADD` + 기존 값을 언어 쪽으로 옮기는 `UPDATE` 둘 |
 | `packages/db/generated/prisma/*` | `prisma generate` 산출물 — **커밋한다**(FEAT-47 `71bf498`·FEAT-53 선례) |
 | `entities/user/api/index.ts` | `getUserDefaultCaptionStyle`이 **둘 다** 반환. `updateUserDefaultCaptionStyle`이 **둘 다** 쓴다 |
@@ -81,13 +81,17 @@ defaultLanguage = 'Korean'         0
 | `pages/dashboard/ui/index.tsx` | prop을 둘로 전달 |
 | `pages/dashboard/ui/_component/UploadPodcast.tsx` | 폼에서 **고른 언어**에 맞는 라벨을 그린다 |
 | `entities/uploaded-file/api/index.ts` | 주석 `:112` 갱신 |
-| `shared/config/caption-style-schema.ts` | 주석 `:7` 갱신 |
+| `shared/config/caption-style-schema.ts` | 주석 `:7-8` 갱신(「두 컬럼」→「세 컬럼」) |
+| `shared/config/constants.ts` | `CaptionStyleDefaults` 타입 별칭 신설 — 같은 모양이 다섯 곳에 나온다 |
 
 여기 없는 파일은 고치지 않는다. **하류(`UploadedFile.captionStyle` 이후)는 무변경**이다.
 
 ## 구현 스케치
 
-### 1. 스키마 (`packages/db/prisma/schema.prisma`)
+**전 편집 지점에 바이트 정확 before/after를 준다.** 인수에서 기계 대조가 되도록 하기 위해서다
+(FEAT-56에서 11/11 바이트 동일이 인수를 기계 판정으로 만든 전례). 생략 부호(`...`)를 쓰지 않는다.
+
+### ① `packages/db/prisma/schema.prisma` — `User` 컬럼
 
 before:
 
@@ -111,7 +115,25 @@ after:
     defaultCaptionStyle         Json?
 ```
 
-### 2. 마이그레이션 (`migration.sql`)
+### ② `packages/db/prisma/schema.prisma` — `UploadedFile` 주석
+
+**이 줄은 라운드 1에서 내가 빠뜨린 것이다**(경로 4가 잡았다). 그냥 두면 「업로드 시점에
+`User.defaultCaptionStyle`을 복사한 스냅샷」이 거짓이 된다.
+
+before:
+
+```prisma
+    // 업로드 시점에 User.defaultCaptionStyle을 복사한 스냅샷 (FEAT-42가 채운다).
+```
+
+after:
+
+```prisma
+    // 업로드 시점에 User.defaultCaptionStyleEnglish·Korean 중 업로드 언어 쪽을 복사한
+    // 스냅샷 (FEAT-42가 채우고 FEAT-54가 언어별로 갈랐다).
+```
+
+### ③ `packages/db/prisma/migrations/<신규>/migration.sql` (신규)
 
 ```sql
 -- AlterTable
@@ -131,13 +153,38 @@ UPDATE "User"
    AND ("defaultLanguage" IS NULL OR "defaultLanguage" <> 'Korean');
 ```
 
-**두 `UPDATE`는 오늘 0행을 건드린다**(위 실측 — `defaultCaptionStyle` non-null이 0). 그래도 쓰는
-이유는 계획과 적용 사이에 행이 생길 수 있고, SQL이 옳아야 그때도 맞기 때문이다.
-`defaultLanguage`가 `'Korean'`·`NULL`·그 밖의 값 셋으로 갈리는데 **여집합이 둘째 `UPDATE`에
-전부 들어간다**(`IS NULL OR <> 'Korean'`) — 어느 행도 두 컬럼에 동시에 들어가지 않고,
-어느 행도 누락되지 않는다.
+**두 `UPDATE`는 오늘 0행을 건드린다**(실측 — `defaultCaptionStyle` non-null 0). 그래도 쓰는 이유는
+계획과 적용 사이에 행이 생길 수 있고 SQL이 옳아야 그때도 맞기 때문이다.
+**여집합을 실 데이터로 검산했다**(검증 라운드 1, 경로 9): `styled=0 → KR=0 · EN=0 · 중복 0 · 누락 0`,
+`defaultLanguage` 분포는 `null` 7행뿐. `'Korean'`·`NULL`·그 밖 셋으로 갈리는 값이 둘째 `UPDATE`의
+`IS NULL OR <> 'Korean'`에 **빠짐없이, 겹치지 않게** 들어간다.
 
-### 3. 읽기·쓰기 창구 (`entities/user/api/index.ts`)
+### ④ `entities/user/api/index.ts` — 읽기·쓰기 창구
+
+before:
+
+```ts
+export async function getUserDefaultCaptionStyle(userId: string) {
+  return db.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { defaultCaptionStyle: true },
+  });
+}
+
+export async function updateUserDefaultCaptionStyle(
+  userId: string,
+  style: CaptionStyle | null,
+) {
+  return db.user.update({
+    where: { id: userId },
+    // null = 비우기(언어 기본값). Prisma는 JSON 컬럼에 명시적 null을 JsonNull로 쓴다
+    // (updateClipDraftEdit :85와 같은 관용).
+    data: { defaultCaptionStyle: style ?? Prisma.JsonNull },
+  });
+}
+```
+
+after (줄번호 인용 `:85`도 함께 앵커로 바꾼다 — FEAT-44 규약이 방금 선 참이다):
 
 ```ts
 export async function getUserDefaultCaptionStyle(userId: string) {
@@ -156,7 +203,10 @@ export async function updateUserDefaultCaptionStyle(
 ) {
   return db.user.update({
     where: { id: userId },
-    // null = 비우기(언어 기본값). Prisma는 JSON 컬럼에 명시적 null을 JsonNull로 쓴다.
+    // null = 비우기(언어 기본값). Prisma는 JSON 컬럼에 명시적 null을 JsonNull로 쓴다
+    // (updateClipDraftEdit와 같은 관용).
+    // 둘 다 쓴다 — 화면이 두 값을 함께 들고 있어 부분 갱신이면 "한쪽을 저장했더니
+    // 다른 쪽은?"을 호출부마다 따져야 한다(「대안」).
     data: {
       defaultCaptionStyleEnglish: styles.english ?? Prisma.JsonNull,
       defaultCaptionStyleKorean: styles.korean ?? Prisma.JsonNull,
@@ -165,12 +215,64 @@ export async function updateUserDefaultCaptionStyle(
 }
 ```
 
-**둘 다 쓰는 이유**: 부분 갱신으로 두면 「한국어를 고치고 저장했더니 영어가 사라졌나?」를
-호출부마다 따져야 한다. 화면이 둘을 함께 들고 있으므로 함께 쓰는 것이 단순하다(「대안」).
+### ⑤ `features/settings/api/index.ts` — 저장 액션
 
-### 4. 업로드 스냅샷 (`features/upload/api/index.ts`)
+시그니처 before:
 
-before (`:243-254`):
+```ts
+export async function saveDefaultCaptionStyle(
+  input: CaptionStyle | null,
+): Promise<ActionResult<void>> {
+```
+
+after:
+
+```ts
+export async function saveDefaultCaptionStyle(
+  input: { english: CaptionStyle | null; korean: CaptionStyle | null },
+): Promise<ActionResult<void>> {
+```
+
+본문 before:
+
+```ts
+  let style: CaptionStyle | null = null;
+  if (input !== null) {
+    const parsed = captionStyleSchema.safeParse(input);
+    if (!parsed.success) return failure("Invalid caption style");
+    style = parsed.data;
+  }
+
+  await updateUserDefaultCaptionStyle(authResult.data.userId, style);
+```
+
+after — 쪽마다 같은 규칙이고, **한쪽이라도 실패하면 아무것도 저장하지 않는다**:
+
+```ts
+  const validate = (
+    value: CaptionStyle | null,
+  ): { ok: true; style: CaptionStyle | null } | { ok: false } => {
+    if (value === null) return { ok: true, style: null };
+    const parsed = captionStyleSchema.safeParse(value);
+    return parsed.success ? { ok: true, style: parsed.data } : { ok: false };
+  };
+
+  const english = validate(input.english);
+  const korean = validate(input.korean);
+  if (!english.ok || !korean.ok) return failure("Invalid caption style");
+
+  await updateUserDefaultCaptionStyle(authResult.data.userId, {
+    english: english.style,
+    korean: korean.style,
+  });
+```
+
+파싱 결과를 쓰는 이유는 그대로다 — `z.object`가 모르는 키를 결과에서 떨구므로 조작된 요청의
+여분 키가 저장·스냅샷·Modal 페이로드로 흘러가지 않는다.
+
+### ⑥ `features/upload/api/index.ts` — 업로드 스냅샷
+
+before:
 
 ```ts
     const { defaultCaptionStyle } = await getUserDefaultCaptionStyle(
@@ -178,72 +280,265 @@ before (`:243-254`):
     );
 
     const uploadDraft = await createUploadDraft({
-      ...
+      userId: authResult.data.userId,
+      s3Key: key,
+      displayName: fileName,
+      language,
+      targetClipCount: clipCount,
+      reviewBeforeGenerate,
       captionStyle: defaultCaptionStyle, // 업로드 시점에 고정되는 스냅샷
+    });
 ```
 
 after:
 
 ```ts
     const defaults = await getUserDefaultCaptionStyle(authResult.data.userId);
-    // 업로드 언어에 맞는 쪽만 스냅샷에 넣는다 — 하류(UploadedFile.captionStyle →
+    // 업로드 언어에 맞는 쪽만 고정한다 — 하류(UploadedFile.captionStyle →
     // render caption_style → resolve_caption_style)는 단일 값 그대로라 무변경이다.
-    const snapshot =
+    const captionStyleSnapshot =
       language === "Korean"
         ? defaults.defaultCaptionStyleKorean
         : defaults.defaultCaptionStyleEnglish;
 
     const uploadDraft = await createUploadDraft({
-      ...
-      captionStyle: snapshot, // 업로드 시점에 고정되는 스냅샷(업로드 언어 기준)
+      userId: authResult.data.userId,
+      s3Key: key,
+      displayName: fileName,
+      language,
+      targetClipCount: clipCount,
+      reviewBeforeGenerate,
+      captionStyle: captionStyleSnapshot, // 업로드 시점·업로드 언어 기준 스냅샷
+    });
 ```
 
-`language`는 같은 함수가 이미 갖고 있다(`createUploadDraft`의 `language` 인자와 같은 값).
+### ⑦ `app/dashboard/settings/page.tsx`
 
-### 5. 저장 액션 (`features/settings/api/index.ts`)
-
-`saveDefaultCaptionStyle(input)` → `saveDefaultCaptionStyle({ english, korean })`.
-검증은 **각 쪽마다** 기존과 같은 규칙으로 돈다 — `null`이면 비우기(검증 안 함),
-값이 있으면 `captionStyleSchema.safeParse` 뒤 **파싱 결과**를 쓴다(원본 input이 아니라).
-한쪽이라도 실패하면 **아무것도 저장하지 않고** `failure("Invalid caption style")`.
-
-### 6. 설정 화면 (`pages/settings/ui/index.tsx`)
-
-- 상태: `captionStyle` 하나 → `captionStyles: { english, korean }` 하나.
-- `previewLanguage` → **`editLanguage`**. 라벨을 `Preview language`에서 **`Editing`**으로 바꾸고,
-  그 아래 안내 `Preview only — this doesn't change your upload language.`를
-  **`This picks which language you're styling — it doesn't change your upload language.`**로 바꾼다.
-  **「업로드 언어를 안 바꾼다」는 문장은 유지한다** — FEAT-52 관측 4가 막은 사고 경로가 그대로 살아 있다.
-- `CaptionStyleEditor`는 `language={editLanguage}` · `value={captionStyles[key]}` ·
-  `onChange={(s) => setCaptionStyles((p) => ({ ...p, [key]: s }))}`
-  (`key = editLanguage === "Korean" ? "korean" : "english"`).
-- `handleSaveCaption` → `saveDefaultCaptionStyle(captionStyles)` (**둘 다**).
-- `handleResetCaption` → 둘 다 `null`. 버튼 라벨을
-  `Reset to language default` → **`Reset both languages`**로 바꾼다(무엇이 지워지는지 보이게).
-
-### 7. 업로드 폼 라벨 (`UploadPodcast.tsx`)
-
-prop이 `defaultCaptionStyle: CaptionStyle | null` → `defaultCaptionStyles: { english, korean }`.
-`:302`는 **폼에서 고른 언어**를 따라간다:
+before:
 
 ```tsx
-{captionStyleLabel(
-  language === "Korean"
-    ? defaultCaptionStyles.korean
-    : defaultCaptionStyles.english,
-)}
+  const { defaultCaptionStyle } = await getUserDefaultCaptionStyle(
+    session.user.id,
+  );
 ```
 
-`language`는 이 컴포넌트가 이미 들고 있는 업로드 폼 상태다 — **언어를 바꾸면 라벨이 따라 바뀐다.**
+after:
 
-### 8. 주석 둘
+```tsx
+  const captionStyles = await getUserDefaultCaptionStyle(session.user.id);
+```
 
-- `entities/uploaded-file/api/index.ts:112` `// User.defaultCaptionStyle 스냅샷 (없으면 null 컬럼)`
-  → `// User.defaultCaptionStyle{English,Korean} 중 업로드 언어 쪽의 스냅샷 (없으면 null 컬럼)`
-- `shared/config/caption-style-schema.ts:7` `// User.defaultCaptionStyle / UploadedFile.captionStyle JSON의`
-  → `// User.defaultCaptionStyleEnglish·Korean / UploadedFile.captionStyle JSON의`
-  (바로 아래 `// 공용 검증기. 두 컬럼이 …`도 **세 컬럼**으로 되돌린다 — FEAT-56이 「둘」로 고쳤는데
-  이 항목이 다시 셋이 된다.)
+before:
+
+```tsx
+      initialCaptionStyle={defaultCaptionStyle as CaptionStyle | null}
+```
+
+after:
+
+```tsx
+      initialCaptionStyles={{
+        english: captionStyles.defaultCaptionStyleEnglish as CaptionStyle | null,
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
+```
+
+### ⑧ `app/dashboard/page.tsx`
+
+before (둘, 각각):
+
+```tsx
+    { defaultCaptionStyle },
+```
+
+```tsx
+      defaultCaptionStyle={defaultCaptionStyle as CaptionStyle | null}
+```
+
+after:
+
+```tsx
+    captionStyles,
+```
+
+```tsx
+      defaultCaptionStyles={{
+        english: captionStyles.defaultCaptionStyleEnglish as CaptionStyle | null,
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
+```
+
+### ⑨ `pages/dashboard/ui/index.tsx` (셋, 각각 줄 단위 치환)
+
+| before | after |
+| --- | --- |
+| `  defaultCaptionStyle: CaptionStyle \| null;` | `  defaultCaptionStyles: CaptionStyleDefaults;` |
+| `  defaultCaptionStyle,` | `  defaultCaptionStyles,` |
+| `            defaultCaptionStyle={defaultCaptionStyle}` | `            defaultCaptionStyles={defaultCaptionStyles}` |
+
+`CaptionStyleDefaults`는 `shared/config/constants.ts`(`CaptionStyle`이 사는 곳)에 함께 둔다:
+
+```ts
+export type CaptionStyleDefaults = {
+  english: CaptionStyle | null;
+  korean: CaptionStyle | null;
+};
+```
+
+**타입 별칭을 두는 이유**: 같은 모양이 `SettingsView`·`DashboardView`·`UploadPodcast`·
+`updateUserDefaultCaptionStyle`·`saveDefaultCaptionStyle` **다섯 곳**에 나온다. 인라인으로 두면
+한 곳을 고칠 때 나머지가 조용히 어긋난다.
+
+### ⑩ `pages/dashboard/ui/_component/UploadPodcast.tsx` (셋)
+
+| before | after |
+| --- | --- |
+| `  defaultCaptionStyle: CaptionStyle \| null;` | `  defaultCaptionStyles: CaptionStyleDefaults;` |
+| `  defaultCaptionStyle,` | `  defaultCaptionStyles,` |
+
+라벨 before:
+
+```tsx
+                      {captionStyleLabel(defaultCaptionStyle)}
+```
+
+after — **폼에서 고른 언어를 따라간다**(`language`는 이 컴포넌트가 이미 들고 있는 상태다):
+
+```tsx
+                      {captionStyleLabel(
+                        language === "Korean"
+                          ? defaultCaptionStyles.korean
+                          : defaultCaptionStyles.english,
+                      )}
+```
+
+### ⑪ `pages/settings/ui/index.tsx` — 상태
+
+before:
+
+```tsx
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle | null>(
+    initialCaptionStyle,
+  );
+  // 미리보기 전용 언어. 업로드 기본 언어(language, Save defaults로 저장됨)와 분리한다 —
+  // 한국어 미리보기를 보려고 업로드 언어를 건드리는 사고 경로를 막는다(FEAT-52 관측 4). 저장 안 함.
+  const [previewLanguage, setPreviewLanguage] = useState(
+    initialDefaults.language,
+  );
+```
+
+after:
+
+```tsx
+  const [captionStyles, setCaptionStyles] = useState(initialCaptionStyles);
+  // 편집 대상 언어. 업로드 기본 언어(language, Save defaults로 저장됨)와 분리한다 —
+  // 한국어 스타일을 손보려고 업로드 언어를 건드리는 사고 경로를 막는다(FEAT-52 관측 4).
+  // 이 값 자체는 저장하지 않는다.
+  const [editLanguage, setEditLanguage] = useState(initialDefaults.language);
+  const editKey = editLanguage === "Korean" ? "korean" : "english";
+```
+
+`SettingsViewProps`의 `initialCaptionStyle: CaptionStyle | null`도
+`initialCaptionStyles: CaptionStyleDefaults`로 바꾼다.
+
+### ⑫ `pages/settings/ui/index.tsx` — 토글·안내·에디터
+
+before:
+
+```tsx
+            <p className="text-muted-foreground text-xs font-medium">
+              Preview language
+            </p>
+```
+
+after:
+
+```tsx
+            <p className="text-muted-foreground text-xs font-medium">
+              Editing
+            </p>
+```
+
+before:
+
+```tsx
+                variant={previewLanguage === lang.value ? "default" : "outline"}
+                onClick={() => setPreviewLanguage(lang.value)}
+```
+
+after:
+
+```tsx
+                variant={editLanguage === lang.value ? "default" : "outline"}
+                onClick={() => setEditLanguage(lang.value)}
+```
+
+before — **「업로드 언어를 안 바꾼다」는 문장을 유지한다**(FEAT-52 관측 4가 막은 사고 경로):
+
+```tsx
+            Preview only — this doesn&apos;t change your upload language.
+```
+
+after:
+
+```tsx
+            This picks which language you&apos;re styling — it doesn&apos;t
+            change your upload language.
+```
+
+before:
+
+```tsx
+          <CaptionStyleEditor
+            language={previewLanguage}
+            value={captionStyle}
+            sample
+            playUrl={null}
+            clipStart={0}
+            clipEnd={SAMPLE_CAPTION_CLIP_END}
+            words={sampleCaptionWords(previewLanguage)}
+            onChange={setCaptionStyle}
+          />
+```
+
+after:
+
+```tsx
+          <CaptionStyleEditor
+            language={editLanguage}
+            value={captionStyles[editKey]}
+            sample
+            playUrl={null}
+            clipStart={0}
+            clipEnd={SAMPLE_CAPTION_CLIP_END}
+            words={sampleCaptionWords(editLanguage)}
+            onChange={(style) =>
+              setCaptionStyles((prev) => ({ ...prev, [editKey]: style }))
+            }
+          />
+```
+
+### ⑬ `pages/settings/ui/index.tsx` — 저장·초기화
+
+| before | after |
+| --- | --- |
+| `      const result = await saveDefaultCaptionStyle(captionStyle);` | `      const result = await saveDefaultCaptionStyle(captionStyles);` |
+| `        preset: matchPresetId(captionStyle),` | `        preset: matchPresetId(captionStyles[editKey]),` |
+| `    setCaptionStyle(null);` | `    setCaptionStyles({ english: null, korean: null });` |
+| `      const result = await saveDefaultCaptionStyle(null);` | `      const result = await saveDefaultCaptionStyle({ english: null, korean: null });` |
+
+`preset`은 **편집 중이던 쪽**의 `matchPresetId` 결과다(「대안」 — 저장은 둘 다 쓰므로
+「어느 언어를 저장했나」가 의미를 잃는다). 허용 키 맵은 무변경이다.
+
+초기화 버튼 라벨 `Reset to language default` → **`Reset both languages`**
+(무엇이 지워지는지 보이게 — 「대안」).
+
+### ⑭ 주석 둘
+
+| 자리 | before → after |
+| --- | --- |
+| `entities/uploaded-file/api/index.ts:112` | `// User.defaultCaptionStyle 스냅샷 (없으면 null 컬럼)` → `// User.defaultCaptionStyleEnglish·Korean 중 업로드 언어 쪽의 스냅샷 (없으면 null 컬럼)` |
+| `shared/config/caption-style-schema.ts:7-8` | `// User.defaultCaptionStyle / UploadedFile.captionStyle JSON의` / `// 공용 검증기. 두 컬럼이…` → `// User.defaultCaptionStyleEnglish·Korean / UploadedFile.captionStyle JSON의` / `// 공용 검증기. 세 컬럼이…` (FEAT-56이 「둘」로 고쳤는데 이 항목이 다시 셋이 된다) |
 
 ## 테스트
 
