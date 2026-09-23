@@ -44,6 +44,7 @@
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings
   status: 검토대기
+  검증: 클린 패스 (2026-09-23, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 메인 루프 라운드 소득 3건(전부 구현 영향) 반영 뒤. 경로 9는 카탈로그의 첫 실증)
   근거: 소유자 직접 발주(게이트① 세션 지시). 담당은 백로그가 계획 단계 판단으로 남긴 것을 소유자와 정했다 — **쪼개지 않고 main-loop 하나**. 스키마·데이터 이동·웹이 한 계획서 안에서 순서를 잡아야 어긋나지 않는다.
 
 ## 2026-09-22

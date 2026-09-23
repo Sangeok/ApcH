@@ -88,3 +88,31 @@ defaultLanguage 분포: [{ null, 7 }]
 **28/28.** 경로 3이 이제 이 계획서 전체에 돌아간다.
 
 **소득 0 → `plan-verifier` 독립 패스 디스패치 자격.**
+
+## 라운드 3 — 독립 무편집 패스 (2026-09-23) — 클린
+
+**결함 0건. 무편집**(직접 검산: `git status`에 `?? nul`뿐, `git diff HEAD` 공란).
+필수 6경로 전수 실행.
+
+### 독립 패스가 보탠 것 — 내가 안 한 것들
+
+- **경로 2를 훨씬 세게 돌렸다.** 신규 로직 중 가장 위험한 §⑤ 판별합 검증기와 §⑪ `editKey`
+  인덱싱을 스텁 타입으로 추출해 **프로젝트와 같은 엄격 플래그**(`strict` + `noUncheckedIndexedAccess`
+  + `verbatimModuleSyntax`)로 `tsc` → **EXIT 0**. 이어 **음성 대조**로 `!english.ok || !korean.ok`
+  가드를 빼니 **TS2339 2건으로 실패** — 하니스가 진짜 판별함을 보였다.
+  나는 이 절을 정적으로만 읽었다.
+- **`entities/user/server.ts`의 재수출**을 여집합에서 찾았다(`:10`·`:16`). 내 18건 grep은
+  `defaultCaptionStyle` 문자열만 봤는데, 이건 **함수명**으로 재수출한다. **함수명이 안 바뀌므로
+  무편집**이라는 판정까지 붙였다 — 확인했고 맞다.
+- `schema.prisma:59`의 `captionStyleSchema(features/clip-review/model/schemas.ts)` 인용이
+  정본 이동 뒤의 것이나 `schemas.ts`의 re-export로 해소된다는 관측. **계획서가 그 줄을
+  before/after 모두 그대로 보존하므로 계획 도입 결함이 아니라는 판단**까지 붙였다 — 동의한다.
+- 구 마이그레이션(`20260909…`)은 **불변 이력**이라 대상이 아님을 명시했다.
+
+### 카탈로그 갱신 — 9번 행의 첫 실증
+
+`docs/plans/verification-paths.md`의 9번(구조적 아티팩트 검사)은 「이 저장소의 실증 사례 대기」로
+비어 있었다. 규칙이 「사례 없는 행은 **첫 실증에서 채운다**」이므로 이 항목의 라운드 1 결과를
+넣었다 — 실 DB 읽기 전용 리허설로 `WHERE` 분할 확인, 합성 도메인 돌연변이, `Json?` ↔ `JSONB`
+형태 일치.
+
