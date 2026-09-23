@@ -432,7 +432,7 @@ export default function ClipDraftCard({
 
       {previewText && (
         <div className="mt-2">
-          {/* previewText는 영어 원문이다(:113). 헤더 안내가 스크롤로 벗어나도
+          {/* previewText는 영어 원문이다(위 const previewText 선언). 헤더 안내가 스크롤로 벗어나도
               카드마다 이 라벨이 "지금 이 텍스트가 영어 원문"임을 되짚는다.
               헤더 안내와 같은 조건(비영어)일 때만 — 영어 업로드에선 이 텍스트가
               곧 최종 자막이라 라벨이 군말이 된다. */}

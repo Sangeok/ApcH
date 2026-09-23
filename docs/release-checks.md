@@ -44,6 +44,34 @@
 
 ---
 
+## FEAT-57 — `clip_review_caption_style_edited` 계측 이름 제거 (db+web 계약, 구현 2026-09-22)
+
+원천: `docs/plans/FEAT-57.md`의 「테스트 — 못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트 **넷 다** 인수 시 메인 루프가 직접 재실행했다: `check -w apps/web` EXIT 0 경고 0 · `test -w apps/web` **170/40/0** · `check -w apps/admin` EXIT 0 경고 0 · `test -w apps/admin` **334/75/0** — 계획서가 못박은 숫자와 일치. 계약 이름 **31 → 30**(기계 계수).
+**줄을 하나만 등재한다.** 수집 엔드포인트(`z.enum`)가 이 이름을 거부하게 되는 것은 **발신자가 0이라 도달하지 않으므로** 확인 대상이 아니다(계획서가 그렇게 선언했고 코드 전역 grep 0건으로 확인했다). 남는 것은 admin 화면의 90일 창 수치 하나뿐이다.
+**`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 admin 분석 화면이라 공개 HTTP 응답으로 판정되지 않는다.
+
+- [ ] admin 분석 **90일 창**에서 총계가 1 줄고(1116 → 1115) 이탈 상위 25에서 그 줄이 빠진다 — **7일·30일 창은 변화 없음**(계획 검증 실측). 2026-11-12경 그 1건이 창 밖으로 나가면 90일 창도 차이가 사라지므로, **그 전에 보지 않으면 판정 기회가 닫힌다**(FEAT-51 「전이 구간 회귀 0」이 같은 이유로 만료됐다)
+
+---
+
+## BUG-15 — 홈페이지가 만들지 못하는 화면비를 약속한다 (web, 구현 2026-09-22)
+
+원천: `docs/agents/web-dev/BUG-15.md`의 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` EXIT 0 경고 0 · `npm test -w apps/web` **170/40/0** — 인수 시 메인 루프가 직접 재실행했고, diff가 계획서 스케치의 after 문자열과 **완전 일치**함도 확인했다.
+**`〔auto〕` 태그를 붙인다** — 드문 경우다. 홈은 **공개 라우트**(`app/page.tsx`)이고 그 문구가 `WorkflowSection.tsx`를 통해 **본문에 렌더**되므로, 응답 본문 문구만으로 판정된다. 루틴이 닫는다.
+
+- [ ] 홈 `Review & publish` 설명에서 `square, and landscape` 약속이 사라지고 세로 문구로 바뀌었다 〔auto GET / notext="square, and landscape" text="Export vertical 9:16 clips ready for YouTube Shorts"〕
+  - 자동 불합격(2026-09-23 09:02 KST): status 307≠200; text 없음: "Export vertical 9:16 clips ready for YouTube Shorts"
+
+---
+
+## FEAT-44 — 낡는 줄번호 인용을 함수명·코드 내용 앵커로 교체 (main-loop, 구현 2026-09-22)
+
+원천: `docs/plans/FEAT-44.md`의 「테스트 — 못 덮는 범위」. 게이트 넷을 인수 시 직접 재실행했다: `check -w apps/web` EXIT 0 경고 0 · `test -w apps/web` **170/40/0** · backend **`Ran 109 tests ... OK`** · `py_compile` EXIT 0 — **넷 다 착수 기준선과 같은 숫자**다(동작 무변경의 기계 판정).
+
+**줄을 하나도 등재하지 않는다.** 계획서 「못 덮는 범위」가 「없다」로 선언했고 그것이 옳다 — 주석·문서 문장만 바뀌어 렌더·응답·저장값에 닿지 않으므로 **배포 실물에서 확인할 대상이 없다.** 완료 판정은 `main\.py:\d+` 전역 grep 0건으로 이미 닫혔고(요구 ④), 그것은 배포와 무관하다. 확인할 수 없는 줄을 쌓지 않는 것이 2026-09-21 원장 분류의 교훈이다.
+
+---
+
 ## FEAT-56 — FEAT-52·53이 남긴 죽은 코드 여섯 정리 (web, 구현 2026-09-21)
 
 원천: `docs/agents/web-dev/FEAT-56.md`의 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` **EXIT 0 · `✔ No ESLint warnings or errors`**(백로그 요구 ②a — 기존 `playUrl` 경고 1건 소멸) · `npm test -w apps/web` **tests 170 / suites 40 / fail 0**(178→170, 42→40, 파일 25 불변 — 계획서 예측과 정확히 일치) — 둘 다 인수 시 메인 루프가 직접 재실행했다. 구현 11파일이 계획서 스케치를 기계 적용한 패치본과 **11/11 바이트 동일**이다.
@@ -342,7 +370,7 @@
 이 절을 닫는 사람이 아래 셋을 함께 결정하고, 채택된 것만 `TASK_BACKLOG.md`에 올린다.
 (백로그의 FEAT-36 항목은 완료와 함께 지워졌으므로 이 문단이 그 후속의 유일한 보관처다.)
 
-- **(a) 렌더 후 재캡션** — 자막 넣기 직전의 세로 영상(`apps/backend/main.py:762`
+- **(a) 렌더 후 재캡션** — 자막 넣기 직전의 세로 영상(`apps/backend/main.py` `process_clip`의 `vertical_mp4_path`
   `vertical_mp4_path`)은 지금 업로드되지 않고 버려진다. 보관하면 캡션 스타일 변경이 CPU ffmpeg
   번인 몇 초로 끝나고, 이 항목이 **원리상 못 닫는 두 근사**(화자 추적 크롭·한국어 번역문)가 실물로
   닫힌다. backend+web, S3 보관 비용과 크레딧 정책 결정이 딸린다. **판단 기준**: 위 셋째·넷째(크기

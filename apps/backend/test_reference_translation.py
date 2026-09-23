@@ -18,7 +18,7 @@ from reference_translation import (
 
 
 def _mainpy_inline_strip(text):
-    """main.py:1019-1025 analyze 인라인 코드 펜스 제거의 재현식(골든 비교용)."""
+    """구현 전 main.py analyze 경로 인라인 코드 펜스 제거의 재현식(골든 비교용)."""
     raw = text.strip()
     if raw.startswith("```"):
         raw = raw[len("```"):].strip()
@@ -201,7 +201,7 @@ class StripCodeFencesTest(unittest.TestCase):
         self.assertEqual(strip_code_fences(text), '[1, 2]')
 
     def test_matches_mainpy_inline_golden(self):
-        # main.py:1019-1025 인라인 복제와 동일 동작.
+        # 구현 전 main.py analyze 인라인 복제와 동일 동작.
         for sample in (
             '[{"index": 0}]',
             '```json\n[{"index": 0}]\n```',

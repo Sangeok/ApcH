@@ -15,7 +15,7 @@ const H = 320;
 
 describe("buildCaptionCues", () => {
   it("groups words into cues of max_word and flushes the remainder", () => {
-    // max_word=3, 7단어 → 3+3+1 (main.py:344-345 잔여 flush).
+    // max_word=3, 7단어 → 3+3+1 (main.py create_subtitles_with_ffmpeg 루프 뒤 if current_words: 잔여 flush).
     const words = [
       { start: 0, end: 1, word: "one" },
       { start: 1, end: 2, word: "two" },
@@ -51,7 +51,7 @@ describe("buildCaptionCues", () => {
   });
 
   it("filters to words inside the clip range and includes end === clipEnd", () => {
-    // main.py:300-305 — start >= clipStart && end <= clipEnd. 경계는 포함(<=).
+    // main.py create_subtitles_with_ffmpeg의 clip_segments 필터 — start >= clipStart && end <= clipEnd. 경계는 포함(<=).
     const words = [
       { start: 99.5, end: 100.5, word: "before" }, // start < clipStart → 제외
       { start: 100.5, end: 150.5, word: "inside" }, // 포함

@@ -9,7 +9,7 @@ backend-purity-contract: stdlib-only; torch/boto3/cv2/pysubs2/modal forbidden
 
 import json
 
-# main.py:937-1004의 prompt_template을 바이트 그대로 옮긴 것.
+# main.py identify_moments의 prompt_template을 바이트 그대로 옮긴 것.
 # 이 상수가 원본과 같다는 것은 test_moment_prompt.py의 frozen 테스트가 지킨다.
 MOMENT_PROMPT_TEMPLATE = """You are a viral short-form video editor specializing in podcast content.
 

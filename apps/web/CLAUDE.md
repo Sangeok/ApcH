@@ -74,7 +74,7 @@ npm test -w apps/web
 | `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키. `ANALYTICS_METADATA_KEYS_BY_EVENT`는 `as const satisfies Record<AnalyticsEventName, readonly string[]>`로 계약에 묶여 있어, 이벤트 이름 변경은 이제 컴파일 오류다. 이 테스트는 각 이벤트가 **어떤 키를 허용하는지**(값)를 지킨다 |
 | `shared/analytics/lib/normalize-path.test.mjs` | 경로 정규화 |
 | `widgets/clip-draft-review/model/selection-budget.test.mjs` | 클립 선택 예산 |
-| `features/caption-style/model/caption-preview.test.mjs` | 캡션 스타일 미리보기의 큐 묶기(`apps/backend/main.py:302-360` 이식)·활성 큐 선택·px 환산. **묶기 규칙·범위 필터(`end === clipEnd` 포함)·`EM_SCALE` 분모는 백엔드 자막과 묶인 계약이다** — 어긋나면 미리보기가 실렌더와 다른 것을 보여주고, 사용자는 크레딧을 쓴 뒤에야 안다. 분모가 `usWinAscent+usWinDescent`인 이유는 libass가 FreeType 메트릭을 OS/2 win 값으로 덮어쓰기 때문이다(`set_font_metrics`) |
+| `features/caption-style/model/caption-preview.test.mjs` | 캡션 스타일 미리보기의 큐 묶기(`apps/backend/main.py` `create_subtitles_with_ffmpeg` 이식)·활성 큐 선택·px 환산. **묶기 규칙·범위 필터(`end === clipEnd` 포함)·`EM_SCALE` 분모는 백엔드 자막과 묶인 계약이다** — 어긋나면 미리보기가 실렌더와 다른 것을 보여주고, 사용자는 크레딧을 쓴 뒤에야 안다. 분모가 `usWinAscent+usWinDescent`인 이유는 libass가 FreeType 메트릭을 OS/2 win 값으로 덮어쓰기 때문이다(`set_font_metrics`) |
 | `features/caption-style/model/caption-presets.test.mjs` | 캡션 프리셋이 `captionStyleSchema` 안에 있는지와 `matchPresetId`·`captionStyleLabel`(FEAT-52). 라벨 함수는 `"default"`만 분기하고 나머지를 `find(...)?.label ?? "Custom"`으로 받는다 — `"custom"`을 따로 분기하면 그 `??`가 도달 불가가 되어 세 케이스가 함수를 고정하지 못한다(계획 검증에서 돌연변이 2마리 생존, 분기 제거 후 7/7 사멸). **프리셋은 리터럴 값 묶음이라 범위를 벗어나도 타입은 통과하고, Apply 할 때 zod가 런타임에 거부한다.** position을 무시하는 매칭도 여기서만 잡힌다 — 무너지면 위치를 바꾼 순간 프리셋 칩이 꺼진다 |
 | `features/caption-style/model/sample-captions.test.mjs` | 설정 화면 정지 샘플 미리보기가 그리는 첫 큐. `firstSampleCueText`는 플레이어의 `sample` 분기와 **같은 `firstCueText`**·`buildCaptionCues`를 거쳐 영/한 리터럴·대문자·줄당 단어(최대 8이 한 줄을 채움)를 못박는다. **플레이어가 자체 식을 쓰던 초안은 첫 큐 선택을 바꿔도 모든 테스트를 통과했다**(FEAT-42 계획 검증 돌연변이 실측). 플레이어가 이 함수를 실제로 부르는지는 러너 밖(렌더) 몫이다. KR 샘플 9단어 중 하나를 빼는 변이는 명세(≥8)상 의도된 생존이다. **FEAT-49의 Korean 라이브 미리보기 계약(`koreanSampleCues`·`previewCaptionCues`)은 FEAT-56이 제거했다** — 검토 화면 다이얼로그가 FEAT-52로 사라져 `sample=false` 소비자가 0이 됐고, 그 8케이스가 지키던 계약이 도달 불가가 됐다. 남은 것은 `firstSampleCueText` 6케이스뿐이다. **단어 타이밍(`start`/`end`)은 이 파일도 다른 파일도 덮지 않는다** — FEAT-56 검증에서 돌연변이 2종이 삭제 전후 모두 생존했다(원래 있던 구멍) |
 | `inngest/caption-style-request.test.mjs` | Modal 요청의 요청 단위 `caption_style` 결정 — **auto·render 공통**(FEAT-52). 스냅샷이 있으면 그대로, `null`이면 `undefined`(키 생략 → 백엔드 언어 기본값). **FEAT-41의 2026-09-14 결정(render는 요청 스냅샷을 안 쓴다)이 뒤집힌 자리다** — 그 결정의 전제가 "검토 화면이 클립별 스타일을 미리보기로 보여준다"였는데 FEAT-52가 그 미리보기와 클립별 스타일을 없앴다. 백엔드 `caption_style_source.py` `select_caption_style`과 묶인 계약이고(FEAT-51이 render 게이트를 제거해 받는 쪽을 먼저 열었다), 어긋나면 사용자가 설정한 스타일이 무시되고 언어 기본값으로 렌더된다 |
@@ -167,7 +167,7 @@ export * from "./analytics-contract"   // 아래 참조
 
 ### analytics 계약 — 손댈 때 주의
 
-`packages/db/src/analytics-contract.ts`가 이벤트 이름 31개, 퍼널 정의, 관련 타입을 **한 곳에서** 정의한다. web이 쓰고(기록), 앞으로 admin이 읽는다(집계).
+`packages/db/src/analytics-contract.ts`가 이벤트 이름 30개, 퍼널 정의, 관련 타입을 **한 곳에서** 정의한다. web이 쓰고(기록), 앞으로 admin이 읽는다(집계).
 
 `ANALYTICS_FUNNELS`의 `satisfies Record<FunnelId, readonly AnalyticsEventName[]>` 절이 "퍼널 단계는 실제 존재하는 이벤트 이름이어야 한다"를 컴파일 타임에 강제한다. **이 방어선은 양쪽이 같은 파일을 볼 때만 작동한다.** 계약을 복사해 두 벌로 만들면 한쪽에서 rename해도 다른 쪽은 통과하고, 대시보드가 에러 없이 0을 보여준다.
 

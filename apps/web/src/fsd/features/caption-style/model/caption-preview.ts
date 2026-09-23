@@ -7,7 +7,7 @@ export interface CaptionCue {
   text: string;
 }
 
-// apps/backend/main.py:287-345 create_subtitles_with_ffmpeg 의 묶기를 그대로 옮긴다.
+// apps/backend/main.py create_subtitles_with_ffmpeg 의 큐 묶기를 그대로 옮긴다.
 // 전사가 같으면 큐도 같으므로(결정적) 새 렌더 없이 실렌더의 텍스트·큐 시각을 재현한다.
 export function buildCaptionCues(
   words: readonly TranscriptWord[],
@@ -16,7 +16,7 @@ export function buildCaptionCues(
   maxWords: number,
   uppercase: boolean,
 ): CaptionCue[] {
-  // main.py:300-305 — 클립 범위 안 세그먼트만. (web TranscriptWord.start/end는
+  // main.py create_subtitles_with_ffmpeg의 clip_segments 필터 — 클립 범위 안 세그먼트만. (web TranscriptWord.start/end는
   // parseTranscriptWords가 이미 number로 보장하므로 null 검사는 불필요.)
   const inRange = words.filter(
     (w) => w.start >= clipStart && w.end <= clipEnd,
@@ -32,31 +32,31 @@ export function buildCaptionCues(
     cues.push({
       start: curStart,
       end: curEnd,
-      text: uppercase ? text.toUpperCase() : text, // main.py:384-385
+      text: uppercase ? text.toUpperCase() : text, // main.py resolved["uppercase"] → text.upper()
     });
   };
 
   for (const w of inRange) {
     const word = w.word.trim();
-    const startRel = Math.max(0, w.start - clipStart); // main.py:321
-    const endRel = Math.max(0, w.end - clipStart); // main.py:322
-    if (word === "" || endRel <= 0) continue; // main.py:317,324-326
+    const startRel = Math.max(0, w.start - clipStart); // main.py start_rel = max(0.0, seg_start - clip_start)
+    const endRel = Math.max(0, w.end - clipStart); // main.py end_rel = max(0.0, seg_end - clip_start)
+    if (word === "" || endRel <= 0) continue; // main.py 단어 공백 검사 + if end_rel <= 0: continue
 
     if (current.length === 0) {
       current = [word];
       curStart = startRel;
       curEnd = endRel;
     } else if (current.length >= maxWords) {
-      flush(); // main.py:334-338
+      flush(); // main.py elif len(current_words) >= max_word: 의 flush
       current = [word];
       curStart = startRel;
       curEnd = endRel;
     } else {
-      current.push(word); // main.py:340-342
+      current.push(word); // main.py current_words.append(word)
       curEnd = endRel;
     }
   }
-  if (current.length > 0) flush(); // main.py:344-345
+  if (current.length > 0) flush(); // main.py 루프 뒤 if current_words: 마지막 flush
 
   return cues;
 }
@@ -103,7 +103,7 @@ export function getPreviewShadowPx(previewHeightPx: number): number {
   return CAPTION_RENDER.SHADOW * previewScale(previewHeightPx);
 }
 
-// 세로 위치. top/bottom은 marginv(main.py:141-142)를 px로, middle은 중앙(둘 다 null).
+// 세로 위치. top/bottom은 marginv(main.py CAPTION_POSITION_MARGINV)를 px로, middle은 중앙(둘 다 null).
 export function getPreviewVerticalInset(
   position: CaptionStyle["position"],
   previewHeightPx: number,

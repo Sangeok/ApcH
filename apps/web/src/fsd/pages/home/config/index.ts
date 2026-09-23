@@ -97,7 +97,7 @@ export const workflowSteps: WorkflowStep[] = [
   {
     title: "Review & publish",
     description:
-      "Accept, tweak, or regenerate. Export vertical, square, and landscape ratios.",
+      "Accept, tweak, or regenerate. Export vertical 9:16 clips ready for YouTube Shorts.",
     icon: Share2,
     detail: "Check your clips in the dashboard",
   },
