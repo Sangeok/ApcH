@@ -56,11 +56,11 @@
 
 ## FEAT-54 — 캡션 기본값을 언어별로 (db+web, 구현 2026-09-23)
 
-원천: `docs/plans/FEAT-54.md`의 「테스트 — 못 덮는 범위」. **미배포·마이그레이션 미적용** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npx tsc --noEmit` **EXIT 0**(이 항목의 진짜 게이트 — 모양이 바뀌면 아홉 곳이 깨진다) · `npm run check -w apps/web` EXIT 0 경고 0 · `npm test -w apps/web` **170/40/0**(착수 기준선 그대로) — 셋 다 인수 시 메인 루프가 직접 재실행했다. 구현 파일이 계획서 「고칠 파일」 14행과 **정확히 일치**하고 초과 0이다.
+원천: `docs/plans/FEAT-54.md`의 「테스트 — 못 덮는 범위」. **마이그레이션 적용됨(2026-09-23)·코드 미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npx tsc --noEmit` **EXIT 0**(이 항목의 진짜 게이트 — 모양이 바뀌면 아홉 곳이 깨진다) · `npm run check -w apps/web` EXIT 0 경고 0 · `npm test -w apps/web` **170/40/0**(착수 기준선 그대로) — 셋 다 인수 시 메인 루프가 직접 재실행했다. 구현 파일이 계획서 「고칠 파일」 14행과 **정확히 일치**하고 초과 0이다.
 **적용 순서가 FEAT-53과 반대다** — ADD라 **DB 먼저**다. 마이그레이션 적용 → 코드 배포. 반대로 하면 새 클라이언트가 없는 컬럼을 `SELECT`한다.
 **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 화면(설정·대시보드 업로드 폼)이라 공개 HTTP 응답으로 판정되지 않는다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
 
-- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 적용 후 `migrate status`·`db pull --print`로 본다 — **미적용(소유자 승인 대기)**
+- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-09-23, 실측 — 소유자 승인 후 `migrate deploy` `All migrations have been successfully applied.` · 이어 `migrate status` **`Database schema is up to date!`** · `db pull --print`의 `model User`에 `defaultCaptionStyle`·`defaultCaptionStyleEnglish`·`defaultCaptionStyleKorean` **셋 다** 존재 · 행 계수 `total 7 / en 0 / kr 0 / old 0`으로 **이동 0행**이 예측대로 · 새 클라이언트로 두 새 컬럼 실 조회 성공. 대상 `neondb`@`ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`)
 - [ ] **`Editing` 토글이 편집 대상을 바꾸는가** — 이 항목의 존재 이유다. 설정 화면에서 한국어로 넘겨 크기·줄당 단어를 바꾸고 영어로 돌아왔을 때 **영어 값이 그대로**인지. 저장 뒤 새로고침해도 두 값이 각각 남는지
 - [ ] **업로드 폼에서 언어를 바꾸면 `Video style:` 라벨이 따라 바뀌는가** — 두 언어에 다른 프리셋을 저장해 두고 대시보드 업로드 폼의 언어 드롭다운을 오가며 본다
 - [ ] **업로드가 그 언어의 스냅샷을 고정하는가** — 렌더까지 가야 보인다(크레딧). 한국어 업로드가 한국어 쪽 스타일로, 영어 업로드가 영어 쪽으로 나오는지

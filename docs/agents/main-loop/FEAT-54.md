@@ -167,3 +167,31 @@ defaultLanguage 분포: [{ null, 7 }]
 적용 직전에 `migrate status`와 영향 행 수를 보고한다(현재 실측: `defaultCaptionStyle`
 non-null **0행**이라 두 `UPDATE`는 0행을 건드린다).
 
+## 마이그레이션 적용 (2026-09-23)
+
+소유자 승인 후 `packages/db`에서 적용했다. **적용 전 `migrate status`가 이 하나만 미적용이라고
+답했고**(12개 중), 되돌릴 수 없는 삭제가 없다는 것(ADD 둘 + UPDATE 둘, DROP 0)을 먼저 보고했다.
+
+```
+Applying migration `20260923000000_user_default_caption_style_per_language`
+All migrations have been successfully applied.
+```
+
+### 검산 셋
+
+| 검사 | 결과 |
+| --- | --- |
+| `migrate status` | **`Database schema is up to date!`** |
+| `db pull --print`(실 DB 인트로스펙션) | `model User`에 `defaultCaptionStyle` · `defaultCaptionStyleEnglish` · `defaultCaptionStyleKorean` **셋 다** |
+| 행 계수 + 새 클라이언트 실 조회 | `total 7 / en 0 / kr 0 / old 0` — **이동 0행이 예측대로**. `findFirst`로 두 새 컬럼을 실제로 읽어 `{"defaultCaptionStyleEnglish":null,"defaultCaptionStyleKorean":null}` |
+
+셋째가 이 항목의 진짜 사후 게이트다. **컬럼이 생겼다는 것과 클라이언트가 그것을 읽는다는 것은
+다른 주장**이고, 후자를 실 DB에 대고 확인했다.
+
+**구 컬럼은 그대로 있다** — 계획대로다. 제거는 새 클라이언트 배포 뒤 후속이다.
+
+### 다음
+
+이제 **②(코드 배포)** 차례다. DB가 먼저 섰으므로 지금 배포해도 새 클라이언트가 읽을 컬럼이
+이미 있다. 옛 클라이언트도 새 컬럼을 모른 채 계속 돈다(Prisma는 자기 스키마 컬럼만 SELECT한다).
+
