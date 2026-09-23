@@ -60,6 +60,7 @@
 **`〔auto〕` 태그를 붙인다** — 드문 경우다. 홈은 **공개 라우트**(`app/page.tsx`)이고 그 문구가 `WorkflowSection.tsx`를 통해 **본문에 렌더**되므로, 응답 본문 문구만으로 판정된다. 루틴이 닫는다.
 
 - [ ] 홈 `Review & publish` 설명에서 `square, and landscape` 약속이 사라지고 세로 문구로 바뀌었다 〔auto GET / notext="square, and landscape" text="Export vertical 9:16 clips ready for YouTube Shorts"〕
+  - 자동 불합격(2026-09-23 09:02 KST): status 307≠200; text 없음: "Export vertical 9:16 clips ready for YouTube Shorts"
 
 ---
 
