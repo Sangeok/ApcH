@@ -43,7 +43,7 @@
 - [ ] FEAT-54: 캡션 기본값을 언어별로 — 한 번 커스터마이즈하면 영어·한국어가 같은 값을 쓴다
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 담당은 백로그가 계획 단계 판단으로 남긴 것을 소유자와 정했다 — **쪼개지 않고 main-loop 하나**. 스키마·데이터 이동·웹이 한 계획서 안에서 순서를 잡아야 어긋나지 않는다.
 
 ## 2026-09-22
