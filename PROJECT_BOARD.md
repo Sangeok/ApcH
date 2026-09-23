@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-23
+- [ ] FEAT-54: 캡션 기본값을 언어별로 — 한 번 커스터마이즈하면 영어·한국어가 같은 값을 쓴다
+  agent: main-loop
+  area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시). 담당은 백로그가 계획 단계 판단으로 남긴 것을 소유자와 정했다 — **쪼개지 않고 main-loop 하나**. 스키마·데이터 이동·웹이 한 계획서 안에서 순서를 잡아야 어긋나지 않는다.
+
 ## 2026-09-22
 - [x] BUG-15: 홈페이지가 만들지 못하는 화면비를 약속한다 — `square`·`landscape` 문구 철회
   agent: web-dev
