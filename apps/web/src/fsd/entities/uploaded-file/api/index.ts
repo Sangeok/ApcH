@@ -109,7 +109,7 @@ export async function createUploadDraft(data: {
   language: string;
   targetClipCount: number;
   reviewBeforeGenerate: boolean;
-  captionStyle?: Prisma.JsonValue; // User.defaultCaptionStyle 스냅샷 (없으면 null 컬럼)
+  captionStyle?: Prisma.JsonValue; // User.defaultCaptionStyleEnglish·Korean 중 업로드 언어 쪽의 스냅샷 (없으면 null 컬럼)
 }) {
   const { captionStyle, ...rest } = data;
   return db.uploadedFile.create({

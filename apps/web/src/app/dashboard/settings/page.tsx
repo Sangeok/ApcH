@@ -16,15 +16,16 @@ export default async function SettingsPage() {
   }
 
   const stored = await getUserUploadDefaults(session.user.id);
-  const { defaultCaptionStyle } = await getUserDefaultCaptionStyle(
-    session.user.id,
-  );
+  const captionStyles = await getUserDefaultCaptionStyle(session.user.id);
 
   return (
     <SettingsView
       initialDefaults={resolveUploadDefaults(stored)}
       // 저장 시 captionStyleSchema로 검증된 값(렌더 경로와 같은 캐스트). null = 언어 기본값.
-      initialCaptionStyle={defaultCaptionStyle as CaptionStyle | null}
+      initialCaptionStyles={{
+        english: captionStyles.defaultCaptionStyleEnglish as CaptionStyle | null,
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
     />
   );
 }

@@ -19,7 +19,7 @@ import {
   DEFAULT_CLIP_COUNT,
   DEFAULT_LANGUAGE,
   SUPPORTED_LANGUAGES,
-  type CaptionStyle,
+  type CaptionStyleDefaults,
 } from "~/fsd/shared/config/constants";
 import {
   DEFAULT_REVIEW_BEFORE_GENERATE,
@@ -42,12 +42,12 @@ import {
 
 interface SettingsViewProps {
   initialDefaults: ResolvedUploadDefaults;
-  initialCaptionStyle: CaptionStyle | null;
+  initialCaptionStyles: CaptionStyleDefaults;
 }
 
 export default function SettingsView({
   initialDefaults,
-  initialCaptionStyle,
+  initialCaptionStyles,
 }: SettingsViewProps) {
   const router = useRouter();
   const [language, setLanguage] = useState(initialDefaults.language);
@@ -55,14 +55,12 @@ export default function SettingsView({
   const [reviewBeforeGenerate, setReviewBeforeGenerate] = useState(
     initialDefaults.reviewBeforeGenerate,
   );
-  const [captionStyle, setCaptionStyle] = useState<CaptionStyle | null>(
-    initialCaptionStyle,
-  );
-  // 미리보기 전용 언어. 업로드 기본 언어(language, Save defaults로 저장됨)와 분리한다 —
-  // 한국어 미리보기를 보려고 업로드 언어를 건드리는 사고 경로를 막는다(FEAT-52 관측 4). 저장 안 함.
-  const [previewLanguage, setPreviewLanguage] = useState(
-    initialDefaults.language,
-  );
+  const [captionStyles, setCaptionStyles] = useState(initialCaptionStyles);
+  // 편집 대상 언어. 업로드 기본 언어(language, Save defaults로 저장됨)와 분리한다 —
+  // 한국어 스타일을 손보려고 업로드 언어를 건드리는 사고 경로를 막는다(FEAT-52 관측 4).
+  // 이 값 자체는 저장하지 않는다.
+  const [editLanguage, setEditLanguage] = useState(initialDefaults.language);
+  const editKey = editLanguage === "Korean" ? "korean" : "english";
   const [isSaving, startSaving] = useTransition();
 
   const persist = (payload: {
@@ -105,7 +103,7 @@ export default function SettingsView({
 
   const handleSaveCaption = () =>
     startSaving(async () => {
-      const result = await saveDefaultCaptionStyle(captionStyle);
+      const result = await saveDefaultCaptionStyle(captionStyles);
       if (!result.success) {
         toast.error(result.error);
         return;
@@ -113,16 +111,19 @@ export default function SettingsView({
       // 계측은 fire-and-forget(저장은 이미 성공). preset = matchPresetId 결과.
       void trackAnalyticsEvent("settings_defaults_saved", {
         source: "settings_page",
-        preset: matchPresetId(captionStyle),
+        preset: matchPresetId(captionStyles[editKey]),
       });
       toast.success("Caption style saved");
       router.refresh();
     });
 
   const handleResetCaption = () => {
-    setCaptionStyle(null);
+    setCaptionStyles({ english: null, korean: null });
     startSaving(async () => {
-      const result = await saveDefaultCaptionStyle(null);
+      const result = await saveDefaultCaptionStyle({
+        english: null,
+        korean: null,
+      });
       if (!result.success) toast.error(result.error);
       else {
         void trackAnalyticsEvent("settings_defaults_saved", {
@@ -240,32 +241,35 @@ export default function SettingsView({
           </div>
           <div className="flex items-center gap-2">
             <p className="text-muted-foreground text-xs font-medium">
-              Preview language
+              Editing
             </p>
             {SUPPORTED_LANGUAGES.map((lang) => (
               <Button
                 key={lang.value}
                 type="button"
                 size="sm"
-                variant={previewLanguage === lang.value ? "default" : "outline"}
-                onClick={() => setPreviewLanguage(lang.value)}
+                variant={editLanguage === lang.value ? "default" : "outline"}
+                onClick={() => setEditLanguage(lang.value)}
               >
                 {lang.label}
               </Button>
             ))}
           </div>
           <p className="text-muted-foreground text-[11px]">
-            Preview only — this doesn&apos;t change your upload language.
+            This picks which language you&apos;re styling — it doesn&apos;t
+            change your upload language.
           </p>
           <CaptionStyleEditor
-            language={previewLanguage}
-            value={captionStyle}
+            language={editLanguage}
+            value={captionStyles[editKey]}
             sample
             playUrl={null}
             clipStart={0}
             clipEnd={SAMPLE_CAPTION_CLIP_END}
-            words={sampleCaptionWords(previewLanguage)}
-            onChange={setCaptionStyle}
+            words={sampleCaptionWords(editLanguage)}
+            onChange={(style) =>
+              setCaptionStyles((prev) => ({ ...prev, [editKey]: style }))
+            }
           />
           <div className="flex gap-x-2">
             <Button onClick={handleSaveCaption} disabled={isSaving}>
@@ -276,7 +280,7 @@ export default function SettingsView({
               onClick={handleResetCaption}
               disabled={isSaving}
             >
-              Reset to language default
+              Reset both languages
             </Button>
           </div>
         </CardContent>

@@ -39,6 +39,15 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-09-23
+- [x] FEAT-54: 캡션 기본값을 언어별로 — 한 번 커스터마이즈하면 영어·한국어가 같은 값을 쓴다
+  agent: main-loop
+  area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings
+  status: 완료
+  검증: 클린 패스 (2026-09-23, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 메인 루프 라운드 소득 3건(전부 구현 영향) 반영 뒤. 경로 9는 카탈로그의 첫 실증)
+  근거: 소유자 직접 발주(게이트① 세션 지시). 담당은 백로그가 계획 단계 판단으로 남긴 것을 소유자와 정했다 — **쪼개지 않고 main-loop 하나**. 스키마·데이터 이동·웹이 한 계획서 안에서 순서를 잡아야 어긋나지 않는다.
+  결과: 계획대로 14행 전부(웹 11 + schema + 생성 클라이언트 7 + 신규 마이그레이션), 초과 0. tsc EXIT0·check 경고0·test 170/40/0 불변. **마이그레이션 미적용** — DB 먼저라 별도 승인 뒤 적용, 그 다음 배포. 상세 main-loop/FEAT-54
+
 ## 2026-09-22
 - [x] BUG-15: 홈페이지가 만들지 못하는 화면비를 약속한다 — `square`·`landscape` 문구 철회
   agent: web-dev
@@ -50,7 +59,7 @@
 - [x] FEAT-44: 낡는 줄번호 인용을 함수명·코드 내용 앵커로 교체 — **동작 무변경**
   agent: main-loop
   area: apps/web/src/fsd/features/caption-style + apps/web/src/fsd/shared/config/constants.ts + apps/web/src/fsd/widgets/clip-draft-review + apps/web/src/app/layout.tsx + apps/backend/*.py + apps/backend/CLAUDE.md + apps/web/CLAUDE.md + .claude/agents/
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-22, 독립 무편집 2사이클 — 1차가 구현 영향 결함 1건(feature-scout 앵커가 낡은 줄번호를 따라가 엉뚱한 함수를 짚음) 반영 뒤 2차 필수 4경로 전수 결함 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). 범위를 소유자와 좁혔다 — 두 CLAUDE.md를 **넣고**(제외가 인수마다 손 교정을 낳았다) TASK_BACKLOG 17건은 **뺀다**(시점 관측). 실측 49건.
   결과: 계획대로 52편집/17파일, 초과 0. 치환마다 before 1회 단언. main.py:N 잔존 0·웹내부 3건 0. 게이트 넷 불변(web 170/40/0·경고0, backend 109, py_compile 0). 상세 main-loop/FEAT-44
@@ -59,7 +68,7 @@
 - [x] FEAT-57: `clip_review_caption_style_edited` 계측 이름을 계약에서 완전 제거 — 지금은 죽은 등록으로 남아 있다
   agent: main-loop
   area: packages/db/src/analytics-contract.ts + apps/web/src/fsd/shared/analytics/lib/metadata.ts + apps/admin/src/fsd/entities/analytics-event/api/queries.test.mjs
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-22, 독립 무편집 2사이클 — 결함 0. 1차 위생 1건(범위 인용) 반영 뒤 2차가 필수 5경로 전수·무편집으로 결함 0)
   근거: 소유자 직접 발주(게이트① 세션 지시). FEAT-52가 발신부를 지워 죽은 등록만 남았다. 쓰기 범위가 packages/db·web·admin 셋으로 갈려 담당은 main-loop(백로그 지정).
   결과: 계획대로 3파일 — 계약 이름(31→30)·허용 키 맵·유령 주석. admin queries.test.mjs는 목 픽스처라 대상 아님(계획이 백로그 진단 정정). 게이트 넷 EXIT0: web 170/40/0·admin 334/75/0. 상세 main-loop/FEAT-57

@@ -156,6 +156,8 @@ exports.Prisma.UserScalarFieldEnum = {
   defaultLanguage: 'defaultLanguage',
   defaultClipCount: 'defaultClipCount',
   defaultReviewBeforeGenerate: 'defaultReviewBeforeGenerate',
+  defaultCaptionStyleEnglish: 'defaultCaptionStyleEnglish',
+  defaultCaptionStyleKorean: 'defaultCaptionStyleKorean',
   defaultCaptionStyle: 'defaultCaptionStyle'
 };
 

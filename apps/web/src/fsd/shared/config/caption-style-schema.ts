@@ -4,8 +4,8 @@ import {
   type CaptionStyle,
 } from "~/fsd/shared/config/constants";
 
-// User.defaultCaptionStyle / UploadedFile.captionStyle JSON의
-// 공용 검증기. 두 컬럼이 같은 CaptionStyle 모양을 공유하므로 하위 레이어(shared)에 둬
+// User.defaultCaptionStyleEnglish·Korean / UploadedFile.captionStyle JSON의
+// 공용 검증기. 세 컬럼이 같은 CaptionStyle 모양을 공유하므로 하위 레이어(shared)에 둬
 // features/settings·features/upload·features/clip-review가 딥 임포트해도 peer 위반이 없다
 // (shared는 W2/W6 면제). 캡션 계약의 원천 타입은 shared/config의 CaptionStyle 하나이며,
 // satisfies가 스키마-타입 드리프트를 막는다. 허용 범위는 백엔드 resolve_caption_style과 동기

@@ -240,9 +240,13 @@ export async function prepareUpload(fileInfo: {
 
     // 클라이언트는 스타일을 보내지 않으므로 prepareUploadSchema(검증 표면)는 늘지 않는다.
     // 업로드 시점에 서버에서 스냅샷을 읽어 UploadedFile.captionStyle에 고정한다.
-    const { defaultCaptionStyle } = await getUserDefaultCaptionStyle(
-      authResult.data.userId,
-    );
+    const defaults = await getUserDefaultCaptionStyle(authResult.data.userId);
+    // 업로드 언어에 맞는 쪽만 고정한다 — 하류(UploadedFile.captionStyle →
+    // render caption_style → resolve_caption_style)는 단일 값 그대로라 무변경이다.
+    const captionStyleSnapshot =
+      language === "Korean"
+        ? defaults.defaultCaptionStyleKorean
+        : defaults.defaultCaptionStyleEnglish;
 
     const uploadDraft = await createUploadDraft({
       userId: authResult.data.userId,
@@ -251,7 +255,7 @@ export async function prepareUpload(fileInfo: {
       language,
       targetClipCount: clipCount,
       reviewBeforeGenerate,
-      captionStyle: defaultCaptionStyle, // 업로드 시점에 고정되는 스냅샷
+      captionStyle: captionStyleSnapshot, // 업로드 시점·업로드 언어 기준 스냅샷
     });
 
     return success({ key, uploadedFileId: uploadDraft.id, signedUrl });

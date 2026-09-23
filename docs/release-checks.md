@@ -17,7 +17,7 @@
 - **이 문서는 상태 문서다** — `PROJECT_BOARD.md`처럼 갱신하며 `docs/agents/`의 append-only
   규약을 따르지 않는다. 확인 활동의 상세는 `docs/agents/main-loop/`에 쓴다.
 - 절은 항목별·최신순(보드 섹션 순서). 전부 닫힌 절도 지우지 않는다 — 닫혔다는 사실이 기록이다.
-- **자동 판정 태그**: 응답 상태·본문 문구·CSS 방출만으로 판정되는 열린 줄에는 등재 시 메인 루프가 줄 끝에 `〔auto GET <경로> [status=] [text=""]… [notext=""]… [css="a,b"] [when=""]… [when-any="a|b"] [when-board="<regex>"]〕`를 붙인다(문법·판정은 `scripts/release-verify/ledger.mjs`). 루틴은 `pass`면 태그를 지우고 `[x]` + `확인(…, 자동 — …)`로 닫고, `fail`이면 줄 아래에 `  - 자동 불합격(날짜): 사유`만 남기며(이관은 사람), `when*` 전제가 안 맞으면 건드리지 않는다.
+- **자동 판정 태그**: 응답 상태·본문 문구·CSS 방출만으로 판정되는 열린 줄에는 등재 시 메인 루프가 줄 끝에 `〔auto GET <경로> [status=] [text=""]… [notext=""]… [css="a,b"] [when=""]… [when-any="a|b"] [when-board="<regex>"]〕`를 붙인다(문법·판정은 `scripts/release-verify/ledger.mjs`). 루틴은 `pass`면 태그를 지우고 `[x]` + `확인(…, 자동 — …)`로 닫고, `fail`이면 줄 아래에 `  - 자동 불합격(날짜): 사유`만 남기며(이관은 사람), `when*` 전제가 안 맞으면 건드리지 않는다. **⚠️ `<경로>`의 기준 호스트는 `admin.a-pch.com` 하나다** — 루틴이 `ADMIN_BASE_URL`(`run.mjs`) 하나만 쓰고 `getWithSession`이 `${base}${path}`로 합치므로 **절대 URL도, web(`a-pch.com`) 라우트도 받지 못한다.** web 화면은 공개 라우트라 해도 태그를 붙이면 admin 루트를 쳐 엉뚱한 불합격이 난다(2026-09-23 BUG-15에서 실제로 발생 — 등재한 메인 루프가 이 제약을 놓쳤다).
 - 스윕 이력: 2026-08-24 1차(Playwright, admin 프로덕션) · 2차(시각 판정 — 스크린샷 판독 + FEAT-07 승인 시안 대조) · 3차(PR #101 합류 직후 재스윕 — FEAT-17·18 마감, 실보드 파생 상태 라이브 관측). 4차(2026-09-03, PR #111 합류 직후 — web 공개 라우트만, curl 실측: C-36/C-37 마감, C-72/C-73 절반). 상세는 `docs/agents/main-loop/FEAT-19.md`.
 
 ## 지금 무엇부터 — 2026-09-21 분류
@@ -54,13 +54,32 @@
 
 ---
 
+## FEAT-54 — 캡션 기본값을 언어별로 (db+web, 구현 2026-09-23)
+
+원천: `docs/plans/FEAT-54.md`의 「테스트 — 못 덮는 범위」. **마이그레이션 적용됨(2026-09-23)·코드 미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npx tsc --noEmit` **EXIT 0**(이 항목의 진짜 게이트 — 모양이 바뀌면 아홉 곳이 깨진다) · `npm run check -w apps/web` EXIT 0 경고 0 · `npm test -w apps/web` **170/40/0**(착수 기준선 그대로) — 셋 다 인수 시 메인 루프가 직접 재실행했다. 구현 파일이 계획서 「고칠 파일」 14행과 **정확히 일치**하고 초과 0이다.
+**적용 순서가 FEAT-53과 반대다** — ADD라 **DB 먼저**다. 마이그레이션 적용 → 코드 배포. 반대로 하면 새 클라이언트가 없는 컬럼을 `SELECT`한다.
+**`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 화면(설정·대시보드 업로드 폼)이라 공개 HTTP 응답으로 판정되지 않는다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-09-23, 실측 — 소유자 승인 후 `migrate deploy` `All migrations have been successfully applied.` · 이어 `migrate status` **`Database schema is up to date!`** · `db pull --print`의 `model User`에 `defaultCaptionStyle`·`defaultCaptionStyleEnglish`·`defaultCaptionStyleKorean` **셋 다** 존재 · 행 계수 `total 7 / en 0 / kr 0 / old 0`으로 **이동 0행**이 예측대로 · 새 클라이언트로 두 새 컬럼 실 조회 성공. 대상 `neondb`@`ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`)
+- [ ] **`Editing` 토글이 편집 대상을 바꾸는가** — 이 항목의 존재 이유다. 설정 화면에서 한국어로 넘겨 크기·줄당 단어를 바꾸고 영어로 돌아왔을 때 **영어 값이 그대로**인지. 저장 뒤 새로고침해도 두 값이 각각 남는지
+- [ ] **업로드 폼에서 언어를 바꾸면 `Video style:` 라벨이 따라 바뀌는가** — 두 언어에 다른 프리셋을 저장해 두고 대시보드 업로드 폼의 언어 드롭다운을 오가며 본다
+- [ ] **업로드가 그 언어의 스냅샷을 고정하는가** — 렌더까지 가야 보인다(크레딧). 한국어 업로드가 한국어 쪽 스타일로, 영어 업로드가 영어 쪽으로 나오는지
+- [ ] **저장·초기화가 둘 다에 걸리는가** — `Reset both languages`를 누르면 두 언어 모두 언어 기본값으로 돌아가는지(버튼 라벨이 그렇게 말한다)
+
+---
+
 ## BUG-15 — 홈페이지가 만들지 못하는 화면비를 약속한다 (web, 구현 2026-09-22)
 
 원천: `docs/agents/web-dev/BUG-15.md`의 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 `npm run check -w apps/web` EXIT 0 경고 0 · `npm test -w apps/web` **170/40/0** — 인수 시 메인 루프가 직접 재실행했고, diff가 계획서 스케치의 after 문자열과 **완전 일치**함도 확인했다.
-**`〔auto〕` 태그를 붙인다** — 드문 경우다. 홈은 **공개 라우트**(`app/page.tsx`)이고 그 문구가 `WorkflowSection.tsx`를 통해 **본문에 렌더**되므로, 응답 본문 문구만으로 판정된다. 루틴이 닫는다.
+**`〔auto〕` 태그를 붙이지 않는다** — 등재 때 붙였다가 **2026-09-23에 걷었다.** 판정 자체는
+공개 응답 본문 문구로 가능하지만, release-verify 루틴은 **admin 호스트만 조회한다**
+(`scripts/release-verify/run.mjs`의 `ADMIN_BASE_URL` 기본값 `https://admin.a-pch.com`,
+`http.mjs`의 `getWithSession`이 `${base}${path}`로 합쳐 **절대 URL을 받지 않는다**).
+그래서 `GET /`는 web 홈이 아니라 admin 루트를 쳐 307을 받았고, 루틴이 `자동 불합격`을 달았다 —
+**배포 지연이 아니라 잘못된 태그 때문이다.** 이 제약은 FEAT-31 절이 이미 같은 문장으로
+적어 뒀는데(「web 라우트를 판정하지 못한다」) 등재 때 놓쳤다. 잘못된 불합격 줄은 함께 지웠다.
 
-- [ ] 홈 `Review & publish` 설명에서 `square, and landscape` 약속이 사라지고 세로 문구로 바뀌었다 〔auto GET / notext="square, and landscape" text="Export vertical 9:16 clips ready for YouTube Shorts"〕
-  - 자동 불합격(2026-09-23 09:02 KST): status 307≠200; text 없음: "Export vertical 9:16 clips ready for YouTube Shorts"
+- [ ] 홈 `Review & publish` 설명에서 `square, and landscape` 약속이 사라지고 세로 문구로 바뀌었다 — 배포 후 `https://a-pch.com/` 본문에서 육안 또는 `curl -sL https://a-pch.com/ | grep "Export vertical"` 한 줄로 확인된다
 
 ---
 

@@ -12,7 +12,7 @@ import {
   type RecoverableUploadDraftSummary,
   type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
-import type { CaptionStyle } from "~/fsd/shared/config/constants";
+import type { CaptionStyleDefaults } from "~/fsd/shared/config/constants";
 import {
   currentUserActiveUploadQueueQueryOptions,
   currentUserUploadedFileListQueryOptions,
@@ -43,7 +43,7 @@ interface DashboardViewProps {
   /** 서버 컴포넌트가 읽어 준 큐 상태. refetch가 돌려주는 것과 같은 형태다 */
   initialActiveQueue: ActiveUploadedFileQueueState;
   uploadDefaults: ResolvedUploadDefaults;
-  defaultCaptionStyle: CaptionStyle | null;
+  defaultCaptionStyles: CaptionStyleDefaults;
 }
 
 export default function DashboardView({
@@ -52,7 +52,7 @@ export default function DashboardView({
   recoverableDrafts,
   initialActiveQueue,
   uploadDefaults,
-  defaultCaptionStyle,
+  defaultCaptionStyles,
 }: DashboardViewProps) {
   const router = useRouter();
 
@@ -128,7 +128,7 @@ export default function DashboardView({
           <UploadPodcast
             onOptimisticAdd={addOptimisticFile}
             defaults={uploadDefaults}
-            defaultCaptionStyle={defaultCaptionStyle}
+            defaultCaptionStyles={defaultCaptionStyles}
           />
           <RecoverableUploadDrafts drafts={recoverableDrafts} />
           <QueueStatus

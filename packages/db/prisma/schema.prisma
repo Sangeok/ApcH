@@ -58,6 +58,12 @@ model User {
     defaultReviewBeforeGenerate Boolean?
     // 검증은 captionStyleSchema(features/clip-review/model/schemas.ts) 한 곳.
     // UploadedFile.captionStyle(업로드 시점 스냅샷)과 같은 CaptionStyle 모양이다.
+    // 언어마다 따로 둔다(FEAT-54) — fontSize·maxWordsPerLine의 적정값이 언어마다 달라
+    // 한 칸이면 한쪽을 손대는 순간 다른 쪽이 깨진다.
+    defaultCaptionStyleEnglish  Json?
+    defaultCaptionStyleKorean   Json?
+    // 구 단일 칸. FEAT-54가 두 칸으로 옮겼고 읽는 코드는 0이다.
+    // 제거는 새 클라이언트 배포 뒤 후속 항목이 맡는다(FEAT-53과 같은 순서).
     defaultCaptionStyle         Json?
 
     accounts        Account[]
@@ -90,7 +96,8 @@ model UploadedFile {
     targetClipCount       Int      @default(3)
     // Pre-generation review mode. When true, processing runs analyze -> review -> render.
     reviewBeforeGenerate  Boolean  @default(false)
-    // 업로드 시점에 User.defaultCaptionStyle을 복사한 스냅샷 (FEAT-42가 채운다).
+    // 업로드 시점에 User.defaultCaptionStyleEnglish·Korean 중 업로드 언어 쪽을 복사한
+    // 스냅샷 (FEAT-42가 채우고 FEAT-54가 언어별로 갈랐다).
     // 라이브 참조가 아니라 스냅샷인 이유: 검토 중 기본값을 바꾸면 미리보기와
     // 실렌더가 어긋나고, 그 회귀는 크레딧을 쓴 뒤에야 드러난다
     // (features/caption-style/model/caption-preview.test.mjs가 지키는 계약).
