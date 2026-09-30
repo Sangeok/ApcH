@@ -43,7 +43,7 @@
 - [ ] FEAT-58: 영상 상하 동일 검은 여백 — 설정에서 한쪽 여백 0~25%를 고르면 업로드에 고정되고, 그 업로드의 모든 클립이 1080×1920 안 중앙 프레임 + 상하 검은 띠로 렌더된다
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/backend/main.py + apps/backend/video_framing.py + apps/web/src/fsd/shared/config + apps/web/src/fsd/entities/user + apps/web/src/fsd/entities/uploaded-file + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings + apps/web/src/app/dashboard/settings + apps/web/src/inngest
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 계획서가 보드 행보다 먼저 별도 세션에서 쓰였다. db·backend·web이 배포 순서로 묶여 FEAT-54 전례대로 main-loop 하나가 맡는다.
 
 ## 2026-09-23
