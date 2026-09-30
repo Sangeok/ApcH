@@ -281,7 +281,7 @@ export default function CaptionStyleThumbnail({
 
 ### 6) `features/caption-style/ui/CaptionStyleEditor.tsx` 수정 (동작 무변경)
 
-`resolveEffectiveCaptionStyle` import 추가(`:11` `import { matchPresetId } from "../model/caption-presets";` 다음 줄에 `import { resolveEffectiveCaptionStyle } from "../model/effective-caption-style";`). `:39-55`의 세 헬퍼(`languageDefaultFontSize`·`languageDefaultMaxWords`·`languageDefaultOutlineWidth`)는 아래 교체로 유일 소비자가 사라지므로 **함께 제거**한다(안 지우면 no-unused-vars로 `check` 실패). 제거 범위는 `:39-56` — 헬퍼 뒤 빈 줄(`:56`)까지 지워야 `:38`의 빈 줄과 겹치지 않는다.
+`resolveEffectiveCaptionStyle` import 추가(`:11` `import { matchPresetId } from "../model/caption-presets";` 다음 줄에 `import { resolveEffectiveCaptionStyle } from "../model/effective-caption-style";`). `:39-55`의 세 헬퍼(`languageDefaultFontSize`·`languageDefaultMaxWords`·`languageDefaultOutlineWidth`)는 아래 교체로 유일 소비자가 사라지므로 **함께 제거**한다(안 지우면 `next lint`에 `@typescript-eslint/no-unused-vars` **경고**가 셋 남는다 — `eslint.config.js`가 이 규칙을 `"warn"`으로 두고 `tsconfig.json`에 `noUnusedLocals`가 없어 `check`는 통과하지만, 이 저장소의 인수는 lint 경고 0을 본다). 제거 범위는 `:39-56` — 헬퍼 뒤 빈 줄(`:56`)까지 지워야 `:38`의 빈 줄과 겹치지 않는다.
 
 before (`:79-90`, 적기 직전 재확인):
 
