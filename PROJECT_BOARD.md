@@ -43,12 +43,12 @@
 - [ ] BUG-17: 프로덕션 CSP가 blob: 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다
   agent: web-dev
   area: apps/web/next.config.js
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시 — 「방금 이야기한 것을 바탕으로 수정을 진행해」). 업로드 옵션 UI 검토 중 프로덕션 콘솔에서 확인했다. next.config.js는 FEAT-32 전례대로 web-dev가 맡는다.
 - [ ] FEAT-59: 업로드 폼 옵션 영역 개편 — 카드 안 2열 격자·세그먼트·Video style 9:16 썸네일. 기능·계측은 그대로
   agent: web-dev
   area: apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx + apps/web/src/fsd/shared/ui/atoms + apps/web/src/fsd/features/caption-style
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 같은 대화에서 목업으로 합의한 개편안이다. BUG-17과 파일이 겹치지 않아 병행 계획한다(BUG-15·FEAT-44 전례).
 - [ ] BUG-16: 여백 0%에서 9:16보다 세로로 긴 source는 화자 없는 프레임에서 렌더가 죽고, 화자 있는 프레임은 가로로 늘어난다
   agent: backend-dev
