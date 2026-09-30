@@ -147,3 +147,43 @@ V-SNAPSHOT 「현재 문서 작성에서는 실행하지 않는다」 → 산문
 ## 다음
 
 메인 루프 무편집 라운드(2)가 필수 경로를 소진했다 — `plan-verifier` 독립 무편집 패스의 디스패치 자격.
+
+## 라운드 3 — `plan-verifier` 독립 무편집 패스 (2026-09-30, 결함 0)
+
+브리핑은 계약의 셋(항목ID·계획서 경로·필수 경로 8개 발췌)만 실었다. 검증자도 「브리핑 계약 위반 없음」을 확인했다.
+
+**보고 요지** — 필수 8경로 전수 실행, 실행 못 한 경로 없음, **결함 0건**.
+
+- 경로 1: 인용을 줄 내용까지 전부 대조, 어긋남 0
+- 경로 3: before 앵커 전부 트리에 정확히 1회. spawn/remote 표 앵커는 2곳이지만 행을 둘로 나눠 지정해 모호하지 않다고 판정. `process_clip` 확장 앵커의 유일성(:758)과 삽입점 :253·공백 줄 :252 실측
+- 경로 2: 신규 순수 모듈 셋을 바이트 그대로 추출해 실행. TS↔Python `frame_layout` 26개 값 테이블 바이트 동일, 무작위 4000케이스 지오메트리 불변식 무결
+- 경로 4: `createUploadDraft` 실호출 1곳, auto·render 단일 본문
+- 경로 5: 명세의 정확값 fixture로 스케일·clamp·반감 돌연변이 사멸, floor→round만 등가 생존(계획서 주장과 일치)
+- 경로 7: 등록 제거 시 `test_modal_image_sources.py` 실패 논리 확인
+- 경로 8: 라벨 0%가 현 라벨과 바이트 동일, 10·25%, 무효 → 0 폴백, `null` 누출 없음. Framing 그룹 마크업·isSaving disabled
+- 경로 9: schema ↔ migration 식별자·타입·CHECK 일치, 타임스탬프 충돌 없음
+
+**결함으로 올리지 않은 관찰 둘**(검증자 표시, 메인 루프도 동의 — 구현을 틀리게 하지 않는다):
+① 스케치 머리 규칙 「신규 파일은 전문을 싣고」와 달리 신규 테스트 파일 넷은 「테스트」 절의 명세로만 있다
+(이 저장소의 선례 — FEAT-50 등 — 도 테스트는 명세로 싣는다). ② spawn/remote 배선은 펜스가 아니라 표로 적혀 있다.
+둘 다 문구 차이라 **편집하지 않는다** — 편집하면 이 무편집 판정이 무효가 된다.
+
+**트리 검산**: 라운드 뒤 `git status --porcelain` = `?? nul`(세션 전부터 있던 사용자 파일)만.
+
+### 판정
+
+필수 경로를 소진한 뒤 독립 무편집 패스가 결함 0 → **클린 패스**. 보드에 `검증:` 줄을 쓴다. 상태는 `검토대기`
+그대로다 — 게이트②(`구현승인`)는 소유자만 연다.
+
+```text
+Minimal Replay Anchor (historical — 적용 가능성 증거일 뿐, 완전성·무결함 증명이 아니다):
+- Repository: ApcH (dev); HEAD: 4f8012909aff
+- Source: docs/plans/FEAT-58.md blob b5e4df49ff06
+- Scope / phase / profile: FEAT-58 전체 / 검토대기 / High-Risk(마이그레이션·생성물·외부 렌더)
+- Bounded basis: 고칠 파일 표의 기존 파일 15개 — HEAD blob 목록 서명 2cc4e1416ebb.
+  신규 파일 8개는 트리에 없어야 한다(생성 전)
+- Code basis: 701c17d 이후 apps/·packages/ 변경 0 (그 뒤 커밋은 보드·백로그·계획서·기록뿐)
+- Non-HEAD dependencies: 없음(검증은 git archive 사본에서만)
+- Final-pass basis: 위 blob; no-edit: yes (plan-verifier)
+- Historical status: clean pass achieved (2026-09-30)
+```
