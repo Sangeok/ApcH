@@ -246,3 +246,33 @@ ScalarFieldEnum·타입·inline schema/hash·runtimeDataModel·패키지 이름 
   (예: 400×2000 → 1080×5400) `ValueError: could not broadcast input array from shape (5400,1080,3) into shape (1740,1080,3)`.
   HEAD 함수를 합성 프레임에 직접 돌려 재현했다(라운드 1 경로 8). 계획서가 이 결함을 알고 범위 밖으로 둔 그것이며,
   양수 여백 경로(contain)는 같은 입력을 정상 합성한다
+
+## 배포 (2026-09-30) — 진행 중
+
+소유자가 「배포해」로 승인했다. 순서는 BLK-FRAMING-02대로 DB → 백엔드(+실렌더 확인) → 웹이다.
+
+**① DB — 소유자 실행 대기.** 적용 전 `migrate status`는 13개 중 **`20260930000000_video_padding_percent` 하나만 미적용**이라고
+답했다(대상 `neondb`@`ep-wild-pine-a4avujag…`). 메인 루프의 `migrate deploy`는 Claude Code 자동 모드 분류기가 막았다
+— 우회하지 않고 소유자에게 넘긴다. 이 비파괴 변경(ADD COLUMN 2 + CHECK 2, UPDATE·DROP 0)만 남아 있다.
+
+**② 백엔드 — 배포됨(Modal v30, 23:01 KST).** `PYTHONUTF8=1 … -m modal deploy main.py`, 7.7초. 이미지 마운트 목록에
+`PythonPackage:video_framing`이 실렸다(등록 누락이면 컨테이너 시작 시 죽는다 — `test_modal_image_sources.py`가 지키는 것).
+DB보다 먼저 나간 것은 안전하다 — 새 백엔드는 DB에 닿지 않고, 옛 웹은 키를 안 보내 0으로 받는다.
+
+배포된 엔드포인트에 **작업을 띄우지 않는 잘못된 값**으로 탐침했다:
+
+| 값 | 응답 |
+| --- | --- |
+| `-1` | 422 `{"detail":"Invalid video padding percent"}` — 범위 검사(리터럴 422) |
+| `"10"` · `true` | 422 `int_type` — `StrictInt` |
+| `26` (재시도, 약 1초) | 422 `Invalid video padding percent` |
+| `26` (**배포 직후 첫 요청**) | **500** |
+
+첫 요청의 500은 새 코드의 동작이 아니다 — 같은 경로의 뒤 요청들이 전부 422였고, 재시도한 26도 422였다. 배포 교체 순간에
+옛 컨테이너가 받았을 가능성이 크고, 그랬다면 옛 코드는 새 필드를 버리고 `.remote()`로 작업을 띄웠다(없는 S3 키
+`feat58-probe/none.mp4`라 곧 실패). `modal app logs`·`container logs`는 과거분을 보여 주지 않아 **짧은 GPU 호출 1회가
+있었는지 배제하지 못했다.** 교훈은 메모리에 남겼다(배포 직후 탐침 전 `container list` 확인, 옛 코드도 거부하는 본문 사용).
+
+**실렌더 확인(BLK-FRAMING-02가 웹 배포 전에 요구)** — 유료 GPU 실행이라 CON-FRAMING-004대로 소유자 승인 대기.
+
+**③ 웹 — ①과 실렌더 확인 뒤.**
