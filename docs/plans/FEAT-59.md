@@ -20,11 +20,11 @@ agent: web-dev
 - `:154` `handleClipCountChange` → `setClipCount` + `trackOptionsChanged({ clipCount })`.
 - `:161` `handleReviewModeChange` → `setReviewBeforeGenerate` + `trackOptionsChanged({ reviewBeforeGenerate })`.
 
-**렌더** — `:168-346`:
+**렌더** — `:168-347` (`:168` `return (` ~ `:347` `);`):
 - 카드(`:170-210`)는 `Dropzone`(`:178`, `maxSize`·`accept`·`maxFiles={1}`·`disabled={isUploading}`) 한 개만 담는다. 옵션·파일 줄은 카드 **밖**(`:212` `<div className="mt-4 flex items-start justify-between">`)에 있다.
 - 옵션 네 묶음(`:224` `<div className="flex gap-x-4">`)이 wrap 없는 한 줄: 언어 드롭다운(`:229-247`, 버튼 라벨 `{language}` = 값), 클립 수 드롭다운(`:250-276`, 길이로 막힌 값은 `disabled={isOptionUnreachable}`), 생성 드롭다운(`:280-300`), Video style(`:302-320`, `captionStyleLabel(...)` + `framingSummary` + `Change in settings` 링크 — 편집 불가 텍스트).
 - 길이 안내 줄(`:322-328`): 30초 미만이면 `Source is shorter than ${CLIP_DURATION_LIMITS.MIN_SECONDS}s — too short to generate a clip. Try a longer video.`, 아니면 `Source length … This fits up to N clip(s); the AI may return fewer.`.
-- 업로드 버튼(`:332-344`)은 파일 줄 옆 우상단. `disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}`, 라벨 `Upload and Generate Clips` / `Uploading...`(스피너).
+- 업로드 버튼(`:332-344`)은 파일 줄 옆 우상단. `disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}`, 라벨 `Upload and Generate Clips` / `Uploading...`(스피너). 이 버튼은 `:214` `{files.length > 0 && (` 가드 **밖**이라 파일을 고르기 전에도 비활성으로 렌더된다.
 
 **유효 캡션 스타일 계산** — `CaptionStyleEditor.tsx:79-90`은 저장값 위에 언어별 기본값을 얹은 `effectivePosition`·`effectiveFontSize`·… 7개를 **인라인**으로 만든다(`value?.color ?? CAPTION_STYLE_OPTIONS.DEFAULT_COLOR` 등, 언어 기본값은 `:39-55` `languageDefault*` 헬퍼). 이 값이 컨트롤·미리보기에 쓰인다. 썸네일이 같은 스타일을 그리려면 이 계산이 필요하다.
 
@@ -47,7 +47,7 @@ agent: web-dev
 | `features/caption-style/model/effective-caption-style.ts` `(신규)` | 저장값+언어 기본값 유효 스타일 계산 (`CaptionStyleEditor.tsx:79-90` 인라인에서 추출) |
 | `features/caption-style/model/effective-caption-style.test.mjs` `(신규)` | 위 분기 테스트 |
 | `features/caption-style/ui/CaptionStyleThumbnail.tsx` `(신규)` | 9:16 썸네일 (여백 실비율 + 캡션 견본) |
-| `features/caption-style/ui/CaptionStyleEditor.tsx` | `:39-55` `languageDefault*` 헬퍼 제거, `:79-90` 인라인 유효 스타일을 `resolveEffectiveCaptionStyle` 호출로 교체 (동작 무변경) |
+| `features/caption-style/ui/CaptionStyleEditor.tsx` | `:39-56` `languageDefault*` 헬퍼 셋과 뒤 빈 줄 제거, `:79-90` 인라인 유효 스타일을 `resolveEffectiveCaptionStyle` 호출로 교체 (동작 무변경) |
 | `features/caption-style/index.ts` | `CaptionStyleThumbnail` 공개 |
 | `pages/dashboard/model/clip-count-notice.ts` `(신규)` | 클립 수 세그먼트 옆 안내 문구 계산 |
 | `pages/dashboard/model/clip-count-notice.test.mjs` `(신규)` | 위 분기 테스트 |
@@ -114,6 +114,8 @@ export function resolveEffectiveCaptionStyle(
 
 요구 (c): 길이를 알고 상한<4면 구체 안내(단수 `clip`·복수 `clips`), 그 외 일반 안내, 30초 미만이면 없음(그 안내는 파일 줄에서 destructive로 뜬다).
 
+"길이를 아는가"는 따로 판정하지 않는다. `getMaxFeasibleClipCount`가 길이 미상(null·비유한·0 이하)이면 옵션 최댓값(4)을, 30초 미만이면 0을 돌려주므로(`clip-count-budget.ts:23-37` `getMaxFeasibleClipCount` 전체 — 미상 가드 `:24-30`, `Math.floor(durationSeconds / CLIP_DURATION_LIMITS.MIN_SECONDS)` `:32-34`. `clip-count-budget.test.mjs`가 지킴) `max`만으로 세 경우가 갈린다. 별도 `known` 가드를 두면 그 분기가 도달 불가가 되어 테스트로 고정되지 않는다 — 계획 검증 라운드 1에서 `known`을 지운 돌연변이 셋이 전부 생존했다(`caption-presets.ts` `captionStyleLabel` 주석과 같은 판단).
+
 ```ts
 import { CLIP_COUNT_OPTIONS } from "~/fsd/shared/config/constants";
 import { getMaxFeasibleClipCount } from "./clip-count-budget";
@@ -121,15 +123,13 @@ import { getMaxFeasibleClipCount } from "./clip-count-budget";
 const MAX_CLIP_COUNT_OPTION =
   CLIP_COUNT_OPTIONS[CLIP_COUNT_OPTIONS.length - 1]!.value;
 
+// 길이 미상은 getMaxFeasibleClipCount가 옵션 최댓값으로 돌려주므로 여기서 따로 가드하지 않는다.
 export function clipCountNotice(durationSeconds: number | null): string | null {
-  const known =
-    durationSeconds !== null &&
-    Number.isFinite(durationSeconds) &&
-    durationSeconds > 0;
   const max = getMaxFeasibleClipCount(durationSeconds);
 
-  if (known && max === 0) return null;
-  if (known && max < MAX_CLIP_COUNT_OPTION) {
+  // 0 = 30초 미만. 그 안내는 파일 줄에 destructive로 뜬다.
+  if (max === 0) return null;
+  if (max < MAX_CLIP_COUNT_OPTION) {
     return `This video fits up to ${max} ${max === 1 ? "clip" : "clips"}. The AI may return fewer.`;
   }
   return "The AI may return fewer.";
@@ -281,7 +281,7 @@ export default function CaptionStyleThumbnail({
 
 ### 6) `features/caption-style/ui/CaptionStyleEditor.tsx` 수정 (동작 무변경)
 
-`resolveEffectiveCaptionStyle` import 추가. `:39-55`의 세 헬퍼(`languageDefaultFontSize`·`languageDefaultMaxWords`·`languageDefaultOutlineWidth`)는 아래 교체로 유일 소비자가 사라지므로 **함께 제거**한다(안 지우면 no-unused-vars로 `check` 실패).
+`resolveEffectiveCaptionStyle` import 추가(`:11` `import { matchPresetId } from "../model/caption-presets";` 다음 줄에 `import { resolveEffectiveCaptionStyle } from "../model/effective-caption-style";`). `:39-55`의 세 헬퍼(`languageDefaultFontSize`·`languageDefaultMaxWords`·`languageDefaultOutlineWidth`)는 아래 교체로 유일 소비자가 사라지므로 **함께 제거**한다(안 지우면 no-unused-vars로 `check` 실패). 제거 범위는 `:39-56` — 헬퍼 뒤 빈 줄(`:56`)까지 지워야 `:38`의 빈 줄과 겹치지 않는다.
 
 before (`:79-90`, 적기 직전 재확인):
 
@@ -347,7 +347,7 @@ export { default as CaptionStyleThumbnail } from "./ui/CaptionStyleThumbnail";
 
 **상태·핸들러·`upload()`·계측·`getMaxFeasibleClipCount`·자동 보정은 `:79-166` 그대로 둔다.** 세그먼트의 `onValueChange`는 기존 핸들러에 값을 넘기는 얇은 어댑터로 감싼다(아래 JSX). 클립 수 값은 문자열이라 `Number(v)`로, 생성 방식은 `v === "review"`로 변환한다.
 
-**렌더 교체** — `:168`의 `return (`부터 `:346`까지를 아래로 바꾼다. 파일 선택 전 화면은 지금(큰 드롭존)과 같고, 선택 뒤에는 파일 줄 + 옵션 격자 + Video style + 하단 버튼이 모두 카드 안에 든다. 좁은 폭 전환은 뷰포트가 아니라 카드 폭 기준 — 옵션 래퍼에 `@container`를 걸고 Tailwind v4 내장 컨테이너 변형 `@[600px]:`를 쓴다(대시보드가 `max-w-5xl` 안이라 카드 폭이 뷰포트보다 먼저 한계에 닿는다, `pages/dashboard/ui/index.tsx:106`). 큰 드롭존 마크업(`UploadCloud`·안내문·`Select File` 버튼)은 `:186-206`을 그대로 옮긴다.
+**렌더 교체** — `:168`의 `return (`부터 `:347`의 `);`까지를 아래로 바꾼다(`:348`의 함수 닫는 `}`는 남는다). 파일 선택 전 화면은 지금처럼 큰 드롭존 + **비활성 업로드 버튼**이고(요구 (a) — 현재 버튼이 `:214` 가드 밖이라 항상 렌더된다), 버튼만 카드 안 하단으로 옮긴다. 선택 뒤에는 파일 줄 + 옵션 격자 + Video style + 하단 버튼이 모두 카드 안에 든다. 좁은 폭 전환은 뷰포트가 아니라 카드 폭 기준 — 옵션 래퍼에 `@container`를 걸고 Tailwind v4 내장 컨테이너 변형 `@[600px]:`를 쓴다(대시보드가 `max-w-5xl` 안이라 카드 폭이 뷰포트보다 먼저 한계에 닿는다, `pages/dashboard/ui/index.tsx:106`). 큰 드롭존 마크업(`UploadCloud`·안내문·`Select File` 버튼)은 `:186-206`을 그대로 옮긴다.
 
 ```tsx
   const langStyle =
@@ -419,8 +419,8 @@ export { default as CaptionStyleThumbnail } from "./ui/CaptionStyleThumbnail";
           }
         </Dropzone>
 
-        {files.length > 0 && (
-          <div className="@container">
+        <div className="@container">
+          {files.length > 0 && (
             <div className="grid grid-cols-1 gap-y-2 @[600px]:grid-cols-[152px_minmax(0,1fr)] @[600px]:gap-x-6 @[600px]:gap-y-4 @[600px]:items-start">
               <p className="text-muted-foreground text-xs @[600px]:col-span-2">
                 Pre-filled from your settings. Changes here apply to this upload only.
@@ -529,25 +529,26 @@ export { default as CaptionStyleThumbnail } from "./ui/CaptionStyleThumbnail";
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="mt-6 flex justify-end">
-              <Button
-                disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}
-                onClick={handleUpload}
-                className="w-full @[600px]:w-auto"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  uploadButtonLabel(reviewBeforeGenerate)
-                )}
-              </Button>
-            </div>
+          {/* 파일 선택 전에도 비활성으로 보인다 — 현재 버튼이 files 가드 밖인 것과 같다(요구 (a)). */}
+          <div className={cn("flex justify-end", files.length > 0 && "mt-6")}>
+            <Button
+              disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}
+              onClick={handleUpload}
+              className="w-full @[600px]:w-auto"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                uploadButtonLabel(reviewBeforeGenerate)
+              )}
+            </Button>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -558,26 +559,31 @@ export { default as CaptionStyleThumbnail } from "./ui/CaptionStyleThumbnail";
 - 상태 4·핸들러 3·`upload()` 인자: `:79-164` 그대로. 세그먼트는 기존 핸들러를 부른다.
 - 계측 `upload_file_selected`·`upload_options_changed` 페이로드: `handleFileDrop`·`trackOptionsChanged` 불변.
 - 상한 계산·자동 보정: `getMaxFeasibleClipCount`(`:166`)·`setClipCount((prev)=>...)`(`:118`) 불변. 클립 세그먼트 disable 규칙도 `:261-263`과 동일(`hasClipCountCap`·`option.value > maxFeasibleClips`).
-- Dropzone `maxSize`·`accept`·`maxFiles`·`disabled` 불변. 파일 선택 전 옵션 숨김(`files.length > 0` 가드) 불변.
+- Dropzone `maxSize`·`accept`·`maxFiles`·`disabled` 불변. 파일 선택 전 옵션 숨김(`files.length > 0` 가드) 불변. 업로드 버튼은 지금처럼 가드 **밖**이라 파일 선택 전에도 비활성으로 보이고, `disabled` 식(`files.length === 0 || isUploading || maxFeasibleClips === 0`)도 `:333` 그대로다.
 - `videoFramingSummary` 골든 문구: `framingSummary`(`:82`)를 그대로 표시하고 `null`에만 `None`을 붙인다 — `video-framing.test.mjs`에 영향 없음.
 
 ### 알려진 동작 차이 (게이트②에서 소유자 판단)
 
-드롭다운은 이미 선택된 값을 다시 눌러도 `upload_options_changed`를 냈다(`:239` `onClick`이 무조건 `handleLanguageChange` 호출). radix `RadioGroup`은 값이 **바뀔 때만** `onValueChange`를 부르므로, 같은 값 재선택 시 `upload_options_changed`가 **더는 발생하지 않는다.** 이 이벤트 수를 세는 집계가 있으면 값이 줄어든다.
+둘이다. 둘 다 `upload_options_changed`의 **발생 횟수**만 바꾸고 페이로드 모양은 그대로다.
+
+1. **같은 값 재선택은 이벤트를 내지 않는다.** 드롭다운은 이미 선택된 값을 다시 눌러도 `upload_options_changed`를 냈다(`:239` `onClick`이 무조건 `handleLanguageChange` 호출). radix `RadioGroup`은 값이 **바뀔 때만** `onValueChange`를 부른다.
+2. **방향키 이동은 한 칸마다 이벤트를 낸다.** 라디오 그룹은 방향키로 포커스를 옮기면 그 항목이 곧바로 선택된다(라디오 시맨틱). 클립 수 1에서 3으로 방향키 두 번 이동하면 `clipCount: 2`, `clipCount: 3` 두 건이 남는다. 드롭다운은 목표 값을 한 번에 골라 한 건이었다. 마우스·터치 선택은 지금처럼 한 건이다.
+
+이 이벤트 수를 세는 집계가 있으면 1은 값을 줄이고 2는 늘린다. 페이로드의 최종 값(마지막 이벤트)은 두 경우 모두 사용자가 고른 값과 같다.
 
 ## 테스트
 
 - **덮는 것**:
-  - `effective-caption-style.test.mjs`: `null`+English → 영어 기본값 7필드 골든(`middle`/`122`/`#FFFFFF`/`5`/`#000000`/`1.1`/`false`), `null`+Korean → 한국어 기본값(`130`/`3`/`1.3`), 부분 저장값은 있는 필드 override·없는(`null`) 필드는 언어 기본값(각 필드 독립 폴백), `uppercase` `true`/`false`/`null`(→`false`), 알 수 없는 언어(예 `"English"`·임의) → 영어 분기. (에디터 인라인과 값이 일치해 설정 미리보기·썸네일 공유를 보증)
-  - `clip-count-notice.test.mjs`: `null` → `The AI may return fewer.`; `NaN`·`Infinity`·`0`·음수 → 같은 일반 안내(가드 고정); `20`(30초 미만) → `null`; `30` → `This video fits up to 1 clip. The AI may return fewer.`(단수); `60` → `…2 clips…`; `90` → `…3 clips…`(복수); `120`·`600`(상한 4) → `The AI may return fewer.`. (단수/복수 경계·상한<4 분기)
+  - `effective-caption-style.test.mjs`: `null`+English → 영어 기본값 7필드 골든(`middle`/`122`/`#FFFFFF`/`5`/`#000000`/`1.1`/`false`), `null`+Korean → 한국어 기본값(`130`/`3`/`1.3`), 부분 저장값은 있는 필드 override·없는(`null`) 필드는 언어 기본값(각 필드 독립 폴백), **저장된 `outlineWidth: 0`은 0 그대로**(falsy 저장값 보존 — `??`를 `||`로 바꾼 돌연변이가 이 케이스 없이는 생존한다. 외곽선 0은 `OUTLINE_WIDTH_RANGE.MIN`이라 실제로 저장될 수 있는 값이다), `uppercase` `true`/`false`/`null`(→`false`), 알 수 없는 언어(예 `"Japanese"`·`""`·소문자 `"korean"`) → 영어 분기. (에디터 인라인과 값이 일치해 설정 미리보기·썸네일 공유를 보증) `fontSize`·`maxWordsPerLine`의 `??`→`||`는 0이 허용 범위 밖(`FONT_SIZE_RANGE.MIN` 60, `MAX_WORDS_RANGE.MIN` 1)이고 `uppercase`의 `?? false`→`|| false`는 항상 같은 값이라, 도달 가능한 입력으로 구별되지 않는 등가 변이여서 테스트하지 않는다.
+  - `clip-count-notice.test.mjs`: `null` → `The AI may return fewer.`; `NaN`·`Infinity`·`0`·음수 → 같은 일반 안내(가드 고정); `20`(30초 미만) → `null`; `30` → `This video fits up to 1 clip. The AI may return fewer.`(단수); `60` → `…2 clips…`; `90` → `…3 clips…`(복수); `120`·`600`(상한 4) → `The AI may return fewer.`. (단수/복수 경계·상한<4 분기. 길이 미상 케이스는 `getMaxFeasibleClipCount`의 미상→4 규칙을 이 함수가 그대로 따르는지를 고정한다)
   - `upload-options-copy.test.mjs`: `uploadButtonLabel` `false`→`Upload and generate clips`·`true`→`Upload and review clips`; `generationModeHint` `false`→`Generates clips immediately.`·`true`→`Edit clips before generating.`. (사용자 대면 골든 문구 고정)
-- **못 덮는 범위**: 2열↔1열 컨테이너 전환·모바일 가로 스크롤 해소·세그먼트 키보드 조작·`RadioGroup` `onValueChange` 발화 조건(같은 값 재선택 무발화)·썸네일 렌더(서체·외곽선·여백/위치 픽셀)·드롭존으로의 파일 교체는 DOM/렌더라 Node 러너로 못 덮는다 — 배포 후 실물·렌더로 확인한다. 프로덕션에서 클립 상한 표시가 실제로 보이려면 BUG-17(CSP `blob:`)이 먼저 고쳐져야 한다.
+- **못 덮는 범위**: 2열↔1열 컨테이너 전환·모바일 가로 스크롤 해소·세그먼트 키보드 조작·`RadioGroup` `onValueChange` 발화 조건(같은 값 재선택 무발화 · 방향키 한 칸마다 발화)·썸네일 렌더(서체·외곽선·여백/위치 픽셀)·드롭존으로의 파일 교체는 DOM/렌더라 Node 러너로 못 덮는다 — 배포 후 실물·렌더로 확인한다. 프로덕션에서 클립 상한 표시가 실제로 보이려면 BUG-17(CSP `blob:`)이 먼저 고쳐져야 한다.
 
 `apps/web/CLAUDE.md` 테스트 표에 추가할 행(이 파일은 읽기 전용이라 직접 못 고침 — 구현 시 비고로 보고):
 
 | 파일 | 지키는 것 |
 |---|---|
-| `features/caption-style/model/effective-caption-style.test.mjs` | 저장값+언어 기본값 유효 스타일. 설정 미리보기(CaptionStyleEditor)와 업로드 폼 썸네일이 **같은 계산**을 쓰는 단일 원천 — 각 필드의 언어별 기본값 폴백과 `uppercase` 기본 `false`를 고정한다 |
+| `features/caption-style/model/effective-caption-style.test.mjs` | 저장값+언어 기본값 유효 스타일. 설정 미리보기(CaptionStyleEditor)와 업로드 폼 썸네일이 **같은 계산**을 쓰는 단일 원천 — 각 필드의 언어별 기본값 폴백과 `uppercase` 기본 `false`, 저장된 외곽선 `0` 보존(`??`→`||` 회귀)을 고정한다 |
 | `pages/dashboard/model/clip-count-notice.test.mjs` | 클립 수 세그먼트 옆 안내 문구. 길이를 알고 상한<4면 구체 안내(단수/복수), 그 외 일반 안내, 30초 미만은 `null`(그 안내는 파일 줄 destructive). 골든 문구가 계약 |
 | `pages/dashboard/model/upload-options-copy.test.mjs` | 업로드 버튼·생성 방식 문구의 생성 방식별 골든 문구 |
 
