@@ -50,12 +50,13 @@
   area: apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx + apps/web/src/fsd/shared/ui/atoms + apps/web/src/fsd/features/caption-style
   status: 검토대기
   근거: 소유자 직접 발주(게이트① 세션 지시). 같은 대화에서 목업으로 합의한 개편안이다. BUG-17과 파일이 겹치지 않아 병행 계획한다(BUG-15·FEAT-44 전례).
-- [ ] BUG-16: 여백 0%에서 9:16보다 세로로 긴 source는 화자 없는 프레임에서 렌더가 죽고, 화자 있는 프레임은 가로로 늘어난다
+- [x] BUG-16: 여백 0%에서 9:16보다 세로로 긴 source는 화자 없는 프레임에서 렌더가 죽고, 화자 있는 프레임은 가로로 늘어난다
   agent: backend-dev
   area: apps/backend/main.py (`create_vertical_video`) + apps/backend/video_framing.py (재사용 후보)
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-30, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수(경로 8은 트리거 불일치로 목록 정정, 프레임 합성은 인수에서 재실행). 메인 루프 소득 3건 반영 뒤)
   근거: 소유자 직접 발주(게이트① 세션 지시 — 「배포 뒤 바로 진행」). FEAT-58 검증 중 드러난 기존 결함으로, 폰 세로 녹화(1080×2340)에서 재현됐다. apps/backend만이라 backend-dev가 맡는다.
+  결과: 계획대로 4파일 — video_framing에 needs_centered_composition 추가·main.py 가드 교체·테스트 2파일 갱신. unittest 127/0(123→127)·py_compile 0. 상세 backend-dev/BUG-16
 - [x] FEAT-58: 영상 상하 동일 검은 여백 — 설정에서 한쪽 여백 0~25%를 고르면 업로드에 고정되고, 그 업로드의 모든 클립이 1080×1920 안 중앙 프레임 + 상하 검은 띠로 렌더된다
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/backend/main.py + apps/backend/video_framing.py + apps/web/src/fsd/shared/config + apps/web/src/fsd/entities/user + apps/web/src/fsd/entities/uploaded-file + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/app/dashboard + apps/web/src/inngest + apps/web/CLAUDE.md + apps/backend/CLAUDE.md
