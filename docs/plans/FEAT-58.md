@@ -3,15 +3,14 @@
 agent: main-loop
 
 작성일: 2026-09-30. 분류: STANDARD — 웹·DB·Modal 요청 계약·영상 합성이 함께 바뀐다.
-요구사항 원천: 이 대화에서 사용자가 확정한 여섯 결정과 문서 작성 지시.
-현재 승인 범위는 이 계획서 작성이며, 구현·마이그레이션 적용·배포는 포함하지 않는다.
-작업 상태는 `PROJECT_BOARD.md`에서 관리한다. 이 문서 작성으로 보드 상태를 전이하지 않는다.
+요구사항 원천: `TASK_BACKLOG.md` FEAT-58(2026-09-30 소유자와의 대화에서 확정한 결정). REQ-FRAMING-009(업로드 폼 라벨)는
+같은 날 계획 검증 중 소유자가 추가로 정했다(`docs/agents/main-loop/FEAT-58.md` 라운드 1).
+작업 상태는 `PROJECT_BOARD.md`에서 관리한다. 구현·마이그레이션 적용·배포는 게이트②(`구현승인`) 뒤이며, DB 적용과 배포는 그와 별도로 소유자 승인을 받는다.
 
 ## 현재 동작
 
-아래는 **Observed**다. 조사 기준은 `dev`, HEAD `701c17d4c0e5262031fbc466c5455c867b77da6d`다.
-작성 전 `git status --short`는 `?? nul` 한 줄이었다. 해당 사용자 소유 파일은 변경하지 않는다.
-저장소 안과 상위 경로에서 적용할 `AGENTS.md`는 발견되지 않았다.
+아래는 **Observed**다. 코드 조사 기준은 `dev` `701c17d`다(이후 커밋 `0c3f4b9`·`e94a642`는 보드·백로그·계획서만 바꿨다).
+루트의 추적되지 않는 `nul`은 사용자 소유 파일이라 변경하지 않는다.
 
 | 영역 | 코드 근거와 현재 동작 |
 | --- | --- |
@@ -20,6 +19,7 @@ agent: main-loop
 | 저장과 인증 | `apps/web/src/fsd/features/settings/api/index.ts:43`의 `const authResult = await requireAuth();`는 자막 저장의 사용자 인증을 강제한다. `:61`의 `updateUserDefaultCaptionStyle`과 `:65`의 `revalidatePath("/dashboard/settings")`로 저장한다. `apps/web/src/fsd/shared/api/auth-guard.ts:22`는 인증 실패에 `failure("Unauthorized")`를 반환한다. |
 | 사용자 기본값 | `packages/db/prisma/schema.prisma:63-64`의 `defaultCaptionStyleEnglish  Json?`·`defaultCaptionStyleKorean   Json?`가 언어별 기본값이다. `apps/web/src/fsd/entities/user/api/index.ts:167-174`의 조회도 이 두 필드를 선택한다. |
 | 업로드 시 고정 | `apps/web/src/fsd/features/upload/api/index.ts:243`의 `const defaults = await getUserDefaultCaptionStyle(authResult.data.userId);`와 `:258`의 `captionStyle: captionStyleSnapshot`이 `prepareUpload`에서 초안 생성 전에 기본값을 읽어 고정한다. 파일 전송 완료 시점에 읽는 구조가 아니다. |
+| 업로드 폼 라벨 | `apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx:299`의 `<p className="mt-1.5 text-sm font-medium">Video style:</p>` 옆에 `:302`의 `{captionStyleLabel(`가 업로드 언어 쪽 자막 프리셋 라벨만 그린다. 값은 `apps/web/src/app/dashboard/page.tsx:42`의 `getUserDefaultCaptionStyle(session.user.id),`가 읽고 `apps/web/src/fsd/pages/dashboard/ui/index.tsx:131`의 `defaultCaptionStyles={defaultCaptionStyles}`를 거쳐 내려온다. 여백 값은 이 경로에 없다. |
 | 업로드 저장 | `apps/web/src/fsd/entities/uploaded-file/api/index.ts:105`의 `createUploadDraft`가 `:115`의 `db.uploadedFile.create`로 저장한다. `packages/db/prisma/schema.prisma:105`의 `captionStyle          Json?`가 업로드별 스냅샷이다. |
 | 작업 컨텍스트 | `apps/web/src/fsd/entities/uploaded-file/api/index.ts:504`의 `findCurrentProcessingAttemptContext`는 업로드와 현재 attempt를 조회한다. `:517`의 `captionStyle: true`를 읽고 사용자 관계에서는 `:520`의 `credits: true`만 읽는다. |
 | 자동·검토 후 생성 | `apps/web/src/inngest/functions.ts:373`의 `mode: shouldRenderSelectedMoments ? "render" : "auto"`와 `:376`의 `caption_style: requestCaptionStyle(`는 두 생성 경로가 같은 요청 본문을 사용함을 보여 준다. 분석 요청 본문은 별도 `:811`의 `body: JSON.stringify({`에서 조립한다. |
@@ -35,7 +35,7 @@ agent: main-loop
 
 ## 문제
 
-사용자는 현재 영상이 채우는 9:16 출력 안에 동일한 높이의 검은 상하 여백을 선택하려 한다. 현재 설정·저장·요청·렌더 경로에는 그 값이 없어 지원되지 않는다. 백로그에 이 요구를 담은 `FEAT-58` 항목은 아직 없으므로, 아래 요구사항은 사용자 대화가 직접 원천이며 공식 파이프라인 편입 때 그 원천을 백로그에 연결해야 한다.
+사용자는 현재 영상이 채우는 9:16 출력 안에 동일한 높이의 검은 상하 여백을 선택하려 한다. 현재 설정·저장·요청·렌더 경로에는 그 값이 없어 지원되지 않는다. 요구의 원천은 `TASK_BACKLOG.md` FEAT-58이고, 아래 여덟은 그 대화의 결정, 아홉째는 계획 검증 중 소유자 결정이다.
 
 ### 확정 요구사항 — Contracted
 
@@ -47,6 +47,7 @@ agent: main-loop
 - REQ-FRAMING-006: WHEN 여백 값이 달라진다, THEN 시스템은 자막의 기존 상단·중앙·하단 위치를 전체 9:16 화면 기준으로 유지해야 한다.
 - REQ-FRAMING-007: WHERE 여백 값이 0이거나 기존 업로드·이전 클라이언트·캐시된 컨텍스트에 값이 없다, 시스템은 0%로 해석하고 기존 영상 생성 동작을 유지해야 한다.
 - REQ-FRAMING-008: IF 설정 저장 입력이 0~25 범위의 정수가 아니거나 인증이 실패한다, THEN 시스템은 사용자 기본값을 변경하지 않고 실패를 알려야 한다. IF 저장 I/O가 실패한다, THEN 시스템은 저장 성공을 표시하지 않아야 한다.
+- REQ-FRAMING-009: WHEN 사용자가 대시보드 업로드 폼을 연다, THEN `Video style:` 라벨은 저장된 여백이 0보다 클 때 자막 프리셋 라벨 뒤에 ` · <N>% top & bottom`을 덧붙여야 한다(예: `Default · 10% top & bottom`). 여백이 0이면 지금 라벨과 한 글자도 다르지 않아야 한다.
 
 ### 불변식과 구현 제약
 
@@ -57,7 +58,7 @@ agent: main-loop
 - CON-FRAMING-001: 이번 작업은 여백·중앙 프레이밍·그 저장/전달만 다룬다. 자막 계약·글꼴·번역·큐 타이밍·화자 점수 선택·크레딧·attempt/cancel 규칙·클립별 편집은 바꾸지 않는다.
 - CON-FRAMING-002: 웹 공통 모듈은 클라이언트 안전한 `shared/config`, DB 함수는 `entities/user` 서버 공개 표면을 사용한다. 새 의존성·이미지 자산·마이그레이션 외 기존 데이터 삭제는 추가하지 않는다.
 - CON-FRAMING-003: 새 Python 계산 모듈은 stdlib만 import하고 `add_local_python_source`에도 등록한다. HTTP의 잘못된 새 값은 거부하고, 오래된 내부 작업의 누락 값은 0으로 해석한다.
-- CON-FRAMING-004: 현재 작업은 문서만 작성한다. 구현 단계 진입은 사용자 구현 지시와 파이프라인의 필요한 상태 연결 후이며, 운영 DB 적용·유료 GPU 실행·배포 증거를 문서 검증 결과로 대체하지 않는다.
+- CON-FRAMING-004: 코드 변경은 게이트②(`구현승인`) 뒤다. 운영 DB 적용·유료 GPU 실행·배포는 각각 별도 소유자 승인을 받으며, 그 증거를 문서 검증 결과로 대체하지 않는다.
 
 ### 계산 예와 상태 전이
 
@@ -71,24 +72,27 @@ agent: main-loop
 
 - EX-FRAMING-001A: Given 사용자 기본값이 10이고 업로드 A의 초안이 생성되었다. When 사용자가 기본값을 25로 저장한 뒤 A를 검토 후 생성하거나 재시도하고 새 업로드 B를 만든다. Then A는 10, B는 25로 생성된다. 기존 업로드 C는 마이그레이션 기본값 0을 유지한다. 이는 REQ-FRAMING-003·REQ-FRAMING-004·REQ-FRAMING-007과 INV-FRAMING-003을 구체화한다.
 
-슬라이더 조작은 로컬 편집이고 저장 버튼이 DB 변경 경계다. 저장 중 여백 조작·저장·초기화·언어 토글을 비활성화한다. 실패하면 편집값을 유지해 재시도할 수 있고 성공 토스트는 내보내지 않는다. 새로 페이지를 열면 서버 저장값을 읽는다. 서로 다른 탭에서 저장하면 DB에 마지막으로 완료된 저장이 다음 업로드의 기본값이며, 이미 생성된 초안은 바뀌지 않는다. 저장과 업로드 준비가 동시에 실행되면 초안은 기본값 조회 시점에 커밋된 값 하나를 복사한다. 분석 단계는 픽셀을 생성하지 않으며 검토 뒤 `render`가 업로드 스냅샷을 사용한다.
+슬라이더 조작은 로컬 편집이고 저장 버튼이 DB 변경 경계다. 저장 중에는 기존 `isSaving`을 공유해 여백 슬라이더·Save framing·Reset framing을 비활성화한다. 자막 편집 언어 토글은 지금처럼 활성으로 둔다(여백은 두 언어 공통이라 토글과 무관하고, 토글 동작 변경은 CON-FRAMING-001 밖이다). 실패하면 편집값을 유지해 재시도할 수 있고 성공 토스트는 내보내지 않는다. 새로 페이지를 열면 서버 저장값을 읽는다. 서로 다른 탭에서 저장하면 DB에 마지막으로 완료된 저장이 다음 업로드의 기본값이며, 이미 생성된 초안은 바뀌지 않는다. 저장과 업로드 준비가 동시에 실행되면 초안은 기본값 조회 시점에 커밋된 값 하나를 복사한다. 분석 단계는 픽셀을 생성하지 않으며 검토 뒤 `render`가 업로드 스냅샷을 사용한다.
 
 ## 고칠 파일
 
-아래는 **Proposed** 구현 허용 집합이다. 현재 턴에서 실제로 쓰는 파일은 이 계획서 하나다. 새 경로는 `(신규)`로 구분한다. 이 집합 밖의 변경이 필요하면 계획을 갱신해 범위를 명확히 한 뒤 진행한다.
+아래는 **Proposed** 구현 허용 집합이다. 새 경로는 `(신규)`로 구분한다. 이 집합 밖의 변경이 필요하면 계획을 갱신해 범위를 명확히 한 뒤 진행한다.
 
 | 파일 | 변경 | 담당 경계 |
 | --- | --- | --- |
 | `packages/db/prisma/schema.prisma` | User의 공통 기본값, UploadedFile의 고정값 정수 필드 추가 | main-loop |
 | `packages/db/prisma/migrations/20260930000000_video_padding_percent/migration.sql` `(신규)` | 두 컬럼에 NOT NULL·DEFAULT 0·0~25 CHECK 추가 | main-loop |
 | `packages/db/generated/prisma/` | `prisma generate`가 두 새 필드 때문에 변경한 추적 파일만 반영. 엔진·무관한 포맷 변동 제외 | main-loop |
-| `apps/web/src/fsd/shared/config/video-framing.ts` `(신규)` | 비율 범위·엄격 입력 검사·기존 데이터 해석·픽셀 계산 | web |
-| `apps/web/src/fsd/shared/config/video-framing.test.mjs` `(신규)` | 타입·경계·전체 비율 픽셀 계약 | web |
+| `apps/web/src/fsd/shared/config/video-framing.ts` `(신규)` | 비율 범위·엄격 입력 검사·기존 데이터 해석·픽셀 계산·업로드 라벨 요약 | web |
+| `apps/web/src/fsd/shared/config/video-framing.test.mjs` `(신규)` | 타입·경계·전체 비율 픽셀 계약·라벨 요약 골든 | web |
 | `apps/web/src/fsd/entities/user/api/index.ts` | 여백 기본값 조회·갱신 함수 추가 | web |
 | `apps/web/src/fsd/entities/user/server.ts` | 두 서버 함수 공개 | web |
 | `apps/web/src/fsd/features/settings/api/index.ts` | 인증·입력 검증·별도 여백 저장 액션 | web |
 | `apps/web/src/app/dashboard/settings/page.tsx` | 저장된 공통 값을 조회해 props 전달 | web |
 | `apps/web/src/fsd/pages/settings/ui/index.tsx` | 언어 토글 밖에 Framing 입력·저장·초기화 추가, 낡은 예고 문구 교체 | web |
+| `apps/web/src/app/dashboard/page.tsx` | 여백 기본값을 함께 읽어 `DashboardView`에 전달(REQ-FRAMING-009) | web |
+| `apps/web/src/fsd/pages/dashboard/ui/index.tsx` | 여백 prop을 받아 `UploadPodcast`에 전달 | web |
+| `apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx` | `Video style:` 라벨에 여백 요약 덧붙임 | web |
 | `apps/web/src/fsd/features/upload/api/index.ts` | `prepareUpload`에서 공통 기본값을 읽어 초안에 고정 | web |
 | `apps/web/src/fsd/entities/uploaded-file/api/index.ts` | 초안 입력에 필수 스냅샷 필드 추가, 처리 컨텍스트 select에 포함 | web |
 | `apps/web/src/inngest/video-framing-request.ts` `(신규)` | 업로드 스냅샷 → Modal 요청 키 변환 | web |
@@ -98,10 +102,16 @@ agent: main-loop
 | `apps/backend/test_video_framing.py` `(신규)` | stdlib unittest로 경계·대칭·크롭·원본 비율 계산 검증 | backend |
 | `apps/backend/test_video_framing_wiring.py` `(신규)` | main.py AST로 spawn/remote→worker→clip→렌더 전달과 0 분기 검증 | backend |
 | `apps/backend/main.py` | HTTP 입력·인자 배선·Modal 모듈 등록·양수 여백의 중앙 합성 추가 | backend |
+| `apps/web/CLAUDE.md` | 테스트 수 줄과 테스트 표 두 행(신규 테스트 파일 둘) | main-loop |
+| `apps/backend/CLAUDE.md` | Stage 3 `Vertical Video`에 여백 분기·순수 모듈·배선 테스트 | main-loop |
 
-기존 `test_modal_image_sources.py`는 수정하지 않고 새 모듈 등록 누락을 검출하는 방어선으로 사용한다. 자막 편집기·자막 JSON 스키마·업로드 폼의 클라이언트 요청 스키마·콜백 데이터·이벤트 이름·`asd/`·`requirements.txt`는 변경 대상이 아니다. 운영 기록은 실제 구현과 검증이 진행될 때 담당 범위에 맞춰 작성하며 이번 문서 작성에서는 백로그·보드·보고서를 수정하지 않는다.
+기존 `test_modal_image_sources.py`는 수정하지 않고 새 모듈 등록 누락을 검출하는 방어선으로 사용한다(음성 시험으로 실측 — 등록을 빼면 실패한다). 자막 편집기·자막 JSON 스키마·업로드 폼의 클라이언트 요청 스키마·콜백 데이터·이벤트 이름·`asd/`·`requirements.txt`는 변경 대상이 아니다. 운영 기록은 파이프라인 규칙대로 남긴다 — 구현 보고는 `docs/agents/main-loop/FEAT-58.md`, 보드는 자기 행의 `결과`, 완료 시 백로그 항목 제거.
 
 ## 구현 스케치
+
+**규칙.** 기존 파일의 편집 지점은 전부 before/after로 싣는다. before는 현재 트리에서 **정확히 1회** 나오고, 생략 부호를 쓰지 않는다.
+저장소(HEAD blob)는 전부 LF다. 작업 트리의 `main.py`·`inngest/functions.ts`·`entities/user/server.ts`는 `core.autocrlf=true` 체크아웃이라 CRLF로 보이므로, before 대조는 줄바꿈을 정규화해서 한다.
+신규 파일은 전문을 싣고, 파일 끝에 덧붙이는 추가는 before 없이 「파일 끝에 빈 줄 하나를 두고 덧붙인다」로 적는다.
 
 ### 데이터 흐름과 저장 계약
 
@@ -111,6 +121,7 @@ prepareUpload → getUserDefaultVideoPaddingPercent → UploadedFile.videoPaddin
 findCurrentProcessingAttemptContext → requestVideoFraming → video_padding_percent
 process_video(spawn / remote) → _do_process_video → process_clip → create_vertical_video
 1080×1920 검은 캔버스 + 중앙 영상 → 기존 전체 화면 ASS 자막 합성 → 기존 S3 업로드
+Dashboard page → getUserDefaultVideoPaddingPercent → DashboardView → UploadPodcast 라벨(표시 전용)
 ```
 
 스냅샷을 새 클립 JSON이나 언어별 자막 스타일에 중복하지 않는다. 새 업로드에만 적용되며 과거 업로드를 사용자 최신값으로 backfill하지 않는다.
@@ -155,7 +166,7 @@ ADD CONSTRAINT "UploadedFile_videoPaddingPercent_check"
 CHECK ("videoPaddingPercent" BETWEEN 0 AND 25);
 ```
 
-스키마 생성은 `npm run db:generate:client -w @repo/db`를 사용한다. 운영 적용 명령은 루트의 `npm run db:migrate`다. 이 문서 작성에서는 둘 다 실행하지 않는다. 생성물은 필드 타입과 scalar field enum이 두 모델에만 추가되는지 확인하고, 무관한 런타임·바이너리 변경이 섞이면 멈춘다.
+스키마 생성은 구현 중에 `npm run db:generate:client -w @repo/db`로 돌린다. 운영 적용(루트의 `npm run db:migrate`)은 별도 소유자 승인 뒤에만 돌린다(순서는 BLK-FRAMING-02). 생성물은 필드 타입과 scalar field enum이 두 모델에만 추가되는지 확인하고, 무관한 런타임·바이너리 변경이 섞이면 멈춘다.
 
 ### 웹 공통 계산 — 신규 video-framing.ts 전체
 
@@ -192,13 +203,18 @@ export function getVideoFrameLayout(value: unknown) {
     contentHeight: VIDEO_FRAME_SIZE.HEIGHT - 2 * paddingPx,
   };
 }
+
+export function videoFramingSummary(value: unknown): string | null {
+  const percent = resolveVideoPaddingPercent(value);
+  return percent === 0 ? null : `${percent}% top & bottom`;
+}
 ```
 
-설정 저장에는 `parse`를 쓰고, 오래된 작업 컨텍스트의 읽기에는 `resolve`를 쓴다. 입력 `"10"`·`true`·`null`·`undefined`·소수·NaN·Infinity·-1·26을 숫자로 강제 변환해 저장하지 않는다.
+설정 저장에는 `parse`를 쓰고, 오래된 작업 컨텍스트의 읽기에는 `resolve`를 쓴다. `videoFramingSummary`는 업로드 폼 라벨의 덧붙임 문구다(REQ-FRAMING-009) — 0이면 `null`이라 라벨이 지금과 같다. 입력 `"10"`·`true`·`null`·`undefined`·소수·NaN·Infinity·-1·26을 숫자로 강제 변환해 저장하지 않는다.
 
 ### 사용자 DB 접근과 저장 액션
 
-`entities/user/api/index.ts` 끝에 아래 두 함수를 추가하고 `server.ts`에서 재수출한다. 기존 자막 조회 함수를 늘려 무관한 소비자에게 필드를 전파하지 않는다.
+`entities/user/api/index.ts` 파일 끝에 빈 줄 하나를 두고 아래 두 함수를 덧붙이고, `server.ts`에서 재수출한다. 기존 자막 조회 함수를 늘려 무관한 소비자에게 필드를 전파하지 않는다.
 
 ```typescript
 export async function getUserDefaultVideoPaddingPercent(userId: string) {
@@ -219,7 +235,69 @@ export async function updateUserDefaultVideoPaddingPercent(
 }
 ```
 
-`features/settings/api/index.ts`에 추가할 액션 전체다. 기존 `requireAuth`·`ActionResult`·`failure`·`success`·`revalidatePath` 패턴과 새 parser/DB 함수를 사용한다.
+**`entities/user/server.ts` before:**
+
+```typescript
+  getUserDefaultCaptionStyle,
+  getUserPolarCustomerId,
+```
+
+**after:**
+
+```typescript
+  getUserDefaultCaptionStyle,
+  getUserDefaultVideoPaddingPercent,
+  getUserPolarCustomerId,
+```
+
+**같은 파일 before:**
+
+```typescript
+  updateUserDefaultCaptionStyle,
+  updateUserPolarCustomerId,
+```
+
+**after:**
+
+```typescript
+  updateUserDefaultCaptionStyle,
+  updateUserDefaultVideoPaddingPercent,
+  updateUserPolarCustomerId,
+```
+
+**`features/settings/api/index.ts` 임포트 before:**
+
+```typescript
+import {
+  updateUserDefaultCaptionStyle,
+  updateUserUploadDefaults,
+} from "~/fsd/entities/user/server";
+```
+
+**after:**
+
+```typescript
+import {
+  updateUserDefaultCaptionStyle,
+  updateUserDefaultVideoPaddingPercent,
+  updateUserUploadDefaults,
+} from "~/fsd/entities/user/server";
+```
+
+**같은 파일 before:**
+
+```typescript
+import { captionStyleSchema } from "~/fsd/shared/config/caption-style-schema";
+```
+
+**after:**
+
+```typescript
+import { captionStyleSchema } from "~/fsd/shared/config/caption-style-schema";
+import { parseVideoPaddingPercent } from "~/fsd/shared/config/video-framing";
+```
+
+같은 파일 끝에 빈 줄 하나를 두고 덧붙일 액션 전체다. 기존 `requireAuth`·`ActionResult`·`failure`·`success`·`revalidatePath` 패턴과 새 parser/DB 함수를 사용한다. 기존 두 액션과 달리 DB 오류를 잡아 실패로 돌려준다(REQ-FRAMING-008 「저장 성공을 표시하지 않는다」).
 
 ```typescript
 export async function saveDefaultVideoPaddingPercent(
@@ -261,7 +339,43 @@ auth 결과의 userId만 사용하며 클라이언트에 userId 입력을 받지
   const framing = await getUserDefaultVideoPaddingPercent(session.user.id);
 ```
 
-`SettingsView`에 `initialVideoPaddingPercent={framing.defaultVideoPaddingPercent}`를 추가한다. 해당 값은 DB CHECK가 보장하는 정수다.
+**page.tsx 임포트 before:**
+
+```typescript
+import {
+  getUserDefaultCaptionStyle,
+  getUserUploadDefaults,
+} from "~/fsd/entities/user/server";
+```
+
+**after:**
+
+```typescript
+import {
+  getUserDefaultCaptionStyle,
+  getUserDefaultVideoPaddingPercent,
+  getUserUploadDefaults,
+} from "~/fsd/entities/user/server";
+```
+
+**page.tsx JSX before:**
+
+```tsx
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
+    />
+```
+
+**after:**
+
+```tsx
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
+      initialVideoPaddingPercent={framing.defaultVideoPaddingPercent}
+    />
+```
+
+해당 값은 DB NOT NULL·CHECK가 보장하는 0~25 정수다.
 
 **SettingsView props before — 현재 :43-46:**
 
@@ -282,9 +396,72 @@ interface SettingsViewProps {
 }
 ```
 
-props 구조 분해에도 필드를 넣고 `useState(initialVideoPaddingPercent)`로 공통 편집 상태를 만든다. 기존 `isSaving`을 공유하고 저장 중 여백 슬라이더와 언어 토글까지 disable한다. 아래 신규 handler를 추가한다.
+**구조 분해 before:**
 
 ```typescript
+  initialDefaults,
+  initialCaptionStyles,
+}: SettingsViewProps) {
+```
+
+**after:**
+
+```typescript
+  initialDefaults,
+  initialCaptionStyles,
+  initialVideoPaddingPercent,
+}: SettingsViewProps) {
+```
+
+**임포트 before:**
+
+```typescript
+import {
+  saveDefaultCaptionStyle,
+  saveUploadDefaults,
+} from "~/fsd/features/settings/api";
+```
+
+**after:**
+
+```typescript
+import {
+  saveDefaultCaptionStyle,
+  saveDefaultVideoPaddingPercent,
+  saveUploadDefaults,
+} from "~/fsd/features/settings/api";
+```
+
+**같은 파일 before:**
+
+```typescript
+  type CaptionStyleDefaults,
+} from "~/fsd/shared/config/constants";
+```
+
+**after:**
+
+```typescript
+  type CaptionStyleDefaults,
+} from "~/fsd/shared/config/constants";
+import {
+  getVideoFrameLayout,
+  VIDEO_PADDING_PERCENT_RANGE,
+} from "~/fsd/shared/config/video-framing";
+```
+
+공통 편집 상태와 저장 handler는 기존 `isSaving` 선언 바로 뒤에 둔다. 기존 `isSaving`을 공유하므로 저장 중에는 여백 슬라이더·Save framing·Reset framing이 비활성이다. 자막 편집 언어 토글은 건드리지 않는다.
+
+**handler before:**
+
+```typescript
+  const [isSaving, startSaving] = useTransition();
+```
+
+**after:**
+
+```typescript
+  const [isSaving, startSaving] = useTransition();
   const [videoPaddingPercent, setVideoPaddingPercent] = useState(
     initialVideoPaddingPercent,
   );
@@ -307,41 +484,54 @@ props 구조 분해에도 필드를 넣고 `useState(initialVideoPaddingPercent)
     });
 ```
 
-`Video style`의 `CardContent` 첫 부분, 영어/한국어 편집 버튼 **앞**에 Framing 그룹을 넣는다. 마크업은 같은 카드의 `space-y-4`, `text-sm font-medium`, 설명·Button 패턴을 따른다. native range를 사용해 새 UI 패키지를 설치하지 않는다.
+Framing 그룹은 `Video style` 카드 `CardContent`의 **첫 자식**으로, 기존 `Captions` 소제목 묶음 **앞**에 둔다 — 카드 설명(「업로드 시점에 고정된다」)이 두 부분을 함께 덮는다. 마크업은 같은 카드의 `space-y-4`, `text-sm font-medium`, 설명·Button 패턴을 따른다. native range를 사용해 새 UI 패키지를 설치하지 않는다.
+
+**Framing 삽입 before:**
 
 ```tsx
-<div className="space-y-3">
-  <p className="text-sm font-medium">Framing</p>
-  <label htmlFor="video-padding-percent" className="text-sm">
-    Top and bottom black space
-  </label>
-  <input
-    id="video-padding-percent"
-    type="range"
-    min={VIDEO_PADDING_PERCENT_RANGE.MIN}
-    max={VIDEO_PADDING_PERCENT_RANGE.MAX}
-    step={VIDEO_PADDING_PERCENT_RANGE.STEP}
-    value={videoPaddingPercent}
-    disabled={isSaving}
-    aria-describedby="video-padding-help"
-    aria-valuetext={`${videoPaddingPercent}% on each side`}
-    onChange={(event) => setVideoPaddingPercent(Number(event.currentTarget.value))}
-    className="w-full"
-  />
-  <p id="video-padding-help" className="text-muted-foreground text-xs">
-    {videoPaddingPercent}% on each side ({framing.paddingPx}px).
-    Video area: {framing.width} × {framing.contentHeight}px.
-    Captions keep their current position. Applies to both languages.
-  </p>
-  <div className="flex gap-x-2">
-    <Button onClick={() => persistVideoPadding(videoPaddingPercent)} disabled={isSaving}>
-      Save framing
-    </Button>
-    <Button variant="outline" onClick={() => persistVideoPadding(0)} disabled={isSaving}>
-      Reset framing
-    </Button>
-  </div>
-</div>
+        <CardContent className="space-y-4">
+          <div>
+            <p className="text-sm font-medium">Captions</p>
+```
+
+**after:**
+
+```tsx
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Framing</p>
+            <label htmlFor="video-padding-percent" className="text-sm">
+              Top and bottom black space
+            </label>
+            <input
+              id="video-padding-percent"
+              type="range"
+              min={VIDEO_PADDING_PERCENT_RANGE.MIN}
+              max={VIDEO_PADDING_PERCENT_RANGE.MAX}
+              step={VIDEO_PADDING_PERCENT_RANGE.STEP}
+              value={videoPaddingPercent}
+              disabled={isSaving}
+              aria-describedby="video-padding-help"
+              aria-valuetext={`${videoPaddingPercent}% on each side`}
+              onChange={(event) => setVideoPaddingPercent(Number(event.currentTarget.value))}
+              className="w-full"
+            />
+            <p id="video-padding-help" className="text-muted-foreground text-xs">
+              {videoPaddingPercent}% on each side ({framing.paddingPx}px).
+              Video area: {framing.width} × {framing.contentHeight}px.
+              Captions keep their current position. Applies to both languages.
+            </p>
+            <div className="flex gap-x-2">
+              <Button onClick={() => persistVideoPadding(videoPaddingPercent)} disabled={isSaving}>
+                Save framing
+              </Button>
+              <Button variant="outline" onClick={() => persistVideoPadding(0)} disabled={isSaving}>
+                Reset framing
+              </Button>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium">Captions</p>
 ```
 
 미저장 값은 설명과 슬라이더에만 반영된다. Reset framing은 0을 저장하고, 성공했을 때만 로컬 값도 0으로 바꾼다.
@@ -391,7 +581,37 @@ props 구조 분해에도 필드를 넣고 `useState(initialVideoPaddingPercent)
       videoPaddingPercent: framingDefaults.defaultVideoPaddingPercent,
 ```
 
-`entities/uploaded-file/api/index.ts`의 `createUploadDraft` 입력 타입에 `videoPaddingPercent: number;`를 필수로 추가한다. 기존 `const { captionStyle, ...rest } = data;`와 `...rest` 저장이 이 scalar를 그대로 보존한다. 생성자 호출은 현재 `prepareUpload` 하나이며 구현 검증에서 전수 검색을 다시 한다. 업로드 폼 요청에 이 필드를 받지 않으므로 악의적인 클라이언트가 서버 기본값을 덮어쓸 수 없다.
+**upload api 임포트 before:**
+
+```typescript
+import { getUserDefaultCaptionStyle } from "~/fsd/entities/user/server";
+```
+
+**after:**
+
+```typescript
+import {
+  getUserDefaultCaptionStyle,
+  getUserDefaultVideoPaddingPercent,
+} from "~/fsd/entities/user/server";
+```
+
+**`entities/uploaded-file/api/index.ts` `createUploadDraft` 입력 타입 before:**
+
+```typescript
+  captionStyle?: Prisma.JsonValue; // User.defaultCaptionStyleEnglish·Korean 중 업로드 언어 쪽의 스냅샷 (없으면 null 컬럼)
+}) {
+```
+
+**after:**
+
+```typescript
+  captionStyle?: Prisma.JsonValue; // User.defaultCaptionStyleEnglish·Korean 중 업로드 언어 쪽의 스냅샷 (없으면 null 컬럼)
+  videoPaddingPercent: number; // User.defaultVideoPaddingPercent의 업로드 시점 스냅샷 (FEAT-58)
+}) {
+```
+
+필수 필드라 호출부가 빠뜨리면 `tsc`가 잡는다. 기존 `const { captionStyle, ...rest } = data;`와 `...rest` 저장이 이 scalar를 그대로 보존한다. 생성자 호출은 현재 `prepareUpload` 하나이며 구현 검증에서 전수 검색을 다시 한다. 업로드 폼 요청에 이 필드를 받지 않으므로 악의적인 클라이언트가 서버 기본값을 덮어쓸 수 없다.
 
 **컨텍스트 select before — 현재 :517:**
 
@@ -429,7 +649,214 @@ export function requestVideoFraming(snapshot: unknown) {
             transcript_s3_key: transcriptS3Key ?? undefined,
 ```
 
+**functions.ts 임포트 before:**
+
+```typescript
+import { requestCaptionStyle } from "./caption-style-request";
+```
+
+**after:**
+
+```typescript
+import { requestCaptionStyle } from "./caption-style-request";
+import { requestVideoFraming } from "./video-framing-request";
+```
+
 Inngest가 이전 step의 컨텍스트를 재생해 새 필드가 `undefined`여도 요청은 명시적인 0을 보낸다. `analyzeVideo` 본문은 변경하지 않는다. 분석 직후 기본값이 바뀌어도 이후 생성은 업로드 컨텍스트에서 다시 스냅샷을 읽는다. 별도 이벤트 스키마·dispatch payload·callback에 여백을 복제하지 않는다.
+
+### 업로드 폼 라벨 — REQ-FRAMING-009
+
+대시보드가 이미 자막 기본값을 읽어 업로드 폼까지 내려보내는 길(`app/dashboard/page.tsx` → `DashboardView` → `UploadPodcast`)에 여백 값 하나를 더 싣는다. 라벨의 덧붙임 문구는 `videoFramingSummary`가 정하고, 0이면 `null`이라 라벨이 지금과 같다.
+
+**`app/dashboard/page.tsx` 임포트 before:**
+
+```typescript
+import {
+  getUserDefaultCaptionStyle,
+  getUserUploadDefaults,
+} from "~/fsd/entities/user/server";
+```
+
+**after:**
+
+```typescript
+import {
+  getUserDefaultCaptionStyle,
+  getUserDefaultVideoPaddingPercent,
+  getUserUploadDefaults,
+} from "~/fsd/entities/user/server";
+```
+
+**같은 파일 before:**
+
+```typescript
+    userDefaults,
+    captionStyles,
+  ] = await Promise.all([
+```
+
+**after:**
+
+```typescript
+    userDefaults,
+    captionStyles,
+    framing,
+  ] = await Promise.all([
+```
+
+**같은 파일 before:**
+
+```typescript
+    getUserDefaultCaptionStyle(session.user.id),
+  ]);
+```
+
+**after:**
+
+```typescript
+    getUserDefaultCaptionStyle(session.user.id),
+    getUserDefaultVideoPaddingPercent(session.user.id),
+  ]);
+```
+
+**같은 파일 before:**
+
+```tsx
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
+    />
+```
+
+**after:**
+
+```tsx
+        korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
+      }}
+      defaultVideoPaddingPercent={framing.defaultVideoPaddingPercent}
+    />
+```
+
+**`pages/dashboard/ui/index.tsx` before:**
+
+```typescript
+  defaultCaptionStyles: CaptionStyleDefaults;
+}
+```
+
+**after:**
+
+```typescript
+  defaultCaptionStyles: CaptionStyleDefaults;
+  defaultVideoPaddingPercent: number;
+}
+```
+
+**같은 파일 before:**
+
+```typescript
+  defaultCaptionStyles,
+}: DashboardViewProps) {
+```
+
+**after:**
+
+```typescript
+  defaultCaptionStyles,
+  defaultVideoPaddingPercent,
+}: DashboardViewProps) {
+```
+
+**같은 파일 before:**
+
+```tsx
+            defaultCaptionStyles={defaultCaptionStyles}
+          />
+```
+
+**after:**
+
+```tsx
+            defaultCaptionStyles={defaultCaptionStyles}
+            defaultVideoPaddingPercent={defaultVideoPaddingPercent}
+          />
+```
+
+**`pages/dashboard/ui/_component/UploadPodcast.tsx` 임포트 before:**
+
+```typescript
+  type CaptionStyleDefaults,
+} from "~/fsd/shared/config/constants";
+```
+
+**after:**
+
+```typescript
+  type CaptionStyleDefaults,
+} from "~/fsd/shared/config/constants";
+import { videoFramingSummary } from "~/fsd/shared/config/video-framing";
+```
+
+**같은 파일 before:**
+
+```typescript
+  defaultCaptionStyles: CaptionStyleDefaults;
+}
+```
+
+**after:**
+
+```typescript
+  defaultCaptionStyles: CaptionStyleDefaults;
+  defaultVideoPaddingPercent: number;
+}
+```
+
+**같은 파일 before:**
+
+```typescript
+  defaultCaptionStyles,
+}: UploadPodcastProps) {
+```
+
+**after:**
+
+```typescript
+  defaultCaptionStyles,
+  defaultVideoPaddingPercent,
+}: UploadPodcastProps) {
+```
+
+**같은 파일 before:**
+
+```typescript
+  const [clipCount, setClipCount] = useState<number>(defaults.clipCount);
+```
+
+**after:**
+
+```typescript
+  const [clipCount, setClipCount] = useState<number>(defaults.clipCount);
+  const framingSummary = videoFramingSummary(defaultVideoPaddingPercent);
+```
+
+**같은 파일 라벨 before:**
+
+```tsx
+                          : defaultCaptionStyles.english,
+                      )}
+                    </span>
+```
+
+**after:**
+
+```tsx
+                          : defaultCaptionStyles.english,
+                      )}
+                      {framingSummary && ` · ${framingSummary}`}
+                    </span>
+```
+
+업로드 폼의 언어 드롭다운을 바꾸면 자막 라벨은 언어를 따라 바뀌고, 여백 덧붙임은 두 언어 공통이라 그대로다. 여백 값은 업로드 폼의 요청으로 보내지 않는다 — 스냅샷은 여전히 서버의 `prepareUpload`가 읽는다(이 라벨은 표시 전용이다).
 
 ### 백엔드 순수 계산 — 신규 video_framing.py 전체
 
@@ -497,7 +924,36 @@ from pydantic import BaseModel
 from pydantic import BaseModel, StrictInt
 ```
 
-`video_framing`의 parser·resolver·frame_layout·cover_crop_geometry·contain_size를 import한다. `add_local_python_source`의 기존 인자 목록 끝에 `"video_framing"`을 추가한다.
+**모듈 임포트 before:**
+
+```python
+from caption_style_source import select_caption_style
+```
+
+**after:**
+
+```python
+from caption_style_source import select_caption_style
+from video_framing import (
+    parse_video_padding_percent,
+    resolve_video_padding_percent,
+    frame_layout,
+    cover_crop_geometry,
+    contain_size,
+)
+```
+
+**Modal 이미지 등록 before:**
+
+```python
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation"))
+```
+
+**after:**
+
+```python
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation", "video_framing"))
+```
 
 **ProcessVideoRequest before — 현재 :74:**
 
@@ -512,22 +968,40 @@ from pydantic import BaseModel, StrictInt
     video_padding_percent: StrictInt = 0
 ```
 
-StrictInt는 문자열·bool·float의 자동 정수 변환을 막는다. 누락만 0이며 명시적인 `null`은 HTTP 유효 값이 아니다. 인증 성공 뒤, 기존 `clipper = AiPodcastClipper()` 전에 아래 범위 검사를 추가한다.
+StrictInt는 문자열·bool·float의 자동 정수 변환을 막는다. 누락만 0이며 명시적인 `null`은 HTTP 유효 값이 아니다. 범위 검사는 인증 성공 뒤, 기존 `clipper = AiPodcastClipper()` 앞에 둔다.
+
+**범위 검사 before:**
 
 ```python
-    if parse_video_padding_percent(request.video_padding_percent) is None:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Invalid video padding percent",
+            headers={"WWW-Authenticate": "Bearer"},
         )
+
+    clipper = AiPodcastClipper()
 ```
+
+**after:**
+
+```python
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # 범위(0~25)는 video_framing 한 곳이 정한다. 타입은 StrictInt가 이미 걸렀다.
+    # 상태 코드는 리터럴 422다 — starlette의 HTTP_422_UNPROCESSABLE_ENTITY는 사용 중단 경고를 내고,
+    # 새 이름 HTTP_422_UNPROCESSABLE_CONTENT는 캐시된 이미지 레이어의 옛 starlette에 없을 수 있다.
+    if parse_video_padding_percent(request.video_padding_percent) is None:
+        raise HTTPException(status_code=422, detail="Invalid video padding percent")
+
+    clipper = AiPodcastClipper()
+```
+
+`fastapi[standard]`는 `requirements.txt`에 버전 고정이 없다. 로컬 venv(Starlette 1.3.1)에서 옛 상수 이름은 `StarletteDeprecationWarning`을 낸다(계획 검증 실측).
 
 새 인자는 기존 위치 인자를 바꾸지 않고 끝에 붙인다.
 
 | 경계 | before의 실제 anchor | after의 변경 |
 | --- | --- | --- |
 | `_do_process_video` 시그니처 | main.py :998의 `request_caption_style: dict | None = None):` | 끝을 `request_caption_style: dict | None = None, video_padding_percent: int = 0):`로 변경 |
-| `process_clip` 시그니처 | :758의 `caption_style: dict | None = None):` | 끝을 `caption_style: dict | None = None, video_padding_percent: int = 0):`로 변경 |
+| `process_clip` 시그니처 | :758의 `output_prefix: str | None = None, caption_style: dict | None = None):` (앞의 `output_prefix` 조각까지 써야 유일하다 — `caption_style: dict | None = None):`만으로는 자막 함수 둘까지 3곳이 걸린다) | 끝을 `output_prefix: str | None = None, caption_style: dict | None = None, video_padding_percent: int = 0):`로 변경 |
 | `.spawn` 호출 | :1254의 `request_caption_style=request.caption_style,` | 다음 줄에 `video_padding_percent=request.video_padding_percent,` 추가 |
 | `.remote` 호출 | :1270의 같은 keyword | 다음 줄에 같은 여백 keyword 추가 |
 | worker의 클립 호출 | :1166의 `caption_style=select_caption_style(request_caption_style),` | 다음 줄에 `video_padding_percent=resolve_video_padding_percent(video_padding_percent),` 추가 |
@@ -569,7 +1043,16 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
     padding_px, content_height = frame_layout(padding_percent)
 ```
 
-기존 writer 생성 뒤, **기존 `if max_score_face:` 모드 선택(:253) 앞**에 아래 블록을 삽입한다. 0%는 이 블록에 들어가지 않아 기존 :253-288의 crop/resize 계산과 write를 그대로 사용한다. 최종 writer 크기는 계속 1080×1920이다.
+기존 writer 생성 뒤, **기존 `if max_score_face:` 모드 선택(:253) 앞**에 아래 블록을 삽입한다. 0%는 이 블록에 들어가지 않아 기존 :253-288의 crop/resize 계산과 write를 그대로 사용한다. 최종 writer 크기는 계속 1080×1920이다. 삽입점 앞의 공백만 있는 줄(`:252`)은 건드리지 않는다.
+
+**삽입 before:**
+
+```python
+        if max_score_face:
+            mode = "crop"
+```
+
+**after (끝의 두 줄은 before 그대로):**
 
 ```python
         if padding_percent > 0:
@@ -611,9 +1094,46 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
             canvas[padding_px:padding_px + content_height, :] = content
             vout.write(canvas)
             continue
+
+        if max_score_face:
+            mode = "crop"
 ```
 
 0%의 기존 세로 source 처리 문제를 이 변경과 함께 고치지 않는다. 양수 여백 경로는 cover/contain으로 배열 크기를 보장한다. 자막은 기존 함수가 `video_out_vertical.mp4` 전체에 나중에 그리므로 자막 위치 계산에 `padding_px`를 더하거나 빼지 않는다. 자막 글자가 여백에 걸려도 잘라내지 않는다.
+
+### 작업 문서 — 두 CLAUDE.md
+
+**`apps/web/CLAUDE.md` before:**
+
+```markdown
+현재 25개 파일, 40 suite, 170개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+```
+
+**after — suite·테스트 수는 구현 뒤 `npm test -w apps/web` 출력의 `# suites`·`# tests` 실측값을 쓴다:**
+
+```markdown
+현재 27개 파일, <실측 suite> suite, <실측 tests>개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+```
+
+같은 파일 테스트 표에서 `` | `inngest/modal-contract.test.mjs` | ``로 시작하는 줄(1회) 바로 앞에 아래 두 행을 넣는다.
+
+```markdown
+| `shared/config/video-framing.test.mjs` | 여백 비율의 입력 검사·폴백·픽셀 계산·업로드 라벨 요약(FEAT-58). `parseVideoPaddingPercent`는 정수 0~25만 받고 문자열·bool·소수·`NaN`을 **강제 변환 없이** 거부한다 — 설정 저장 액션의 유일한 검증이다. 픽셀식 `floor((1920·p+50)/100)`은 백엔드 `video_framing.py` `frame_layout`과 **같은 골든값**(1%→19, 3%→58, 10%→192, 25%→480)으로 묶인 계약이라, 한쪽만 바꾸면 설정 화면이 보여 주는 px와 실렌더가 어긋난다. `Math.round`로 바꾸는 변이는 1920×정수%에 .5 동점이 없어 등가라 테스트하지 않는다. `videoFramingSummary`의 골든 문구(`10% top & bottom`, 0이면 `null`)는 업로드 폼 라벨에 그대로 나가는 카피다 |
+| `inngest/video-framing-request.test.mjs` | Modal 요청의 `video_padding_percent` 키와 값 — auto·render 공통(FEAT-58). **스냅샷이 `undefined`여도 키를 생략하지 않고 0을 보낸다**(배포 전에 시작된 Inngest run이 옛 컨텍스트를 재생하는 경우). 백엔드 `ProcessVideoRequest.video_padding_percent: StrictInt = 0`과 묶인 wire 계약이라, 키 이름이 어긋나면 pydantic이 모르는 키를 버려 **조용히 0으로 렌더된다** |
+```
+
+**`apps/backend/CLAUDE.md` before:**
+
+```markdown
+   - 1080x1920 output with GPU-accelerated encoding
+```
+
+**after:**
+
+```markdown
+   - 1080x1920 output with GPU-accelerated encoding
+   - Optional top/bottom black framing (FEAT-58): `ProcessVideoRequest.video_padding_percent` (`StrictInt`, 0–25, default 0; out-of-range → 422) is the upload-time snapshot, forwarded `spawn`/`remote` → `_do_process_video` → `process_clip` → `create_vertical_video`. **0 takes the original crop/resize path unchanged.** A positive value draws equal black bands of `frame_layout(p)` px (`(1920·p+50)//100`) and re-composes the frame into the center `1080×(1920−2·pad)` viewport — cover crop following the speaker's x, or contain over a blurred background when no speaker scores. Subtitles are burned afterwards over the full 9:16 canvas, so their positions do not move. The geometry lives in the stdlib-pure `video_framing.py` (`test_video_framing.py`); `test_video_framing_wiring.py` checks the forwarding with `ast` because `main.py` cannot be imported
+```
 
 ### Phase DATA: 영속 계약 확장
 
@@ -649,17 +1169,17 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
 - satisfies: REQ-FRAMING-004, REQ-FRAMING-005, REQ-FRAMING-006, REQ-FRAMING-007
 - preserves: INV-FRAMING-001, INV-FRAMING-002, INV-FRAMING-004
 - governed-by: CON-FRAMING-001, CON-FRAMING-003, CON-FRAMING-004
-- 구현 위치: `video_framing.py`, `main.py`, 두 신규 unittest 파일.
+- 구현 위치: `video_framing.py`, `main.py`, 두 신규 unittest 파일, `apps/backend/CLAUDE.md`.
 - 검증 위치: V-GEOMETRY·V-WIRING·V-RENDER와 기존 `test_modal_image_sources.py`.
 - 정지 조건: 0% 기존 분기가 달라짐, 화자 점수·자막 좌표 변경 필요, 새 의존성 필요, 실렌더가 중앙 크기를 보장하지 못함.
 
 ### Phase WEB: 설정 저장과 업로드 스냅샷
 
 - status: Proposed
-- satisfies: REQ-FRAMING-001, REQ-FRAMING-002, REQ-FRAMING-003, REQ-FRAMING-004, REQ-FRAMING-007, REQ-FRAMING-008
+- satisfies: REQ-FRAMING-001, REQ-FRAMING-002, REQ-FRAMING-003, REQ-FRAMING-004, REQ-FRAMING-007, REQ-FRAMING-008, REQ-FRAMING-009
 - preserves: INV-FRAMING-001, INV-FRAMING-003
 - governed-by: CON-FRAMING-001, CON-FRAMING-002, CON-FRAMING-004
-- verifies: REQ-FRAMING-001, REQ-FRAMING-002, REQ-FRAMING-003, REQ-FRAMING-004, REQ-FRAMING-007, REQ-FRAMING-008
+- verifies: REQ-FRAMING-001, REQ-FRAMING-002, REQ-FRAMING-003, REQ-FRAMING-004, REQ-FRAMING-007, REQ-FRAMING-008, REQ-FRAMING-009
 - 진입: 생성된 DB 필드 타입 사용 가능. 배포 진입은 DB 적용과 새 백엔드의 양수 요청 실렌더 증거 이후.
 - 종료: UI·action·초안·컨텍스트·실제 요청 모두 연결, 재진입·두 언어·설정 변경 후 기존 업로드 유지 확인.
 
@@ -677,9 +1197,18 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
 - satisfies: REQ-FRAMING-003, REQ-FRAMING-004, REQ-FRAMING-007
 - preserves: INV-FRAMING-003
 - governed-by: CON-FRAMING-001, CON-FRAMING-002, CON-FRAMING-004
-- 구현 위치: upload API, uploaded-file API, request helper/test, functions.ts.
+- 구현 위치: upload API, uploaded-file API, request helper/test, functions.ts, `apps/web/CLAUDE.md`(테스트 수·표 두 행 — 두 신규 테스트가 모두 들어온 뒤 한 번에).
 - 검증 위치: V-PAYLOAD·V-SNAPSHOT·V-STATIC.
 - 정지 조건: 크레딧/attempt 규칙 변경 필요, 다른 생성자 발견으로 허용 파일 확장 필요, 처리 시 사용자 최신 기본값을 읽는 경로가 생김.
+
+#### TASK-WEB-03: 업로드 폼 라벨
+
+- satisfies: REQ-FRAMING-009
+- preserves: INV-FRAMING-003
+- governed-by: CON-FRAMING-001, CON-FRAMING-002, CON-FRAMING-004
+- 구현 위치: `app/dashboard/page.tsx`, `pages/dashboard/ui/index.tsx`, `UploadPodcast.tsx`, `shared/config/video-framing.ts`의 `videoFramingSummary`.
+- 검증 위치: V-INPUT(라벨 요약 골든)·V-LABEL·V-STATIC.
+- 정지 조건: 여백 0에서 라벨이 한 글자라도 달라짐, 업로드 폼 요청에 여백을 싣는 경로가 생김.
 
 ## 테스트
 
@@ -687,10 +1216,10 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
 
 ### V-INPUT — 새 설정 입력과 픽셀 계산
 
-- verifies: REQ-FRAMING-001, REQ-FRAMING-007, REQ-FRAMING-008
+- verifies: REQ-FRAMING-001, REQ-FRAMING-007, REQ-FRAMING-008, REQ-FRAMING-009
 - 위치: `shared/config/video-framing.test.mjs`; `npm test -w apps/web`.
-- 덮는 것: 모든 정수 0~25 승인, -1/26/0.5/문자열/bool/null/undefined/NaN/Infinity 거부, `resolve`의 0 폴백, 예시 픽셀 값, 26개 값 모두 상하 대칭·합계 1920·중앙 짝수·최소 960 확인.
-- 돌연변이: 범위 상한 변경·소수 허용·0을 falsy 처리·percent를 총합 비율로 해석·반올림 대신 floor를 쓰는 변이는 실패해야 한다.
+- 덮는 것: 모든 정수 0~25 승인, -1/26/0.5/문자열/bool/null/undefined/NaN/Infinity 거부, `resolve`의 0 폴백, 예시 픽셀 값, 26개 값 모두 상하 대칭·합계 1920·중앙 짝수·최소 960 확인. `videoFramingSummary`는 0·무효 값 → `null`, 10 → `"10% top & bottom"`, 25 → `"25% top & bottom"` 골든.
+- 돌연변이: 범위 상한 변경·소수 허용·0을 falsy 처리·percent를 총합 비율로 해석·반올림 대신 floor를 쓰는 변이는 실패해야 한다. `Math.round`로 바꾸는 변이는 등가다(1920×정수%에 .5 동점 없음).
 
 ### V-PAYLOAD — 실제 직렬화할 요청 키
 
@@ -719,14 +1248,20 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
 - verifies: REQ-FRAMING-002, REQ-FRAMING-003, REQ-FRAMING-007, REQ-FRAMING-008
 - 위치: 제안한 두 scalar 정의·migration·생성물. 구현 단계 생성 명령 뒤 구조 대조 및 적용 승인된 검증 DB에서 SQL 확인.
 - 덮는 것: 두 모델의 타입 Int/default 0, SQL NOT NULL/DEFAULT 0/CHECK 0~25와 같은 필드 이름, 기존 행 0, 구 INSERT 필드 생략 시 0, -1/26 UPDATE 거부. 특정 사용자의 기본값 변경이 UploadedFile의 기존 행을 바꾸지 않음.
-- 한계: 코드 생성 성공·문서의 SQL 문법 확인은 운영 DB 적용 증거가 아니다. 운영 적용과 검증 DB 실행은 현재 미실행.
+- 한계: 코드 생성 성공은 운영 DB 적용 증거가 아니다. 계획 검증에서 이 SQL을 PGlite(Postgres 17)에 리허설해 실행·CHECK 거부·기존 행 0을 확인했지만(`docs/agents/main-loop/FEAT-58.md`), 운영 적용은 별도 승인 뒤다.
 
 ### V-STATIC — 저장소 게이트
 
 - verifies: REQ-FRAMING-001, REQ-FRAMING-002, REQ-FRAMING-003, REQ-FRAMING-004
-- 명령: `npm run check -w apps/web`, `npm test -w apps/web`, `npm run build -w apps/web`, `python -m unittest discover -s apps/backend -p "test_*.py"`, `python -m py_compile apps/backend/main.py apps/backend/video_framing.py`.
-- 덮는 것: FSD boundary/self-test·lint·타입·생성 필드 사용·공개 API 임포트·빌드, 기존 테스트 회귀, Python 문법. unittest 출력의 실제 테스트 수가 0이면 통과로 보지 않는다.
-- 한계: 이 게이트만으로 UI 조작·인증 저장·DB I/O·최종 프레임을 증명하지 않는다.
+- 명령: `npm run check -w apps/web`, `npm test -w apps/web`, `npm run build -w apps/web`, `npm run check -w apps/admin`, `npm test -w apps/admin`, `python -m unittest discover -s apps/backend -p "test_*.py"`, `python -m py_compile apps/backend/main.py apps/backend/video_framing.py`.
+- 덮는 것: FSD boundary/self-test·lint·타입·생성 필드 사용·빌드, 기존 테스트 회귀, Python 문법. **admin 두 줄이 있는 이유**: 생성 클라이언트(`packages/db/generated/prisma`)를 admin도 `@repo/db`로 쓴다 — 두 모델 타입에 필수 필드가 생기므로 admin 타입·테스트도 다시 돈다. unittest 출력의 실제 테스트 수가 0이면 통과로 보지 않는다.
+- 한계: 이 게이트만으로 UI 조작·인증 저장·DB I/O·최종 프레임을 증명하지 않는다. **임포트 경로도 이 게이트가 다 지키지 않는다** — `verify:fsd`는 `src/fsd` 레이어 규칙만 보므로 `src/app` 라우트가 `entities/user/api`를 직접 임포트하거나 `"use client"` 화면이 `entities/user/server`를 임포트해도 통과한다(계획 검증 음성 시험 N8·N10에서 실측). 인수 때 diff의 임포트 줄을 이 스케치와 바이트 대조한다.
+
+### V-LABEL — 업로드 폼 라벨
+
+- verifies: REQ-FRAMING-009
+- 방법: `renderToStaticMarkup`으로 `UploadPodcast`를 여백 0·10에서 렌더해 라벨 텍스트를 본다 — 0은 지금 라벨과 같고, 10은 `<프리셋 라벨> · 10% top & bottom`이다. 배포 뒤에는 설정에서 여백을 저장하고 대시보드 업로드 폼의 라벨과 언어 드롭다운 전환(자막 라벨만 바뀌고 덧붙임은 그대로)을 실물로 본다.
+- 못 덮는 범위: 실물 확인은 배포 확인 원장 줄로 남긴다.
 
 ### V-SETTINGS — 배포 후 UI·인증·저장
 
@@ -738,7 +1273,7 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
 
 - verifies: REQ-FRAMING-003, REQ-FRAMING-004, REQ-FRAMING-007
 - 방법: EX-FRAMING-001A를 자동/Review first·영어/한국어에서 재현한다. User=25 이후에도 UploadedFile A=10, 신규 B=25, 기존 C=0인지 DB 읽기와 실제 Modal 요청/최종 결과를 연결해 확인한다. 초안 생성 후 S3 전송 중 설정 변경도 스냅샷을 바꾸지 않아야 한다.
-- 못 덮는 범위: S3·Inngest·DB·GPU를 사용하는 외부 통합이다. 보유한 승인된 실물/검증 환경에서 실행하며 현재 문서 작성에서는 실행하지 않는다. 취소·중복 enqueue·재시도 소유권은 기존 메커니즘을 유지하며 새 값이 immutable임을 함께 확인한다.
+- 못 덮는 범위: S3·Inngest·DB·GPU를 사용하는 외부 통합이다. 배포 뒤 승인된 실물 환경에서 실행한다. 취소·중복 enqueue·재시도 소유권은 기존 메커니즘을 유지하며 새 값이 immutable임을 함께 확인한다.
 
 ### V-RENDER — 최종 MP4와 자막
 
@@ -749,26 +1284,14 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
 
 ### 계획서 검증과 실행 증거
 
-| 상태 | 검사 | 증거/한계 |
-| --- | --- | --- |
-| Executed | 파일·시그니처·데이터 경로 read-only 조사 | 위 HEAD에서 현재 동작 인용과 manifest/scripts 확인. 제품·테스트·DB 변경 없음. |
-| Executed | SDD traceability strict 검사 | `python C:/Users/hamso/.codex/skills/write-sdd-spec/scripts/validate_sdd_traceability.py --strict docs/plans/FEAT-58.md` → PASS. REQ 8·INV 4·CON 4·EX 1·TASK 4·BLK 2, Phase/Task 및 verifier coverage 각각 8/8. 의미·구현 결과를 보증하지 않는다. |
-| Executed | before 조각·문서 형태 대조 | `%TEMP%/apch-feat58-sdd-audit/audit.py` → PASS. before 13개를 현재 소스와 줄바꿈 정규화 후 내용·들여쓰기 대조, 필수 최상위 절 7개와 상대 링크 존재 확인. 다른 운영 계획 카탈로그 검사를 대체하지 않는다. |
-| Executed | 순수 Python 스케치 실행 | 같은 audit.py가 문서의 순수 모듈을 그대로 추출/실행 → PASS. 26개 비율·9개 무효 입력·125개 source/viewport 조합·각 조합의 화자 x 네 경우 확인. scratch는 `%TEMP%/apch-feat58-sdd-audit`이며 제품 파일을 수정하지 않았다. |
-| Executed | 순수 TypeScript 스케치 타입·실행 | `node.exe node_modules/typescript/bin/tsc --project C:/Users/hamso/AppData/Local/Temp/apch-feat58-sdd-audit/tsconfig.json` → EXIT 0. 실제 web tsconfig를 extends하고 scratch alias만 매핑해 신규 순수 모듈 둘을 검사. `node.exe node_modules/tsx/dist/cli.mjs --tsconfig C:/Users/hamso/AppData/Local/Temp/apch-feat58-sdd-audit/tsconfig.json C:/Users/hamso/AppData/Local/Temp/apch-feat58-sdd-audit/verify.mjs` → PASS. Python과 26개 픽셀 값 일치·10개 무효 값·JSON 요청 키/값 확인. UI/action/DB/worker 전체 조립은 아직 아니다. |
-| Executed | 제안한 HTTP 타입의 로컬 검증 | `C:/Users/hamso/venvs/apch-backend/Scripts/python.exe C:/Users/hamso/AppData/Local/Temp/apch-feat58-sdd-audit/model_audit.py` → PASS. 설치된 Pydantic 2.13.4로 현재 요청 모델에 제안 필드를 추가한 scratch만 실행: 누락=0, 정수 26개 승인, bool/string/float/null 다섯 타입 거부. 범위 검사와 실제 HTTP/Modal 배선은 별도다. |
-| Planned | 저장소 계획 검증 카탈로그 | 경로 1·2·3·4·5·7·8·9가 해당한다. 외부 응답 의미 해석을 새로 만들지 않으므로 경로 6은 해당 없음. 경로 2 프로젝트 조립·5 돌연변이·8 실제 렌더·9 DB rehearsal 등은 아직 미실행이며 공식 클린 패스를 주장하지 않는다. |
-| Not executed | 제품 테스트·DB 적용·Modal 실행·배포 | 현재 권한과 변경 범위는 문서 작성이다. 이 표 위의 V-* 전체는 구현 후 실행할 계획이다. |
+계획서 검증(카탈로그 필수 경로·라운드·소득)은 이 문서가 아니라 `docs/agents/main-loop/FEAT-58.md`에 남는다. 이 계획서를 처음 쓴 세션의 자기 점검(SDD 추적성 스크립트·스크래치 하니스)은 그 기록의 라운드로 대체됐다. 통과 판정은 보드의 `검증:` 줄만이 진실이다.
 
 ## 범위 밖 의존
 
 ### BLK-FRAMING-01: 정식 파이프라인 연결
 
-- classification: downstream — 문서 작성은 막지 않으며 구현 진입 전에 적용된다.
-- evidence: 현재 TASK_BACKLOG.md/PROJECT_BOARD.md에 FEAT-58이 없다. 루트 런북과 plans template는 백로그 원천·보드 항목·사용자 게이트를 사용한다.
-- affects: 모든 구현 Phase와 CON-FRAMING-004.
-- required resolution: 사용자 대화 요구를 백로그 source로 연결하고 교차 워크스페이스 담당 main-loop로 보드/계획 경로를 연결한다. 문서 작성 승인을 구현 승인으로 기록하지 않는다.
-- stop condition: 연결·담당·구현 지시가 명확하지 않은 채 파이프라인 구현 상태로 전이하려는 경우.
+- classification: resolved — 2026-09-30 게이트① 커밋 `0c3f4b9`로 `TASK_BACKLOG.md`·`PROJECT_BOARD.md`에 FEAT-58이 올라갔고(담당 main-loop), `e94a642`에서 `검토대기`가 됐다.
+- 남은 조건: 코드 변경은 게이트②(`구현승인`) 뒤다. 계획서 검증 통과를 구현 승인으로, 구현 승인을 DB 적용·배포 승인으로 읽지 않는다(CON-FRAMING-004).
 
 ### BLK-FRAMING-02: 배포 순서와 실물 증거
 
@@ -780,7 +1303,7 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
 
 단일 web-dev 또는 backend-dev에게 이 전체 계획을 넘기면 `packages/db`와 상대 워크스페이스는 그 담당의 쓰기 범위 밖이다. 여기서는 `agent: main-loop`로 교차 경계를 명시하고 위 Task별로 범위를 나눈다. 담당별 계획이 필요해지면 새 작업 ID를 별도로 연결하며 이 기능 요구사항을 중복 정의하지 않는다.
 
-**현재 문서 단계:** 요구사항·저장 계약·기하 계산·구현 위치는 명확하다. **구현 준비 판정: CONDITIONALLY READY** — 위 downstream 조건과 공식 계획 검증을 구현/운영 노출 경계에서 충족해야 한다. strict 구조 검사만 통과해도 정식 구현승인 또는 배포승인으로 해석하지 않는다. 현재 미해결 제품 요구 결정은 없다.
+**검증 상태:** 이 계획서는 스스로 준비 완료를 판정하지 않는다 — 보드 행의 `검증:` 줄(클린 패스)과 게이트②가 판정한다. 미해결 제품 결정은 없다(업로드 폼 라벨은 2026-09-30 소유자가 REQ-FRAMING-009로 정했다).
 
 **복구:** 양수 스냅샷이 아직 만들어지지 않았다면 구 웹으로 복귀할 수 있고 추가 컬럼은 0 기본값으로 남겨 둔다. 양수 스냅샷이 생긴 뒤에는 구 웹 worker나 구 백엔드로 일괄 복귀하면 기존 업로드의 값을 잃으므로 하지 않는다. 문제 시 새 업로드/여백 편집을 제한하는 수정 배포를 하고, 기존 스냅샷 전달·해석 경로는 유지한 채 원인을 수정한다. 운영 데이터/새 컬럼을 삭제하거나 기존 스냅샷을 0으로 덮어쓰는 복구는 이 범위 밖이다.
 
