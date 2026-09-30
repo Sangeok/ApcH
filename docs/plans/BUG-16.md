@@ -40,7 +40,7 @@ agent: backend-dev
 
 「이 (여백, source 치수)에서 cover/contain 중앙 합성 경로를 써야 하는가, 아니면 기존 0% crop/resize 경로를 그대로 두는가」가 이 버그의 유일한 판단이고, 이는 `(padding_percent, source_width, source_height)`만의 순수 함수다. 이미 stdlib 전용인 `video_framing.py`(`backend-purity-contract` 준수)에 `needs_centered_composition`으로 둔다. `FRAME_WIDTH`(1080)·`FRAME_HEIGHT`(1920)는 같은 파일 `:3-4`에 이미 있다.
 
-**신규 함수 — `video_framing.py` 끝에 빈 줄 하나를 두고 덧붙인다:**
+**신규 함수 — `video_framing.py` 끝에 빈 줄 둘을 두고 덧붙인다(파일의 기존 함수 사이 간격과 같다):**
 
 ```python
 def needs_centered_composition(padding_percent, source_width, source_height):
@@ -133,7 +133,20 @@ from video_framing import (
         )
 ```
 
-`ast.unparse`는 이 호출을 정확히 위 문자열로 되돌린다(인자 사이 `, `, 여분 공백 없음). 모듈 docstring(`:5-6`)의 괄호 설명 `(0%는 기존 경로 그대로)`도 「가로·9:16 이하 0%는 기존 경로 그대로」로 손본다.
+`ast.unparse`는 이 호출을 정확히 위 문자열로 되돌린다(인자 사이 `, `, 여분 공백 없음 — 계획 검증에서 조립본으로 실측).
+
+**docstring before — `test_video_framing_wiring.py:6`:**
+
+```python
+양수 여백 분기가 기존 모드 선택보다 앞에서 continue로 끝나는지(0%는 기존 경로 그대로).
+```
+
+**after:**
+
+```python
+중앙 합성 분기(양수 여백, 또는 9:16보다 세로로 긴 source의 0% — BUG-16)가 기존 모드 선택보다
+앞에서 continue로 끝나는지(그 밖의 0%는 기존 경로 그대로).
+```
 
 ## 테스트
 
@@ -148,7 +161,25 @@ from video_framing import (
 
 ## 범위 밖 의존
 
-없음. 변경은 전부 `apps/backend`(main.py + video_framing.py + 두 테스트) 안이고, `asd/`·`requirements.txt`·`packages/db`·웹·Modal 등록에 닿지 않는다. 실렌더·배포 검증이 필요하지만 그것은 담당 범위를 넘는 의존이 아니라 러너가 못 덮는 범위이며(위 「테스트」), 게이트②·배포는 소유자가 연다.
+코드 변경은 전부 `apps/backend`(main.py + video_framing.py + 두 테스트) 안이고, `asd/`·`requirements.txt`·`packages/db`·웹·Modal 등록에 닿지 않는다. 실렌더·배포 검증은 담당 범위를 넘는 의존이 아니라 러너가 못 덮는 범위다(위 「테스트」). 게이트②·배포는 소유자가 연다.
+
+**이 변경 뒤 거짓이 되는 문서 둘** — backend-dev의 쓰기 범위 밖이라 **인수 때 메인 루프가 고친다**:
+
+- `apps/backend/CLAUDE.md:137`(FEAT-58 줄) — 그 줄 안에서 아래 before를 after로 바꾼다.
+
+  before:
+
+  ```markdown
+  **0 takes the original crop/resize path unchanged.**
+  ```
+
+  after:
+
+  ```markdown
+  **0 takes the original crop/resize path unchanged — except for a source taller than 9:16, where that path breaks (a crash without a speaker, a horizontal stretch with one); such a source takes the centered path with no bands (BUG-16, `needs_centered_composition`).**
+  ```
+
+- `docs/release-checks.md` FEAT-58 절의 「여백 0% 렌더가 배포 전과 같은가」 줄의 `0%는 새 분기에 들어가지 않는다` → `0%는 가로·정사각·9:16 이하 source에서 새 분기에 들어가지 않는다(9:16보다 세로로 긴 source는 BUG-16이 중앙 합성으로 보낸다)`. BUG-16 자신의 확인 줄(세로 폰 녹화의 실렌더)은 원장 등재 규칙대로 인수 시 새 절로 올린다.
 
 ## 대안
 
