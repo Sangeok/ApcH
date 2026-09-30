@@ -187,3 +187,62 @@ Minimal Replay Anchor (historical — 적용 가능성 증거일 뿐, 완전성�
 - Final-pass basis: 위 blob; no-edit: yes (plan-verifier)
 - Historical status: clean pass achieved (2026-09-30)
 ```
+
+## 게이트② (2026-09-30)
+
+소유자가 「구현 승인」으로 열었다(`247d81f`). 범위는 코드뿐이다 — DB 적용·`modal deploy`·웹 배포는 각각 별도 승인.
+
+## 구현 보고 (2026-09-30)
+
+**적용 방식**: 검증 때 쓴 조립 스크립트를 실제 트리로 돌렸다 — 계획서의 before/after 44쌍·양수 분기 삽입·시그니처/kw 표·
+신규 4·파일 끝 덧붙임 2·CLAUDE.md 표 두 행을 **계획서에서 직접 뽑아** 적용했다(손으로 친 코드 0). 작업 트리의 CRLF
+파일(`main.py`·`functions.ts`·`server.ts`)은 줄바꿈을 보존했다 — diff는 추가 201 / 삭제 10줄뿐이다.
+그 뒤 계획서가 명세로만 준 것 둘을 채웠다.
+
+- **신규 테스트 넷**: 「테스트」 절의 V-INPUT·V-PAYLOAD·V-GEOMETRY·V-WIRING 명세대로 저장소 문체로 썼다.
+  V-GEOMETRY에는 cover/contain **정확값** 단언을 넣었다 — 불변식(≥/≤ target)만으로는 clamp에 가려 스케일 변이가
+  산다(독립 패스가 실측한 것과 같다)
+- **`apps/web/CLAUDE.md` 수 줄**: 실측 `27개 파일, 45 suite, 182개 테스트`
+
+`prisma generate`(`npm run db:generate:client -w @repo/db`)는 계획서가 예측한 **7개 파일**만 바꿨다 — 두 모델의
+ScalarFieldEnum·타입·inline schema/hash·runtimeDataModel·패키지 이름 해시. 엔진·바이너리 변동 0.
+
+**계획과 다른 점: 없다.**
+
+### 게이트 (실제 트리, 메인 루프 실행)
+
+| 명령 | 결과 |
+| --- | --- |
+| `npm run check -w apps/web` | EXIT 0 — FSD 셀프테스트 11/0 · `FSD boundary check passed.` · 경고·오류 0 · tsc |
+| `npm test -w apps/web` | **182 / 45 / 0** (170/40 → +12/+5, 파일 25 → 27) |
+| `npm run build -w apps/web` | EXIT 0 (`/dashboard/settings` 4.8 kB) — 3000번은 다른 프로젝트(EpikosEditor) dev 서버라 `.next` 충돌 없음을 먼저 확인 |
+| `npm run check -w apps/admin` | EXIT 0 · 경고 0 |
+| `npm test -w apps/admin` | **334 / 75 / 0** (불변) |
+| `python -m unittest discover -s apps/backend -p "test_*.py"` | **Ran 123 tests OK** (109 + 신규 14) |
+| `python -m py_compile apps/backend/main.py apps/backend/video_framing.py` | EXIT 0 |
+
+**커밋할 테스트의 돌연변이 재확인**(스크래치 사본): Python 13종 중 12 사멸(생존 bankers round = 등가), 웹 18종 중
+16 사멸(생존 `Math.round`·helper `?? 0` = 등가). 검증 라운드와 같은 결과다.
+
+## 인수 (2026-09-30) — 조건 다섯, 메인 루프 직접 재현
+
+1. **변경 파일 ↔ 「고칠 파일」**: `git status` 전수를 계획서 표(24행)와 기계 대조 — 초과 0 · 누락 0. 생성물은
+   7파일, 마이그레이션은 `20260930000000_video_padding_percent/migration.sql` 하나
+2. **diff ↔ 「구현 스케치」**: 변경 30파일 중 **24개가 계획서에서 기계 조립한 독립 사본(`wt2`)과 바이트 동일**. 다른 6개는
+   전부 예상된 차이다 — 신규 Python 테스트 둘(명세 기반으로 새로 씀), `apps/web/CLAUDE.md`(수치 채움), 생성물
+   `edge.js`·`index.js`·`wasm.js`(생성 위치의 절대 경로 두 줄만). 스케치 대상 파일이 전부 조립본과 같으므로
+   V-STATIC 「한계」가 요구한 **임포트 줄 바이트 대조**도 닫혔다
+3. **검증 명령 재실행**: 위 게이트 표 — 전부 이 인수에서 직접 돌렸다
+4. **백로그 제거**: 이 커밋에서 `TASK_BACKLOG.md`의 FEAT-58 항목을 지운다 — 커밋 후 `grep -c FEAT-58 TASK_BACKLOG.md` = 0으로 확인
+5. **상세 기록 실재**: 이 파일
+
+### 범위 밖 의존 → 백로그 후보 (소유자 판단 대기)
+
+계획서 「범위 밖 의존」의 BLK-FRAMING-01은 해소됐고, BLK-FRAMING-02는 배포 순서라 백로그 항목이 아니다.
+**검증 중 새로 드러난 결함 하나**를 후보로 올린다 — 등재는 소유자 승인 뒤다.
+
+- **여백 0%에서 화자 없는 세로형 source가 렌더 중 죽는다**(기존 결함, FEAT-58이 만든 것 아님). `create_vertical_video`의
+  `resize` 모드가 원본을 가로 1080에 맞춰 늘린 뒤 1920 캔버스에 넣는데, 원본이 9:16보다 세로로 길면
+  (예: 400×2000 → 1080×5400) `ValueError: could not broadcast input array from shape (5400,1080,3) into shape (1740,1080,3)`.
+  HEAD 함수를 합성 프레임에 직접 돌려 재현했다(라운드 1 경로 8). 계획서가 이 결함을 알고 범위 밖으로 둔 그것이며,
+  양수 여백 경로(contain)는 같은 입력을 정상 합성한다

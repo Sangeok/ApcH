@@ -40,12 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-30
-- [ ] FEAT-58: 영상 상하 동일 검은 여백 — 설정에서 한쪽 여백 0~25%를 고르면 업로드에 고정되고, 그 업로드의 모든 클립이 1080×1920 안 중앙 프레임 + 상하 검은 띠로 렌더된다
+- [x] FEAT-58: 영상 상하 동일 검은 여백 — 설정에서 한쪽 여백 0~25%를 고르면 업로드에 고정되고, 그 업로드의 모든 클립이 1080×1920 안 중앙 프레임 + 상하 검은 띠로 렌더된다
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/backend/main.py + apps/backend/video_framing.py + apps/web/src/fsd/shared/config + apps/web/src/fsd/entities/user + apps/web/src/fsd/entities/uploaded-file + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/app/dashboard + apps/web/src/inngest + apps/web/CLAUDE.md + apps/backend/CLAUDE.md
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-09-30, 독립 무편집 1사이클 — 결함 0, 필수 8경로 전수. 메인 루프 라운드 소득 11건(구현 영향 7) 반영 뒤)
   근거: 소유자 직접 발주(게이트① 세션 지시). 계획서가 보드 행보다 먼저 별도 세션에서 쓰였다. db·backend·web이 배포 순서로 묶여 FEAT-54 전례대로 main-loop 하나가 맡는다.
+  결과: 계획대로 24행·초과 0(스케치 파일은 계획서 조립본과 바이트 동일). check·build EXIT0·web 182/45/0·admin 334/75/0·backend 123. **DB 미적용** — DB→백엔드→웹 각각 승인. 상세 main-loop/FEAT-58
 
 ## 2026-09-23
 - [x] FEAT-54: 캡션 기본값을 언어별로 — 한 번 커스터마이즈하면 영어·한국어가 같은 값을 쓴다

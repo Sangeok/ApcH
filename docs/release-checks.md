@@ -44,6 +44,21 @@
 
 ---
 
+## FEAT-58 — 영상 상하 동일 검은 여백 (db+web+backend, 구현 2026-09-30)
+
+원천: `docs/plans/FEAT-58.md`의 V-SETTINGS·V-LABEL·V-SNAPSHOT·V-RENDER(「못 덮는 범위」)와 BLK-FRAMING-02. **마이그레이션 미적용·백엔드/웹 미배포** — 인수 시점 기준 `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0** · `build` EXIT 0 · admin `check` EXIT 0 · `test` **334/75/0** · backend unittest **123 OK** · `py_compile` EXIT 0.
+**순서가 곧 안전장치다 — DB → 백엔드 → 웹.** 새 웹이 먼저 나가면 없는 컬럼을 `SELECT`해 설정·대시보드·업로드가 깨지고, 새 백엔드보다 먼저 나가면 구 백엔드가 `video_padding_percent`를 버려 설정과 결과가 어긋난다(BLK-FRAMING-02).
+**`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이거나 렌더 결과라 공개 HTTP 응답으로 판정되지 않는다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [ ] **마이그레이션이 프로덕션 Neon에 적용됐는가** — `migrate status`가 최신이고, `User.defaultVideoPaddingPercent`·`UploadedFile.videoPaddingPercent`가 `INTEGER NOT NULL DEFAULT 0`에 CHECK 0~25로 있으며 기존 행이 전부 0인지(인수 시 실측: User 7행·UploadedFile 37행, 새 컬럼 0개)
+- [ ] **여백 0% 렌더가 배포 전과 같은가**(회귀) — 백엔드 배포 뒤 첫 렌더에서 크롭·블러 배경·자막 위치가 이전 클립과 같은지. 0%는 새 분기에 들어가지 않는다(계획 검증에서 HEAD와 프레임 배열 바이트 동일을 합성 프레임으로 확인했지만, GPU 인코더·실제 화자 추적은 실물만 판정한다)
+- [ ] **양수 여백 렌더가 설정한 그대로 나오는가** — 10%로 한 번 렌더(크레딧): 1080×1920에 상하 **192px**씩 검은 띠, 가운데 1080×1536에 화자를 따라가는 크롭. 화자 없는 프레임은 가운데 영역 **안에서만** 블러 배경 + 원본 비율. 자막의 top/middle/bottom 위치가 0% 클립과 같은 화면 좌표인지(띠에 걸려도 잘리지 않음)
+- [ ] **설정 화면 Framing이 저장·재진입·초기화되는가** — `Video style` 카드 맨 위 Framing에서 슬라이더 0~25, 도움말 수치(10% → `192px`·`1080 × 1536px`), **Save framing** 뒤 새로고침해도 같은 값, **Reset framing** 뒤 0. 자막 저장·초기화가 여백을 건드리지 않는지
+- [ ] **업로드 폼 라벨에 여백이 붙는가** — 여백 0이면 `Video style: Default`가 이전과 같고, 10%면 `Default · 10% top & bottom`. 업로드 언어를 바꾸면 자막 라벨만 바뀌고 덧붙임은 그대로
+- [ ] **업로드가 그 시점의 여백을 고정하는가** — 10%로 업로드 A(Review first)를 만든 뒤 설정을 25%로 바꾸고 A를 생성하면 A는 10%로, 새 업로드 B는 25%로 나오는지(렌더 둘 — 크레딧)
+
+---
+
 ## FEAT-57 — `clip_review_caption_style_edited` 계측 이름 제거 (db+web 계약, 구현 2026-09-22)
 
 원천: `docs/plans/FEAT-57.md`의 「테스트 — 못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 게이트 **넷 다** 인수 시 메인 루프가 직접 재실행했다: `check -w apps/web` EXIT 0 경고 0 · `test -w apps/web` **170/40/0** · `check -w apps/admin` EXIT 0 경고 0 · `test -w apps/admin` **334/75/0** — 계획서가 못박은 숫자와 일치. 계약 이름 **31 → 30**(기계 계수).
