@@ -49,6 +49,7 @@ from video_framing import (
     frame_layout,
     cover_crop_geometry,
     contain_size,
+    needs_centered_composition,
 )
 from reference_translation import (
     should_translate_references,
@@ -260,8 +261,8 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
                 resize = (target_width, target_height),
             )
         
-        if padding_percent > 0:
-            source_height, source_width = img.shape[:2]
+        source_height, source_width = img.shape[:2]
+        if needs_centered_composition(padding_percent, source_width, source_height):
             if max_score_face:
                 resized_width, resized_height, crop_x, crop_y = cover_crop_geometry(
                     source_width, source_height, target_width, content_height,

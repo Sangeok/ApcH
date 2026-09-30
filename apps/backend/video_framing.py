@@ -43,3 +43,18 @@ def contain_size(source_width, source_height, width, height):
     resized_width = min(width, max(1, math.floor(source_width * scale + 0.5)))
     resized_height = min(height, max(1, math.floor(source_height * scale + 0.5)))
     return resized_width, resized_height
+
+
+def needs_centered_composition(padding_percent, source_width, source_height):
+    """cover/contain 중앙 합성 경로를 써야 하면 True.
+
+    양수 여백이면 항상 True다. 여백 0%에서는 source가 target(9:16)보다 세로로 길 때만
+    True다 — 기존 crop/resize 경로가 그때만 깨진다(화자 없음 → resize의 broadcast
+    ValueError, 화자 있음 → crop이 폭 < 1080을 내고 writer가 가로로 늘림). 가로·정사각·
+    정확히 9:16 이하인 source는 False라 기존 0% 경로가 바이트 그대로 유지된다.
+
+    padding_percent는 main.py에서 resolve된 0~25 정수다.
+    """
+    if padding_percent > 0:
+        return True
+    return source_height * FRAME_WIDTH > source_width * FRAME_HEIGHT

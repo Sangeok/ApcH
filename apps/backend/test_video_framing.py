@@ -12,6 +12,7 @@ from video_framing import (
     contain_size,
     cover_crop_geometry,
     frame_layout,
+    needs_centered_composition,
     parse_video_padding_percent,
     resolve_video_padding_percent,
 )
@@ -94,6 +95,36 @@ class DimensionGuardTest(unittest.TestCase):
                     cover_crop_geometry(*args)
                 with self.assertRaises(ValueError):
                     contain_size(*args)
+
+
+class NeedsCenteredCompositionTest(unittest.TestCase):
+    # 양수 여백이면 source 비율과 무관하게 항상 True — 가로 source로도 확인해
+    # 단락 평가가 빠져 가로가 False로 새는 변이를 잡는다.
+    def test_positive_padding_always_true(self):
+        for percent in (1, 10, 25):
+            for source in [(1920, 1080), (1080, 1920), (1000, 1000), (1080, 2340)]:
+                with self.subTest(percent=percent, source=source):
+                    self.assertTrue(needs_centered_composition(percent, *source))
+
+    # 여백 0%에서 가로·정사각·정확한 9:16·4K·경계는 기존 경로(False).
+    def test_zero_padding_non_tall_is_false(self):
+        for source in [(1920, 1080), (1000, 1000), (1080, 1920), (3840, 2160), (540, 960)]:
+            with self.subTest(source=source):
+                self.assertFalse(needs_centered_composition(0, *source))
+
+    # 여백 0%에서 9:16보다 세로로 긴 source만 합성 경로(True).
+    def test_zero_padding_tall_is_true(self):
+        for source in [(1080, 2340), (1080, 2400), (400, 2000)]:
+            with self.subTest(source=source):
+                self.assertTrue(needs_centered_composition(0, *source))
+
+    # 경계는 배타적: 정확한 9:16은 False, 1px 더 길면 True — >를 >=로 바꾸는
+    # 변이(정확한 9:16이 합성 경로로 새는 회귀)를 잡는다.
+    def test_boundary_is_exclusive(self):
+        self.assertFalse(needs_centered_composition(0, 1080, 1920))
+        self.assertFalse(needs_centered_composition(0, 540, 960))
+        self.assertTrue(needs_centered_composition(0, 1080, 1921))
+        self.assertTrue(needs_centered_composition(0, 540, 961))
 
 
 if __name__ == "__main__":

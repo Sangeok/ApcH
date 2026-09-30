@@ -3,7 +3,8 @@
 main.py는 import하지 않는다 — whisperx→torch 의존 때문에 맨 파이썬으로 돌지 않는다.
 대신 ast로 읽어 FEAT-58의 전달 경로가 끊기지 않았는지 본다: HTTP 필드 →
 spawn/remote → _do_process_video → process_clip → create_vertical_video, 그리고
-양수 여백 분기가 기존 모드 선택보다 앞에서 continue로 끝나는지(0%는 기존 경로 그대로).
+중앙 합성 분기(양수 여백, 또는 9:16보다 세로로 긴 source의 0% — BUG-16)가 기존 모드 선택보다
+앞에서 continue로 끝나는지(그 밖의 0%는 기존 경로 그대로).
 어느 keyword 하나가 빠져도 로컬 게이트는 통과하고 운영에서만 조용히 0으로 렌더된다.
 """
 
@@ -69,7 +70,9 @@ class VideoFramingWiringTest(unittest.TestCase):
             if isinstance(n, ast.For) and "flist" in ast.unparse(n.iter)
         )
         tests = [ast.unparse(s.test) if isinstance(s, ast.If) else None for s in frame_loop.body]
-        positive = tests.index("padding_percent > 0")
+        positive = tests.index(
+            "needs_centered_composition(padding_percent, source_width, source_height)"
+        )
         mode_selection = tests.index("max_score_face")
         self.assertLess(positive, mode_selection)
         self.assertIsInstance(frame_loop.body[positive].body[-1], ast.Continue)
