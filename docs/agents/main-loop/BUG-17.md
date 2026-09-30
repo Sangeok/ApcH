@@ -43,3 +43,31 @@ FEAT-59(업로드 옵션 개편)를 위해 프로덕션 a-pch.com/dashboard에�
   `duration=300.01`.
 
 메인 루프 라운드가 무소득이라 `plan-verifier` 독립 패스를 부른다.
+
+## 라운드 2 — 독립 패스 #1 (plan-verifier, 2026-10-01)
+
+브리핑은 계약 셋(항목ID·계획서 경로·경로 1·2·3·4·7·9 카탈로그 발췌)뿐. 검증자가 계약 준수를 스스로 확인했다.
+
+**1차 보고: 결함 0건, 단 경로 7 「실행하지 못한 경로」** — 검증자는 브라우저가 없다고 판단했다. `plan-verifier.md` 절차 2상
+실행 못 한 경로가 있는 보고는 무소득 보고가 아니다. BUG-09 전례(메인 루프도 실행할 수 없던 경로를 브리핑에서 뺀 것)와 달리
+이번 경로 7은 **이 머신에서 실행 가능**했다 — 메인 루프 라운드 1이 실행했고, Bash로 쓸 수 있는 헤드리스 Chrome·Edge가 설치돼 있다.
+그래서 목록을 줄이지 않고, 같은 검증자에게 **환경 사실(브라우저 경로)만** 알려 경로 7을 마저 실행하고 보고 전체를 다시 내게 했다.
+메인 루프의 경로 7 방법·결과·결함 정보는 전달하지 않았다.
+
+**재보고: 결함 0건, 실행하지 못한 경로 없음.**
+- 1: 인용 전부 내용 일치 + 인과 배선(`:110` → `:83` → `:166` → `:261/:322/:333`) 확인.
+- 2·3: before 줄 `grep -c` = 1, `cat -A`로 14칸 들여쓰기·끝 공백 없음까지 바이트 일치, 치환 결과가 after와 일치, `node --check` 통과.
+- 4: 지시자 여집합 10개 전부 source-list 동일(계획서가 나열한 10개 = media-src 제외 완전 여집합). 다른 `<video>` 5곳은 S3 https 재생.
+- 7: 검증자 자체 하니스(Node HTTP 서버가 실제 `next.config.js`에서 뽑은 CSP를 응답 헤더로 냄 + `chrome.exe --headless=new
+  --virtual-time-budget=5000 --dump-dom`). blob: 없음 → `securitypolicyviolation` `media-src`·차단 대상 `blob`, blob: 있음 → 위반 없음.
+- 9: 지시자→source-list 맵 파싱, 11개 순서 동일, `media-src`만 additive 변경. `media-src`가 명시돼 있어 `default-src`로 폴백하지
+  않으므로 수정 위치가 `media-src`여야 함도 확인.
+
+**검증자 관찰(결함 아님)**: 옛 `media-src` 문자열을 담은 문서 미러 둘 — `docs/proposals/completed/2026-03-25-deployment-infrastructure-proposal.md:258`
+(completed 이력이라 동결이 정상), `apps/web/docs/architecture/vercel-project-setup-guide.md:350`(살아있는 참조 문서). 계획서 범위
+(`next.config.js`) 밖이고 web-dev의 쓰기 범위(`apps/web/src/**`)도 밖이다 → **인수 단계에서 메인 루프가 가이드 한 줄을 갱신할 후보**로
+남긴다(FEAT-58·BUG-16 인수의 「문서 두 줄 갱신」 전례). 테스트·스냅샷에 CSP를 단언하는 것은 0건.
+
+**트리 청결 검산(메인 루프 직접)**: 라운드 종료 `git status --porcelain` = `?? nul` 한 줄(세션 시작 전부터 있던 파일). 무수정 확인.
+
+**판정: 독립 무편집 클린 패스 1사이클 — 결함 0, 필수 6경로 전수.** 보드에 `검증:` 줄을 쓴다. 게이트②는 소유자 몫이다.
