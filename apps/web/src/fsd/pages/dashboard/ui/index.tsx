@@ -44,6 +44,7 @@ interface DashboardViewProps {
   initialActiveQueue: ActiveUploadedFileQueueState;
   uploadDefaults: ResolvedUploadDefaults;
   defaultCaptionStyles: CaptionStyleDefaults;
+  defaultVideoPaddingPercent: number;
 }
 
 export default function DashboardView({
@@ -53,6 +54,7 @@ export default function DashboardView({
   initialActiveQueue,
   uploadDefaults,
   defaultCaptionStyles,
+  defaultVideoPaddingPercent,
 }: DashboardViewProps) {
   const router = useRouter();
 
@@ -129,6 +131,7 @@ export default function DashboardView({
             onOptimisticAdd={addOptimisticFile}
             defaults={uploadDefaults}
             defaultCaptionStyles={defaultCaptionStyles}
+            defaultVideoPaddingPercent={defaultVideoPaddingPercent}
           />
           <RecoverableUploadDrafts drafts={recoverableDrafts} />
           <QueueStatus

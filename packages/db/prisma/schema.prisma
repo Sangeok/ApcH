@@ -56,6 +56,7 @@ model User {
     defaultLanguage             String?
     defaultClipCount            Int?
     defaultReviewBeforeGenerate Boolean?
+    defaultVideoPaddingPercent  Int @default(0)
     // 검증은 captionStyleSchema(features/clip-review/model/schemas.ts) 한 곳.
     // UploadedFile.captionStyle(업로드 시점 스냅샷)과 같은 CaptionStyle 모양이다.
     // 언어마다 따로 둔다(FEAT-54) — fontSize·maxWordsPerLine의 적정값이 언어마다 달라
@@ -103,6 +104,7 @@ model UploadedFile {
     // (features/caption-style/model/caption-preview.test.mjs가 지키는 계약).
     // 재처리 결과가 원본과 달라지는 것도 같은 이유로 막는다.
     captionStyle          Json?
+    videoPaddingPercent   Int @default(0)
     // The analysis attempt whose ClipDrafts are currently under review / were confirmed.
     reviewAttempt         Int?
     reviewReadyAt         DateTime?

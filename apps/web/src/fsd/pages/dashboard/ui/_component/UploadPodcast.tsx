@@ -35,6 +35,7 @@ import {
   CLIP_DURATION_LIMITS,
   type CaptionStyleDefaults,
 } from "~/fsd/shared/config/constants";
+import { videoFramingSummary } from "~/fsd/shared/config/video-framing";
 import type { ResolvedUploadDefaults } from "~/fsd/entities/user";
 import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
 
@@ -66,16 +67,19 @@ interface UploadPodcastProps {
   onOptimisticAdd: (file: UploadedFileSummary) => void;
   defaults: ResolvedUploadDefaults;
   defaultCaptionStyles: CaptionStyleDefaults;
+  defaultVideoPaddingPercent: number;
 }
 
 export default function UploadPodcast({
   onOptimisticAdd,
   defaults,
   defaultCaptionStyles,
+  defaultVideoPaddingPercent,
 }: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [language, setLanguage] = useState<string>(defaults.language);
   const [clipCount, setClipCount] = useState<number>(defaults.clipCount);
+  const framingSummary = videoFramingSummary(defaultVideoPaddingPercent);
   const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
   // 드롭마다 증가시키는 요청 번호. 늦게 도착한 이전 파일의 측정 결과를 버리는 데 쓴다.
   const durationRequestId = useRef(0);
@@ -304,6 +308,7 @@ export default function UploadPodcast({
                           ? defaultCaptionStyles.korean
                           : defaultCaptionStyles.english,
                       )}
+                      {framingSummary && ` · ${framingSummary}`}
                     </span>
                     <Link
                       href="/dashboard/settings"

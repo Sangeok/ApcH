@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { normalizeUploadDefaults } from "~/fsd/entities/user";
 import {
   updateUserDefaultCaptionStyle,
+  updateUserDefaultVideoPaddingPercent,
   updateUserUploadDefaults,
 } from "~/fsd/entities/user/server";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
 import { captionStyleSchema } from "~/fsd/shared/config/caption-style-schema";
+import { parseVideoPaddingPercent } from "~/fsd/shared/config/video-framing";
 import type {
   CaptionStyle,
   CaptionStyleDefaults,
@@ -62,6 +64,25 @@ export async function saveDefaultCaptionStyle(
     english: english.style,
     korean: korean.style,
   });
+  revalidatePath("/dashboard/settings");
+  return success();
+}
+
+export async function saveDefaultVideoPaddingPercent(
+  input: unknown,
+): Promise<ActionResult<void>> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  const percent = parseVideoPaddingPercent(input);
+  if (percent === null) return failure("Invalid video padding percent");
+
+  try {
+    await updateUserDefaultVideoPaddingPercent(authResult.data.userId, percent);
+  } catch (error) {
+    console.error("Failed to save video framing", error);
+    return failure("Could not save video framing. Try again.");
+  }
   revalidatePath("/dashboard/settings");
   return success();
 }

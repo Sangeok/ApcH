@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   saveDefaultCaptionStyle,
+  saveDefaultVideoPaddingPercent,
   saveUploadDefaults,
 } from "~/fsd/features/settings/api";
 import {
@@ -21,6 +22,10 @@ import {
   SUPPORTED_LANGUAGES,
   type CaptionStyleDefaults,
 } from "~/fsd/shared/config/constants";
+import {
+  getVideoFrameLayout,
+  VIDEO_PADDING_PERCENT_RANGE,
+} from "~/fsd/shared/config/video-framing";
 import {
   DEFAULT_REVIEW_BEFORE_GENERATE,
   type ResolvedUploadDefaults,
@@ -43,11 +48,13 @@ import {
 interface SettingsViewProps {
   initialDefaults: ResolvedUploadDefaults;
   initialCaptionStyles: CaptionStyleDefaults;
+  initialVideoPaddingPercent: number;
 }
 
 export default function SettingsView({
   initialDefaults,
   initialCaptionStyles,
+  initialVideoPaddingPercent,
 }: SettingsViewProps) {
   const router = useRouter();
   const [language, setLanguage] = useState(initialDefaults.language);
@@ -62,6 +69,26 @@ export default function SettingsView({
   const [editLanguage, setEditLanguage] = useState(initialDefaults.language);
   const editKey = editLanguage === "Korean" ? "korean" : "english";
   const [isSaving, startSaving] = useTransition();
+  const [videoPaddingPercent, setVideoPaddingPercent] = useState(
+    initialVideoPaddingPercent,
+  );
+  const framing = getVideoFrameLayout(videoPaddingPercent);
+
+  const persistVideoPadding = (percent: number) =>
+    startSaving(async () => {
+      try {
+        const result = await saveDefaultVideoPaddingPercent(percent);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        setVideoPaddingPercent(percent);
+        toast.success("Video framing saved");
+        router.refresh();
+      } catch {
+        toast.error("Could not save video framing. Try again.");
+      }
+    });
 
   const persist = (payload: {
     defaultLanguage: string | null;
@@ -232,11 +259,42 @@ export default function SettingsView({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Framing</p>
+            <label htmlFor="video-padding-percent" className="text-sm">
+              Top and bottom black space
+            </label>
+            <input
+              id="video-padding-percent"
+              type="range"
+              min={VIDEO_PADDING_PERCENT_RANGE.MIN}
+              max={VIDEO_PADDING_PERCENT_RANGE.MAX}
+              step={VIDEO_PADDING_PERCENT_RANGE.STEP}
+              value={videoPaddingPercent}
+              disabled={isSaving}
+              aria-describedby="video-padding-help"
+              aria-valuetext={`${videoPaddingPercent}% on each side`}
+              onChange={(event) => setVideoPaddingPercent(Number(event.currentTarget.value))}
+              className="w-full"
+            />
+            <p id="video-padding-help" className="text-muted-foreground text-xs">
+              {videoPaddingPercent}% on each side ({framing.paddingPx}px).
+              Video area: {framing.width} × {framing.contentHeight}px.
+              Captions keep their current position. Applies to both languages.
+            </p>
+            <div className="flex gap-x-2">
+              <Button onClick={() => persistVideoPadding(videoPaddingPercent)} disabled={isSaving}>
+                Save framing
+              </Button>
+              <Button variant="outline" onClick={() => persistVideoPadding(0)} disabled={isSaving}>
+                Reset framing
+              </Button>
+            </div>
+          </div>
           <div>
             <p className="text-sm font-medium">Captions</p>
             <p className="text-muted-foreground text-xs">
-              Right now you can style the captions. Framing and background will
-              live here too.
+              Caption styles are saved separately for each language.
             </p>
           </div>
           <div className="flex items-center gap-2">

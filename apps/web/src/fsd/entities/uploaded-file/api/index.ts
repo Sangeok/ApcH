@@ -110,6 +110,7 @@ export async function createUploadDraft(data: {
   targetClipCount: number;
   reviewBeforeGenerate: boolean;
   captionStyle?: Prisma.JsonValue; // User.defaultCaptionStyleEnglish·Korean 중 업로드 언어 쪽의 스냅샷 (없으면 null 컬럼)
+  videoPaddingPercent: number; // User.defaultVideoPaddingPercent의 업로드 시점 스냅샷 (FEAT-58)
 }) {
   const { captionStyle, ...rest } = data;
   return db.uploadedFile.create({
@@ -515,6 +516,7 @@ export async function findCurrentProcessingAttemptContext(
       s3Key: true,
       status: true,
       captionStyle: true, // auto·render 요청 스냅샷이 읽는다
+      videoPaddingPercent: true,
       user: {
         select: {
           credits: true,

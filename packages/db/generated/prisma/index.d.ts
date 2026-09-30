@@ -4155,11 +4155,13 @@ export namespace Prisma {
   export type UserAvgAggregateOutputType = {
     credits: number | null
     defaultClipCount: number | null
+    defaultVideoPaddingPercent: number | null
   }
 
   export type UserSumAggregateOutputType = {
     credits: number | null
     defaultClipCount: number | null
+    defaultVideoPaddingPercent: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -4174,6 +4176,7 @@ export namespace Prisma {
     defaultLanguage: string | null
     defaultClipCount: number | null
     defaultReviewBeforeGenerate: boolean | null
+    defaultVideoPaddingPercent: number | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -4188,6 +4191,7 @@ export namespace Prisma {
     defaultLanguage: string | null
     defaultClipCount: number | null
     defaultReviewBeforeGenerate: boolean | null
+    defaultVideoPaddingPercent: number | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -4202,6 +4206,7 @@ export namespace Prisma {
     defaultLanguage: number
     defaultClipCount: number
     defaultReviewBeforeGenerate: number
+    defaultVideoPaddingPercent: number
     defaultCaptionStyleEnglish: number
     defaultCaptionStyleKorean: number
     defaultCaptionStyle: number
@@ -4212,11 +4217,13 @@ export namespace Prisma {
   export type UserAvgAggregateInputType = {
     credits?: true
     defaultClipCount?: true
+    defaultVideoPaddingPercent?: true
   }
 
   export type UserSumAggregateInputType = {
     credits?: true
     defaultClipCount?: true
+    defaultVideoPaddingPercent?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -4231,6 +4238,7 @@ export namespace Prisma {
     defaultLanguage?: true
     defaultClipCount?: true
     defaultReviewBeforeGenerate?: true
+    defaultVideoPaddingPercent?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -4245,6 +4253,7 @@ export namespace Prisma {
     defaultLanguage?: true
     defaultClipCount?: true
     defaultReviewBeforeGenerate?: true
+    defaultVideoPaddingPercent?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -4259,6 +4268,7 @@ export namespace Prisma {
     defaultLanguage?: true
     defaultClipCount?: true
     defaultReviewBeforeGenerate?: true
+    defaultVideoPaddingPercent?: true
     defaultCaptionStyleEnglish?: true
     defaultCaptionStyleKorean?: true
     defaultCaptionStyle?: true
@@ -4363,6 +4373,7 @@ export namespace Prisma {
     defaultLanguage: string | null
     defaultClipCount: number | null
     defaultReviewBeforeGenerate: boolean | null
+    defaultVideoPaddingPercent: number
     defaultCaptionStyleEnglish: JsonValue | null
     defaultCaptionStyleKorean: JsonValue | null
     defaultCaptionStyle: JsonValue | null
@@ -4399,6 +4410,7 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultVideoPaddingPercent?: boolean
     defaultCaptionStyleEnglish?: boolean
     defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
@@ -4424,6 +4436,7 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultVideoPaddingPercent?: boolean
     defaultCaptionStyleEnglish?: boolean
     defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
@@ -4441,6 +4454,7 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultVideoPaddingPercent?: boolean
     defaultCaptionStyleEnglish?: boolean
     defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
@@ -4458,12 +4472,13 @@ export namespace Prisma {
     defaultLanguage?: boolean
     defaultClipCount?: boolean
     defaultReviewBeforeGenerate?: boolean
+    defaultVideoPaddingPercent?: boolean
     defaultCaptionStyleEnglish?: boolean
     defaultCaptionStyleKorean?: boolean
     defaultCaptionStyle?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "polarCustomerId" | "image" | "defaultLanguage" | "defaultClipCount" | "defaultReviewBeforeGenerate" | "defaultCaptionStyleEnglish" | "defaultCaptionStyleKorean" | "defaultCaptionStyle", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "polarCustomerId" | "image" | "defaultLanguage" | "defaultClipCount" | "defaultReviewBeforeGenerate" | "defaultVideoPaddingPercent" | "defaultCaptionStyleEnglish" | "defaultCaptionStyleKorean" | "defaultCaptionStyle", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -4500,6 +4515,7 @@ export namespace Prisma {
       defaultLanguage: string | null
       defaultClipCount: number | null
       defaultReviewBeforeGenerate: boolean | null
+      defaultVideoPaddingPercent: number
       defaultCaptionStyleEnglish: Prisma.JsonValue | null
       defaultCaptionStyleKorean: Prisma.JsonValue | null
       defaultCaptionStyle: Prisma.JsonValue | null
@@ -4944,6 +4960,7 @@ export namespace Prisma {
     readonly defaultLanguage: FieldRef<"User", 'String'>
     readonly defaultClipCount: FieldRef<"User", 'Int'>
     readonly defaultReviewBeforeGenerate: FieldRef<"User", 'Boolean'>
+    readonly defaultVideoPaddingPercent: FieldRef<"User", 'Int'>
     readonly defaultCaptionStyleEnglish: FieldRef<"User", 'Json'>
     readonly defaultCaptionStyleKorean: FieldRef<"User", 'Json'>
     readonly defaultCaptionStyle: FieldRef<"User", 'Json'>
@@ -5532,6 +5549,7 @@ export namespace Prisma {
     currentAttempt: number | null
     lastSuccessfulAttempt: number | null
     targetClipCount: number | null
+    videoPaddingPercent: number | null
     reviewAttempt: number | null
   }
 
@@ -5539,6 +5557,7 @@ export namespace Prisma {
     currentAttempt: number | null
     lastSuccessfulAttempt: number | null
     targetClipCount: number | null
+    videoPaddingPercent: number | null
     reviewAttempt: number | null
   }
 
@@ -5561,6 +5580,7 @@ export namespace Prisma {
     language: string | null
     targetClipCount: number | null
     reviewBeforeGenerate: boolean | null
+    videoPaddingPercent: number | null
     reviewAttempt: number | null
     reviewReadyAt: Date | null
     transcriptS3Key: string | null
@@ -5586,6 +5606,7 @@ export namespace Prisma {
     language: string | null
     targetClipCount: number | null
     reviewBeforeGenerate: boolean | null
+    videoPaddingPercent: number | null
     reviewAttempt: number | null
     reviewReadyAt: Date | null
     transcriptS3Key: string | null
@@ -5612,6 +5633,7 @@ export namespace Prisma {
     targetClipCount: number
     reviewBeforeGenerate: number
     captionStyle: number
+    videoPaddingPercent: number
     reviewAttempt: number
     reviewReadyAt: number
     transcriptS3Key: number
@@ -5624,6 +5646,7 @@ export namespace Prisma {
     currentAttempt?: true
     lastSuccessfulAttempt?: true
     targetClipCount?: true
+    videoPaddingPercent?: true
     reviewAttempt?: true
   }
 
@@ -5631,6 +5654,7 @@ export namespace Prisma {
     currentAttempt?: true
     lastSuccessfulAttempt?: true
     targetClipCount?: true
+    videoPaddingPercent?: true
     reviewAttempt?: true
   }
 
@@ -5653,6 +5677,7 @@ export namespace Prisma {
     language?: true
     targetClipCount?: true
     reviewBeforeGenerate?: true
+    videoPaddingPercent?: true
     reviewAttempt?: true
     reviewReadyAt?: true
     transcriptS3Key?: true
@@ -5678,6 +5703,7 @@ export namespace Prisma {
     language?: true
     targetClipCount?: true
     reviewBeforeGenerate?: true
+    videoPaddingPercent?: true
     reviewAttempt?: true
     reviewReadyAt?: true
     transcriptS3Key?: true
@@ -5704,6 +5730,7 @@ export namespace Prisma {
     targetClipCount?: true
     reviewBeforeGenerate?: true
     captionStyle?: true
+    videoPaddingPercent?: true
     reviewAttempt?: true
     reviewReadyAt?: true
     transcriptS3Key?: true
@@ -5817,6 +5844,7 @@ export namespace Prisma {
     targetClipCount: number
     reviewBeforeGenerate: boolean
     captionStyle: JsonValue | null
+    videoPaddingPercent: number
     reviewAttempt: number | null
     reviewReadyAt: Date | null
     transcriptS3Key: string | null
@@ -5862,6 +5890,7 @@ export namespace Prisma {
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
     captionStyle?: boolean
+    videoPaddingPercent?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
@@ -5893,6 +5922,7 @@ export namespace Prisma {
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
     captionStyle?: boolean
+    videoPaddingPercent?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
@@ -5920,6 +5950,7 @@ export namespace Prisma {
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
     captionStyle?: boolean
+    videoPaddingPercent?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
@@ -5947,13 +5978,14 @@ export namespace Prisma {
     targetClipCount?: boolean
     reviewBeforeGenerate?: boolean
     captionStyle?: boolean
+    videoPaddingPercent?: boolean
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
     userId?: boolean
   }
 
-  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "reviewBeforeGenerate" | "captionStyle" | "reviewAttempt" | "reviewReadyAt" | "transcriptS3Key" | "userId", ExtArgs["result"]["uploadedFile"]>
+  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "reviewBeforeGenerate" | "captionStyle" | "videoPaddingPercent" | "reviewAttempt" | "reviewReadyAt" | "transcriptS3Key" | "userId", ExtArgs["result"]["uploadedFile"]>
   export type UploadedFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
@@ -5996,6 +6028,7 @@ export namespace Prisma {
       targetClipCount: number
       reviewBeforeGenerate: boolean
       captionStyle: Prisma.JsonValue | null
+      videoPaddingPercent: number
       reviewAttempt: number | null
       reviewReadyAt: Date | null
       transcriptS3Key: string | null
@@ -6446,6 +6479,7 @@ export namespace Prisma {
     readonly targetClipCount: FieldRef<"UploadedFile", 'Int'>
     readonly reviewBeforeGenerate: FieldRef<"UploadedFile", 'Boolean'>
     readonly captionStyle: FieldRef<"UploadedFile", 'Json'>
+    readonly videoPaddingPercent: FieldRef<"UploadedFile", 'Int'>
     readonly reviewAttempt: FieldRef<"UploadedFile", 'Int'>
     readonly reviewReadyAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly transcriptS3Key: FieldRef<"UploadedFile", 'String'>
@@ -15137,6 +15171,7 @@ export namespace Prisma {
     defaultLanguage: 'defaultLanguage',
     defaultClipCount: 'defaultClipCount',
     defaultReviewBeforeGenerate: 'defaultReviewBeforeGenerate',
+    defaultVideoPaddingPercent: 'defaultVideoPaddingPercent',
     defaultCaptionStyleEnglish: 'defaultCaptionStyleEnglish',
     defaultCaptionStyleKorean: 'defaultCaptionStyleKorean',
     defaultCaptionStyle: 'defaultCaptionStyle'
@@ -15165,6 +15200,7 @@ export namespace Prisma {
     targetClipCount: 'targetClipCount',
     reviewBeforeGenerate: 'reviewBeforeGenerate',
     captionStyle: 'captionStyle',
+    videoPaddingPercent: 'videoPaddingPercent',
     reviewAttempt: 'reviewAttempt',
     reviewReadyAt: 'reviewReadyAt',
     transcriptS3Key: 'transcriptS3Key',
@@ -15583,6 +15619,7 @@ export namespace Prisma {
     defaultLanguage?: StringNullableFilter<"User"> | string | null
     defaultClipCount?: IntNullableFilter<"User"> | number | null
     defaultReviewBeforeGenerate?: BoolNullableFilter<"User"> | boolean | null
+    defaultVideoPaddingPercent?: IntFilter<"User"> | number
     defaultCaptionStyleEnglish?: JsonNullableFilter<"User">
     defaultCaptionStyleKorean?: JsonNullableFilter<"User">
     defaultCaptionStyle?: JsonNullableFilter<"User">
@@ -15607,6 +15644,7 @@ export namespace Prisma {
     defaultLanguage?: SortOrderInput | SortOrder
     defaultClipCount?: SortOrderInput | SortOrder
     defaultReviewBeforeGenerate?: SortOrderInput | SortOrder
+    defaultVideoPaddingPercent?: SortOrder
     defaultCaptionStyleEnglish?: SortOrderInput | SortOrder
     defaultCaptionStyleKorean?: SortOrderInput | SortOrder
     defaultCaptionStyle?: SortOrderInput | SortOrder
@@ -15634,6 +15672,7 @@ export namespace Prisma {
     defaultLanguage?: StringNullableFilter<"User"> | string | null
     defaultClipCount?: IntNullableFilter<"User"> | number | null
     defaultReviewBeforeGenerate?: BoolNullableFilter<"User"> | boolean | null
+    defaultVideoPaddingPercent?: IntFilter<"User"> | number
     defaultCaptionStyleEnglish?: JsonNullableFilter<"User">
     defaultCaptionStyleKorean?: JsonNullableFilter<"User">
     defaultCaptionStyle?: JsonNullableFilter<"User">
@@ -15658,6 +15697,7 @@ export namespace Prisma {
     defaultLanguage?: SortOrderInput | SortOrder
     defaultClipCount?: SortOrderInput | SortOrder
     defaultReviewBeforeGenerate?: SortOrderInput | SortOrder
+    defaultVideoPaddingPercent?: SortOrder
     defaultCaptionStyleEnglish?: SortOrderInput | SortOrder
     defaultCaptionStyleKorean?: SortOrderInput | SortOrder
     defaultCaptionStyle?: SortOrderInput | SortOrder
@@ -15683,6 +15723,7 @@ export namespace Prisma {
     defaultLanguage?: StringNullableWithAggregatesFilter<"User"> | string | null
     defaultClipCount?: IntNullableWithAggregatesFilter<"User"> | number | null
     defaultReviewBeforeGenerate?: BoolNullableWithAggregatesFilter<"User"> | boolean | null
+    defaultVideoPaddingPercent?: IntWithAggregatesFilter<"User"> | number
     defaultCaptionStyleEnglish?: JsonNullableWithAggregatesFilter<"User">
     defaultCaptionStyleKorean?: JsonNullableWithAggregatesFilter<"User">
     defaultCaptionStyle?: JsonNullableWithAggregatesFilter<"User">
@@ -15711,6 +15752,7 @@ export namespace Prisma {
     targetClipCount?: IntFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
     captionStyle?: JsonNullableFilter<"UploadedFile">
+    videoPaddingPercent?: IntFilter<"UploadedFile"> | number
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
@@ -15741,6 +15783,7 @@ export namespace Prisma {
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
     captionStyle?: SortOrderInput | SortOrder
+    videoPaddingPercent?: SortOrder
     reviewAttempt?: SortOrderInput | SortOrder
     reviewReadyAt?: SortOrderInput | SortOrder
     transcriptS3Key?: SortOrderInput | SortOrder
@@ -15774,6 +15817,7 @@ export namespace Prisma {
     targetClipCount?: IntFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
     captionStyle?: JsonNullableFilter<"UploadedFile">
+    videoPaddingPercent?: IntFilter<"UploadedFile"> | number
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
@@ -15804,6 +15848,7 @@ export namespace Prisma {
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
     captionStyle?: SortOrderInput | SortOrder
+    videoPaddingPercent?: SortOrder
     reviewAttempt?: SortOrderInput | SortOrder
     reviewReadyAt?: SortOrderInput | SortOrder
     transcriptS3Key?: SortOrderInput | SortOrder
@@ -15838,6 +15883,7 @@ export namespace Prisma {
     targetClipCount?: IntWithAggregatesFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolWithAggregatesFilter<"UploadedFile"> | boolean
     captionStyle?: JsonNullableWithAggregatesFilter<"UploadedFile">
+    videoPaddingPercent?: IntWithAggregatesFilter<"UploadedFile"> | number
     reviewAttempt?: IntNullableWithAggregatesFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableWithAggregatesFilter<"UploadedFile"> | string | null
@@ -16629,6 +16675,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -16653,6 +16700,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -16677,6 +16725,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -16701,6 +16750,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -16725,6 +16775,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -16742,6 +16793,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -16759,6 +16811,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -16784,6 +16837,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -16813,6 +16867,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -16842,6 +16897,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16871,6 +16927,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16900,6 +16957,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -16926,6 +16984,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16951,6 +17010,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17982,6 +18042,7 @@ export namespace Prisma {
     defaultLanguage?: SortOrder
     defaultClipCount?: SortOrder
     defaultReviewBeforeGenerate?: SortOrder
+    defaultVideoPaddingPercent?: SortOrder
     defaultCaptionStyleEnglish?: SortOrder
     defaultCaptionStyleKorean?: SortOrder
     defaultCaptionStyle?: SortOrder
@@ -17990,6 +18051,7 @@ export namespace Prisma {
   export type UserAvgOrderByAggregateInput = {
     credits?: SortOrder
     defaultClipCount?: SortOrder
+    defaultVideoPaddingPercent?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -18004,6 +18066,7 @@ export namespace Prisma {
     defaultLanguage?: SortOrder
     defaultClipCount?: SortOrder
     defaultReviewBeforeGenerate?: SortOrder
+    defaultVideoPaddingPercent?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -18018,11 +18081,13 @@ export namespace Prisma {
     defaultLanguage?: SortOrder
     defaultClipCount?: SortOrder
     defaultReviewBeforeGenerate?: SortOrder
+    defaultVideoPaddingPercent?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
     credits?: SortOrder
     defaultClipCount?: SortOrder
+    defaultVideoPaddingPercent?: SortOrder
   }
 
   export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -18134,6 +18199,7 @@ export namespace Prisma {
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
     captionStyle?: SortOrder
+    videoPaddingPercent?: SortOrder
     reviewAttempt?: SortOrder
     reviewReadyAt?: SortOrder
     transcriptS3Key?: SortOrder
@@ -18144,6 +18210,7 @@ export namespace Prisma {
     currentAttempt?: SortOrder
     lastSuccessfulAttempt?: SortOrder
     targetClipCount?: SortOrder
+    videoPaddingPercent?: SortOrder
     reviewAttempt?: SortOrder
   }
 
@@ -18166,6 +18233,7 @@ export namespace Prisma {
     language?: SortOrder
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
+    videoPaddingPercent?: SortOrder
     reviewAttempt?: SortOrder
     reviewReadyAt?: SortOrder
     transcriptS3Key?: SortOrder
@@ -18191,6 +18259,7 @@ export namespace Prisma {
     language?: SortOrder
     targetClipCount?: SortOrder
     reviewBeforeGenerate?: SortOrder
+    videoPaddingPercent?: SortOrder
     reviewAttempt?: SortOrder
     reviewReadyAt?: SortOrder
     transcriptS3Key?: SortOrder
@@ -18201,6 +18270,7 @@ export namespace Prisma {
     currentAttempt?: SortOrder
     lastSuccessfulAttempt?: SortOrder
     targetClipCount?: SortOrder
+    videoPaddingPercent?: SortOrder
     reviewAttempt?: SortOrder
   }
 
@@ -19545,6 +19615,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19568,6 +19639,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19607,6 +19679,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19630,6 +19703,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19653,6 +19727,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19676,6 +19751,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19715,6 +19791,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19738,6 +19815,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -19831,6 +19909,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -19859,6 +19938,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20124,6 +20204,7 @@ export namespace Prisma {
     targetClipCount?: IntFilter<"UploadedFile"> | number
     reviewBeforeGenerate?: BoolFilter<"UploadedFile"> | boolean
     captionStyle?: JsonNullableFilter<"UploadedFile">
+    videoPaddingPercent?: IntFilter<"UploadedFile"> | number
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
@@ -20415,6 +20496,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20438,6 +20520,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20564,6 +20647,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20587,6 +20671,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20618,6 +20703,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20646,6 +20732,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20671,6 +20758,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20694,6 +20782,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20741,6 +20830,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20769,6 +20859,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20800,6 +20891,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20823,6 +20915,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -20854,6 +20947,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20882,6 +20976,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -20926,6 +21021,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20954,6 +21050,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20982,6 +21079,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -21010,6 +21108,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -21054,6 +21153,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21082,6 +21182,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21102,6 +21203,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21125,6 +21227,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21164,6 +21267,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21187,6 +21291,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21210,6 +21315,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21233,6 +21339,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21272,6 +21379,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21295,6 +21403,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21318,6 +21427,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21341,6 +21451,7 @@ export namespace Prisma {
     defaultLanguage?: string | null
     defaultClipCount?: number | null
     defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21380,6 +21491,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21403,6 +21515,7 @@ export namespace Prisma {
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
     defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
     defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
     defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
     defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
@@ -21455,6 +21568,7 @@ export namespace Prisma {
     targetClipCount?: number
     reviewBeforeGenerate?: boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
@@ -21583,6 +21697,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21611,6 +21726,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21639,6 +21755,7 @@ export namespace Prisma {
     targetClipCount?: IntFieldUpdateOperationsInput | number
     reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
     captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null

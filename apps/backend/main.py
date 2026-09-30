@@ -9,7 +9,7 @@ import uuid
 import modal
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictInt
 import os
 import boto3
 import whisperx
@@ -43,6 +43,13 @@ from temp_cleanup_policy import (
 from error_callback import build_error_callback_payload
 from moment_prompt import build_moment_prompt
 from caption_style_source import select_caption_style
+from video_framing import (
+    parse_video_padding_percent,
+    resolve_video_padding_percent,
+    frame_layout,
+    cover_crop_geometry,
+    contain_size,
+)
 from reference_translation import (
     should_translate_references,
     build_reference_sources,
@@ -72,6 +79,7 @@ class ProcessVideoRequest(BaseModel):
     # 이 값이 dict면 언어 기본값 위에 얹히고, 아니면 언어 기본값(기존 동작과 동일).
     # 선택·기본 None → 웹이 안 보내면 언어 기본값. 클립별 스타일 경로는 FEAT-52로 사라졌다.
     caption_style: dict | None = None
+    video_padding_percent: StrictInt = 0
 
 # Modal 컨테이너 이미지: CUDA 12.4 + Python 3.12, 비디오/딥러닝 런타임 준비
 image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
@@ -88,7 +96,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True)
-    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation"))
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation", "video_framing"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -208,9 +216,11 @@ def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_w
         "uppercase": uppercase,
     }
 
-def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path, output_path, framerate=25):
+def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path, output_path, framerate=25, video_padding_percent=0):
     target_width = 1080
     target_height = 1920
+    padding_percent = resolve_video_padding_percent(video_padding_percent)
+    padding_px, content_height = frame_layout(padding_percent)
 
     flist = glob.glob(os.path.join(pyframes_path, "*.jpg"))
     flist.sort()
@@ -250,6 +260,46 @@ def create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path,
                 resize = (target_width, target_height),
             )
         
+        if padding_percent > 0:
+            source_height, source_width = img.shape[:2]
+            if max_score_face:
+                resized_width, resized_height, crop_x, crop_y = cover_crop_geometry(
+                    source_width, source_height, target_width, content_height,
+                    center_x=max_score_face['x'],
+                )
+                resized_image = cv2.resize(
+                    img, (resized_width, resized_height), interpolation=cv2.INTER_AREA,
+                )
+                content = resized_image[
+                    crop_y:crop_y + content_height,
+                    crop_x:crop_x + target_width,
+                ]
+            else:
+                bg_width, bg_height, crop_x, crop_y = cover_crop_geometry(
+                    source_width, source_height, target_width, content_height,
+                )
+                background = cv2.resize(img, (bg_width, bg_height))
+                background = cv2.GaussianBlur(background, (121, 121), 0)
+                content = background[
+                    crop_y:crop_y + content_height,
+                    crop_x:crop_x + target_width,
+                ].copy()
+                foreground_width, foreground_height = contain_size(
+                    source_width, source_height, target_width, content_height,
+                )
+                foreground = cv2.resize(
+                    img, (foreground_width, foreground_height),
+                    interpolation=cv2.INTER_AREA,
+                )
+                left = (target_width - foreground_width) // 2
+                top = (content_height - foreground_height) // 2
+                content[top:top + foreground_height, left:left + foreground_width] = foreground
+
+            canvas = np.zeros((target_height, target_width, 3), dtype=img.dtype)
+            canvas[padding_px:padding_px + content_height, :] = content
+            vout.write(canvas)
+            continue
+
         if max_score_face:
             mode = "crop"
         else :
@@ -755,7 +805,7 @@ def _s3_call_with_retry(do_call, *, operation, s3_key):
             raise RuntimeError(format_upload_error(operation, s3_key, attempt, exc)) from exc
 
 
-def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str, output_prefix: str | None = None, caption_style: dict | None = None):
+def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_time: float, end_time: float, clip_index: int, transcript_segments: list, gemini_client, selected_language: str, output_prefix: str | None = None, caption_style: dict | None = None, video_padding_percent: int = 0):
     clip_name = f"clip_{clip_index}"
     s3_key_dir = (output_prefix or os.path.dirname(s3_key)).strip("/")
     print(f"Processing clip: {clip_name}")
@@ -812,7 +862,10 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
         subprocess.run(extract_cmd, shell=True, check=True, capture_output=True, text=True)
 
     cvv_start_time = time.time()
-    create_vertical_video(tracks, scores, pyframes_path, pyavi_path, audio_path, vertical_mp4_path)
+    create_vertical_video(
+        tracks, scores, pyframes_path, pyavi_path, audio_path, vertical_mp4_path,
+        video_padding_percent=video_padding_percent,
+    )
     cvv_end_time = time.time()
     print(f"Clip {clip_index} vertical video created in {cvv_end_time - cvv_start_time:.2f} seconds")
 
@@ -995,7 +1048,7 @@ class AiPodcastClipper:
 
     # 실제 영상 처리 (비동기 실행, 완료/실패 시 callback)
     @modal.method()
-    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None, mode: str = "auto", moments: list | None = None, transcript_s3_key: str | None = None, request_caption_style: dict | None = None):
+    def _do_process_video(self, s3_key: str, language: str, clip_count: int, callback_url: str | None, uploaded_file_id: str | None, attempt: int | None = None, output_prefix: str | None = None, mode: str = "auto", moments: list | None = None, transcript_s3_key: str | None = None, request_caption_style: dict | None = None, video_padding_percent: int = 0):
         import requests as req
 
         clip_results = []
@@ -1164,6 +1217,7 @@ class AiPodcastClipper:
                         language,
                         output_prefix,
                         caption_style=select_caption_style(request_caption_style),
+                        video_padding_percent=resolve_video_padding_percent(video_padding_percent),
                     )
 
                     clip_result["clipType"] = moment.get("type")
@@ -1236,6 +1290,12 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # 범위(0~25)는 video_framing 한 곳이 정한다. 타입은 StrictInt가 이미 걸렀다.
+    # 상태 코드는 리터럴 422다 — starlette의 HTTP_422_UNPROCESSABLE_ENTITY는 사용 중단 경고를 내고,
+    # 새 이름 HTTP_422_UNPROCESSABLE_CONTENT는 캐시된 이미지 레이어의 옛 starlette에 없을 수 있다.
+    if parse_video_padding_percent(request.video_padding_percent) is None:
+        raise HTTPException(status_code=422, detail="Invalid video padding percent")
+
     clipper = AiPodcastClipper()
 
     if request.callback_url:
@@ -1252,6 +1312,7 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             moments=request.moments,
             transcript_s3_key=request.transcript_s3_key,
             request_caption_style=request.caption_style,
+            video_padding_percent=request.video_padding_percent,
         )
         return {"status": "accepted", "call_id": call.object_id}
     else:
@@ -1268,6 +1329,7 @@ def process_video(request: ProcessVideoRequest, token: HTTPAuthorizationCredenti
             moments=request.moments,
             transcript_s3_key=request.transcript_s3_key,
             request_caption_style=request.caption_style,
+            video_padding_percent=request.video_padding_percent,
         )
 
 

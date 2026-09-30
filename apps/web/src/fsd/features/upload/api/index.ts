@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch/server";
-import { getUserDefaultCaptionStyle } from "~/fsd/entities/user/server";
+import {
+  getUserDefaultCaptionStyle,
+  getUserDefaultVideoPaddingPercent,
+} from "~/fsd/entities/user/server";
 import { dispatchProcessingRequestById } from "./dispatch-processing";
 import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { flushReports } from "~/fsd/shared/observability";
@@ -241,6 +244,9 @@ export async function prepareUpload(fileInfo: {
     // 클라이언트는 스타일을 보내지 않으므로 prepareUploadSchema(검증 표면)는 늘지 않는다.
     // 업로드 시점에 서버에서 스냅샷을 읽어 UploadedFile.captionStyle에 고정한다.
     const defaults = await getUserDefaultCaptionStyle(authResult.data.userId);
+    const framingDefaults = await getUserDefaultVideoPaddingPercent(
+      authResult.data.userId,
+    );
     // 업로드 언어에 맞는 쪽만 고정한다 — 하류(UploadedFile.captionStyle →
     // render caption_style → resolve_caption_style)는 단일 값 그대로라 무변경이다.
     const captionStyleSnapshot =
@@ -256,6 +262,7 @@ export async function prepareUpload(fileInfo: {
       targetClipCount: clipCount,
       reviewBeforeGenerate,
       captionStyle: captionStyleSnapshot, // 업로드 시점·업로드 언어 기준 스냅샷
+      videoPaddingPercent: framingDefaults.defaultVideoPaddingPercent,
     });
 
     return success({ key, uploadedFileId: uploadDraft.id, signedUrl });

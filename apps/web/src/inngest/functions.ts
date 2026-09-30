@@ -31,6 +31,7 @@ import {
 import { inngest } from "./client";
 import type { AnalyzedMoment } from "./client";
 import { requestCaptionStyle } from "./caption-style-request";
+import { requestVideoFraming } from "./video-framing-request";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
 import {
   normalizeBackendClips,
@@ -376,6 +377,7 @@ export const processVideo = inngest.createFunction(
             caption_style: requestCaptionStyle(
               context.captionStyle as CaptionStyle | null, // 업로드 시점 스냅샷(UploadedFile.captionStyle)
             ),
+            ...requestVideoFraming(context.videoPaddingPercent),
             transcript_s3_key: transcriptS3Key ?? undefined,
             output_prefix: outputPrefix,
             callback_url: callbackUrl,
