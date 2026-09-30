@@ -50,6 +50,7 @@
   agent: web-dev
   area: apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx + apps/web/src/fsd/shared/ui/atoms + apps/web/src/fsd/features/caption-style
   status: 검토대기
+  검증: 클린 패스 (2026-10-01, 독립 무편집 3사이클 — 1·2사이클 문서 위생 각 1건 반영 뒤 3사이클 결함 0, 필수 7경로 전수. 메인 루프 라운드 소득 13건(구현 영향 3) 반영 뒤)
   근거: 소유자 직접 발주(게이트① 세션 지시). 같은 대화에서 목업으로 합의한 개편안이다. BUG-17과 파일이 겹치지 않아 병행 계획한다(BUG-15·FEAT-44 전례).
 - [x] BUG-16: 여백 0%에서 9:16보다 세로로 긴 source는 화자 없는 프레임에서 렌더가 죽고, 화자 있는 프레임은 가로로 늘어난다
   agent: backend-dev

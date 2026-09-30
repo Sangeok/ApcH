@@ -165,3 +165,38 @@
 `UploadPodcast.tsx:322`·`:171-176`) 전부 내용 일치. 트리 청결: 독립 패스 #2 종료 `git status --porcelain` = `?? nul`.
 
 독립 패스 3사이클째를 같은 브리핑으로 부른다.
+
+## 라운드 8 — 독립 패스 #3 (plan-verifier, 2026-10-01)
+
+브리핑은 같은 계약 셋. 검증자가 계약 준수를 확인했다.
+
+**1차 보고: 결함 0건, 실행하지 못한 경로 없음 — 단 수정 파일 둘을 적용 상태로 돌리지 않았다.** 경로 2는 신규 5파일을 격리 컴파일·
+lint했고, 경로 8은 썸네일·세그먼트만 렌더했다. 검증자 스스로 「`CaptionStyleEditor` 파일 전체 in-context 재컴파일은 하지 않았다」고
+적었다. 계획서 「고칠 파일」의 기존 파일 수정 둘(`UploadPodcast.tsx`·`CaptionStyleEditor.tsx`)은 경로 2·8의 대상이므로, 라운드 5에서
+정한 대로 이 상태로는 무소득 판정 자격이 없다. BUG-17 라운드 2와 같은 방식으로 같은 검증자에게 **범위 확인 + 환경 사실**(루트
+`node_modules`의 esbuild·`@tailwindcss/postcss`·react-dom, 헤드리스 Chrome 경로, `git archive` 사본 + 정션으로 전체 `tsc`·`next lint`·
+`verify:fsd`를 돌릴 수 있다는 것)만 보내 두 파일을 적용 상태로 마저 돌리게 했다. 메인 루프의 결과·결함 정보는 보내지 않았다.
+
+**재보고: 결함 0건.**
+- 2(적용 상태): 전체 트리 사본에 계획서 전부를 적용 → `tsc --noEmit -p tsconfig.json` exit 0 · `next lint` 「No ESLint warnings or
+  errors」 · `verify-fsd-boundaries.mjs` 통과. 격리분: strict 설정 `tsc` 클린, 새 명세 테스트 19 pass.
+- 3: 에디터 before `diff` 바이트 동일, 적용 뒤 341→323행으로 계획 산술과 정합.
+- 4: 추출 함수 = 에디터 인라인을 **116,645 조합**(언어 5개)으로 대조 → 불일치 0.
+- 5·7: 돌연변이 7종 전부 사멸, 불변식 위반 주입이 해당 테스트를 실제로 실패시킴.
+- 8(적용 상태): `CaptionStyleEditor` 적용본 전체를 `renderToStaticMarkup` — null+English 122/5/1.1, null+Korean 130/3, 저장 fontSize 90 +
+  outlineWidth 0 → 「Outline width: 0」(falsy 0 보존), `CaptionPreviewPlayer` 포함 무예외. `UploadPodcast`는 `useUploadPodcast`가 끄는
+  `features/upload/api`(server-only)가 tsx 런타임 임포트에서 멈춰 컴포넌트째 SSR은 못 하고, 적용본의 return 본문을 바이트 추출해 실제
+  자식 컴포넌트로 감싸 4상태를 렌더했다 — 빈(`Select File` + 버튼, 격자 없음), 60초(radiogroup 3·안내 「This video fits up to 2 clips.
+  The AI may return fewer.」·클립 옵션 2개 disabled·썸네일·`1:00`), 20초(destructive 안내·clipHint 없음·버튼 비활성), Korean+review
+  (「Upload and review clips」·「Edit clips before generating.」·견본 「진짜 이유는」).
+- 검증자는 이 마지막 항목을 「실행하지 못한 경로 — 8(UploadPodcast) 부분 한정」으로 적었다.
+
+**메인 루프 판정 — 경로 8 소진으로 본다.** 계획이 바꾸는 것은 `UploadPodcast`의 **렌더 본문과 import**이고, 그 본문 전부를 모든 분기에서
+실렌더했다. 렌더하지 못한 것은 상태 훅 껍데기(`:79-166`, 계획이 「그대로 둔다」는 코드)이고 원인은 계획과 무관한 server-only 임포트다.
+컴포넌트 전체(훅 포함) 실렌더는 메인 루프 라운드 1·2가 `useUploadPodcast`를 스텁으로 바꾼 브라우저 하니스로 수행했다. 브라우저 전용
+관측(컨테이너 폭 전환·키보드·가로 넘침)은 계획서 「못 덮는 범위」이자 배포 확인 원장 대상이다.
+
+**트리 청결 검산(메인 루프 직접)**: 라운드 종료 `git status --porcelain` = `?? nul` 한 줄. 무수정 확인.
+
+**판정: 독립 무편집 클린 패스 — 3사이클째 결함 0, 필수 7경로 전수.** 1·2사이클은 문서 위생만(계수 제외)이었다. 보드에 `검증:` 줄을
+쓴다. 게이트②는 소유자 몫이다.
