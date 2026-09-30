@@ -40,6 +40,11 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-30
+- [ ] BUG-16: 여백 0%에서 9:16보다 세로로 긴 source는 화자 없는 프레임에서 렌더가 죽고, 화자 있는 프레임은 가로로 늘어난다
+  agent: backend-dev
+  area: apps/backend/main.py (`create_vertical_video`) + apps/backend/video_framing.py (재사용 후보)
+  status: 계획지시
+  근거: 소유자 직접 발주(게이트① 세션 지시 — 「배포 뒤 바로 진행」). FEAT-58 검증 중 드러난 기존 결함으로, 폰 세로 녹화(1080×2340)에서 재현됐다. apps/backend만이라 backend-dev가 맡는다.
 - [x] FEAT-58: 영상 상하 동일 검은 여백 — 설정에서 한쪽 여백 0~25%를 고르면 업로드에 고정되고, 그 업로드의 모든 클립이 1080×1920 안 중앙 프레임 + 상하 검은 띠로 렌더된다
   agent: main-loop
   area: packages/db/prisma/schema.prisma + packages/db/prisma/migrations + apps/backend/main.py + apps/backend/video_framing.py + apps/web/src/fsd/shared/config + apps/web/src/fsd/entities/user + apps/web/src/fsd/entities/uploaded-file + apps/web/src/fsd/features/settings + apps/web/src/fsd/features/upload + apps/web/src/fsd/pages/settings + apps/web/src/fsd/pages/dashboard + apps/web/src/app/dashboard + apps/web/src/inngest + apps/web/CLAUDE.md + apps/backend/CLAUDE.md
