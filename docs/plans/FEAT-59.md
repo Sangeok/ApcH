@@ -7,7 +7,7 @@ agent: web-dev
 `UploadPodcast.tsx`(`pages/dashboard/ui/_component/UploadPodcast.tsx`)가 업로드 카드와 옵션 영역을 그린다. 이것이 「보존」의 기준선이다.
 
 **상태(4)와 파생값** — `:79-88`:
-- `:79` `files` (`File[]`), `:80` `language`, `:81` `clipCount`, `:86` `reviewBeforeGenerate` — 넷 다 `defaults`로 초기화(`:80,81,87`).
+- `:79` `files` (`File[]`, 빈 배열 `useState<File[]>([])`로 시작), `:80` `language`, `:81` `clipCount`, `:86` `reviewBeforeGenerate` — 뒤의 셋은 `defaults`로 초기화(`:80` `defaults.language`, `:81` `defaults.clipCount`, `:87` `defaults.reviewBeforeGenerate`).
 - `:82` `framingSummary = videoFramingSummary(defaultVideoPaddingPercent)` (파생, `shared/config/video-framing.ts:34`).
 - `:83` `durationSeconds` (측정 결과), `:85` `durationRequestId` (늦게 온 측정 폐기용 ref).
 - `:166` `maxFeasibleClips = getMaxFeasibleClipCount(durationSeconds)` (파생, `pages/dashboard/model/clip-count-budget.ts:23`).
@@ -21,9 +21,9 @@ agent: web-dev
 - `:161` `handleReviewModeChange` → `setReviewBeforeGenerate` + `trackOptionsChanged({ reviewBeforeGenerate })`.
 
 **렌더** — `:168-347` (`:168` `return (` ~ `:347` `);`):
-- 카드(`:170-210`)는 `Dropzone`(`:178`, `maxSize`·`accept`·`maxFiles={1}`·`disabled={isUploading}`) 한 개만 담는다. 옵션·파일 줄은 카드 **밖**(`:212` `<div className="mt-4 flex items-start justify-between">`)에 있다.
+- 카드(`:170-210`)는 헤더(`Upload Podcast` 제목·설명)와 `Dropzone`(`:178`, `maxSize`·`accept`·`maxFiles={1}`·`disabled={isUploading}`) 하나를 담는다. 옵션·파일 줄은 카드 **밖**(`:212` `<div className="mt-4 flex items-start justify-between">`)에 있다.
 - 옵션 네 묶음(`:224` `<div className="flex gap-x-4">`)이 wrap 없는 한 줄: 언어 드롭다운(`:229-247`, 버튼 라벨 `{language}` = 값), 클립 수 드롭다운(`:250-276`, 길이로 막힌 값은 `disabled={isOptionUnreachable}`), 생성 드롭다운(`:280-300`), Video style(`:302-320`, `captionStyleLabel(...)` + `framingSummary` + `Change in settings` 링크 — 편집 불가 텍스트).
-- 길이 안내 줄(`:322-328`): 30초 미만이면 `Source is shorter than ${CLIP_DURATION_LIMITS.MIN_SECONDS}s — too short to generate a clip. Try a longer video.`, 아니면 `Source length … This fits up to N clip(s); the AI may return fewer.`.
+- 길이 안내 줄(`:322-328`, 길이를 알 때만 — `:322` `{files.length > 0 && durationSeconds !== null && (`): 30초 미만이면 `Source is shorter than ${CLIP_DURATION_LIMITS.MIN_SECONDS}s — too short to generate a clip. Try a longer video.`, 아니면 `Source length … This fits up to N clip(s); the AI may return fewer.`.
 - 업로드 버튼(`:332-344`)은 파일 줄 옆 우상단. `disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}`, 라벨 `Upload and Generate Clips` / `Uploading...`(스피너). 이 버튼은 `:214` `{files.length > 0 && (` 가드 **밖**이라 파일을 고르기 전에도 비활성으로 렌더된다.
 
 **유효 캡션 스타일 계산** — `CaptionStyleEditor.tsx:79-90`은 저장값 위에 언어별 기본값을 얹은 `effectivePosition`·`effectiveFontSize`·… 7개를 **인라인**으로 만든다(`value?.color ?? CAPTION_STYLE_OPTIONS.DEFAULT_COLOR` 등, 언어 기본값은 `:39-55` `languageDefault*` 헬퍼). 이 값이 컨트롤·미리보기에 쓰인다. 썸네일이 같은 스타일을 그리려면 이 계산이 필요하다.
@@ -60,7 +60,7 @@ agent: web-dev
 
 ### 1) 새 순수 함수 — `features/caption-style/model/effective-caption-style.ts` (신규)
 
-`CaptionStyleEditor.tsx:79-90`의 인라인 계산과 **바이트 동등**하게 옮긴다. 에디터(설정 미리보기)와 업로드 폼 썸네일이 같은 값을 쓰게 하는 단일 원천.
+`CaptionStyleEditor.tsx:79-90`의 인라인 계산(과 `:39-55` 헬퍼)을 **같은 값을 내도록** 한 함수로 옮긴다 — 코드 모양은 달라도(헬퍼 셋을 `isKorean` 삼항으로 인라인) 모든 필드에서 같은 값이다(계획 검증에서 필드 값 격자 × 언어 4개 = 3,892 조합을 옛 코드와 대조해 전부 일치). 에디터(설정 미리보기)와 업로드 폼 썸네일이 같은 값을 쓰게 하는 단일 원천.
 
 ```ts
 import {
@@ -203,7 +203,7 @@ export { SegmentedControl, SegmentedControlItem };
 
 ### 5) 새 컴포넌트 — `features/caption-style/ui/CaptionStyleThumbnail.tsx` (신규)
 
-요구 (d): 상하 여백은 실비율, 캡션은 색·외곽선·대문자·서체·위치를 그리되 글자 크기는 축척하지 않는 견본. 캡션 세로 위치는 `MARGINV/PLAY_RES_Y`를 %로 — `getPreviewVerticalInset(position, 100)`을 재사용하면 반환값(100px 기준 px)이 곧 %다(같은 슬라이스 `../model/caption-preview.ts:107`, `video-framing`·`caption-preview` 계약과 이미 묶여 테스트됨). 서체 변수는 `layout.tsx`가 정의한 `--font-anton`/`--font-noto-sans-kr`(CaptionPreviewPlayer와 동일). `--picked` 토큰은 쓰지 않는다.
+요구 (d): 상하 여백은 실비율, 캡션은 색·외곽선·대문자·서체·위치를 그리되 글자 크기는 축척하지 않는 견본. 캡션 세로 위치는 `MARGINV/PLAY_RES_Y`를 %로 — `getPreviewVerticalInset(position, 100)`을 재사용하면 반환값(100px 기준 px)이 곧 %다(같은 슬라이스 `../model/caption-preview.ts:107`. `caption-preview.test.mjs`의 `describe("getPreviewVerticalInset"`이 top·bottom·middle 세 분기를 이미 지킨다). 서체 변수는 `layout.tsx`가 정의한 `--font-anton`/`--font-noto-sans-kr`(CaptionPreviewPlayer와 동일). `--picked` 토큰은 쓰지 않는다.
 
 견본 문구는 목업에서 온 **비기능 견본**이다(source가 지정한 사용자 대면 문구가 아님) — 리터럴을 상수로 두고 게이트②에서 소유자가 바꿀 수 있게 한다.
 
@@ -316,7 +316,7 @@ after:
   } = resolveEffectiveCaptionStyle(value, language);
 ```
 
-`CAPTION_STYLE_OPTIONS`·`CAPTION_STYLE_PRESETS` import는 다른 곳(`:102` 이하)에서 계속 쓰므로 유지한다.
+`CAPTION_STYLE_OPTIONS`·`CAPTION_STYLE_PRESETS` import는 다른 곳에서 계속 쓰므로 유지한다 — `CAPTION_STYLE_OPTIONS`는 `:31` `POSITION_LABELS` 타입·`:60` `EMPTY_STYLE`·JSX(`:138` `POSITIONS.map` 등), `CAPTION_STYLE_PRESETS`는 JSX `:119` `CAPTION_STYLE_PRESETS.map`.
 
 ### 7) `features/caption-style/index.ts` 수정
 
@@ -347,7 +347,7 @@ export { default as CaptionStyleThumbnail } from "./ui/CaptionStyleThumbnail";
 
 **상태·핸들러·`upload()`·계측·`getMaxFeasibleClipCount`·자동 보정은 `:79-166` 그대로 둔다.** 세그먼트의 `onValueChange`는 기존 핸들러에 값을 넘기는 얇은 어댑터로 감싼다(아래 JSX). 클립 수 값은 문자열이라 `Number(v)`로, 생성 방식은 `v === "review"`로 변환한다.
 
-**렌더 교체** — `:168`의 `return (`부터 `:347`의 `);`까지를 아래로 바꾼다(`:348`의 함수 닫는 `}`는 남는다). 파일 선택 전 화면은 지금처럼 큰 드롭존 + **비활성 업로드 버튼**이고(요구 (a) — 현재 버튼이 `:214` 가드 밖이라 항상 렌더된다), 버튼만 카드 안 하단으로 옮긴다. 선택 뒤에는 파일 줄 + 옵션 격자 + Video style + 하단 버튼이 모두 카드 안에 든다. 좁은 폭 전환은 뷰포트가 아니라 카드 폭 기준 — 옵션 래퍼에 `@container`를 걸고 Tailwind v4 내장 컨테이너 변형 `@[600px]:`를 쓴다(대시보드가 `max-w-5xl` 안이라 카드 폭이 뷰포트보다 먼저 한계에 닿는다, `pages/dashboard/ui/index.tsx:106`). 큰 드롭존 마크업(`UploadCloud`·안내문·`Select File` 버튼)은 `:186-206`을 그대로 옮긴다.
+**렌더 교체** — `:168`의 `return (`부터 `:347`의 `);`까지를 아래로 바꾼다(`:348`의 함수 닫는 `}`는 남는다). 파일 선택 전 화면은 지금처럼 큰 드롭존 + **비활성 업로드 버튼**이고(요구 (a) — 현재 버튼이 `:214` 가드 밖이라 항상 렌더된다), 버튼만 카드 안 하단으로 옮긴다. 선택 뒤에는 파일 줄 + 옵션 격자 + Video style + 하단 버튼이 모두 카드 안에 든다. 좁은 폭 전환은 뷰포트가 아니라 카드 폭 기준 — 옵션 격자(파일 선택 뒤에만)와 업로드 버튼(항상)을 함께 감싸는 래퍼에 `@container`를 걸고 Tailwind v4 내장 컨테이너 변형 `@[600px]:`를 쓴다(대시보드가 `max-w-5xl` 안이라 카드 폭이 뷰포트보다 먼저 한계에 닿는다, `pages/dashboard/ui/index.tsx:106`). 큰 드롭존 마크업(`UploadCloud`·안내문·`Select File` 버튼)은 `:186-206`을 그대로 옮긴다.
 
 ```tsx
   const langStyle =
@@ -594,6 +594,6 @@ export { default as CaptionStyleThumbnail } from "./ui/CaptionStyleThumbnail";
 ## 대안
 
 - **세그먼트 primitive**: `ToggleGroup type="single"` vs `RadioGroup` → `RadioGroup`. `ToggleGroup`은 활성 항목을 다시 누르면 `""`를 방출해 가드가 필요하다(설계 메모). `RadioGroup`은 값이 바뀔 때만 `onValueChange`를 불러 그 문제가 없고, 라디오 시맨틱·화살표 키 이동이 기본 제공된다.
-- **좁은 폭 전환 수단**: 뷰포트 브레이크포인트(`sm:`) vs 컨테이너 쿼리 → 컨테이너 쿼리. 대시보드가 `max-w-5xl` 안이라 카드 폭이 뷰포트 폭보다 먼저 한계에 닿는다(`pages/dashboard/ui/index.tsx:106`) — 뷰포트 기준이면 카드가 좁아도 전환이 늦는다. Tailwind v4는 `@container`·`@[600px]:`를 플러그인 없이 내장한다(`globals.css:1` `@import "tailwindcss"`).
+- **좁은 폭 전환 수단**: 뷰포트 브레이크포인트(`sm:`) vs 컨테이너 쿼리 → 컨테이너 쿼리. 대시보드가 `max-w-5xl` 안이라 카드 폭이 뷰포트 폭보다 먼저 한계에 닿는다(`pages/dashboard/ui/index.tsx:106`) — 뷰포트 기준이면 카드가 좁아도 전환이 늦는다. Tailwind v4는 `@container`·`@[600px]:`를 플러그인 없이 내장한다(`src/styles/globals.css:1` `@import "tailwindcss";`).
 - **썸네일 위치**: `pages/dashboard` vs `features/caption-style` → 후자. 캡션 렌더 로직(effective 스타일·`MARGINV`·서체)을 캡션 슬라이스에 응집하고, pages→features 임포트는 이미 있다(`captionStyleLabel`). 썸네일이 `getPreviewVerticalInset`·`resolveEffectiveCaptionStyle`을 같은 슬라이스에서 직접 쓴다.
-- **effective 계산 공유 범위**: 썸네일에만 두기 vs 에디터와 공유 → 공유(모델 추출). 두 곳이 따로 계산하면 설정 미리보기와 업로드 썸네일이 조용히 어긋난다(설계 메모 권장). 추출 함수는 에디터 인라인과 바이트 동등해 동작 무변경.
+- **effective 계산 공유 범위**: 썸네일에만 두기 vs 에디터와 공유 → 공유(모델 추출). 두 곳이 따로 계산하면 설정 미리보기와 업로드 썸네일이 조용히 어긋난다(설계 메모 권장). 추출 함수는 에디터 인라인과 모든 필드에서 같은 값을 내므로 동작 무변경(3,892 조합 대조).
