@@ -1,4 +1,5 @@
 export { default as CaptionStyleEditor } from "./ui/CaptionStyleEditor";
+export { default as CaptionStyleThumbnail } from "./ui/CaptionStyleThumbnail";
 export { captionStyleLabel, matchPresetId } from "./model/caption-presets";
 export {
   sampleCaptionWords,

@@ -9,6 +9,7 @@ import {
   type CaptionStyle,
 } from "~/fsd/shared/config/constants";
 import { matchPresetId } from "../model/caption-presets";
+import { resolveEffectiveCaptionStyle } from "../model/effective-caption-style";
 import CaptionPreviewPlayer from "./CaptionPreviewPlayer";
 
 interface CaptionStyleEditorProps {
@@ -36,24 +37,6 @@ const POSITION_LABELS: Record<
   bottom: "Bottom",
 };
 
-function languageDefaultFontSize(language: string): number {
-  return language === "Korean"
-    ? CAPTION_STYLE_OPTIONS.DEFAULT_FONT_SIZE.Korean
-    : CAPTION_STYLE_OPTIONS.DEFAULT_FONT_SIZE.English;
-}
-
-function languageDefaultMaxWords(language: string): number {
-  return language === "Korean"
-    ? CAPTION_STYLE_OPTIONS.DEFAULT_MAX_WORDS.Korean
-    : CAPTION_STYLE_OPTIONS.DEFAULT_MAX_WORDS.English;
-}
-
-function languageDefaultOutlineWidth(language: string): number {
-  return language === "Korean"
-    ? CAPTION_STYLE_OPTIONS.DEFAULT_OUTLINE_WIDTH.Korean
-    : CAPTION_STYLE_OPTIONS.DEFAULT_OUTLINE_WIDTH.English;
-}
-
 // 저장된 값이 없는 필드는 null로 남긴다. 아래 emit이 이 값을 펼치므로
 // 손대지 않은 필드는 계속 null(= 백엔드 언어별 기본값)로 저장된다.
 const EMPTY_STYLE: CaptionStyle = {
@@ -77,17 +60,16 @@ export default function CaptionStyleEditor({
   sample = false,
 }: CaptionStyleEditorProps) {
   // 저장된 값 위에 언어별 기본값을 얹은 "유효 스타일". 컨트롤과 미리보기가 이 값을 표시한다.
-  const effectivePosition =
-    value?.position ?? CAPTION_STYLE_OPTIONS.DEFAULT_POSITION;
-  const effectiveFontSize = value?.fontSize ?? languageDefaultFontSize(language);
-  const effectiveColor = value?.color ?? CAPTION_STYLE_OPTIONS.DEFAULT_COLOR;
-  const effectiveMaxWords =
-    value?.maxWordsPerLine ?? languageDefaultMaxWords(language);
-  const effectiveOutlineColor =
-    value?.outlineColor ?? CAPTION_STYLE_OPTIONS.DEFAULT_OUTLINE_COLOR;
-  const effectiveOutlineWidth =
-    value?.outlineWidth ?? languageDefaultOutlineWidth(language);
-  const effectiveUppercase = value?.uppercase ?? false;
+  // 계산은 model/effective-caption-style.ts에 있다 — 업로드 폼 썸네일과 공유한다.
+  const {
+    position: effectivePosition,
+    fontSize: effectiveFontSize,
+    color: effectiveColor,
+    maxWordsPerLine: effectiveMaxWords,
+    outlineColor: effectiveOutlineColor,
+    outlineWidth: effectiveOutlineWidth,
+    uppercase: effectiveUppercase,
+  } = resolveEffectiveCaptionStyle(value, language);
 
   // 저장값(null 포함)을 그대로 펼친다. effective를 펼치면 위치만 바꿔도
   // 폰트/줄당 단어가 실제 값으로 굳어져, 프리셋과 동일한 모습인데도
