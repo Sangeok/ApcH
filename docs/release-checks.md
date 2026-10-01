@@ -80,7 +80,7 @@
 
 ## FEAT-58 — 영상 상하 동일 검은 여백 (db+web+backend, 구현 2026-09-30)
 
-원천: `docs/plans/FEAT-58.md`의 V-SETTINGS·V-LABEL·V-SNAPSHOT·V-RENDER(「못 덮는 범위」)와 BLK-FRAMING-02. **백엔드 배포됨(Modal v31) · 마이그레이션 적용됨(2026-10-01) · 웹 미배포** — 웹 코드는 `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0** · `build` EXIT 0 · admin `check` EXIT 0 · `test` **334/75/0** · backend unittest **123 OK** · `py_compile` EXIT 0.
+원천: `docs/plans/FEAT-58.md`의 V-SETTINGS·V-LABEL·V-SNAPSHOT·V-RENDER(「못 덮는 범위」)와 BLK-FRAMING-02. **전부 배포됨** — 마이그레이션(2026-10-01) · 백엔드 Modal v31 · 웹은 PR #128 합류 커밋 `78cffe1`(Vercel `apc-h` success, 2026-10-01). 아래 열린 줄은 이제 프로덕션에서 판정할 수 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0** · `build` EXIT 0 · admin `check` EXIT 0 · `test` **334/75/0** · backend unittest **123 OK** · `py_compile` EXIT 0.
 **순서가 곧 안전장치다 — DB → 백엔드 → 웹.** 새 웹이 먼저 나가면 없는 컬럼을 `SELECT`해 설정·대시보드·업로드가 깨지고, 새 백엔드보다 먼저 나가면 구 백엔드가 `video_padding_percent`를 버려 설정과 결과가 어긋난다(BLK-FRAMING-02).
 **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이거나 렌더 결과라 공개 HTTP 응답으로 판정되지 않는다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
 
