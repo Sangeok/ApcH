@@ -96,3 +96,18 @@ web-dev가 `완료`로 보고했다. 인수 조건 다섯을 메인 루프가 �
 **문서 갱신(메인 루프)**: 독립 패스가 짚은 살아있는 미러 `apps/web/docs/architecture/vercel-project-setup-guide.md`의 CSP 블록을
 `next.config.js`와 맞췄다 — `media-src`에 `blob:`. 같은 블록의 `connect-src`도 FEAT-32 이후 `https://*.sentry.io`가 빠져 낡아 있어
 함께 맞췄다(지시자 11개 전부 일치 확인). `docs/proposals/completed/…:258`은 완료 이력이라 두었다.
+
+## 배포 (2026-10-01, 소유자 승인)
+
+소유자의 「웹 배포」 지시로 `dev`→`main` PR #128을 만들었다(FEAT-58·BUG-16·BUG-17·FEAT-59, 32커밋). 합류 직전 `dev`에서 web·admin
+`build` 둘 다 EXIT 0을 직접 확인했다(이 합류가 `@repo/db` 생성 클라이언트를 바꾸므로 admin도). FEAT-58의 DB → 백엔드 → 웹 순서는
+마이그레이션 적용(같은 날)과 Modal v31로 앞 두 단계가 끝나 있었다.
+
+main 저장소 규칙(`require_last_push_approval`)이 같은 계정의 푸시·합류를 막아(`gh pr merge --merge` → 「base branch policy prohibits
+the merge」) 우회 합류는 소유자에게 물었다. 소유자가 「admin으로 합쳐」로 답해 `gh pr merge 128 --merge --admin` → `78cffe1`
+(21:58 KST). Vercel 배포는 합류 약 400초 뒤 프로덕션 CSP 응답이 바뀐 것으로 판정했다.
+
+**배포 확인(원장)**: 프로덕션 `/dashboard`를 로그인 브라우저로 열고 파일을 **선택만** 했다(업로드 없음 — `upload_file_selected`
+계측이 3건 남았다). 원장 줄 닫음과 근거는 `docs/release-checks.md` BUG-17·FEAT-59 절에 있다.
+- 닫은 줄 둘: 응답 헤더(`media-src 'self' blob: https://*.amazonaws.com`, 나머지 10개 지시자 배포 전과 같음), 실물 길이 측정(300초 파일
+  `5:00`, 87.6초 `1:28` + 상한, 2초 차단, 콘솔 메시지 0건). 2026-09-30 관측에서 꺼져 있던 셋이 전부 동작한다.

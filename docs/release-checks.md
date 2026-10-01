@@ -46,25 +46,25 @@
 
 ## FEAT-59 — 업로드 폼 옵션 영역 개편 (web, 구현 2026-10-01)
 
-원천: `docs/agents/web-dev/FEAT-59.md`·`docs/plans/FEAT-59.md` 「못 덮는 범위」. **웹 미배포** — `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**. 인수 때 구현본을 실제 Tailwind 컴파일 + 브라우저 하니스(서버 액션·계측만 스텁)로 띄워 1024px 2열(`152px 766px`)·390px 1열·가로 넘침 없음·보정·같은 값 재선택 무발화를 확인했다 — 아래 줄은 **실서버·실서체·실데이터**로만 닫힌다.
+원천: `docs/agents/web-dev/FEAT-59.md`·`docs/plans/FEAT-59.md` 「못 덮는 범위」. **배포됨(2026-10-01, PR #128 합류 `78cffe1`)**. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**. 인수 때 구현본을 실제 Tailwind 컴파일 + 브라우저 하니스(서버 액션·계측만 스텁)로 띄워 1024px 2열(`152px 766px`)·390px 1열·가로 넘침 없음·보정·같은 값 재선택 무발화를 확인했다 — 아래 줄은 **실서버·실서체·실데이터**로만 닫힌다.
 **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
 
-- [ ] **배치가 폭에 따라 바뀌고 가로로 넘치지 않는가** — `/dashboard`에서 파일을 고르면 옵션이 업로드 카드 **안**에 라벨|컨트롤 2열로 나오고, 폰 폭(약 390px)에서는 라벨이 위로 가는 1열이 되며 페이지가 가로로 스크롤되지 않는지(2026-09-30 관측: 옵션 줄이 약 880px까지 넘쳤다)
+- [x] **배치가 폭에 따라 바뀌고 가로로 넘치지 않는가** — 확인(2026-10-01, 실측 — 배포 뒤 프로덕션 `/dashboard`, 파일 선택 상태. 1280px: 옵션이 카드 안 2열 `152px 766px`, 문서 폭 1265/1280(스크롤바). 390px: 1열 `293px`, 세그먼트·업로드 버튼 전폭 293px, 문서 폭 375/390 — 배포 전 같은 폭에서 옵션 줄이 약 880px까지 넘쳤다) — `/dashboard`에서 파일을 고르면 옵션이 업로드 카드 **안**에 라벨|컨트롤 2열로 나오고, 폰 폭(약 390px)에서는 라벨이 위로 가는 1열이 되며 페이지가 가로로 스크롤되지 않는지(2026-09-30 관측: 옵션 줄이 약 880px까지 넘쳤다)
 - [ ] **파일 선택 전후 화면** — 고르기 전에는 큰 드롭존 + 비활성 `Upload and generate clips`, 고른 뒤에는 파일 한 줄(이름·MB·길이·`Replace`)로 접히고 그 줄을 눌러도·끌어다 놓아도 파일이 바뀌는지
 - [ ] **세그먼트 조작** — 언어·클립 수·생성 방식을 마우스와 방향키로 바꿀 수 있고, `Review first`를 고르면 버튼이 `Upload and review clips`가 되는지
 - [ ] **Video style 썸네일이 설정을 그리는가** — 9:16 썸네일의 상하 검은 띠가 설정 여백과 같은 비율이고, 캡션 견본이 실제 서체(영어 Anton · 한국어 Noto Sans KR)·색·외곽선·대문자·위치로 그려지며, 자막 언어를 바꾸면 그 언어의 스타일로 바뀌는지. `Captions`·`Framing` 값과 `Change in settings` 링크
-- [ ] **클립 수 상한이 보이는가**(BUG-17 배포 뒤) — 1:45 파일이면 `4`가 취소선으로 막히고 저장값 4가 3으로 옮겨지며 `This video fits up to 3 clips. The AI may return fewer.`, 30초 미만 파일이면 파일 줄에 빨간 안내 + 버튼 비활성
-- [ ] **설정 화면 캡션 미리보기가 그대로인가**(회귀) — 유효 스타일 계산을 `model/effective-caption-style.ts`로 옮겼다. 설정 화면 `Video style`의 Font size·Words per line·Outline width 기본값(영어 122/5/1.1 · 한국어 130/3/1.3)과 샘플 미리보기가 이전과 같은지(계획 검증에서 옛 계산과 116,645 조합 값 동일을 확인했다)
+- [x] **클립 수 상한이 보이는가**(BUG-17 배포 뒤) — 확인(2026-10-01, 실측 — 87.6초 파일: `3`·`4` 비활성 + 취소선, 저장값 4가 2로 보정, `This video fits up to 2 clips. The AI may return fewer.` 2초 파일: 파일 줄 destructive 안내, 클립 안내 없음, 버튼 비활성. 1:45 대신 87.6초 파일로 같은 분기(상한<4)를 밟았다) — 1:45 파일이면 `4`가 취소선으로 막히고 저장값 4가 3으로 옮겨지며 `This video fits up to 3 clips. The AI may return fewer.`, 30초 미만 파일이면 파일 줄에 빨간 안내 + 버튼 비활성
+- [x] **설정 화면 캡션 미리보기가 그대로인가**(회귀) — 확인(2026-10-01, 실측 — 배포 뒤 `/dashboard/settings`, 저장 스타일 없음(Default). 편집 언어 한국어 `Font size: 130`·`Words per line: 3`·`Outline width: 1.3`, English로 바꾸면 `122`·`5`·`1.1` — 이전 기본값과 같다) — 유효 스타일 계산을 `model/effective-caption-style.ts`로 옮겼다. 설정 화면 `Video style`의 Font size·Words per line·Outline width 기본값(영어 122/5/1.1 · 한국어 130/3/1.3)과 샘플 미리보기가 이전과 같은지(계획 검증에서 옛 계산과 116,645 조합 값 동일을 확인했다)
 
 ---
 
 ## BUG-17 — 프로덕션 CSP가 `blob:` 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다 (web, 구현 2026-10-01)
 
-원천: `docs/agents/web-dev/BUG-17.md` 「못 덮는 범위」·`docs/plans/BUG-17.md` 「테스트」. **웹 미배포** — `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0**. CSP는 개발 모드에서 꺼지므로(`next.config.js` `if (process.env.NODE_ENV === "development") return [];`) 배포 전에는 판정할 수 없다.
+원천: `docs/agents/web-dev/BUG-17.md` 「못 덮는 범위」·`docs/plans/BUG-17.md` 「테스트」. **배포됨(2026-10-01, PR #128 합류 `78cffe1`)**. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0**. CSP는 개발 모드에서 꺼지므로(`next.config.js` `if (process.env.NODE_ENV === "development") return [];`) 배포 전에는 판정할 수 없다.
 **`〔auto〕` 태그를 붙이지 않는다**: web(`a-pch.com`) 응답과 로그인 뒤 화면이라 루틴의 기준 호스트(admin) 밖이다(머리말 참조).
 
-- [ ] **프로덕션 응답 헤더에 `blob:`가 실리는가** — `curl -sI https://a-pch.com/ | grep -i content-security-policy`의 `media-src`가 `'self' blob: https://*.amazonaws.com`이고, 다른 지시자 10개는 배포 전과 같은지
-- [ ] **업로드 폼이 영상 길이를 읽는가** — `/dashboard`에서 mp4를 고르면 콘솔에 `Loading media from 'blob:…' violates … media-src` 위반이 없고 길이 안내가 뜨는지. 30초 미만 파일은 업로드 버튼이 꺼지고, 1:45 파일은 클립 수 4가 막히는지(FEAT-59 배포 전이면 드롭다운 메뉴 안에서, 배포 뒤면 세그먼트에서). 2026-09-30 관측에서는 이 셋이 프로덕션에서 전부 꺼져 있었다
+- [x] **프로덕션 응답 헤더에 `blob:`가 실리는가** — 확인(2026-10-01, 실측 — PR #128 합류(`78cffe1`) 약 400초 뒤 `curl -sI https://a-pch.com/`의 `media-src 'self' blob: https://*.amazonaws.com`. 지시자 11개, 나머지 10개는 배포 전과 같음) — `curl -sI https://a-pch.com/ | grep -i content-security-policy`의 `media-src`가 `'self' blob: https://*.amazonaws.com`이고, 다른 지시자 10개는 배포 전과 같은지
+- [x] **업로드 폼이 영상 길이를 읽는가** — 확인(2026-10-01, 실측 — 배포 뒤 로그인 브라우저로 `/dashboard`에서 파일을 **선택만** 했다(업로드 없음). 300초 파일 → 파일 줄 `14.2 MB, 5:00`, 87.6초 → `1:28`·`3`·`4` 비활성·저장값 4→2·`This video fits up to 2 clips.`, 2초 → 파일 줄 빨간 `Source is shorter than 30s …` + 업로드 버튼 비활성. 콘솔 메시지 0건(CSP 위반 없음)) — `/dashboard`에서 mp4를 고르면 콘솔에 `Loading media from 'blob:…' violates … media-src` 위반이 없고 길이 안내가 뜨는지. 30초 미만 파일은 업로드 버튼이 꺼지고, 1:45 파일은 클립 수 4가 막히는지(FEAT-59 배포 전이면 드롭다운 메뉴 안에서, 배포 뒤면 세그먼트에서). 2026-09-30 관측에서는 이 셋이 프로덕션에서 전부 꺼져 있었다
 
 ---
 
