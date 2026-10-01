@@ -47,12 +47,13 @@
   검증: 클린 패스 (2026-10-01, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 경로 7은 같은 패스 안에서 보충 실행. 메인 루프 라운드도 무소득)
   근거: 소유자 직접 발주(게이트① 세션 지시 — 「방금 이야기한 것을 바탕으로 수정을 진행해」). 업로드 옵션 UI 검토 중 프로덕션 콘솔에서 확인했다. next.config.js는 FEAT-32 전례대로 web-dev가 맡는다.
   결과: 계획대로 next.config.js 1줄 — media-src에 blob: 추가(스케치 동일). check EXIT0·test 182/45/0. 배포 후 응답헤더·실물 길이안내 확인 미결. 상세 web-dev/BUG-17
-- [ ] FEAT-59: 업로드 폼 옵션 영역 개편 — 카드 안 2열 격자·세그먼트·Video style 9:16 썸네일. 기능·계측은 그대로
+- [x] FEAT-59: 업로드 폼 옵션 영역 개편 — 카드 안 2열 격자·세그먼트·Video style 9:16 썸네일. 기능·계측은 그대로
   agent: web-dev
   area: apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx + apps/web/src/fsd/shared/ui/atoms + apps/web/src/fsd/features/caption-style
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-10-01, 독립 무편집 3사이클 — 1·2사이클 문서 위생 각 1건 반영 뒤 3사이클 결함 0, 필수 7경로 전수. 메인 루프 라운드 소득 13건(구현 영향 3) 반영 뒤)
   근거: 소유자 직접 발주(게이트① 세션 지시). 같은 대화에서 목업으로 합의한 개편안이다. BUG-17과 파일이 겹치지 않아 병행 계획한다(BUG-15·FEAT-44 전례).
+  결과: 계획대로 11파일(수정3·신규8) — 세그먼트 2열 격자·9:16 썸네일·순수모듈3+테스트3, 동작·계측 보존. check EXIT0·test 198/49/0. 상세 web-dev/FEAT-59
 - [x] BUG-16: 여백 0%에서 9:16보다 세로로 긴 source는 화자 없는 프레임에서 렌더가 죽고, 화자 있는 프레임은 가로로 늘어난다
   agent: backend-dev
   area: apps/backend/main.py (`create_vertical_video`) + apps/backend/video_framing.py (재사용 후보)

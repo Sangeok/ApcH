@@ -207,3 +207,30 @@ lint했고, 경로 8은 썸네일·세그먼트만 렌더했다. 검증자 스�
 메인 루프가 게이트② 판단 사항으로 올린 둘에 소유자는 별도 지시 없이 승인했다 — 계획서대로 간다.
 - 「알려진 동작 차이」 둘(같은 값 재선택 무발화 · 방향키 한 칸마다 발화): 계획서대로 수용.
 - 썸네일 견본 문구 `the real reason` / `진짜 이유는`: 계획서대로.
+
+## 인수 (2026-10-01)
+
+web-dev가 `완료`로 보고했다. 인수 조건 다섯을 메인 루프가 직접 재현했다.
+1. **변경 파일 ↔ 「고칠 파일」**: `git status --porcelain` — 코드 11개(수정 3: `UploadPodcast.tsx`·`CaptionStyleEditor.tsx`·
+   `caption-style/index.ts` / 신규 8: model 3 + 테스트 3 + `CaptionStyleThumbnail.tsx` + `segmented-control.tsx`). 계획서 표와 1:1, 초과 0.
+2. **diff ↔ 「구현 스케치」**: 스크립트로 대조 — 신규 5파일이 스케치 블록과 **바이트 동일**, 에디터는 after 블록 포함·before 소멸·헬퍼
+   소멸·import 한 줄, 배럴은 after 포함, `UploadPodcast.tsx`는 렌더 블록이 바이트 그대로 들어가 `}`로 닫히고 HEAD의 함수 본문
+   (`:41-167`)이 그대로 남았다. import는 계획대로(여러 줄 서식만 다름 — 승인 네 범주 밖).
+3. **검증 명령 재실행**: `npm run check -w apps/web` EXIT 0(`verify:fsd:test` 11/11 · `verify:fsd` 통과 · `next lint` 경고 0 · `tsc` 통과),
+   `npm test -w apps/web` **198/49/0**(기준 182/45 + 새 테스트 16·suite 4).
+4. **백로그 제거**: `TASK_BACKLOG.md`에서 FEAT-59 항목 4줄 삭제, 남은 언급 0.
+5. **상세 기록 실재**: `docs/agents/web-dev/FEAT-59.md`(8,831바이트). 보드 `결과` 108자.
+
+**구현본 실물 렌더(메인 루프 추가 확인)**: 작업 트리 `apps/web`을 스크래치패드로 복사(`diff -rq`로 동일 확인)해 계획 검증 때와 같은
+브라우저 하니스로 띄웠다. 390px — 파일 선택 전 `Select File` + 비활성 `Upload and generate clips`, 넘침 없음(390/390), 선택 뒤 1열
+`308px`·`4` 비활성·저장값 4→3·안내 문구·같은 값 재클릭 +0·한국어 전환 시 견본 `진짜 이유는`·`Default`, 계측 페이로드 모양 불변.
+1024px — 격자 `152px 766px`, 넘침 없음. 스크린샷에서 견본의 `L`이 `I`처럼 보였으나 글자 범위를 재니 두 줄 38px·34px로 썸네일
+안쪽(76px) 여유 안 — 하니스가 Anton 대신 Impact로 대체 렌더한 것이고 잘림은 없다.
+
+**범위 밖 의존**: 계획서 「없음」 — 백로그 후보 없음.
+
+**문서 갱신(메인 루프)**: `apps/web/CLAUDE.md` 테스트 표에 web-dev가 비고로 낸 3행을 넣고(검증에서 나온 돌연변이 근거를 덧붙임),
+머리말을 「현재 30개 파일, 49 suite, 198개 테스트」로 갱신(`find src -name "*.test.mjs" | wc -l` = 30 실측).
+
+**배포 확인 원장**: `docs/release-checks.md`에 FEAT-59 절 6줄 등재(배치·넘침, 선택 전후, 세그먼트 조작, 썸네일, 클립 상한(BUG-17 뒤),
+설정 미리보기 회귀). 전부 로그인 뒤 web 화면이라 `〔auto〕` 태그 없음.
