@@ -80,11 +80,11 @@
 
 ## FEAT-58 — 영상 상하 동일 검은 여백 (db+web+backend, 구현 2026-09-30)
 
-원천: `docs/plans/FEAT-58.md`의 V-SETTINGS·V-LABEL·V-SNAPSHOT·V-RENDER(「못 덮는 범위」)와 BLK-FRAMING-02. **백엔드 배포됨(2026-09-30 Modal v30) · 마이그레이션 미적용 · 웹 미배포** — 웹 코드는 `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0** · `build` EXIT 0 · admin `check` EXIT 0 · `test` **334/75/0** · backend unittest **123 OK** · `py_compile` EXIT 0.
+원천: `docs/plans/FEAT-58.md`의 V-SETTINGS·V-LABEL·V-SNAPSHOT·V-RENDER(「못 덮는 범위」)와 BLK-FRAMING-02. **백엔드 배포됨(Modal v31) · 마이그레이션 적용됨(2026-10-01) · 웹 미배포** — 웹 코드는 `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0** · `build` EXIT 0 · admin `check` EXIT 0 · `test` **334/75/0** · backend unittest **123 OK** · `py_compile` EXIT 0.
 **순서가 곧 안전장치다 — DB → 백엔드 → 웹.** 새 웹이 먼저 나가면 없는 컬럼을 `SELECT`해 설정·대시보드·업로드가 깨지고, 새 백엔드보다 먼저 나가면 구 백엔드가 `video_padding_percent`를 버려 설정과 결과가 어긋난다(BLK-FRAMING-02).
 **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이거나 렌더 결과라 공개 HTTP 응답으로 판정되지 않는다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
 
-- [ ] **마이그레이션이 프로덕션 Neon에 적용됐는가** — `migrate status`가 최신이고, `User.defaultVideoPaddingPercent`·`UploadedFile.videoPaddingPercent`가 `INTEGER NOT NULL DEFAULT 0`에 CHECK 0~25로 있으며 기존 행이 전부 0인지(인수 시 실측: User 7행·UploadedFile 37행, 새 컬럼 0개)
+- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-10-01, 실측 — 소유자 실행 뒤 메인 루프가 읽기 전용 세션(`transaction_read_only = on`)으로 검증: `migrate status` **`Database schema is up to date!`** · `_prisma_migrations`에 `20260930000000_video_padding_percent` finished · `User.defaultVideoPaddingPercent`·`UploadedFile.videoPaddingPercent` 둘 다 `integer NOT NULL DEFAULT 0` · CHECK `>= 0 AND <= 25` 둘 다 존재 · User 7행·UploadedFile 39행 중 0 아닌 값 **0** · 새 클라이언트 `findFirst`로 두 컬럼 실 조회 성공)
 - [ ] **여백 0% 렌더가 배포 전과 같은가**(회귀) — 백엔드 배포 뒤 첫 렌더에서 크롭·블러 배경·자막 위치가 이전 클립과 같은지. 0%는 가로·정사각·9:16 이하 source에서 새 분기에 들어가지 않는다(9:16보다 세로로 긴 source는 BUG-16이 중앙 합성으로 보낸다)(계획 검증에서 HEAD와 프레임 배열 바이트 동일을 합성 프레임으로 확인했지만, GPU 인코더·실제 화자 추적은 실물만 판정한다)
 - [x] **양수 여백 렌더가 설정한 그대로 나오는가** — 확인(2026-09-30, 실측 — Modal v31에서 테스트 원본 두 개를 render 모드 15~50초로 실렌더. 결과 `feat58-verify/20260930/out-land/clip_0_en.mp4`·`out-tall/clip_0_en.mp4`, 둘 다 `status ok`·1080×1920·오디오·35초. 640×360 가로 원본 10%: 17개 샘플에서 상하 192px 띠 평균 밝기 최대 **0.003**(완전 검정), 가운데 평균 ≥80, 화자를 따라가는 크롭, 자막은 가운데 — 0% 세로 원본 클립의 자막과 **같은 화면 높이**. 화자 없는 프레임은 이 렌더에 없어 아래 줄로 분리했다) — 10%로 한 번 렌더(크레딧): 1080×1920에 상하 **192px**씩 검은 띠, 가운데 1080×1536에 화자를 따라가는 크롭. 화자 없는 프레임은 가운데 영역 **안에서만** 블러 배경 + 원본 비율. 자막의 top/middle/bottom 위치가 0% 클립과 같은 화면 좌표인지(띠에 걸려도 잘리지 않음)
 - [ ] **양수 여백 + 화자 없는 프레임** — 가운데 영역 **안에서만** 블러 배경 + 원본 비율인지(위 줄에서 분리 — 2026-09-30 실렌더의 가로 원본에는 화자 없는 구간이 없었다)
