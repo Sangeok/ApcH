@@ -44,6 +44,16 @@
 
 ---
 
+## BUG-17 — 프로덕션 CSP가 `blob:` 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다 (web, 구현 2026-10-01)
+
+원천: `docs/agents/web-dev/BUG-17.md` 「못 덮는 범위」·`docs/plans/BUG-17.md` 「테스트」. **웹 미배포** — `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0**. CSP는 개발 모드에서 꺼지므로(`next.config.js` `if (process.env.NODE_ENV === "development") return [];`) 배포 전에는 판정할 수 없다.
+**`〔auto〕` 태그를 붙이지 않는다**: web(`a-pch.com`) 응답과 로그인 뒤 화면이라 루틴의 기준 호스트(admin) 밖이다(머리말 참조).
+
+- [ ] **프로덕션 응답 헤더에 `blob:`가 실리는가** — `curl -sI https://a-pch.com/ | grep -i content-security-policy`의 `media-src`가 `'self' blob: https://*.amazonaws.com`이고, 다른 지시자 10개는 배포 전과 같은지
+- [ ] **업로드 폼이 영상 길이를 읽는가** — `/dashboard`에서 mp4를 고르면 콘솔에 `Loading media from 'blob:…' violates … media-src` 위반이 없고 길이 안내가 뜨는지. 30초 미만 파일은 업로드 버튼이 꺼지고, 1:45 파일은 클립 수 4가 막히는지(FEAT-59 배포 전이면 드롭다운 메뉴 안에서, 배포 뒤면 세그먼트에서). 2026-09-30 관측에서는 이 셋이 프로덕션에서 전부 꺼져 있었다
+
+---
+
 ## BUG-16 — 여백 0%에서 9:16보다 세로로 긴 source의 렌더 크래시·가로 늘어남 (backend, 구현 2026-09-30)
 
 원천: `docs/plans/BUG-16.md` 「테스트 — 못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다: backend unittest **127 OK** · `py_compile` EXIT 0 · 커밋할 테스트로 돌연변이·음성 **9/9 사멸** · 합성 프레임(실제 구현 코드 대 HEAD) **동일 110 / 세로 0% 수정 25 / 불일치 0**.

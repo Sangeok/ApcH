@@ -75,3 +75,24 @@ FEAT-59(업로드 옵션 개편)를 위해 프로덕션 a-pch.com/dashboard에�
 ## 게이트② (2026-10-01)
 
 소유자가 「BUG-17, FEAT-59 구현 승인」으로 게이트②를 열었다. 계획서는 클린 패스본(`dd8f6c7` 시점) 그대로다.
+
+## 인수 (2026-10-01)
+
+web-dev가 `완료`로 보고했다. 인수 조건 다섯을 메인 루프가 직접 재현했다.
+1. **변경 파일 ↔ 「고칠 파일」**: `git status --porcelain` — 코드 변경은 `apps/web/next.config.js` 하나(나머지는 보드·백로그·
+   `docs/agents/web-dev/BUG-17.md`). 계획서 표와 같다. 초과 0.
+2. **diff ↔ 「구현 스케치」**: `:97` 한 줄 `- "media-src 'self' https://*.amazonaws.com",` → `+ "media-src 'self' blob: https://*.amazonaws.com",`.
+   스케치 after와 바이트 동일.
+3. **검증 명령 재실행**: `npm run check -w apps/web` EXIT 0(`verify:fsd:test` 11/11 · `verify:fsd` 통과 · `next lint` 「No ESLint warnings
+   or errors」 · `tsc` 통과), `npm test -w apps/web` **182/45/0**.
+4. **백로그 제거**: `TASK_BACKLOG.md`에서 BUG-17 항목 3줄 삭제 확인. 남은 `BUG-17` 문자열은 FEAT-59 source의 「관계」 참조 1건(의도).
+5. **상세 기록 실재**: `docs/agents/web-dev/BUG-17.md`(3,459바이트) — 계약 확인·고친 파일 전수·스케치 대비 차이 없음·검증·못 덮는 범위.
+   보드 `결과` 123자.
+
+**범위 밖 의존**: 계획서 「없음」 — 백로그 후보 없음.
+
+**배포 확인 원장**: `docs/release-checks.md`에 BUG-17 절 2줄 등재(응답 헤더, 실물 길이 측정). web 호스트라 `〔auto〕` 태그 없음.
+
+**문서 갱신(메인 루프)**: 독립 패스가 짚은 살아있는 미러 `apps/web/docs/architecture/vercel-project-setup-guide.md`의 CSP 블록을
+`next.config.js`와 맞췄다 — `media-src`에 `blob:`. 같은 블록의 `connect-src`도 FEAT-32 이후 `https://*.sentry.io`가 빠져 낡아 있어
+함께 맞췄다(지시자 11개 전부 일치 확인). `docs/proposals/completed/…:258`은 완료 이력이라 두었다.

@@ -40,12 +40,13 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-09-30
-- [ ] BUG-17: 프로덕션 CSP가 blob: 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다
+- [x] BUG-17: 프로덕션 CSP가 blob: 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다
   agent: web-dev
   area: apps/web/next.config.js
-  status: 구현승인
+  status: 완료
   검증: 클린 패스 (2026-10-01, 독립 무편집 1사이클 — 결함 0, 필수 6경로 전수. 경로 7은 같은 패스 안에서 보충 실행. 메인 루프 라운드도 무소득)
   근거: 소유자 직접 발주(게이트① 세션 지시 — 「방금 이야기한 것을 바탕으로 수정을 진행해」). 업로드 옵션 UI 검토 중 프로덕션 콘솔에서 확인했다. next.config.js는 FEAT-32 전례대로 web-dev가 맡는다.
+  결과: 계획대로 next.config.js 1줄 — media-src에 blob: 추가(스케치 동일). check EXIT0·test 182/45/0. 배포 후 응답헤더·실물 길이안내 확인 미결. 상세 web-dev/BUG-17
 - [ ] FEAT-59: 업로드 폼 옵션 영역 개편 — 카드 안 2열 격자·세그먼트·Video style 9:16 썸네일. 기능·계측은 그대로
   agent: web-dev
   area: apps/web/src/fsd/pages/dashboard/ui/_component/UploadPodcast.tsx + apps/web/src/fsd/shared/ui/atoms + apps/web/src/fsd/features/caption-style
