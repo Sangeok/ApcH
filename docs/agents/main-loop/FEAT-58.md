@@ -299,3 +299,21 @@ BUG-16의 「세로로 긴 원본 0%」다. 이번 렌더에 없던 경우(양�
 결과 클립과 테스트 원본은 S3 `feat58-verify/20260930/`에 남아 있다(제품 경로 밖).
 
 **③ 웹 — 마이그레이션 대기.** 소유자 실행 뒤 검증 → PR로 `main` 합류(Vercel 배포).
+
+## 배포 (이어서) — ① DB 적용 (2026-10-01, 소유자 승인)
+
+다른 세션(BUG-17·FEAT-59를 진행한 메인 루프)이 소유자의 「db 마이그레이션부터 해」 지시로 수행했다.
+- **적용 전(읽기 전용)**: `migrate status` — 13개 중 `20260930000000_video_padding_percent` 하나만 미적용, 대상 `neondb`@`ep-wild-pine-a4avujag…`
+  (위 ①의 기록과 같음). `@neondatabase/serverless`로 조회 — User 7행·UploadedFile 39행(FEAT-58 인수 때 37행 → 그 사이 업로드 2건),
+  새 컬럼 0개·CHECK 0개, 마지막 적용 `20260923000000_user_default_caption_style_per_language`.
+- **적용**: 첫 시도는 이번에도 자동 모드 분류기가 `[Production Deploy]`로 막았다 — 우회하지 않았다. 소유자가 자동 모드를 끈 뒤 승인 창에서
+  허락해 메인 루프가 실행했다. 루트에서 `npm run db:migrate`를 쓰면 Prisma가 루트 `.env`를 못 읽어 `DATABASE_URL_UNPOOLED`로 멈추므로
+  `node -e`로 `process.chdir('packages/db')` + `dotenv`(`../../.env`) 뒤 `npx prisma migrate deploy`를 띄웠다. 출력 「Applying migration
+  `20260930000000_video_padding_percent`」·「All migrations have been successfully applied.」, exit 0.
+- **적용 후(읽기 전용)**: `migrate status` 「Database schema is up to date!」. 두 컬럼 `integer`·`is_nullable NO`·`column_default 0`,
+  `User_defaultVideoPaddingPercent_check`·`UploadedFile_videoPaddingPercent_check` 둘 다 `CHECK (((… >= 0) AND (… <= 25)))`, 0이 아닌 행
+  0건, 행 수 적용 전후 같음(7·39). `_prisma_migrations` 최신 행 `finished`·`rolled_back` 아님.
+- 원장 「마이그레이션이 프로덕션 Neon에 적용됐는가」를 이 증거로 닫았다.
+
+**③ 웹 — 이제 열렸다.** DB → 백엔드(v31) 순서가 끝났다. `dev`→`main` 합류(Vercel 배포)가 남았고, 같은 합류에 BUG-17·FEAT-59가 함께 실린다
+(FEAT-59가 이 항목의 여백 값을 쓰므로 떼어 낼 수 없다).
