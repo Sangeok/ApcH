@@ -156,6 +156,7 @@ exports.Prisma.UserScalarFieldEnum = {
   defaultLanguage: 'defaultLanguage',
   defaultClipCount: 'defaultClipCount',
   defaultReviewBeforeGenerate: 'defaultReviewBeforeGenerate',
+  defaultVideoPaddingPercent: 'defaultVideoPaddingPercent',
   defaultCaptionStyleEnglish: 'defaultCaptionStyleEnglish',
   defaultCaptionStyleKorean: 'defaultCaptionStyleKorean',
   defaultCaptionStyle: 'defaultCaptionStyle'
@@ -181,6 +182,7 @@ exports.Prisma.UploadedFileScalarFieldEnum = {
   targetClipCount: 'targetClipCount',
   reviewBeforeGenerate: 'reviewBeforeGenerate',
   captionStyle: 'captionStyle',
+  videoPaddingPercent: 'videoPaddingPercent',
   reviewAttempt: 'reviewAttempt',
   reviewReadyAt: 'reviewReadyAt',
   transcriptS3Key: 'transcriptS3Key',

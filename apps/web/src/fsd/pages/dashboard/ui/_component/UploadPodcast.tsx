@@ -7,26 +7,29 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/fsd/shared/ui/atoms/dropdown-menu";
+import { SegmentedControl, SegmentedControlItem } from "~/fsd/shared/ui/atoms/segmented-control";
 
 import Dropzone, { type DropzoneState } from "react-dropzone";
 import Link from "next/link";
 import { formatSecondsAsClock } from "~/fsd/shared/lib/format-duration";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
-import { Loader2, UploadCloud } from "lucide-react";
+import { FileVideo, Loader2, UploadCloud } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   toFileSizeMb,
   useUploadPodcast,
 } from "~/fsd/pages/dashboard/model/useUploadPodcast";
 import { getMaxFeasibleClipCount } from "~/fsd/pages/dashboard/model/clip-count-budget";
-import { captionStyleLabel } from "~/fsd/features/caption-style";
+import { clipCountNotice } from "~/fsd/pages/dashboard/model/clip-count-notice";
+import {
+  generationModeHint,
+  uploadButtonLabel,
+} from "~/fsd/pages/dashboard/model/upload-options-copy";
+import {
+  captionStyleLabel,
+  CaptionStyleThumbnail,
+} from "~/fsd/features/caption-style";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   UPLOAD_CONFIG,
@@ -35,6 +38,7 @@ import {
   CLIP_DURATION_LIMITS,
   type CaptionStyleDefaults,
 } from "~/fsd/shared/config/constants";
+import { videoFramingSummary } from "~/fsd/shared/config/video-framing";
 import type { ResolvedUploadDefaults } from "~/fsd/entities/user";
 import type { UploadedFileSummary } from "~/fsd/entities/uploaded-file";
 
@@ -66,16 +70,19 @@ interface UploadPodcastProps {
   onOptimisticAdd: (file: UploadedFileSummary) => void;
   defaults: ResolvedUploadDefaults;
   defaultCaptionStyles: CaptionStyleDefaults;
+  defaultVideoPaddingPercent: number;
 }
 
 export default function UploadPodcast({
   onOptimisticAdd,
   defaults,
   defaultCaptionStyles,
+  defaultVideoPaddingPercent,
 }: UploadPodcastProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [language, setLanguage] = useState<string>(defaults.language);
   const [clipCount, setClipCount] = useState<number>(defaults.clipCount);
+  const framingSummary = videoFramingSummary(defaultVideoPaddingPercent);
   const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
   // 드롭마다 증가시키는 요청 번호. 늦게 도착한 이전 파일의 측정 결과를 버리는 데 쓴다.
   const durationRequestId = useRef(0);
@@ -161,24 +168,30 @@ export default function UploadPodcast({
 
   const maxFeasibleClips = getMaxFeasibleClipCount(durationSeconds);
 
+  const langStyle =
+    language === "Korean"
+      ? defaultCaptionStyles.korean
+      : defaultCaptionStyles.english;
+  const clipHint = clipCountNotice(durationSeconds);
+
   return (
-    <div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Podcast</CardTitle>
-          <CardDescription>
-            Upload your audio or video files to get started.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Dropzone
-            onDrop={handleFileDrop}
-            maxSize={UPLOAD_CONFIG.MAX_FILE_SIZE}
-            accept={UPLOAD_CONFIG.ACCEPTED_TYPES}
-            maxFiles={1}
-            disabled={isUploading}
-          >
-            {(dropzone: DropzoneState) => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Upload Podcast</CardTitle>
+        <CardDescription>
+          Upload your audio or video files to get started.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Dropzone
+          onDrop={handleFileDrop}
+          maxSize={UPLOAD_CONFIG.MAX_FILE_SIZE}
+          accept={UPLOAD_CONFIG.ACCEPTED_TYPES}
+          maxFiles={1}
+          disabled={isUploading}
+        >
+          {(dropzone: DropzoneState) =>
+            files.length === 0 ? (
               <div
                 {...dropzone.getRootProps()}
                 className={cn(
@@ -191,153 +204,170 @@ export default function UploadPodcast({
                   Drag and drop your audio or video files here, or click to
                   browse.
                 </p>
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={isUploading}
-                  className="cursor-pointer"
-                >
+                <Button variant="default" size="sm" disabled={isUploading} className="cursor-pointer">
                   Select File
                 </Button>
               </div>
-            )}
-          </Dropzone>
-        </CardContent>
-      </Card>
+            ) : (
+              <div
+                {...dropzone.getRootProps()}
+                className="flex items-center gap-3 rounded-lg border border-dashed p-3 transition hover:cursor-pointer hover:bg-muted"
+              >
+                <input {...dropzone.getInputProps()} />
+                <div className="bg-muted text-muted-foreground grid size-10 shrink-0 place-items-center rounded-md">
+                  <FileVideo className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{files[0]?.name}</p>
+                  <p className="text-muted-foreground text-xs tabular-nums">
+                    {files[0] ? toFileSizeMb(files[0]).toFixed(1) : "0.0"} MB
+                    {durationSeconds !== null && `, ${formatSecondsAsClock(durationSeconds)}`}
+                  </p>
+                  {maxFeasibleClips === 0 && (
+                    <p className="text-destructive text-xs">
+                      {`Source is shorter than ${CLIP_DURATION_LIMITS.MIN_SECONDS}s — too short to generate a clip. Try a longer video.`}
+                    </p>
+                  )}
+                </div>
+                <span className="text-muted-foreground shrink-0 text-xs font-medium">
+                  Replace
+                </span>
+              </div>
+            )
+          }
+        </Dropzone>
 
-      <div className="mt-4 flex items-start justify-between">
-        <div className="flex">
+        <div className="@container">
           {files.length > 0 && (
-            <div className="flex flex-col gap-y-4">
-              <div className="flex space-y-1 gap-x-2 text-sm">
-                <p className="font-medium">Selected file:</p>
-                {files.map((file) => (
-                  <p className="text-muted-foreground" key={file.name}>
-                    {file.name}
-                  </p>
-                ))}
+            <div className="grid grid-cols-1 gap-y-2 @[600px]:grid-cols-[152px_minmax(0,1fr)] @[600px]:gap-x-6 @[600px]:gap-y-4 @[600px]:items-start">
+              <p className="text-muted-foreground text-xs @[600px]:col-span-2">
+                Pre-filled from your settings. Changes here apply to this upload only.
+              </p>
+
+              <p id="upload-lang-label" className="pt-1.5 text-sm font-medium">
+                Subtitle language
+              </p>
+              <div>
+                <SegmentedControl
+                  aria-labelledby="upload-lang-label"
+                  value={language}
+                  onValueChange={handleLanguageChange}
+                  disabled={isUploading}
+                  className="w-full @[600px]:w-fit"
+                >
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <SegmentedControlItem key={lang.value} value={lang.value} className="flex-1 @[600px]:flex-none">
+                      {lang.label}
+                    </SegmentedControlItem>
+                  ))}
+                </SegmentedControl>
               </div>
-              <div className="flex gap-x-4">
-                <div className="flex gap-x-2">
-                  <p className="mt-1.5 text-sm font-medium">
-                    Select Subtitle Language:
-                  </p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        {language}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {SUPPORTED_LANGUAGES.map((lang) => (
-                        <DropdownMenuItem
-                          key={lang.value}
-                          onClick={() => handleLanguageChange(lang.value)}
-                          className="cursor-pointer"
-                        >
-                          {lang.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <div className="flex gap-x-2">
-                  <p className="mt-1.5 text-sm font-medium">Number of Clips:</p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        {clipCount} {clipCount === 1 ? "clip" : "clips"}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {CLIP_COUNT_OPTIONS.map((option) => {
-                        // 0 = 길이 미상이거나 소스가 너무 짧음 —
-                        // 상한을 모르므로 아무 옵션도 막지 않는다
-                        // (clip-count-budget.ts).
-                        const hasClipCountCap = maxFeasibleClips >= 1;
-                        const isOptionUnreachable =
-                          hasClipCountCap && option.value > maxFeasibleClips;
-                        return (
-                          <DropdownMenuItem
-                            key={option.value}
-                            disabled={isOptionUnreachable}
-                            onClick={() => handleClipCountChange(option.value)}
-                            className="cursor-pointer"
-                          >
-                            {option.label}
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <div className="flex gap-x-2">
-                  <p className="mt-1.5 text-sm font-medium">Generation:</p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        {reviewBeforeGenerate ? "Review first" : "Auto"}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem
-                        onClick={() => handleReviewModeChange(false)}
-                        className="cursor-pointer"
+
+              <p id="upload-clip-label" className="pt-1.5 text-sm font-medium">
+                Number of clips
+              </p>
+              <div className="space-y-1.5">
+                <SegmentedControl
+                  aria-labelledby="upload-clip-label"
+                  value={String(clipCount)}
+                  onValueChange={(v) => handleClipCountChange(Number(v))}
+                  disabled={isUploading}
+                  className="w-full @[600px]:w-fit"
+                >
+                  {CLIP_COUNT_OPTIONS.map((option) => {
+                    const hasClipCountCap = maxFeasibleClips >= 1;
+                    const isOptionUnreachable =
+                      hasClipCountCap && option.value > maxFeasibleClips;
+                    return (
+                      <SegmentedControlItem
+                        key={option.value}
+                        value={String(option.value)}
+                        disabled={isOptionUnreachable}
+                        className="flex-1 tabular-nums @[600px]:flex-none"
                       >
-                        Auto (generate immediately)
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleReviewModeChange(true)}
-                        className="cursor-pointer"
-                      >
-                        Review first (edit clips before generating)
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <div className="flex gap-x-2">
-                  <p className="mt-1.5 text-sm font-medium">Video style:</p>
-                  <div className="mt-1.5 flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">
-                      {captionStyleLabel(
-                        language === "Korean"
-                          ? defaultCaptionStyles.korean
-                          : defaultCaptionStyles.english,
-                      )}
-                    </span>
-                    <Link
-                      href="/dashboard/settings"
-                      className="text-primary text-xs underline underline-offset-2"
-                    >
-                      Change in settings
-                    </Link>
-                  </div>
-                </div>
+                        {option.value}
+                      </SegmentedControlItem>
+                    );
+                  })}
+                </SegmentedControl>
+                {clipHint && <p className="text-muted-foreground text-xs">{clipHint}</p>}
               </div>
-              {files.length > 0 && durationSeconds !== null && (
+
+              <p id="upload-gen-label" className="pt-1.5 text-sm font-medium">
+                Generation
+              </p>
+              <div className="space-y-1.5">
+                <SegmentedControl
+                  aria-labelledby="upload-gen-label"
+                  value={reviewBeforeGenerate ? "review" : "auto"}
+                  onValueChange={(v) => handleReviewModeChange(v === "review")}
+                  disabled={isUploading}
+                  className="w-full @[600px]:w-fit"
+                >
+                  <SegmentedControlItem value="auto" className="flex-1 @[600px]:flex-none">
+                    Auto
+                  </SegmentedControlItem>
+                  <SegmentedControlItem value="review" className="flex-1 @[600px]:flex-none">
+                    Review first
+                  </SegmentedControlItem>
+                </SegmentedControl>
                 <p className="text-muted-foreground text-xs">
-                  {maxFeasibleClips === 0
-                    ? `Source is shorter than ${CLIP_DURATION_LIMITS.MIN_SECONDS}s — too short to generate a clip. Try a longer video.`
-                    : `Source length ${formatSecondsAsClock(durationSeconds)}. This fits up to ${maxFeasibleClips} ${maxFeasibleClips === 1 ? "clip" : "clips"}; the AI may return fewer.`}
+                  {generationModeHint(reviewBeforeGenerate)}
                 </p>
-              )}
+              </div>
+
+              <div className="bg-border my-1 h-px @[600px]:col-span-2" role="presentation" />
+
+              <p id="upload-style-label" className="flex flex-col pt-1.5 text-sm font-medium">
+                Video style
+                <span className="text-muted-foreground text-xs font-normal">From settings</span>
+              </p>
+              <div className="flex items-start gap-4">
+                <CaptionStyleThumbnail
+                  style={langStyle}
+                  language={language}
+                  paddingPercent={defaultVideoPaddingPercent}
+                />
+                <div className="min-w-0 space-y-2">
+                  <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-sm">
+                    <dt className="text-muted-foreground">Captions</dt>
+                    <dd className="font-medium">{captionStyleLabel(langStyle)}</dd>
+                    <dt className="text-muted-foreground">Framing</dt>
+                    <dd className="font-medium">{framingSummary ?? "None"}</dd>
+                  </dl>
+                  <p className="text-muted-foreground text-xs">
+                    Caption style follows the subtitle language.
+                  </p>
+                  <Link
+                    href="/dashboard/settings"
+                    className="text-primary inline-block text-xs underline underline-offset-2"
+                  >
+                    Change in settings
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
+
+          {/* 파일 선택 전에도 비활성으로 보인다 — 현재 버튼이 files 가드 밖인 것과 같다(요구 (a)). */}
+          <div className={cn("flex justify-end", files.length > 0 && "mt-6")}>
+            <Button
+              disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}
+              onClick={handleUpload}
+              className="w-full @[600px]:w-auto"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                uploadButtonLabel(reviewBeforeGenerate)
+              )}
+            </Button>
+          </div>
         </div>
-        <Button
-          disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}
-          onClick={handleUpload}
-        >
-          {isUploading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            "Upload and Generate Clips"
-          )}
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

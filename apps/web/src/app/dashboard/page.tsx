@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { resolveUploadDefaults } from "~/fsd/entities/user";
 import {
   getUserDefaultCaptionStyle,
+  getUserDefaultVideoPaddingPercent,
   getUserUploadDefaults,
 } from "~/fsd/entities/user/server";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
@@ -34,12 +35,14 @@ export default async function DashboardPage() {
     activeQueue,
     userDefaults,
     captionStyles,
+    framing,
   ] = await Promise.all([
     listUploadedFileSummariesByUserId(session.user.id),
     listRecoverableUploadDraftsByUserId(session.user.id),
     listActiveUploadedFileQueueStateByUserId(session.user.id),
     getUserUploadDefaults(session.user.id),
     getUserDefaultCaptionStyle(session.user.id),
+    getUserDefaultVideoPaddingPercent(session.user.id),
   ]);
 
   return (
@@ -53,6 +56,7 @@ export default async function DashboardPage() {
         english: captionStyles.defaultCaptionStyleEnglish as CaptionStyle | null,
         korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
       }}
+      defaultVideoPaddingPercent={framing.defaultVideoPaddingPercent}
     />
   );
 }

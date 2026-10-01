@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { resolveUploadDefaults } from "~/fsd/entities/user";
 import {
   getUserDefaultCaptionStyle,
+  getUserDefaultVideoPaddingPercent,
   getUserUploadDefaults,
 } from "~/fsd/entities/user/server";
 import SettingsView from "~/fsd/pages/settings/ui";
@@ -17,6 +18,7 @@ export default async function SettingsPage() {
 
   const stored = await getUserUploadDefaults(session.user.id);
   const captionStyles = await getUserDefaultCaptionStyle(session.user.id);
+  const framing = await getUserDefaultVideoPaddingPercent(session.user.id);
 
   return (
     <SettingsView
@@ -26,6 +28,7 @@ export default async function SettingsPage() {
         english: captionStyles.defaultCaptionStyleEnglish as CaptionStyle | null,
         korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
       }}
+      initialVideoPaddingPercent={framing.defaultVideoPaddingPercent}
     />
   );
 }

@@ -190,3 +190,20 @@ export async function updateUserDefaultCaptionStyle(
     },
   });
 }
+
+export async function getUserDefaultVideoPaddingPercent(userId: string) {
+  return db.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { defaultVideoPaddingPercent: true },
+  });
+}
+
+export async function updateUserDefaultVideoPaddingPercent(
+  userId: string,
+  percent: number,
+) {
+  return db.user.update({
+    where: { id: userId },
+    data: { defaultVideoPaddingPercent: percent },
+  });
+}
