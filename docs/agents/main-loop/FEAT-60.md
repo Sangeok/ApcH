@@ -89,3 +89,21 @@
 트리 검산: `git status`상 이 라운드들의 변경은 `docs/plans/FEAT-60.md`뿐, area 세 파일은 HEAD와 동일(빈 diff).
 
 자기 라운드가 무소득이 됐으므로 `plan-verifier` 독립 무편집 패스를 디스패치한다.
+
+### 독립 패스 — plan-verifier 1사이클 (결함 0)
+
+브리핑은 계약 셋(항목ID·계획서 경로·필수 경로 1·2·3·4·8)만. 첫 보고는 결함 0이었지만 **경로 2의 eslint 측면을
+「실행하지 못한 경로」로 유보**했다 — 저장소 밖 스크래치패드 파일을 eslint가 "outside of base path"로 거부했고, 저장소
+트리에는 쓸 수 없어서다. 정의상 미실행 경로가 있는 보고는 무소득이 아니므로 판정에 쓰지 않았다.
+
+보충: 메인 루프가 스크래치패드 worktree를 HEAD `9f0dc71`의 깨끗한 checkout으로 되돌려(`git status` 공백, `@repo/db`
+자기 해석, `tsc` exit 0) **경로만** 제공하고 같은 에이전트에게 유보 경로를 마저 실행하게 했다(결함·초점 정보 없음).
+보충 결과: 추출 스케치를 그 checkout에 적용 → eslint 세 파일 0 problems, 음성 시험(`any` 프로브 → `no-explicit-any`·
+`no-unsafe-return` 검출, exit 1)으로 타입인지 lint가 실제로 도는 것 확인, `tsc` exit 0, FSD 통과. 경로 1·3·4·8은 첫
+보고에서 결함 0(경로 1에서 `:114-118`이 실제 115-117의 세 줄을 감싸는 서술적 범위임을 비결함으로 기록).
+미실행 경로 없음 → **무편집 무소득 1사이클 = 클린 패스.**
+
+트리 검산(보고가 아니라 직접): area 세 파일 HEAD와 빈 diff, 메인 트리 `docs/` 변경은 다른 세션 untracked 둘뿐,
+worktree `git status` 공백. 이어서 worktree의 junction 451개를 `rmdir`(비재귀)로 먼저 끊고 `git worktree remove` —
+메인 `node_modules`·`packages/db` 무사 확인. `git worktree list`의 다른 항목(wt36·47·48·49·50·57)은 다른 세션 것이라
+건드리지 않았다.

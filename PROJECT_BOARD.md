@@ -45,6 +45,7 @@
   area: apps/web/src/fsd/features/caption-style/ui/CaptionPreviewPlayer.tsx + apps/web/src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx + apps/web/src/fsd/pages/settings/ui/index.tsx
   status: 검토대기
   근거: 소유자 직접 지정. 설정 미리보기가 검은 배경이라 Framing 여백이 안 보인다 — FEAT-58이 남긴 후속.
+  검증: 클린 패스 (2026-10-13, 독립 무편집 1사이클 — 결함 0, 필수 5경로 전수. 경로 2 eslint는 같은 패스 안에서 보충 실행. 메인 루프 라운드 결함 2(구현 영향 2) 반영 뒤)
 
 ## 2026-09-30
 - [x] BUG-17: 프로덕션 CSP가 blob: 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다
