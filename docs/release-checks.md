@@ -46,25 +46,26 @@
 
 ## FEAT-59 — 업로드 폼 옵션 영역 개편 (web, 구현 2026-10-01)
 
-원천: `docs/agents/web-dev/FEAT-59.md`·`docs/plans/FEAT-59.md` 「못 덮는 범위」. **웹 미배포** — `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**. 인수 때 구현본을 실제 Tailwind 컴파일 + 브라우저 하니스(서버 액션·계측만 스텁)로 띄워 1024px 2열(`152px 766px`)·390px 1열·가로 넘침 없음·보정·같은 값 재선택 무발화를 확인했다 — 아래 줄은 **실서버·실서체·실데이터**로만 닫힌다.
+원천: `docs/agents/web-dev/FEAT-59.md`·`docs/plans/FEAT-59.md` 「못 덮는 범위」. **배포됨(2026-10-01, PR #128 합류 `78cffe1`)**. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**. 인수 때 구현본을 실제 Tailwind 컴파일 + 브라우저 하니스(서버 액션·계측만 스텁)로 띄워 1024px 2열(`152px 766px`)·390px 1열·가로 넘침 없음·보정·같은 값 재선택 무발화를 확인했다 — 아래 줄은 **실서버·실서체·실데이터**로만 닫힌다.
 **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
 
-- [ ] **배치가 폭에 따라 바뀌고 가로로 넘치지 않는가** — `/dashboard`에서 파일을 고르면 옵션이 업로드 카드 **안**에 라벨|컨트롤 2열로 나오고, 폰 폭(약 390px)에서는 라벨이 위로 가는 1열이 되며 페이지가 가로로 스크롤되지 않는지(2026-09-30 관측: 옵션 줄이 약 880px까지 넘쳤다)
+- [x] **배치가 폭에 따라 바뀌고 가로로 넘치지 않는가** — 확인(2026-10-01, 실측 — 배포 뒤 프로덕션 `/dashboard`, 파일 선택 상태. 1280px: 옵션이 카드 안 2열 `152px 766px`, 문서 폭 1265/1280(스크롤바). 390px: 1열 `293px`, 세그먼트·업로드 버튼 전폭 293px, 문서 폭 375/390 — 배포 전 같은 폭에서 옵션 줄이 약 880px까지 넘쳤다) — `/dashboard`에서 파일을 고르면 옵션이 업로드 카드 **안**에 라벨|컨트롤 2열로 나오고, 폰 폭(약 390px)에서는 라벨이 위로 가는 1열이 되며 페이지가 가로로 스크롤되지 않는지(2026-09-30 관측: 옵션 줄이 약 880px까지 넘쳤다)
 - [ ] **파일 선택 전후 화면** — 고르기 전에는 큰 드롭존 + 비활성 `Upload and generate clips`, 고른 뒤에는 파일 한 줄(이름·MB·길이·`Replace`)로 접히고 그 줄을 눌러도·끌어다 놓아도 파일이 바뀌는지
 - [ ] **세그먼트 조작** — 언어·클립 수·생성 방식을 마우스와 방향키로 바꿀 수 있고, `Review first`를 고르면 버튼이 `Upload and review clips`가 되는지
 - [ ] **Video style 썸네일이 설정을 그리는가** — 9:16 썸네일의 상하 검은 띠가 설정 여백과 같은 비율이고, 캡션 견본이 실제 서체(영어 Anton · 한국어 Noto Sans KR)·색·외곽선·대문자·위치로 그려지며, 자막 언어를 바꾸면 그 언어의 스타일로 바뀌는지. `Captions`·`Framing` 값과 `Change in settings` 링크
-- [ ] **클립 수 상한이 보이는가**(BUG-17 배포 뒤) — 1:45 파일이면 `4`가 취소선으로 막히고 저장값 4가 3으로 옮겨지며 `This video fits up to 3 clips. The AI may return fewer.`, 30초 미만 파일이면 파일 줄에 빨간 안내 + 버튼 비활성
-- [ ] **설정 화면 캡션 미리보기가 그대로인가**(회귀) — 유효 스타일 계산을 `model/effective-caption-style.ts`로 옮겼다. 설정 화면 `Video style`의 Font size·Words per line·Outline width 기본값(영어 122/5/1.1 · 한국어 130/3/1.3)과 샘플 미리보기가 이전과 같은지(계획 검증에서 옛 계산과 116,645 조합 값 동일을 확인했다)
+  - 부분 관측(2026-10-12, FEAT-58 확인 중): `Framing` 값이 10% → `10% top & bottom`, 25% → `25% top & bottom`, 0% → `None`으로 따라갔고 10%에서 썸네일 상하에 검은 띠가 그려졌다. 자막 언어를 바꾸자 견본 문구가 `진짜 이유는` ↔ `the real reason`으로 바뀌고 `Framing`은 그대로. 서체·색·외곽선 판정은 하지 않았다(줄은 열어 둔다)
+- [x] **클립 수 상한이 보이는가**(BUG-17 배포 뒤) — 확인(2026-10-01, 실측 — 87.6초 파일: `3`·`4` 비활성 + 취소선, 저장값 4가 2로 보정, `This video fits up to 2 clips. The AI may return fewer.` 2초 파일: 파일 줄 destructive 안내, 클립 안내 없음, 버튼 비활성. 1:45 대신 87.6초 파일로 같은 분기(상한<4)를 밟았다) — 1:45 파일이면 `4`가 취소선으로 막히고 저장값 4가 3으로 옮겨지며 `This video fits up to 3 clips. The AI may return fewer.`, 30초 미만 파일이면 파일 줄에 빨간 안내 + 버튼 비활성
+- [x] **설정 화면 캡션 미리보기가 그대로인가**(회귀) — 확인(2026-10-01, 실측 — 배포 뒤 `/dashboard/settings`, 저장 스타일 없음(Default). 편집 언어 한국어 `Font size: 130`·`Words per line: 3`·`Outline width: 1.3`, English로 바꾸면 `122`·`5`·`1.1` — 이전 기본값과 같다) — 유효 스타일 계산을 `model/effective-caption-style.ts`로 옮겼다. 설정 화면 `Video style`의 Font size·Words per line·Outline width 기본값(영어 122/5/1.1 · 한국어 130/3/1.3)과 샘플 미리보기가 이전과 같은지(계획 검증에서 옛 계산과 116,645 조합 값 동일을 확인했다)
 
 ---
 
 ## BUG-17 — 프로덕션 CSP가 `blob:` 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다 (web, 구현 2026-10-01)
 
-원천: `docs/agents/web-dev/BUG-17.md` 「못 덮는 범위」·`docs/plans/BUG-17.md` 「테스트」. **웹 미배포** — `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0**. CSP는 개발 모드에서 꺼지므로(`next.config.js` `if (process.env.NODE_ENV === "development") return [];`) 배포 전에는 판정할 수 없다.
+원천: `docs/agents/web-dev/BUG-17.md` 「못 덮는 범위」·`docs/plans/BUG-17.md` 「테스트」. **배포됨(2026-10-01, PR #128 합류 `78cffe1`)**. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0**. CSP는 개발 모드에서 꺼지므로(`next.config.js` `if (process.env.NODE_ENV === "development") return [];`) 배포 전에는 판정할 수 없다.
 **`〔auto〕` 태그를 붙이지 않는다**: web(`a-pch.com`) 응답과 로그인 뒤 화면이라 루틴의 기준 호스트(admin) 밖이다(머리말 참조).
 
-- [ ] **프로덕션 응답 헤더에 `blob:`가 실리는가** — `curl -sI https://a-pch.com/ | grep -i content-security-policy`의 `media-src`가 `'self' blob: https://*.amazonaws.com`이고, 다른 지시자 10개는 배포 전과 같은지
-- [ ] **업로드 폼이 영상 길이를 읽는가** — `/dashboard`에서 mp4를 고르면 콘솔에 `Loading media from 'blob:…' violates … media-src` 위반이 없고 길이 안내가 뜨는지. 30초 미만 파일은 업로드 버튼이 꺼지고, 1:45 파일은 클립 수 4가 막히는지(FEAT-59 배포 전이면 드롭다운 메뉴 안에서, 배포 뒤면 세그먼트에서). 2026-09-30 관측에서는 이 셋이 프로덕션에서 전부 꺼져 있었다
+- [x] **프로덕션 응답 헤더에 `blob:`가 실리는가** — 확인(2026-10-01, 실측 — PR #128 합류(`78cffe1`) 약 400초 뒤 `curl -sI https://a-pch.com/`의 `media-src 'self' blob: https://*.amazonaws.com`. 지시자 11개, 나머지 10개는 배포 전과 같음) — `curl -sI https://a-pch.com/ | grep -i content-security-policy`의 `media-src`가 `'self' blob: https://*.amazonaws.com`이고, 다른 지시자 10개는 배포 전과 같은지
+- [x] **업로드 폼이 영상 길이를 읽는가** — 확인(2026-10-01, 실측 — 배포 뒤 로그인 브라우저로 `/dashboard`에서 파일을 **선택만** 했다(업로드 없음). 300초 파일 → 파일 줄 `14.2 MB, 5:00`, 87.6초 → `1:28`·`3`·`4` 비활성·저장값 4→2·`This video fits up to 2 clips.`, 2초 → 파일 줄 빨간 `Source is shorter than 30s …` + 업로드 버튼 비활성. 콘솔 메시지 0건(CSP 위반 없음)) — `/dashboard`에서 mp4를 고르면 콘솔에 `Loading media from 'blob:…' violates … media-src` 위반이 없고 길이 안내가 뜨는지. 30초 미만 파일은 업로드 버튼이 꺼지고, 1:45 파일은 클립 수 4가 막히는지(FEAT-59 배포 전이면 드롭다운 메뉴 안에서, 배포 뒤면 세그먼트에서). 2026-09-30 관측에서는 이 셋이 프로덕션에서 전부 꺼져 있었다
 
 ---
 
@@ -74,23 +75,25 @@
 **`〔auto〕` 태그를 붙이지 않는다**: 렌더 결과라 공개 HTTP 응답으로 판정되지 않는다.
 
 - [x] **세로로 긴 원본을 여백 0%로 렌더하면 끝까지 나오는가** — 확인(2026-09-30, 실측 — Modal v31에서 테스트 원본 두 개를 render 모드 15~50초로 실렌더. 결과 `feat58-verify/20260930/out-land/clip_0_en.mp4`·`out-tall/clip_0_en.mp4`, 둘 다 `status ok`·1080×1920·오디오·35초. 1080×2340 원본(앞 30초 화자·뒤 30초 벽)을 0%로: 작업이 죽지 않았고, 화자 구간은 늘어남 없이 크롭, 벽 구간은 가운데 원본 비율 + 양옆 블러 띠. 프레임 판독으로 확인) — 1080×2340 같은 폰 화면 녹화를 0%로 렌더(크레딧)했을 때 작업이 죽지 않고 1080×1920 클립이 나오는지. 화자 구간은 **늘어남 없이** 화자를 따라가는 크롭, 화자 없는 구간은 가운데 원본 비율 + 양옆 블러 배경
-- [ ] **가로·정확한 9:16 원본의 0% 렌더는 그대로인가** — FEAT-58 절의 0% 회귀 줄과 같은 렌더로 닫힌다(이 항목은 그 경로를 한 줄도 바꾸지 않았다)
+- [x] **가로·정확한 9:16 원본의 0% 렌더는 그대로인가** — 확인(2026-10-12, 실측 — **가로 원본만**: FEAT-58 절 0% 회귀 줄과 같은 렌더(꽉 찬 화면·화자 크롭·자막 가운데). 정확한 9:16 원본은 실렌더하지 않아 아래 줄로 분리했다) — FEAT-58 절의 0% 회귀 줄과 같은 렌더로 닫힌다(이 항목은 그 경로를 한 줄도 바꾸지 않았다)
+- [ ] **정확한 9:16 원본(1080×1920)의 0% 렌더는 그대로인가** — 위 줄에서 분리. 코드상 이 비율은 `needs_centered_composition`이 False라 기존 경로를 그대로 탄다(합성 프레임 HEAD 동일 확인). 실렌더 판정만 남았다
 
 ---
 
 ## FEAT-58 — 영상 상하 동일 검은 여백 (db+web+backend, 구현 2026-09-30)
 
-원천: `docs/plans/FEAT-58.md`의 V-SETTINGS·V-LABEL·V-SNAPSHOT·V-RENDER(「못 덮는 범위」)와 BLK-FRAMING-02. **백엔드 배포됨(Modal v31) · 마이그레이션 적용됨(2026-10-01) · 웹 미배포** — 웹 코드는 `dev`에만 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0** · `build` EXIT 0 · admin `check` EXIT 0 · `test` **334/75/0** · backend unittest **123 OK** · `py_compile` EXIT 0.
+원천: `docs/plans/FEAT-58.md`의 V-SETTINGS·V-LABEL·V-SNAPSHOT·V-RENDER(「못 덮는 범위」)와 BLK-FRAMING-02. **전부 배포됨** — 마이그레이션(2026-10-01) · 백엔드 Modal v31 · 웹은 PR #128 합류 커밋 `78cffe1`(Vercel `apc-h` success, 2026-10-01). 아래 열린 줄은 이제 프로덕션에서 판정할 수 있다. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0 · `test` **182/45/0** · `build` EXIT 0 · admin `check` EXIT 0 · `test` **334/75/0** · backend unittest **123 OK** · `py_compile` EXIT 0.
 **순서가 곧 안전장치다 — DB → 백엔드 → 웹.** 새 웹이 먼저 나가면 없는 컬럼을 `SELECT`해 설정·대시보드·업로드가 깨지고, 새 백엔드보다 먼저 나가면 구 백엔드가 `video_padding_percent`를 버려 설정과 결과가 어긋난다(BLK-FRAMING-02).
 **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이거나 렌더 결과라 공개 HTTP 응답으로 판정되지 않는다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
 
-- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-10-01, 실측 — 소유자 실행 뒤 메인 루프가 읽기 전용 세션(`transaction_read_only = on`)으로 검증: `migrate status` **`Database schema is up to date!`** · `_prisma_migrations`에 `20260930000000_video_padding_percent` finished · `User.defaultVideoPaddingPercent`·`UploadedFile.videoPaddingPercent` 둘 다 `integer NOT NULL DEFAULT 0` · CHECK `>= 0 AND <= 25` 둘 다 존재 · User 7행·UploadedFile 39행 중 0 아닌 값 **0** · 새 클라이언트 `findFirst`로 두 컬럼 실 조회 성공)
-- [ ] **여백 0% 렌더가 배포 전과 같은가**(회귀) — 백엔드 배포 뒤 첫 렌더에서 크롭·블러 배경·자막 위치가 이전 클립과 같은지. 0%는 가로·정사각·9:16 이하 source에서 새 분기에 들어가지 않는다(9:16보다 세로로 긴 source는 BUG-16이 중앙 합성으로 보낸다)(계획 검증에서 HEAD와 프레임 배열 바이트 동일을 합성 프레임으로 확인했지만, GPU 인코더·실제 화자 추적은 실물만 판정한다)
+- [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-10-01, 실측 — 다른 메인 루프 세션이 소유자 승인으로 적용(`c1562a1`)한 뒤, 이 세션이 읽기 전용 세션(`transaction_read_only = on`)으로 검증: `migrate status` **`Database schema is up to date!`** · `_prisma_migrations`에 `20260930000000_video_padding_percent` finished · `User.defaultVideoPaddingPercent`·`UploadedFile.videoPaddingPercent` 둘 다 `integer NOT NULL DEFAULT 0` · CHECK `>= 0 AND <= 25` 둘 다 존재 · User 7행·UploadedFile 39행 중 0 아닌 값 **0** · 새 클라이언트 `findFirst`로 두 컬럼 실 조회 성공)
+- [x] **여백 0% 렌더가 배포 전과 같은가**(회귀) — 확인(2026-10-12, 실측 — Modal v31에서 640×360 가로 원본(화자 있음)을 0%로 render 15~50초: `status ok`·1080×1920·35초, 17샘플 위·아래 가장자리 96px 평균 밝기 최소 35(검은 띠 없음), 화자 크롭·자막 가운데 — 예전 렌더와 같은 모습. 결과 `feat58-verify/20261012/out-land0/clip_0_en.mp4`) — 백엔드 배포 뒤 첫 렌더에서 크롭·블러 배경·자막 위치가 이전 클립과 같은지. 0%는 가로·정사각·9:16 이하 source에서 새 분기에 들어가지 않는다(9:16보다 세로로 긴 source는 BUG-16이 중앙 합성으로 보낸다)(계획 검증에서 HEAD와 프레임 배열 바이트 동일을 합성 프레임으로 확인했지만, GPU 인코더·실제 화자 추적은 실물만 판정한다)
 - [x] **양수 여백 렌더가 설정한 그대로 나오는가** — 확인(2026-09-30, 실측 — Modal v31에서 테스트 원본 두 개를 render 모드 15~50초로 실렌더. 결과 `feat58-verify/20260930/out-land/clip_0_en.mp4`·`out-tall/clip_0_en.mp4`, 둘 다 `status ok`·1080×1920·오디오·35초. 640×360 가로 원본 10%: 17개 샘플에서 상하 192px 띠 평균 밝기 최대 **0.003**(완전 검정), 가운데 평균 ≥80, 화자를 따라가는 크롭, 자막은 가운데 — 0% 세로 원본 클립의 자막과 **같은 화면 높이**. 화자 없는 프레임은 이 렌더에 없어 아래 줄로 분리했다) — 10%로 한 번 렌더(크레딧): 1080×1920에 상하 **192px**씩 검은 띠, 가운데 1080×1536에 화자를 따라가는 크롭. 화자 없는 프레임은 가운데 영역 **안에서만** 블러 배경 + 원본 비율. 자막의 top/middle/bottom 위치가 0% 클립과 같은 화면 좌표인지(띠에 걸려도 잘리지 않음)
-- [ ] **양수 여백 + 화자 없는 프레임** — 가운데 영역 **안에서만** 블러 배경 + 원본 비율인지(위 줄에서 분리 — 2026-09-30 실렌더의 가로 원본에는 화자 없는 구간이 없었다)
-- [ ] **설정 화면 Framing이 저장·재진입·초기화되는가** — `Video style` 카드 맨 위 Framing에서 슬라이더 0~25, 도움말 수치(10% → `192px`·`1080 × 1536px`), **Save framing** 뒤 새로고침해도 같은 값, **Reset framing** 뒤 0. 자막 저장·초기화가 여백을 건드리지 않는지
+- [x] **양수 여백 + 화자 없는 프레임** — 확인(2026-10-12, 실측 — 1280×720 가로 원본(벽만, 화자 없음)을 10%로 render: `status ok`·1080×1920, 17샘플 상하 192px 띠 평균 밝기 최대 0.005, 블러 배경 + 원본 비율 영상이 띠 **안쪽** 가운데 영역에만 있음(프레임 판독). 결과 `feat58-verify/20261012/out-noface10/clip_0_en.mp4`) — 가운데 영역 **안에서만** 블러 배경 + 원본 비율인지(위 줄에서 분리 — 2026-09-30 실렌더의 가로 원본에는 화자 없는 구간이 없었다)
+- [x] **설정 화면 Framing이 저장·재진입·초기화되는가** — 확인(2026-10-12, 실측 — 소유자 계정 Playwright: 키보드(Home·→×10)로 10 → 도움말 `10% on each side (192px). Video area: 1080 × 1536px.` → Save framing → 새로고침 10·DB 10, End로 25 저장 → 새로고침 25·DB 25, Reset framing → 새로고침 0·DB 0. 여백 5 저장 뒤 Save caption style을 눌러도 DB 여백 5 그대로(자막 저장이 여백을 안 건드림). 끝에 원래 값 0으로 되돌림) — `Video style` 카드 맨 위 Framing에서 슬라이더 0~25, 도움말 수치(10% → `192px`·`1080 × 1536px`), **Save framing** 뒤 새로고침해도 같은 값, **Reset framing** 뒤 0. 자막 저장·초기화가 여백을 건드리지 않는지
 - [x] **업로드 폼 라벨에 여백이 붙는가** — 대체(FEAT-59 — 한 줄 라벨 `Default · 10% top & bottom`이 `Captions`·`Framing` 행과 9:16 썸네일로 바뀌었다. 같은 확인은 FEAT-59 절 「Video style 썸네일이 설정을 그리는가」가 다시 선언한다) — 여백 0이면 `Video style: Default`가 이전과 같고, 10%면 `Default · 10% top & bottom`. 업로드 언어를 바꾸면 자막 라벨만 바뀌고 덧붙임은 그대로
 - [ ] **업로드가 그 시점의 여백을 고정하는가** — 10%로 업로드 A(Review first)를 만든 뒤 설정을 25%로 바꾸고 A를 생성하면 A는 10%로, 새 업로드 B는 25%로 나오는지(렌더 둘 — 크레딧)
+  - 진행(2026-10-12): **DB 고정은 실측됐다** — 소유자 계정으로 여백 10에서 올린 업로드(`cmv4xa6p`·`cmv4xe9r`)는 기본값을 25로 바꾼 뒤에도 `videoPaddingPercent` 10, 그 뒤 올린 업로드(`cmv4xby2`·`cmv4xfmz`)는 25. 업로드 폼 Framing 표시도 10%·25%를 따라갔다. **렌더 확인이 남았다** — `cmv4xa6p`는 60초 원본이라 `no_moments_found`로 분석 종료(여백 무관), 5분 원본 `cmv4xe9r`(Review first)·`cmv4xfmz`(Auto)는 대기열에 있었다
 
 ---
 
