@@ -259,68 +259,73 @@ export default function SettingsView({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Framing</p>
-            <label htmlFor="video-padding-percent" className="text-sm">
-              Top and bottom black space
-            </label>
-            <input
-              id="video-padding-percent"
-              type="range"
-              min={VIDEO_PADDING_PERCENT_RANGE.MIN}
-              max={VIDEO_PADDING_PERCENT_RANGE.MAX}
-              step={VIDEO_PADDING_PERCENT_RANGE.STEP}
-              value={videoPaddingPercent}
-              disabled={isSaving}
-              aria-describedby="video-padding-help"
-              aria-valuetext={`${videoPaddingPercent}% on each side`}
-              onChange={(event) => setVideoPaddingPercent(Number(event.currentTarget.value))}
-              className="w-full"
-            />
-            <p id="video-padding-help" className="text-muted-foreground text-xs">
-              {videoPaddingPercent}% on each side ({framing.paddingPx}px).
-              Video area: {framing.width} × {framing.contentHeight}px.
-              Captions keep their current position. Applies to both languages.
-            </p>
-            <div className="flex gap-x-2">
-              <Button onClick={() => persistVideoPadding(videoPaddingPercent)} disabled={isSaving}>
-                Save framing
-              </Button>
-              <Button variant="outline" onClick={() => persistVideoPadding(0)} disabled={isSaving}>
-                Reset framing
-              </Button>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Captions</p>
-            <p className="text-muted-foreground text-xs">
-              Caption styles are saved separately for each language.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <p className="text-muted-foreground text-xs font-medium">
-              Editing
-            </p>
-            {SUPPORTED_LANGUAGES.map((lang) => (
-              <Button
-                key={lang.value}
-                type="button"
-                size="sm"
-                variant={editLanguage === lang.value ? "default" : "outline"}
-                onClick={() => setEditLanguage(lang.value)}
-              >
-                {lang.label}
-              </Button>
-            ))}
-          </div>
-          <p className="text-muted-foreground text-[11px]">
-            This picks which language you&apos;re styling — it doesn&apos;t
-            change your upload language.
-          </p>
           <CaptionStyleEditor
             language={editLanguage}
             value={captionStyles[editKey]}
             sample
+            paddingPercent={videoPaddingPercent}
+            leadingControls={
+              <>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Framing</p>
+                  <label htmlFor="video-padding-percent" className="text-sm">
+                    Top and bottom black space
+                  </label>
+                  <input
+                    id="video-padding-percent"
+                    type="range"
+                    min={VIDEO_PADDING_PERCENT_RANGE.MIN}
+                    max={VIDEO_PADDING_PERCENT_RANGE.MAX}
+                    step={VIDEO_PADDING_PERCENT_RANGE.STEP}
+                    value={videoPaddingPercent}
+                    disabled={isSaving}
+                    aria-describedby="video-padding-help"
+                    aria-valuetext={`${videoPaddingPercent}% on each side`}
+                    onChange={(event) => setVideoPaddingPercent(Number(event.currentTarget.value))}
+                    className="w-full"
+                  />
+                  <p id="video-padding-help" className="text-muted-foreground text-xs">
+                    {videoPaddingPercent}% on each side ({framing.paddingPx}px).
+                    Video area: {framing.width} × {framing.contentHeight}px.
+                    Captions keep their current position. Applies to both languages.
+                  </p>
+                  <div className="flex gap-x-2">
+                    <Button onClick={() => persistVideoPadding(videoPaddingPercent)} disabled={isSaving}>
+                      Save framing
+                    </Button>
+                    <Button variant="outline" onClick={() => persistVideoPadding(0)} disabled={isSaving}>
+                      Reset framing
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Captions</p>
+                  <p className="text-muted-foreground text-xs">
+                    Caption styles are saved separately for each language.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-muted-foreground text-xs font-medium">
+                    Editing
+                  </p>
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <Button
+                      key={lang.value}
+                      type="button"
+                      size="sm"
+                      variant={editLanguage === lang.value ? "default" : "outline"}
+                      onClick={() => setEditLanguage(lang.value)}
+                    >
+                      {lang.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-muted-foreground text-[11px]">
+                  This picks which language you&apos;re styling — it doesn&apos;t
+                  change your upload language.
+                </p>
+              </>
+            }
             playUrl={null}
             clipStart={0}
             clipEnd={SAMPLE_CAPTION_CLIP_END}

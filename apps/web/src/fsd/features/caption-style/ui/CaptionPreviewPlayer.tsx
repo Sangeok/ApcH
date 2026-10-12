@@ -31,9 +31,44 @@ interface CaptionPreviewPlayerProps {
   maxWords: number;
   uppercase: boolean;
   position: CaptionStyle["position"];
+  // 저장 전 슬라이더 값(0~25). 상하 검은 띠를 상자 높이의 N%로 그린다.
+  paddingPercent: number;
   // 설정 화면의 정지 샘플 미리보기. true면 영상 없이 첫 큐를 고정으로 그린다.
   // playUrl === null로 추론하지 않는다 — 검토 화면은 URL 로딩·실패 동안에도 null을 넘긴다.
   sample?: boolean;
+}
+
+// 정지 샘플 미리보기의 가운데 "영상" 장면. 실제 클립은 사용자 영상이다(아래 안내가 말한다).
+// 가로(16:9) 원본처럼 그려 slice가 높이 기준 cover가 되게 한다 — 여백이 커지면 화자가 줄고
+// 좌우가 드러나는 백엔드 cover 크롭(video_framing.py)과 같은 거동이다.
+// 색은 리터럴 — 미리보기 상자는 테마와 무관한 영상 표면이라 다크 모드에서도 같은 모습이어야 한다.
+function SampleScene() {
+  return (
+    <svg
+      viewBox="0 0 320 180"
+      preserveAspectRatio="xMidYMid slice"
+      className="h-full w-full"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="caption-preview-scene-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#45566a" />
+          <stop offset="1" stopColor="#28313c" />
+        </linearGradient>
+      </defs>
+      <rect width="320" height="180" fill="url(#caption-preview-scene-bg)" />
+      {/* 방 배경 패널 — 0%에선 화면 밖, 여백을 키우면 좌우에 드러난다 */}
+      <rect x="34" y="34" width="46" height="70" rx="4" fill="#526276" />
+      <rect x="240" y="34" width="46" height="70" rx="4" fill="#526276" />
+      {/* 상반신 */}
+      <path d="M114 180 C114 138 136 118 160 118 C184 118 206 138 206 180 Z" fill="#1b232c" />
+      {/* 머리 */}
+      <circle cx="160" cy="84" r="25" fill="#1b232c" />
+      {/* 마이크 스탠드 + 헤드 */}
+      <rect x="189" y="138" width="4" height="42" rx="2" fill="#5b6b7d" />
+      <ellipse cx="191" cy="134" rx="8" ry="11" fill="#3a4756" />
+    </svg>
+  );
 }
 
 export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
@@ -137,6 +172,15 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
             className="absolute inset-0 h-full w-full object-contain"
           />
         </>
+      )}
+      {props.sample === true && (
+        <div
+          className="absolute inset-x-0 overflow-hidden"
+          style={{ top: `${props.paddingPercent}%`, bottom: `${props.paddingPercent}%` }}
+          aria-hidden
+        >
+          <SampleScene />
+        </div>
       )}
       <div
         className={cn(
