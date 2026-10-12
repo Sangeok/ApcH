@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-10-13
+- [ ] FEAT-60: 설정 화면 미리보기에 Framing(상하 검은 여백)이 보이지 않는다 — 미리보기에 여백과 임시 장면을 그리고, 슬라이더를 미리보기 옆으로
+  agent: web-dev
+  area: apps/web/src/fsd/features/caption-style/ui/CaptionPreviewPlayer.tsx + apps/web/src/fsd/features/caption-style/ui/CaptionStyleEditor.tsx + apps/web/src/fsd/pages/settings/ui/index.tsx
+  status: 승인대기
+  근거: 소유자 직접 지정. 설정 미리보기가 검은 배경이라 Framing 여백이 안 보인다 — FEAT-58이 남긴 후속.
+
 ## 2026-09-30
 - [x] BUG-17: 프로덕션 CSP가 blob: 미디어를 막아 업로드 폼의 영상 길이 측정이 항상 실패한다
   agent: web-dev
