@@ -112,3 +112,22 @@ worktree `git status` 공백. 이어서 worktree의 junction 451개를 `rmdir`(�
 
 소유자가 「구현 승인」으로 게이트②를 열었다. 계획서는 클린 패스본(`9f0dc71` 시점) 그대로다. 계획서에 게이트② 판단 사항은
 없다. 소유자에게 보낸 검증용 렌더 두 장(데스크톱 0·10·14·25%, 모바일)에 대한 수정 지시도 없었다 — 계획서대로 간다.
+
+## 완료 인수 (2026-10-13)
+
+web-dev 구현 보고: 완료, 스케치 대비 차이 없음, 메인 트리 `check` EXIT 0 · `test` 319/0. 인수 조건 다섯을 보고가 아니라 직접 재현했다.
+
+| # | 조건 | 직접 확인 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`상 코드 변경은 계획서의 세 파일뿐(+ 보드·백로그·`docs/agents/web-dev/FEAT-60.md`). 다른 세션의 card-news 변경은 그대로 |
+| 2 | diff ↔ 「구현 스케치」 | 깨끗한 HEAD(`e12b8be`) 사본에 계획서 tsx 블록 9개를 기계 적용(`apply-plan2.mjs`, before 전부 1회 일치, 옮긴 `:262-319` 58줄 들여쓰기 외 동일)한 결과와 구현 세 파일이 **줄바꿈 외 바이트 동일** |
+| 3 | 검증 명령 재실행 | 깨끗한 사본 + 세 파일: `check` EXIT 0(verify:fsd:test 11/0 · FSD 통과 · lint 0 · tsc) · `test` **198/49/0**. 메인 트리: `check` EXIT 0 · `test` 319/49/0(구현 직전 기준선과 같음) |
+| 4 | 백로그 제거 | `TASK_BACKLOG.md`에 `FEAT-60` 0건, diff는 그 항목 3줄 + 빈 줄만 |
+| 5 | `결과`가 가리키는 상세 기록 | `docs/agents/web-dev/FEAT-60.md` 실재 — 계약 확인·고친 파일·스케치 차이·검증·못 덮는 범위 |
+
+- 깨끗한 사본의 `next lint`는 `.env`가 없어 env 검증에서 먼저 죽었다 — `SKIP_ENV_VALIDATION=1`(`src/env.js`의 `skipValidation`)로 다시 돌려 통과. 검사 대상은 그대로다.
+- 렌더 확인: 구현본 `CaptionStyleEditor`를 SSR 렌더해 0·10·25% 세 경우 모두 장면이 미리보기 상자 안 `top/bottom: N%`, SVG `viewBox 0 0 320 180` + `slice`, 자막 레이어가 장면 뒤(위), `leadingControls`가 왼쪽 칸 맨 앞(Preset보다 먼저), 오른쪽 칸 `order-1 … md:order-2`, 그라데이션 id 1개. 비-`sample`(`playUrl` 있음) 경로는 `<video>`만 있고 장면 없음.
+- 커밋: 구현 `aa6729e`(세 파일 + web-dev 보고). 커밋된 세 파일이 검증한 사본과 같음을 `git show`로 대조했다.
+- 「범위 밖 의존」: 계획서에 **없음** — 백로그 후보 없음.
+- 배포 확인 원장: 「못 덮는 범위」 ①~⑥을 `docs/release-checks.md` FEAT-60 절 6줄로 등재(로그인 뒤 web 화면이라 `〔auto〕` 없음). 설정 화면의 기존 열린 줄(편집 언어 토글·`Captions` 헤더·샘플 안내 등)은 컨트롤이 그대로이고 자리만 옮겨 여전히 유효해 `대체`로 닫지 않았다.
+- 테스트 표: 새 테스트 없음 → `apps/web/CLAUDE.md` 변경 없음.
