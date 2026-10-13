@@ -43,12 +43,12 @@
 - [ ] FEAT-61: 캡션 세로 위치를 프리셋 셋이 아니라 사용자가 정한 값으로 렌더한다 — 받는 쪽 먼저(FEAT-62 웹 드래그의 선행)
   agent: backend-dev
   area: apps/backend/main.py
-  status: 승인대기
+  status: 계획지시
   근거: 소유자 직접 지정(2026-10-13 대화 — 미리보기에서 자막을 끌어 위치 조정, 세로만). FEAT-62가 보내는 값을 받는 쪽이라 먼저 배포해야 한다.
 - [ ] FEAT-62: 설정 화면 캡션 미리보기에서 자막을 위아래로 끌어 위치를 정한다(세로만)
   agent: web-dev
   area: apps/web/src/fsd/features/caption-style
-  status: 승인대기
+  status: 계획지시
   근거: 소유자 직접 지정(FEAT-61과 같은 대화). 저장 필드·범위가 FEAT-61과 묶인 계약이라 계획은 병행 가능, 구현·배포는 FEAT-61 배포 뒤.
 
 ## 2026-10-13
