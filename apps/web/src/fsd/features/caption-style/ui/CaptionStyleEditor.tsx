@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { TranscriptWord } from "~/fsd/shared/lib/transcript";
 import { cn } from "~/fsd/shared/lib/utils";
 import { Button } from "~/fsd/shared/ui/atoms/button";
@@ -26,6 +27,11 @@ interface CaptionStyleEditorProps {
   onChange: (style: CaptionStyle | null) => void;
   // 설정 화면의 정지 샘플 미리보기. 검토 다이얼로그는 넘기지 않는다(기본 false).
   sample?: boolean;
+  // 저장 전 여백 슬라이더 값. 미리보기 띠가 쓴다.
+  paddingPercent: number;
+  // 왼쪽 칸 맨 위에 끼울 페이지 소유 컨트롤(설정: Framing → 캡션 영역 머리).
+  // 상태·저장 로직은 끼우는 쪽이 소유한다(요구 ⑤).
+  leadingControls?: ReactNode;
 }
 
 const POSITION_LABELS: Record<
@@ -58,6 +64,8 @@ export default function CaptionStyleEditor({
   words,
   onChange,
   sample = false,
+  paddingPercent,
+  leadingControls,
 }: CaptionStyleEditorProps) {
   // 저장된 값 위에 언어별 기본값을 얹은 "유효 스타일". 컨트롤과 미리보기가 이 값을 표시한다.
   // 계산은 model/effective-caption-style.ts에 있다 — 업로드 폼 썸네일과 공유한다.
@@ -82,7 +90,8 @@ export default function CaptionStyleEditor({
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="flex flex-col gap-3">
+      <div className="order-2 flex flex-col gap-3 md:order-1">
+        {leadingControls}
         <div>
           <p className="mb-1 text-xs font-medium text-muted-foreground">
             Preset
@@ -296,7 +305,7 @@ export default function CaptionStyleEditor({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="order-1 flex flex-col gap-2 md:order-2">
         <CaptionPreviewPlayer
           playUrl={playUrl}
           clipStart={clipStart}
@@ -310,6 +319,7 @@ export default function CaptionStyleEditor({
           maxWords={effectiveMaxWords}
           uppercase={effectiveUppercase}
           position={effectivePosition}
+          paddingPercent={paddingPercent}
           sample={sample}
         />
         {/* 정지 샘플 안내: 실제 클립은 사용자 영상·전사를 쓴다. */}

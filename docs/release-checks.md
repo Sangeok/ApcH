@@ -44,6 +44,20 @@
 
 ---
 
+## FEAT-60 — 설정 미리보기 Framing 여백 띠·임시 장면 (web, 구현 2026-10-13)
+
+원천: `docs/agents/web-dev/FEAT-60.md`·`docs/plans/FEAT-60.md` 「못 덮는 범위」 ①~⑥. **미배포** — `dev` 커밋 `aa6729e`, `main` 합류 전. 게이트는 인수 시 메인 루프가 직접 재실행했다: 깨끗한 HEAD 사본 + 세 파일 web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**, 메인 트리(다른 세션 card-news 변경 포함) `check` EXIT 0 · `test` 319/49/0. 구현 세 파일은 계획서 스케치를 HEAD에 기계 적용한 결과와 줄바꿈 외 바이트 동일했고, 인수 때 구현본을 SSR 렌더해 0·10·25% 모두 장면이 상자 안 `top/bottom: N%`에 있고 자막 레이어가 그 위, 왼쪽 칸 슬롯이 Preset 앞, 비-`sample` 경로에는 장면이 없음을 확인했다. 계획 검증 때 같은 코드를 headless 크롬으로 띄워 화자 축소(×0.80 / ×0.72 / ×0.50 — 10 / 14 / 25%)와 데스크톱·모바일 순서를 봤다 — 아래 줄은 **실서버·실 Tailwind·실서체**로만 닫힌다.
+**`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [ ] **여백에 따라 띠와 장면이 바뀌는가** — `/dashboard/settings` `Video style`에서 0%: 띠 없이 SVG 장면이 미리보기 상자를 채운다(화자·마이크가 잘리지 않고 좌우 패널은 안 보임). 10%: 상하 약 10%(실렌더 192px) 검은 띠 + 가운데 장면. 25%: 상하 약 25% 띠. 슬라이더를 끄는 동안(저장 전) 띠가 실시간으로 따라오는지
+- [ ] **여백을 키우면 화자가 작아지는가** — 10%에서 약 0.8배, 25%에서 약 0.5배로 줄고 좌우 패널이 드러나는지. 위아래만 잘리고 크기가 그대로면 장면이 세로 비율로 들어간 것이다(계획 검증에서 9:16 장면이 정확히 그렇게 실패했다)
+- [ ] **자막이 띠에 겹치는 지점이 실렌더와 같은가** — 자막 위치는 프레임 전체 기준 그대로라(INV-FRAMING-004) Top 자막은 약 10.4%(200/1920), Bottom은 약 13.5%(260/1920)를 넘으면 띠 위로 올라간다. FEAT-58 절 10% 실렌더처럼 자막이 잘리지 않고 겹쳐 보이는지
+- [ ] **대비·다크 모드** — 흰 자막이 실루엣과 검은 띠 양쪽에서 읽히고, 다크 모드에서도 미리보기가 같은 모습인지(장면 색이 리터럴이라 같아야 한다)
+- [ ] **배치 — 모바일·데스크톱** — 폰 폭(약 390px)에서 미리보기가 컨트롤 **위**, Framing 슬라이더가 그 바로 아래. 데스크톱에서 왼쪽 칸이 Framing → `Captions` 제목 → 편집 언어 토글 → Preset 순서(Framing이 언어 토글 아래로 내려가지 않음)이고 오른쪽이 미리보기. 편집 언어를 바꿔도 슬라이더 값이 그대로인지
+- [ ] **저장 분리가 그대로인가**(회귀) — 여백을 저장한 뒤 `Save caption style`·자막 초기화를 눌러도 새로고침한 여백이 안 바뀌고, `Save framing`·`Reset framing`은 전처럼 저장·초기화하는지(FEAT-58 절 「설정 화면 Framing이 저장·재진입·초기화되는가」에서 실측된 불변 — 이번에 Framing 블록이 편집기 슬롯으로 옮겨졌다)
+
+---
+
 ## FEAT-59 — 업로드 폼 옵션 영역 개편 (web, 구현 2026-10-01)
 
 원천: `docs/agents/web-dev/FEAT-59.md`·`docs/plans/FEAT-59.md` 「못 덮는 범위」. **배포됨(2026-10-01, PR #128 합류 `78cffe1`)**. 게이트는 인수 시 메인 루프가 직접 재실행했다: web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**. 인수 때 구현본을 실제 Tailwind 컴파일 + 브라우저 하니스(서버 액션·계측만 스텁)로 띄워 1024px 2열(`152px 766px`)·390px 1열·가로 넘침 없음·보정·같은 값 재선택 무발화를 확인했다 — 아래 줄은 **실서버·실서체·실데이터**로만 닫힌다.
@@ -247,7 +261,7 @@
 - [x] **Korean 업로드 검토 화면의 `Caption style` 다이얼로그 미리보기가 재생 중 한국어 샘플을 그리는가** — 영상이 도는 동안 자막 자리에 영어 원문 대신 `지금 자막 스타일을` 같은 한국어 샘플 토큰이 큐 시각에 맞춰 바뀌며 뜨는지. Words per line을 올리면 한 줄이 길어지고, Uppercase를 켜도 글자 모양이 그대로인지  
   → **대체(FEAT-52)**: 이 줄의 대상인 **검토 화면 `Caption style` 다이얼로그가 FEAT-52로 삭제됐다.** `CaptionStyleEditor`의 소비자를 전수 열거하면 이제 `pages/settings/ui/index.tsx:260` **하나뿐**이고 `sample`(항상 true)·`playUrl={null}`을 고정 전달한다(2026-09-21 메인 루프 직접 grep). 즉 **실영상 미리보기 경로 전체가 도달 불가**이며 이 확인은 어떤 화면에서도 판정할 수 없다. 관측 없이 소멸했다 — 확인했다는 뜻이 아니다.
 - [ ] **샘플의 크기·줄 길이가 실제 렌더 클립과 대략 비슷해 보이는가** — 같은 스타일로 생성한 Korean 클립과 나란히 볼 때 글자 크기·한 줄 폭·화면 차지가 크게 어긋나지 않는지. 샘플은 "영어 N단어 = 한국어 N토큰" 근사라 정확히 같을 수는 없다 — 근사가 스타일 판단을 오도할 만큼 크면 이관. **[재앵커 2026-09-21]** 검토 화면 다이얼로그가 FEAT-52로 사라져 **설정 화면(`/dashboard/settings`) 캡션 섹션의 정지 샘플**에서 판정한다 — 이제 `CaptionStyleEditor`의 유일한 소비자다.
-- [ ] **안내와 힌트가 언어대로 갈리는가** — **[재앵커 2026-09-21]** 인용된 Korean 라이브 안내(`… so framing will differ. The Korean words shown are a sample …`)는 `CaptionStyleEditor`의 `!sample` 갈래라 **도달 불가가 됐다**(FEAT-52가 유일한 비-sample 소비자를 삭제). 설정 화면 샘플 안내는 언어와 무관하게 `This is a sample. …` 하나다. **남은 판정 대상은 힌트 둘뿐이다** — Words per line 아래 `For Korean, this counts English source words per line before translation.`, Uppercase 아래 `Korean text isn't affected — only English words mixed into a line are uppercased.`가 보이는지. English 업로드: 안내가 `… so framing will differ.`에서 끝나고 힌트 둘이 없으며, 미리보기 글자는 영어 원문 그대로인지
+- [ ] **안내와 힌트가 언어대로 갈리는가** — **[재앵커 2026-09-21]** 인용된 Korean 라이브 안내(`… so framing will differ. The Korean words shown are a sample …`)는 `CaptionStyleEditor`의 `!sample` 갈래라 **도달 불가가 됐다**(FEAT-52가 유일한 비-sample 소비자를 삭제). 설정 화면 샘플 안내는 언어와 무관하게 `This is a sample. …` 하나다. **남은 판정 대상은 힌트 둘뿐이다** — Words per line 아래 `For Korean, this counts English source words per line before translation.`, Uppercase 아래 `Korean text isn't affected — only English words mixed into a line are uppercased.`가 보이는지. 편집 언어 `English`: **[재앵커 2026-10-13]** 안내는 같은 `This is a sample. …`이고 힌트 둘이 없으며(둘 다 `language === "Korean"`일 때만 그린다), 미리보기 글자는 영어 샘플(`Style your captions the way`)인지
 - [ ] **설정 화면(언어 Korean) 캡션 섹션이 기존대로인가** — 샘플 안내 `This is a sample. …`는 그대로이고 힌트 둘이 함께 보이는지, 샘플 첫 큐가 종전처럼 `지금 자막 스타일을`(줄당 단어 기본 3)인지
 
 ---
@@ -286,8 +300,8 @@
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 145→154 — 신규 `caption-style-request.test.mjs` 3·`sample-captions.test.mjs` 6). auto 렌더가 요청 스냅샷으로 나오는지와 render에서 스타일 없는 클립이 언어 기본값인지는 아래 FEAT-41 절 「(FEAT-42 배포 후)」 두 줄이 맡고, 이 절은 설정 화면·스냅샷·검토 시드를 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면과 실제 업로드·Modal 처리에서만 판정된다.
 
-- [ ] **설정 화면에 캡션 기본 스타일 카드가 보이고 샘플 미리보기가 첫 페인트부터 그려지는가** — `/dashboard/settings`의 「Upload defaults」 아래 「Default caption style」 카드에 프리셋·위치·크기·색·외곽선·줄당 단어·Uppercase 컨트롤, 9:16 미리보기에 샘플 첫 줄(English `Style your captions the way`), 밑 안내 `This is a sample. …`, `Save caption style`·`Reset to language default`가 보이는지. 컨트롤을 바꾸면 미리보기의 크기·색·위치·줄당 단어·대문자가 즉시 바뀌는지
-- [ ] **페이지 언어를 Korean으로 바꾸면 미리보기가 함께 바뀌는가** — `Subtitle language`를 `한국어`로 고르면(저장 전에도) 미리보기 문장이 `지금 자막 스타일을`, 폰트가 Noto Sans KR, 크기 표시가 130으로 바뀌는지
+- [ ] **설정 화면에 캡션 기본 스타일 카드가 보이고 샘플 미리보기가 첫 페인트부터 그려지는가** — **[재앵커 2026-10-13]** 카드 이름과 초기화 버튼이 바뀌었다 — FEAT-52가 카드를 `Video style`로 바꿨고, 초기화는 `Reset both languages`다(FEAT-54 절). `/dashboard/settings`의 「Upload defaults」 아래 `Video style` 카드에 프리셋·위치·크기·색·외곽선·줄당 단어·Uppercase 컨트롤, 9:16 미리보기에 샘플 첫 줄(English `Style your captions the way`), 밑 안내 `This is a sample. …`, `Save caption style`·`Reset both languages`가 보이는지. 컨트롤을 바꾸면 미리보기의 크기·색·위치·줄당 단어·대문자가 즉시 바뀌는지
+- [x] **페이지 언어를 Korean으로 바꾸면 미리보기가 함께 바뀌는가** — 대체(FEAT-52 — 미리보기 언어를 `Subtitle language`에서 떼어 별도 토글로 옮겼다(지금 `Editing`, `editLanguage`). 같은 확인은 FEAT-52 절 「미리보기 언어 토글이 미리보기만 바꾼다」가 새 동작으로 다시 선언한다) — `Subtitle language`를 `한국어`로 고르면(저장 전에도) 미리보기 문장이 `지금 자막 스타일을`, 폰트가 Noto Sans KR, 크기 표시가 130으로 바뀌는지
 - [x] **저장한 캡션 기본값이 새 업로드의 검토 드래프트에 시드되는가** — 캡션 스타일 저장(토스트 `Caption style saved`) → `Review first`로 새 업로드 → 검토 화면 한 클립의 `Caption style` 다이얼로그가 저장한 스타일(해당 프리셋 칩 활성 포함)로 열리는지. 저장 전에 올린 업로드는 그대로여야 한다(업로드 시점 스냅샷)  
   → **대체(FEAT-52·FEAT-53)**: 클립별 캡션 스타일 자체가 사라졌다 — FEAT-52가 검토 화면 편집을 없애고 FEAT-53이 `ClipDraft.captionStyle` 컬럼을 drop했다(2026-09-19 적용, 6행 소멸). 「검토 드래프트에 시드된다」는 동작이 존재하지 않으므로 판정 대상이 없다. 기본값이 렌더까지 닿는지는 업로드 시점 스냅샷(`UploadedFile.captionStyle`) 경로로 바뀌었고 FEAT-52·FEAT-55 절이 그것을 확인한다.
 - [x] **캡션 기본값을 초기화한 뒤의 새 업로드는 언어 기본값인가** — `Reset to language default` 뒤 새 업로드의 검토 다이얼로그가 언어 기본값(프리셋 칩 없음)으로 열리는지  
