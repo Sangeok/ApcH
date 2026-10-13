@@ -8,12 +8,12 @@ import { JsonLd } from "~/fsd/shared/ui/atoms/json-ld";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "AI Podcast Clipper pricing - start with 3 free credits. Credits are deducted after a successful processing run with captions, vertical framing, and selected-language export.",
+    "Start with 3 free credits. Video costs one credit per stored clip; card news, when enabled, costs one per complete set. Manual card-news editing and download are free.",
   alternates: { canonical: absoluteSiteUrl("/pricing") },
   openGraph: {
     title: "AI Podcast Clipper - Pricing",
     description:
-      "Free trial with 3 credits plus plan details for podcast-to-shorts workflows.",
+      "3-credit trial with shared available and reserved balances for video clips and complete card-news sets.",
     locale: "en_US",
     url: absoluteSiteUrl("/pricing"),
     type: "website",

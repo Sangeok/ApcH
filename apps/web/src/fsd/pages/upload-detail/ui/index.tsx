@@ -21,17 +21,35 @@ import { Separator } from "~/fsd/shared/ui/atoms/separator";
 import { ClipDisplay } from "~/fsd/widgets/clip-display";
 import { ClipDraftReviewSection } from "~/fsd/widgets/clip-draft-review";
 import OriginalMediaCard from "./_component/OriginalMediaCard";
+import type { CardNewsSummary } from "~/fsd/entities/card-news";
+import { useQuery } from "@tanstack/react-query";
+import { creditBalanceQueryOptions } from "~/fsd/features/credit-balance";
+import { cardNewsListQueryOptions } from "~/fsd/features/card-news";
 
 interface UploadDetailPageProps {
   uploadedFileData: UploadedFileDetail;
+  cardNewsContext?: {
+    userId: string;
+    enabled: boolean;
+    creditBalance: { owned: number; reserved: number; available: number };
+    sets: CardNewsSummary[];
+  };
 }
 
 export default function UploadDetailPage({
   uploadedFileData,
+  cardNewsContext,
 }: UploadDetailPageProps) {
   const trackedDetailViewRef = useRef(false);
   const { data: liveUploadedFileData } =
     useLiveUploadedFileDetail(uploadedFileData);
+  const cardNewsQuery = useQuery({
+    ...cardNewsListQueryOptions(
+      cardNewsContext?.userId ?? "",
+      cardNewsContext?.sets,
+    ),
+    enabled: Boolean(cardNewsContext),
+  });
   const {
     id: uploadedFileId,
     displayName,
@@ -47,8 +65,13 @@ export default function UploadDetailPage({
     reviewReadyAt,
     outcome,
     targetClipCount,
-    currentUserCredits,
+    creditBalance,
   } = liveUploadedFileData;
+  const balanceQuery = useQuery({
+    ...creditBalanceQueryOptions(cardNewsContext?.userId ?? "", creditBalance),
+    enabled: Boolean(cardNewsContext?.userId),
+  });
+  const liveCreditBalance = balanceQuery.data ?? creditBalance;
 
   useEffect(() => {
     if (trackedDetailViewRef.current) {
@@ -93,7 +116,7 @@ export default function UploadDetailPage({
         <UploadedFileActions
           uploadedFileId={uploadedFileId}
           status={status}
-          currentUserCredits={currentUserCredits}
+          availableCredits={liveCreditBalance.available}
         />
       </header>
 
@@ -106,7 +129,7 @@ export default function UploadDetailPage({
                 : "Processing stopped before all clips were done"}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
+          <CardContent className="text-muted-foreground text-sm">
             {outcome.noteCode === PARTIAL_CLIPS_INSUFFICIENT
               ? "Processing finished without an error but produced fewer clips than requested. Reprocessing costs credits again and may return the same result."
               : "The clips below finished before processing failed. Reprocessing may produce more clips and will cost credits again."}
@@ -119,7 +142,7 @@ export default function UploadDetailPage({
           uploadedFileId={uploadedFileId}
           clipDrafts={clipDrafts}
           targetClipCount={targetClipCount}
-          currentUserCredits={currentUserCredits}
+          availableCredits={liveCreditBalance.available}
           language={language}
         />
       )}
@@ -179,7 +202,18 @@ export default function UploadDetailPage({
           </div>
           <div className="px-6 py-6">
             {clips.length > 0 ? (
-              <ClipDisplay clips={clips} />
+              <ClipDisplay
+                clips={clips}
+                cardNewsContext={
+                  cardNewsContext
+                    ? {
+                        ...cardNewsContext,
+                        creditBalance: liveUploadedFileData.creditBalance,
+                        sets: cardNewsQuery.data ?? cardNewsContext.sets,
+                      }
+                    : undefined
+                }
+              />
             ) : (
               <p className="text-muted-foreground text-center">
                 No clips generated yet

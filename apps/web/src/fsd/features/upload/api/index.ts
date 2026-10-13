@@ -6,14 +6,16 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { createProcessingDispatch } from "~/fsd/entities/processing-dispatch/server";
 import {
+  lockUserForCredits,
   getUserDefaultCaptionStyle,
   getUserDefaultVideoPaddingPercent,
 } from "~/fsd/entities/user/server";
+import { acceptUploadAssetDeletion } from "./delete-upload-assets";
 import { dispatchProcessingRequestById } from "./dispatch-processing";
 import { listClipDraftsForAttempt } from "~/fsd/entities/clip-draft/server";
 import { flushReports } from "~/fsd/shared/observability";
 import {
-  getUploadedFilePrefix,
+  getAttemptOutputPrefix,
   isActiveProcessingStatus,
   isProcessingStatus,
   type ActiveUploadedFileQueueState,
@@ -24,13 +26,12 @@ import {
 import {
   confirmUploadedFileSourceIfObjectExists,
   createUploadDraft,
-  deleteUploadedFileRecord,
-  findUploadedFileForDeletion,
   findUploadedFileS3Key,
   findUploadedFileSourceState,
   getUploadedFileDetailsById,
   listActiveUploadedFileQueueStateByUserId,
   listUploadedFileSummariesByUserId,
+  lockUploadedFileForProcessing,
   claimNextProcessingAttempt,
   findUploadedFileForScheduling,
   findUploadedFileReviewState,
@@ -42,11 +43,8 @@ import {
   reconcileStaleUploadedFilesForUser,
 } from "./reconcile-stale-processing";
 import {
-  deleteS3Object,
-  deleteS3Objects,
   generatePresignedGetUrl,
   generatePresignedPutUrl,
-  listS3Objects,
   S3_CONFIG,
 } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
@@ -56,24 +54,12 @@ import {
   isClipDurationWithinLimits,
 } from "~/fsd/shared/config/constants";
 import { v4 as uuidv4 } from "uuid";
+import { isVideoGenerationAdmissionEnabled } from "~/fsd/shared/config/processing-admission";
 import {
   isSupportedClipCount,
   prepareUploadSchema,
   scheduleUploadedFileProcessingSchema,
 } from "../model/schemas";
-
-// Delete all S3 objects under this upload's prefix.
-async function deleteUploadedFileS3Assets(s3Key: string): Promise<void> {
-  const prefix = `${getUploadedFilePrefix(s3Key)}/`;
-  const keys = await listS3Objects(prefix);
-
-  if (keys.length > 0) {
-    await deleteS3Objects(keys);
-    return;
-  }
-
-  await deleteS3Object(s3Key);
-}
 
 function revalidateUploadedFileViews(uploadedFileId: string) {
   revalidatePath("/dashboard");
@@ -88,6 +74,8 @@ async function scheduleProcessingAttempt(
   allowedStatuses: readonly ProcessingStatus[],
   kindOverride?: "render",
 ): Promise<ActionResult<void>> {
+  if (!isVideoGenerationAdmissionEnabled())
+    return failure("Video generation is temporarily unavailable");
   let dispatchId: string;
   let scheduledAttempt: number;
 
@@ -97,6 +85,8 @@ async function scheduleProcessingAttempt(
       async (
         tx,
       ): Promise<ActionResult<{ dispatchId: string; attempt: number }>> => {
+        await lockUserForCredits(userId, tx);
+        await lockUploadedFileForProcessing(uploadedFileId, tx);
         const uploadedFile = await findUploadedFileForScheduling(
           uploadedFileId,
           userId,
@@ -129,7 +119,7 @@ async function scheduleProcessingAttempt(
 
         if (
           uploadedFile.status === "no credits" &&
-          uploadedFile.user.credits <= 0
+          uploadedFile.user.credits - uploadedFile.user.reservedCredits <= 0
         ) {
           return failure("Add credits before retrying this upload.");
         }
@@ -147,13 +137,67 @@ async function scheduleProcessingAttempt(
           return failure("Processing has already been requested");
         }
 
+        const kind =
+          kindOverride ??
+          (uploadedFile.reviewBeforeGenerate ? "analyze" : "auto");
+        const drafts =
+          kind === "render" && uploadedFile.reviewAttempt !== null
+            ? (
+                await listClipDraftsForAttempt(
+                  uploadedFileId,
+                  uploadedFile.reviewAttempt,
+                  { tx },
+                )
+              ).filter((draft) => draft.selected)
+            : [];
+        if (kind === "render" && (drafts.length < 1 || drafts.length > 4))
+          throw new Error("Invalid selected render count");
+        if (kind === "render") {
+          const sorted = [...drafts].sort(
+            (left, right) => left.startSeconds - right.startSeconds,
+          );
+          if (
+            sorted.some(
+              (draft, index) =>
+                !isClipDurationWithinLimits(
+                  draft.startSeconds,
+                  draft.endSeconds,
+                ) ||
+                (index > 0 &&
+                  draft.startSeconds < sorted[index - 1]!.endSeconds),
+            )
+          )
+            throw new Error("Selected clip ranges changed. Review them again.");
+        }
+        const clipCount =
+          kind === "render" ? drafts.length : uploadedFile.targetClipCount;
         const dispatch = await createProcessingDispatch(
           {
             uploadedFileId,
             attempt: nextAttempt,
-            kind:
-              kindOverride ??
-              (uploadedFile.reviewBeforeGenerate ? "analyze" : "auto"),
+            kind,
+            inputSnapshot: {
+              mode: kind,
+              clipCount,
+              language: uploadedFile.language,
+              outputPrefix: getAttemptOutputPrefix(
+                uploadedFile.s3Key,
+                nextAttempt,
+              ),
+              transcriptS3Key: uploadedFile.transcriptS3Key,
+              ...(kind === "render"
+                ? {
+                    moments: drafts.map((draft, index) => ({
+                      index,
+                      start: draft.startSeconds,
+                      end: draft.endSeconds,
+                      type: draft.clipType,
+                      hook: draft.hook,
+                      payoff: draft.payoff,
+                    })),
+                  }
+                : {}),
+            },
           },
           { tx },
         );
@@ -220,6 +264,8 @@ export async function prepareUpload(fileInfo: {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
+  if (!isVideoGenerationAdmissionEnabled())
+    return failure("Video generation is temporarily unavailable");
   const validated = prepareUploadSchema.safeParse(fileInfo);
 
   if (!validated.success) {
@@ -437,7 +483,7 @@ export async function confirmClipDraftsAndGenerate(
       );
     }
 
-    if (file.user.credits < selectedDrafts.length) {
+    if (file.user.credits - file.user.reservedCredits < selectedDrafts.length) {
       return failure("Not enough credits for the selected clips");
     }
 
@@ -566,33 +612,22 @@ export async function getOriginalPlayUrl(
 // Returns a failure for active uploads.
 export async function deleteUploadedFile(
   uploadedFileId: string,
-): Promise<ActionResult<void>> {
+): Promise<ActionResult<{ status: "deleting"; cleanupId: string }>> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
-
   try {
-    const uploadedFile = await findUploadedFileForDeletion(
-      uploadedFileId,
+    const result = await acceptUploadAssetDeletion(
       authResult.data.userId,
+      uploadedFileId,
     );
-
-    if (!uploadedFile) {
-      return failure("Uploaded file not found");
-    }
-
-    if (isActiveProcessingStatus(uploadedFile.status)) {
-      return failure("Active uploads cannot be deleted");
-    }
-
-    await deleteUploadedFileS3Assets(uploadedFile.s3Key);
-    await deleteUploadedFileRecord(uploadedFileId, authResult.data.userId);
-
-    revalidatePath("/dashboard");
-    revalidatePath(`/dashboard/uploads/${uploadedFileId}`);
-    return success();
+    revalidateUploadedFileViews(uploadedFileId);
+    return success(result);
   } catch (error) {
-    console.error("Failed to delete uploaded file", error);
-    return failure("Failed to delete uploaded file");
+    return failure(
+      error instanceof Error
+        ? error.message
+        : "Failed to request upload deletion",
+    );
   }
 }
 

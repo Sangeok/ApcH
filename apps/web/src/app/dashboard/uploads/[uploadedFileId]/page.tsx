@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { reconcileAndGetUploadedFileDetails } from "~/fsd/features/upload";
 import UploadDetailPage from "~/fsd/pages/upload-detail/ui";
+import { getCardNewsCreationContext } from "~/fsd/features/card-news";
 
 interface UploadDetailPageProps {
   params: Promise<{ uploadedFileId: string }>;
@@ -10,11 +11,18 @@ export default async function UploadDetailPageClient({
   params,
 }: UploadDetailPageProps) {
   const { uploadedFileId } = await params;
-  const uploadedFileData = await reconcileAndGetUploadedFileDetails(uploadedFileId);
+  const uploadedFileData =
+    await reconcileAndGetUploadedFileDetails(uploadedFileId);
 
   if (!uploadedFileData) {
     notFound();
   }
 
-  return <UploadDetailPage uploadedFileData={uploadedFileData} />;
+  const cardNews = await getCardNewsCreationContext();
+  return (
+    <UploadDetailPage
+      uploadedFileData={uploadedFileData}
+      cardNewsContext={cardNews.success ? cardNews.data : undefined}
+    />
+  );
 }

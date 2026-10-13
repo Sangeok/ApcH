@@ -1,7 +1,10 @@
 "use server";
 
 import { env } from "~/env";
-import { findSubscriptionByUserId, updateSubscriptionByPolarId } from "~/fsd/entities/subscription/server";
+import {
+  findSubscriptionByUserId,
+  updateSubscriptionByPolarId,
+} from "~/fsd/entities/subscription/server";
 import { getBillingUserSnapshot } from "~/fsd/entities/user/server";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { reportError } from "~/fsd/shared/observability";
@@ -21,7 +24,8 @@ export async function getBillingData(): Promise<ActionResult<BillingPageData>> {
   if (!user) return failure("User not found");
 
   return success({
-    credits: user.credits,
+    authUserId: userId,
+    creditBalance: user.creditBalance,
     subscription: user.subscription
       ? {
           id: user.subscription.id,

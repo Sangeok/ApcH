@@ -7,5 +7,12 @@ export {
   findPendingProcessingDispatchById,
   markProcessingDispatchDeadLetter,
   markProcessingDispatchSent,
+  findProcessingDispatchForAttempt,
+  lockProcessingDispatch,
+  updateProcessingDispatch,
+  listProcessingDispatchRecoveryCandidates,
+  listProcessingDispatchesForUpload,
+  findProcessingDispatchById,
 } from "./api";
 export type { PendingProcessingDispatch } from "./api";
+export { findLegacyProducerDrainState } from "./api";

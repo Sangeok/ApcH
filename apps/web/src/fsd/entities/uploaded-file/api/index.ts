@@ -76,7 +76,7 @@ export async function findUploadedFileSourceState(
   userId: string,
 ) {
   return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId, userId, deletedAt: null },
     select: {
       status: true,
       uploaded: true,
@@ -133,6 +133,7 @@ export async function listUploadedFileSummariesByUserId(
   const files = await db.uploadedFile.findMany({
     where: {
       userId,
+      deletedAt: null,
       status: {
         not: "upload_pending",
       },
@@ -155,6 +156,7 @@ export async function listUploadedFileSummariesByUserId(
     ? await db.clip.groupBy({
         by: ["uploadedFileId", "processingAttempt"],
         where: {
+          deletedAt: null,
           uploadedFileId: {
             in: fileIds,
           },
@@ -192,6 +194,7 @@ export async function listActiveUploadedFileQueueStateByUserId(
     db.uploadedFile.findMany({
       where: {
         userId,
+        deletedAt: null,
         status: {
           in: [...ACTIVE_PROCESSING_STATUSES],
         },
@@ -203,6 +206,7 @@ export async function listActiveUploadedFileQueueStateByUserId(
     db.uploadedFile.findMany({
       where: {
         userId,
+        deletedAt: null,
         status: {
           in: [...ACTIVE_PROCESSING_STATUSES],
         },
@@ -271,6 +275,7 @@ export async function listRecoverableUploadDraftsByUserId(
   const files = await db.uploadedFile.findMany({
     where: {
       userId,
+      deletedAt: null,
       status: "upload_pending",
       uploaded: true,
     },
@@ -304,7 +309,7 @@ export async function getUploadedFileDetailsById(
   // 선언된 `| null`이 참이어야 라우트의 notFound()가 도달한다.
   // findFirstOrThrow였을 때는 삭제된/타인의 id가 404가 아니라 에러 경계로 떨어졌다.
   const file = await db.uploadedFile.findFirst({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId, userId, deletedAt: null },
     select: {
       id: true,
       displayName: true,
@@ -325,6 +330,7 @@ export async function getUploadedFileDetailsById(
       user: {
         select: {
           credits: true,
+          reservedCredits: true,
         },
       },
     },
@@ -345,6 +351,7 @@ export async function getUploadedFileDetailsById(
       ? await db.clip.findMany({
           where: {
             uploadedFileId: file.id,
+            deletedAt: null,
             processingAttempt: file.lastSuccessfulAttempt,
           },
           orderBy: {
@@ -372,7 +379,11 @@ export async function getUploadedFileDetailsById(
     // 컬럼의 두 어휘를 여기서 한 번 판별한다. 소비자가 `status`와 raw 코드를
     // 짝지어 뜻을 재유도하지 않도록 raw 컬럼은 DTO에 싣지 않는다.
     outcome: toUploadedFileOutcome(status, failureCode),
-    currentUserCredits: user.credits,
+    creditBalance: {
+      owned: user.credits,
+      reserved: user.reservedCredits,
+      available: user.credits - user.reservedCredits,
+    },
     clips,
     clipDrafts,
   };
@@ -383,7 +394,7 @@ export async function findUploadedFileS3Key(
   userId: string,
 ) {
   return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId, userId, deletedAt: null },
     select: { s3Key: true },
   });
 }
@@ -397,9 +408,13 @@ export async function findUploadedFileForScheduling(
   const client: DbClient = options?.tx ?? db;
 
   return client.uploadedFile.findFirst({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId, userId, deletedAt: null },
     select: {
       id: true,
+      s3Key: true,
+      language: true,
+      reviewAttempt: true,
+      transcriptS3Key: true,
       userId: true,
       status: true,
       uploaded: true,
@@ -409,6 +424,7 @@ export async function findUploadedFileForScheduling(
       user: {
         select: {
           credits: true,
+          reservedCredits: true,
         },
       },
     },
@@ -440,6 +456,7 @@ export async function claimNextProcessingAttempt(
     where: {
       id: uploadedFileId,
       userId,
+      deletedAt: null,
       uploaded: true,
       status: {
         in: [...allowedStatuses],
@@ -470,7 +487,7 @@ export async function findUploadedFileReviewState(
   userId: string,
 ) {
   return db.uploadedFile.findFirst({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId, userId, deletedAt: null },
     select: {
       id: true,
       status: true,
@@ -480,6 +497,7 @@ export async function findUploadedFileReviewState(
       user: {
         select: {
           credits: true,
+          reservedCredits: true,
         },
       },
     },
@@ -489,15 +507,21 @@ export async function findUploadedFileReviewState(
 export async function findUploadedFileForDeletion(
   uploadedFileId: string,
   userId: string,
+  options?: { tx?: Prisma.TransactionClient },
 ) {
-  return db.uploadedFile.findFirst({
+  return getClient(options?.tx).uploadedFile.findFirst({
     where: { id: uploadedFileId, userId },
-    select: {
-      id: true,
-      s3Key: true,
-      status: true,
-      uploaded: true,
-    },
+    include: { clips: { orderBy: { id: "asc" } } },
+  });
+}
+
+export async function markUploadedFileDeleting(
+  id: string,
+  tx: Prisma.TransactionClient,
+): Promise<void> {
+  await tx.uploadedFile.update({
+    where: { id },
+    data: { deletedAt: new Date() },
   });
 }
 
@@ -510,6 +534,7 @@ export async function findCurrentProcessingAttemptContext(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
     },
     select: {
       userId: true,
@@ -520,6 +545,7 @@ export async function findCurrentProcessingAttemptContext(
       user: {
         select: {
           credits: true,
+          reservedCredits: true,
         },
       },
     },
@@ -558,6 +584,7 @@ export async function confirmUploadedFileSourceIfObjectExists(
       where: {
         id: uploadedFileId,
         userId,
+        deletedAt: null,
         status: "upload_pending",
         uploaded: false,
       },
@@ -568,7 +595,7 @@ export async function confirmUploadedFileSourceIfObjectExists(
     });
 
     const state = await tx.uploadedFile.findFirstOrThrow({
-      where: { id: uploadedFileId, userId },
+      where: { id: uploadedFileId, userId, deletedAt: null },
       select: {
         status: true,
         uploaded: true,
@@ -605,6 +632,7 @@ export async function ensureUploadedFileQueuedForDispatch(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
       status: "pending_enqueue",
       uploaded: true,
     },
@@ -622,6 +650,7 @@ export async function ensureUploadedFileQueuedForDispatch(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
     },
     select: {
       status: true,
@@ -661,6 +690,13 @@ export type StartProcessingAttemptResult =
   | { status: "already_processing" }
   | { status: "not_claimable" };
 
+export async function lockUploadedFileForProcessing(
+  id: string,
+  tx: Prisma.TransactionClient,
+): Promise<void> {
+  await tx.$queryRaw`SELECT "id" FROM "UploadedFile" WHERE "id" = ${id} FOR UPDATE`;
+}
+
 // Atomically claims a queued attempt as processing while enforcing one
 // processing run per user. The partial unique index
 // "UploadedFile_one_processing_per_user_idx" is the real guarantee; the
@@ -670,12 +706,14 @@ export async function startUploadedFileProcessingAttempt(
   uploadedFileId: string,
   userId: string,
   attempt: number,
-  options?: { now?: Date },
+  options?: { now?: Date; tx?: Prisma.TransactionClient },
 ): Promise<StartProcessingAttemptResult> {
   const now = options?.now ?? new Date();
 
   try {
-    return await db.$transaction(async (tx) => {
+    const claim = async (
+      tx: Prisma.TransactionClient,
+    ): Promise<StartProcessingAttemptResult> => {
       if (await hasProcessingUploadForUser(userId, { tx })) {
         return { status: "already_processing" };
       }
@@ -685,6 +723,7 @@ export async function startUploadedFileProcessingAttempt(
           id: uploadedFileId,
           currentAttempt: attempt,
           status: "queued",
+          deletedAt: null,
           processingStartedAt: null,
         },
         data: {
@@ -698,7 +737,8 @@ export async function startUploadedFileProcessingAttempt(
       }
 
       return { status: "started" };
-    });
+    };
+    return options?.tx ? await claim(options.tx) : await db.$transaction(claim);
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -726,6 +766,7 @@ export async function markUploadedFileAttemptProcessed(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
       status: "processing",
     },
     data: {
@@ -751,6 +792,7 @@ export async function markUploadedFileAttemptReviewPending(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
       status: "processing",
     },
     data: {
@@ -771,6 +813,7 @@ export async function isUploadedFileAttemptStillProcessing(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
       status: "processing",
     },
     select: { id: true },
@@ -787,6 +830,7 @@ export async function isUploadedFileAttemptCurrent(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
     },
     select: { id: true },
   });
@@ -815,6 +859,7 @@ export async function markUploadedFileAttemptFailed(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
       status: {
         in: statuses,
       },
@@ -838,6 +883,7 @@ export async function markUploadedFileAttemptNoCredits(
     where: {
       id: uploadedFileId,
       currentAttempt: attempt,
+      deletedAt: null,
       status: "queued",
     },
     data: {
@@ -855,6 +901,7 @@ export async function hasProcessingUploadForUser(
   const count = await getClient(options?.tx).uploadedFile.count({
     where: {
       userId,
+      deletedAt: null,
       status: "processing",
     },
   });
@@ -882,6 +929,7 @@ export async function reconcileUploadDraftsForUser(
   const drafts = await db.uploadedFile.findMany({
     where: {
       userId,
+      deletedAt: null,
       status: "upload_pending",
     },
     orderBy: {
@@ -974,6 +1022,7 @@ export async function reconcileUploadDraftsForUser(
       where: {
         id: draft.id,
         userId,
+        deletedAt: null,
         status: "upload_pending",
         uploaded: true,
       },
@@ -993,9 +1042,10 @@ export async function reconcileUploadDraftsForUser(
 export async function deleteUploadedFileRecord(
   uploadedFileId: string,
   userId: string,
+  options?: { tx?: Prisma.TransactionClient },
 ) {
-  const result = await db.uploadedFile.deleteMany({
-    where: { id: uploadedFileId, userId },
+  const result = await getClient(options?.tx).uploadedFile.deleteMany({
+    where: { id: uploadedFileId, userId, deletedAt: { not: null } },
   });
 
   if (result.count === 0) {
@@ -1012,7 +1062,7 @@ export async function findStaleProcessingCandidate(
   userId: string,
 ): Promise<StaleProcessingCandidate | null> {
   return db.uploadedFile.findFirst({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId, userId, deletedAt: null },
     select: {
       id: true,
       userId: true,
@@ -1031,7 +1081,7 @@ export async function findUploadedFileFailureState(
   userId: string,
 ): Promise<{ status: string; failureCode: string | null }> {
   return db.uploadedFile.findFirstOrThrow({
-    where: { id: uploadedFileId, userId },
+    where: { id: uploadedFileId, userId, deletedAt: null },
     select: {
       status: true,
       failureCode: true,
@@ -1046,6 +1096,7 @@ export async function listActiveProcessingCandidatesByUserId(
   return db.uploadedFile.findMany({
     where: {
       userId,
+      deletedAt: null,
       status: {
         in: [...ACTIVE_PROCESSING_STATUSES],
       },

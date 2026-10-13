@@ -35,6 +35,7 @@ import { UploadedFileList } from "~/fsd/widgets/uploaded-file-list";
 import QueueStatus from "./_component/QueueStatus";
 import RecoverableUploadDrafts from "./_component/RecoverableUploadDrafts";
 import UploadPodcast from "./_component/UploadPodcast";
+import { AssetCleanupStatus } from "~/fsd/features/card-news";
 
 interface DashboardViewProps {
   userId: string;
@@ -124,6 +125,9 @@ export default function DashboardView({
         <TabsList>
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="my-clips">My Clips</TabsTrigger>
+          <Link className="px-3 text-sm" href="/dashboard/card-news">
+            Card news
+          </Link>
         </TabsList>
 
         <TabsContent value="upload" className="space-y-6">
@@ -156,6 +160,7 @@ export default function DashboardView({
           </Card>
         </TabsContent>
       </Tabs>
+      <AssetCleanupStatus key={userId} userId={userId} />
     </div>
   );
 }

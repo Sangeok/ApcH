@@ -19,6 +19,7 @@ const MAX_SUBSCRIPTION_POLLS =
 
 interface BillingPageProps {
   data: BillingPageData;
+  creditBalanceSlot: React.ReactNode;
   productIds: ProductIds;
   /** 체크아웃에서 돌아온 진입인지. 배너·폴링·계측 셋을 함께 켠다 */
   hasReturnedFromCheckout: boolean;
@@ -29,6 +30,7 @@ interface BillingPageProps {
 
 export function BillingPage({
   data,
+  creditBalanceSlot,
   productIds,
   hasReturnedFromCheckout,
   hadPortalError,
@@ -115,7 +117,7 @@ export function BillingPage({
       )}
 
       <SubscriptionStatus
-        credits={data.credits}
+        creditBalanceSlot={creditBalanceSlot}
         subscription={data.subscription}
       />
 

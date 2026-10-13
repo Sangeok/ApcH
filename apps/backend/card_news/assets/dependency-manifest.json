@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "python": "3.12",
+  "templateVersion": "card-news-v1",
+  "fontVersion": "noto-sans-kr-2.004",
+  "promptVersion": "card-news-grounded-v1",
+  "modelVersion": "gemini-2.5-flash",
+  "packages": {
+    "modal": "1.2.1",
+    "google-genai": "1.49.0",
+    "Pillow": "11.1.0",
+    "boto3": "1.37.13",
+    "requests": "2.32.3",
+    "fastapi": "0.115.11",
+    "botocore": "1.37.13",
+    "grpclib": "0.4.8",
+    "starlette": "0.46.1"
+  },
+  "ffmpegMajor": 5,
+  "fontSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf",
+  "fontSourceSha256": "194018e6b2b293a7964f037b25c0249ce1418bc9ab3c971060a03aa57861e252",
+  "fontUpstreamVersion": "Version 2.004-H2;hotconv 1.0.118;makeotfexe 2.5.65603",
+  "fontBuildTool": "fontTools==4.56.0 instantiateVariableFont wght=400/700",
+  "fonts": {
+    "NotoSansKR-Bold.ttf": "cec407a9351b8b166d314bdde7ff2e39143011b83eb200c6fd6c68ce029c0247",
+    "NotoSansKR-Regular.ttf": "bed5eff9e91cb006a65757ff68d31932e96a348acf2e9eb87b87f231a744d81c"
+  },
+  "licenseSha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+  "qualification": {
+    "modalImage": "not-executed",
+    "modelAvailability": "not-executed"
+  }
+}

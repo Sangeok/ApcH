@@ -46,4 +46,10 @@ export const productCapabilities: ResourceCard[] = [
       "Generated clips are played and downloaded from the authenticated dashboard through signed URLs.",
     icon: Download,
   },
+  {
+    title: "Card news from a completed clip",
+    description:
+      "When enabled, create standalone text cards with an original-video cover for one credit per complete set. Manual editing and JPG/ZIP download are free; creators copy the caption and hashtags and post to Instagram themselves.",
+    icon: Sparkles,
+  },
 ];

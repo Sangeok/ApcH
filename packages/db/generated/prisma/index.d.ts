@@ -49,6 +49,31 @@ export type ClipDraft = $Result.DefaultSelection<Prisma.$ClipDraftPayload>
  */
 export type ProcessingDispatch = $Result.DefaultSelection<Prisma.$ProcessingDispatchPayload>
 /**
+ * Model CreditReservation
+ * 
+ */
+export type CreditReservation = $Result.DefaultSelection<Prisma.$CreditReservationPayload>
+/**
+ * Model CardNewsSet
+ * 
+ */
+export type CardNewsSet = $Result.DefaultSelection<Prisma.$CardNewsSetPayload>
+/**
+ * Model CardNewsJob
+ * 
+ */
+export type CardNewsJob = $Result.DefaultSelection<Prisma.$CardNewsJobPayload>
+/**
+ * Model CardNewsInvocation
+ * 
+ */
+export type CardNewsInvocation = $Result.DefaultSelection<Prisma.$CardNewsInvocationPayload>
+/**
+ * Model AssetCleanupJob
+ * 
+ */
+export type AssetCleanupJob = $Result.DefaultSelection<Prisma.$AssetCleanupJobPayload>
+/**
  * Model Subscription
  * 
  */
@@ -256,6 +281,56 @@ export class PrismaClient<
     * ```
     */
   get processingDispatch(): Prisma.ProcessingDispatchDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.creditReservation`: Exposes CRUD operations for the **CreditReservation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CreditReservations
+    * const creditReservations = await prisma.creditReservation.findMany()
+    * ```
+    */
+  get creditReservation(): Prisma.CreditReservationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.cardNewsSet`: Exposes CRUD operations for the **CardNewsSet** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CardNewsSets
+    * const cardNewsSets = await prisma.cardNewsSet.findMany()
+    * ```
+    */
+  get cardNewsSet(): Prisma.CardNewsSetDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.cardNewsJob`: Exposes CRUD operations for the **CardNewsJob** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CardNewsJobs
+    * const cardNewsJobs = await prisma.cardNewsJob.findMany()
+    * ```
+    */
+  get cardNewsJob(): Prisma.CardNewsJobDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.cardNewsInvocation`: Exposes CRUD operations for the **CardNewsInvocation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CardNewsInvocations
+    * const cardNewsInvocations = await prisma.cardNewsInvocation.findMany()
+    * ```
+    */
+  get cardNewsInvocation(): Prisma.CardNewsInvocationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.assetCleanupJob`: Exposes CRUD operations for the **AssetCleanupJob** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssetCleanupJobs
+    * const assetCleanupJobs = await prisma.assetCleanupJob.findMany()
+    * ```
+    */
+  get assetCleanupJob(): Prisma.AssetCleanupJobDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.subscription`: Exposes CRUD operations for the **Subscription** model.
@@ -744,6 +819,11 @@ export namespace Prisma {
     Clip: 'Clip',
     ClipDraft: 'ClipDraft',
     ProcessingDispatch: 'ProcessingDispatch',
+    CreditReservation: 'CreditReservation',
+    CardNewsSet: 'CardNewsSet',
+    CardNewsJob: 'CardNewsJob',
+    CardNewsInvocation: 'CardNewsInvocation',
+    AssetCleanupJob: 'AssetCleanupJob',
     Subscription: 'Subscription',
     Order: 'Order',
     AnalyticsEvent: 'AnalyticsEvent',
@@ -766,7 +846,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "account" | "session" | "user" | "uploadedFile" | "clip" | "clipDraft" | "processingDispatch" | "subscription" | "order" | "analyticsEvent" | "verificationToken"
+      modelProps: "account" | "session" | "user" | "uploadedFile" | "clip" | "clipDraft" | "processingDispatch" | "creditReservation" | "cardNewsSet" | "cardNewsJob" | "cardNewsInvocation" | "assetCleanupJob" | "subscription" | "order" | "analyticsEvent" | "verificationToken"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1288,6 +1368,376 @@ export namespace Prisma {
           }
         }
       }
+      CreditReservation: {
+        payload: Prisma.$CreditReservationPayload<ExtArgs>
+        fields: Prisma.CreditReservationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CreditReservationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CreditReservationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>
+          }
+          findFirst: {
+            args: Prisma.CreditReservationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CreditReservationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>
+          }
+          findMany: {
+            args: Prisma.CreditReservationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>[]
+          }
+          create: {
+            args: Prisma.CreditReservationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>
+          }
+          createMany: {
+            args: Prisma.CreditReservationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CreditReservationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>[]
+          }
+          delete: {
+            args: Prisma.CreditReservationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>
+          }
+          update: {
+            args: Prisma.CreditReservationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>
+          }
+          deleteMany: {
+            args: Prisma.CreditReservationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CreditReservationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CreditReservationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>[]
+          }
+          upsert: {
+            args: Prisma.CreditReservationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditReservationPayload>
+          }
+          aggregate: {
+            args: Prisma.CreditReservationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCreditReservation>
+          }
+          groupBy: {
+            args: Prisma.CreditReservationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CreditReservationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CreditReservationCountArgs<ExtArgs>
+            result: $Utils.Optional<CreditReservationCountAggregateOutputType> | number
+          }
+        }
+      }
+      CardNewsSet: {
+        payload: Prisma.$CardNewsSetPayload<ExtArgs>
+        fields: Prisma.CardNewsSetFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CardNewsSetFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CardNewsSetFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>
+          }
+          findFirst: {
+            args: Prisma.CardNewsSetFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CardNewsSetFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>
+          }
+          findMany: {
+            args: Prisma.CardNewsSetFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>[]
+          }
+          create: {
+            args: Prisma.CardNewsSetCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>
+          }
+          createMany: {
+            args: Prisma.CardNewsSetCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CardNewsSetCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>[]
+          }
+          delete: {
+            args: Prisma.CardNewsSetDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>
+          }
+          update: {
+            args: Prisma.CardNewsSetUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>
+          }
+          deleteMany: {
+            args: Prisma.CardNewsSetDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CardNewsSetUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CardNewsSetUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>[]
+          }
+          upsert: {
+            args: Prisma.CardNewsSetUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsSetPayload>
+          }
+          aggregate: {
+            args: Prisma.CardNewsSetAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCardNewsSet>
+          }
+          groupBy: {
+            args: Prisma.CardNewsSetGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CardNewsSetGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CardNewsSetCountArgs<ExtArgs>
+            result: $Utils.Optional<CardNewsSetCountAggregateOutputType> | number
+          }
+        }
+      }
+      CardNewsJob: {
+        payload: Prisma.$CardNewsJobPayload<ExtArgs>
+        fields: Prisma.CardNewsJobFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CardNewsJobFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CardNewsJobFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>
+          }
+          findFirst: {
+            args: Prisma.CardNewsJobFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CardNewsJobFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>
+          }
+          findMany: {
+            args: Prisma.CardNewsJobFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>[]
+          }
+          create: {
+            args: Prisma.CardNewsJobCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>
+          }
+          createMany: {
+            args: Prisma.CardNewsJobCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CardNewsJobCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>[]
+          }
+          delete: {
+            args: Prisma.CardNewsJobDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>
+          }
+          update: {
+            args: Prisma.CardNewsJobUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>
+          }
+          deleteMany: {
+            args: Prisma.CardNewsJobDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CardNewsJobUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CardNewsJobUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>[]
+          }
+          upsert: {
+            args: Prisma.CardNewsJobUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsJobPayload>
+          }
+          aggregate: {
+            args: Prisma.CardNewsJobAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCardNewsJob>
+          }
+          groupBy: {
+            args: Prisma.CardNewsJobGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CardNewsJobGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CardNewsJobCountArgs<ExtArgs>
+            result: $Utils.Optional<CardNewsJobCountAggregateOutputType> | number
+          }
+        }
+      }
+      CardNewsInvocation: {
+        payload: Prisma.$CardNewsInvocationPayload<ExtArgs>
+        fields: Prisma.CardNewsInvocationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CardNewsInvocationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CardNewsInvocationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>
+          }
+          findFirst: {
+            args: Prisma.CardNewsInvocationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CardNewsInvocationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>
+          }
+          findMany: {
+            args: Prisma.CardNewsInvocationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>[]
+          }
+          create: {
+            args: Prisma.CardNewsInvocationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>
+          }
+          createMany: {
+            args: Prisma.CardNewsInvocationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CardNewsInvocationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>[]
+          }
+          delete: {
+            args: Prisma.CardNewsInvocationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>
+          }
+          update: {
+            args: Prisma.CardNewsInvocationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>
+          }
+          deleteMany: {
+            args: Prisma.CardNewsInvocationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CardNewsInvocationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CardNewsInvocationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>[]
+          }
+          upsert: {
+            args: Prisma.CardNewsInvocationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CardNewsInvocationPayload>
+          }
+          aggregate: {
+            args: Prisma.CardNewsInvocationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCardNewsInvocation>
+          }
+          groupBy: {
+            args: Prisma.CardNewsInvocationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CardNewsInvocationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CardNewsInvocationCountArgs<ExtArgs>
+            result: $Utils.Optional<CardNewsInvocationCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssetCleanupJob: {
+        payload: Prisma.$AssetCleanupJobPayload<ExtArgs>
+        fields: Prisma.AssetCleanupJobFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssetCleanupJobFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssetCleanupJobFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>
+          }
+          findFirst: {
+            args: Prisma.AssetCleanupJobFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssetCleanupJobFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>
+          }
+          findMany: {
+            args: Prisma.AssetCleanupJobFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>[]
+          }
+          create: {
+            args: Prisma.AssetCleanupJobCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>
+          }
+          createMany: {
+            args: Prisma.AssetCleanupJobCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssetCleanupJobCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>[]
+          }
+          delete: {
+            args: Prisma.AssetCleanupJobDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>
+          }
+          update: {
+            args: Prisma.AssetCleanupJobUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>
+          }
+          deleteMany: {
+            args: Prisma.AssetCleanupJobDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssetCleanupJobUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AssetCleanupJobUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>[]
+          }
+          upsert: {
+            args: Prisma.AssetCleanupJobUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssetCleanupJobPayload>
+          }
+          aggregate: {
+            args: Prisma.AssetCleanupJobAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssetCleanupJob>
+          }
+          groupBy: {
+            args: Prisma.AssetCleanupJobGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssetCleanupJobGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssetCleanupJobCountArgs<ExtArgs>
+            result: $Utils.Optional<AssetCleanupJobCountAggregateOutputType> | number
+          }
+        }
+      }
       Subscription: {
         payload: Prisma.$SubscriptionPayload<ExtArgs>
         fields: Prisma.SubscriptionFieldRefs
@@ -1687,6 +2137,11 @@ export namespace Prisma {
     clip?: ClipOmit
     clipDraft?: ClipDraftOmit
     processingDispatch?: ProcessingDispatchOmit
+    creditReservation?: CreditReservationOmit
+    cardNewsSet?: CardNewsSetOmit
+    cardNewsJob?: CardNewsJobOmit
+    cardNewsInvocation?: CardNewsInvocationOmit
+    assetCleanupJob?: AssetCleanupJobOmit
     subscription?: SubscriptionOmit
     order?: OrderOmit
     analyticsEvent?: AnalyticsEventOmit
@@ -1777,6 +2232,10 @@ export namespace Prisma {
     clips: number
     orders: number
     analyticsEvents: number
+    creditReservations: number
+    cardNewsSets: number
+    cardNewsJobs: number
+    assetCleanupJobs: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1786,6 +2245,10 @@ export namespace Prisma {
     clips?: boolean | UserCountOutputTypeCountClipsArgs
     orders?: boolean | UserCountOutputTypeCountOrdersArgs
     analyticsEvents?: boolean | UserCountOutputTypeCountAnalyticsEventsArgs
+    creditReservations?: boolean | UserCountOutputTypeCountCreditReservationsArgs
+    cardNewsSets?: boolean | UserCountOutputTypeCountCardNewsSetsArgs
+    cardNewsJobs?: boolean | UserCountOutputTypeCountCardNewsJobsArgs
+    assetCleanupJobs?: boolean | UserCountOutputTypeCountAssetCleanupJobsArgs
   }
 
   // Custom InputTypes
@@ -1841,6 +2304,34 @@ export namespace Prisma {
     where?: AnalyticsEventWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCreditReservationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CreditReservationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCardNewsSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsSetWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCardNewsJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsJobWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAssetCleanupJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssetCleanupJobWhereInput
+  }
+
 
   /**
    * Count Type UploadedFileCountOutputType
@@ -1850,12 +2341,14 @@ export namespace Prisma {
     clips: number
     dispatches: number
     clipDrafts: number
+    cardNewsSets: number
   }
 
   export type UploadedFileCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFileCountOutputTypeCountClipsArgs
     dispatches?: boolean | UploadedFileCountOutputTypeCountDispatchesArgs
     clipDrafts?: boolean | UploadedFileCountOutputTypeCountClipDraftsArgs
+    cardNewsSets?: boolean | UploadedFileCountOutputTypeCountCardNewsSetsArgs
   }
 
   // Custom InputTypes
@@ -1888,6 +2381,155 @@ export namespace Prisma {
    */
   export type UploadedFileCountOutputTypeCountClipDraftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ClipDraftWhereInput
+  }
+
+  /**
+   * UploadedFileCountOutputType without action
+   */
+  export type UploadedFileCountOutputTypeCountCardNewsSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsSetWhereInput
+  }
+
+
+  /**
+   * Count Type ClipCountOutputType
+   */
+
+  export type ClipCountOutputType = {
+    cardNewsSets: number
+  }
+
+  export type ClipCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    cardNewsSets?: boolean | ClipCountOutputTypeCountCardNewsSetsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ClipCountOutputType without action
+   */
+  export type ClipCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ClipCountOutputType
+     */
+    select?: ClipCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ClipCountOutputType without action
+   */
+  export type ClipCountOutputTypeCountCardNewsSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsSetWhereInput
+  }
+
+
+  /**
+   * Count Type CreditReservationCountOutputType
+   */
+
+  export type CreditReservationCountOutputType = {
+    dispatches: number
+    cardNewsJobs: number
+  }
+
+  export type CreditReservationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dispatches?: boolean | CreditReservationCountOutputTypeCountDispatchesArgs
+    cardNewsJobs?: boolean | CreditReservationCountOutputTypeCountCardNewsJobsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CreditReservationCountOutputType without action
+   */
+  export type CreditReservationCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservationCountOutputType
+     */
+    select?: CreditReservationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CreditReservationCountOutputType without action
+   */
+  export type CreditReservationCountOutputTypeCountDispatchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProcessingDispatchWhereInput
+  }
+
+  /**
+   * CreditReservationCountOutputType without action
+   */
+  export type CreditReservationCountOutputTypeCountCardNewsJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsJobWhereInput
+  }
+
+
+  /**
+   * Count Type CardNewsSetCountOutputType
+   */
+
+  export type CardNewsSetCountOutputType = {
+    regeneratedSets: number
+    jobs: number
+  }
+
+  export type CardNewsSetCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    regeneratedSets?: boolean | CardNewsSetCountOutputTypeCountRegeneratedSetsArgs
+    jobs?: boolean | CardNewsSetCountOutputTypeCountJobsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CardNewsSetCountOutputType without action
+   */
+  export type CardNewsSetCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSetCountOutputType
+     */
+    select?: CardNewsSetCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsSetCountOutputType without action
+   */
+  export type CardNewsSetCountOutputTypeCountRegeneratedSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsSetWhereInput
+  }
+
+  /**
+   * CardNewsSetCountOutputType without action
+   */
+  export type CardNewsSetCountOutputTypeCountJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsJobWhereInput
+  }
+
+
+  /**
+   * Count Type CardNewsJobCountOutputType
+   */
+
+  export type CardNewsJobCountOutputType = {
+    invocations: number
+  }
+
+  export type CardNewsJobCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    invocations?: boolean | CardNewsJobCountOutputTypeCountInvocationsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CardNewsJobCountOutputType without action
+   */
+  export type CardNewsJobCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJobCountOutputType
+     */
+    select?: CardNewsJobCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsJobCountOutputType without action
+   */
+  export type CardNewsJobCountOutputTypeCountInvocationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsInvocationWhereInput
   }
 
 
@@ -4154,12 +4796,14 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     credits: number | null
+    reservedCredits: number | null
     defaultClipCount: number | null
     defaultVideoPaddingPercent: number | null
   }
 
   export type UserSumAggregateOutputType = {
     credits: number | null
+    reservedCredits: number | null
     defaultClipCount: number | null
     defaultVideoPaddingPercent: number | null
   }
@@ -4171,6 +4815,7 @@ export namespace Prisma {
     emailVerified: Date | null
     password: string | null
     credits: number | null
+    reservedCredits: number | null
     polarCustomerId: string | null
     image: string | null
     defaultLanguage: string | null
@@ -4186,6 +4831,7 @@ export namespace Prisma {
     emailVerified: Date | null
     password: string | null
     credits: number | null
+    reservedCredits: number | null
     polarCustomerId: string | null
     image: string | null
     defaultLanguage: string | null
@@ -4201,6 +4847,7 @@ export namespace Prisma {
     emailVerified: number
     password: number
     credits: number
+    reservedCredits: number
     polarCustomerId: number
     image: number
     defaultLanguage: number
@@ -4216,12 +4863,14 @@ export namespace Prisma {
 
   export type UserAvgAggregateInputType = {
     credits?: true
+    reservedCredits?: true
     defaultClipCount?: true
     defaultVideoPaddingPercent?: true
   }
 
   export type UserSumAggregateInputType = {
     credits?: true
+    reservedCredits?: true
     defaultClipCount?: true
     defaultVideoPaddingPercent?: true
   }
@@ -4233,6 +4882,7 @@ export namespace Prisma {
     emailVerified?: true
     password?: true
     credits?: true
+    reservedCredits?: true
     polarCustomerId?: true
     image?: true
     defaultLanguage?: true
@@ -4248,6 +4898,7 @@ export namespace Prisma {
     emailVerified?: true
     password?: true
     credits?: true
+    reservedCredits?: true
     polarCustomerId?: true
     image?: true
     defaultLanguage?: true
@@ -4263,6 +4914,7 @@ export namespace Prisma {
     emailVerified?: true
     password?: true
     credits?: true
+    reservedCredits?: true
     polarCustomerId?: true
     image?: true
     defaultLanguage?: true
@@ -4368,6 +5020,7 @@ export namespace Prisma {
     emailVerified: Date | null
     password: string | null
     credits: number
+    reservedCredits: number
     polarCustomerId: string | null
     image: string | null
     defaultLanguage: string | null
@@ -4405,6 +5058,7 @@ export namespace Prisma {
     emailVerified?: boolean
     password?: boolean
     credits?: boolean
+    reservedCredits?: boolean
     polarCustomerId?: boolean
     image?: boolean
     defaultLanguage?: boolean
@@ -4421,6 +5075,10 @@ export namespace Prisma {
     subscription?: boolean | User$subscriptionArgs<ExtArgs>
     orders?: boolean | User$ordersArgs<ExtArgs>
     analyticsEvents?: boolean | User$analyticsEventsArgs<ExtArgs>
+    creditReservations?: boolean | User$creditReservationsArgs<ExtArgs>
+    cardNewsSets?: boolean | User$cardNewsSetsArgs<ExtArgs>
+    cardNewsJobs?: boolean | User$cardNewsJobsArgs<ExtArgs>
+    assetCleanupJobs?: boolean | User$assetCleanupJobsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -4431,6 +5089,7 @@ export namespace Prisma {
     emailVerified?: boolean
     password?: boolean
     credits?: boolean
+    reservedCredits?: boolean
     polarCustomerId?: boolean
     image?: boolean
     defaultLanguage?: boolean
@@ -4449,6 +5108,7 @@ export namespace Prisma {
     emailVerified?: boolean
     password?: boolean
     credits?: boolean
+    reservedCredits?: boolean
     polarCustomerId?: boolean
     image?: boolean
     defaultLanguage?: boolean
@@ -4467,6 +5127,7 @@ export namespace Prisma {
     emailVerified?: boolean
     password?: boolean
     credits?: boolean
+    reservedCredits?: boolean
     polarCustomerId?: boolean
     image?: boolean
     defaultLanguage?: boolean
@@ -4478,7 +5139,7 @@ export namespace Prisma {
     defaultCaptionStyle?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "polarCustomerId" | "image" | "defaultLanguage" | "defaultClipCount" | "defaultReviewBeforeGenerate" | "defaultVideoPaddingPercent" | "defaultCaptionStyleEnglish" | "defaultCaptionStyleKorean" | "defaultCaptionStyle", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "credits" | "reservedCredits" | "polarCustomerId" | "image" | "defaultLanguage" | "defaultClipCount" | "defaultReviewBeforeGenerate" | "defaultVideoPaddingPercent" | "defaultCaptionStyleEnglish" | "defaultCaptionStyleKorean" | "defaultCaptionStyle", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -4487,6 +5148,10 @@ export namespace Prisma {
     subscription?: boolean | User$subscriptionArgs<ExtArgs>
     orders?: boolean | User$ordersArgs<ExtArgs>
     analyticsEvents?: boolean | User$analyticsEventsArgs<ExtArgs>
+    creditReservations?: boolean | User$creditReservationsArgs<ExtArgs>
+    cardNewsSets?: boolean | User$cardNewsSetsArgs<ExtArgs>
+    cardNewsJobs?: boolean | User$cardNewsJobsArgs<ExtArgs>
+    assetCleanupJobs?: boolean | User$assetCleanupJobsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4502,6 +5167,10 @@ export namespace Prisma {
       subscription: Prisma.$SubscriptionPayload<ExtArgs> | null
       orders: Prisma.$OrderPayload<ExtArgs>[]
       analyticsEvents: Prisma.$AnalyticsEventPayload<ExtArgs>[]
+      creditReservations: Prisma.$CreditReservationPayload<ExtArgs>[]
+      cardNewsSets: Prisma.$CardNewsSetPayload<ExtArgs>[]
+      cardNewsJobs: Prisma.$CardNewsJobPayload<ExtArgs>[]
+      assetCleanupJobs: Prisma.$AssetCleanupJobPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4510,6 +5179,7 @@ export namespace Prisma {
       emailVerified: Date | null
       password: string | null
       credits: number
+      reservedCredits: number
       polarCustomerId: string | null
       image: string | null
       defaultLanguage: string | null
@@ -4920,6 +5590,10 @@ export namespace Prisma {
     subscription<T extends User$subscriptionArgs<ExtArgs> = {}>(args?: Subset<T, User$subscriptionArgs<ExtArgs>>): Prisma__SubscriptionClient<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     orders<T extends User$ordersArgs<ExtArgs> = {}>(args?: Subset<T, User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     analyticsEvents<T extends User$analyticsEventsArgs<ExtArgs> = {}>(args?: Subset<T, User$analyticsEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AnalyticsEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    creditReservations<T extends User$creditReservationsArgs<ExtArgs> = {}>(args?: Subset<T, User$creditReservationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    cardNewsSets<T extends User$cardNewsSetsArgs<ExtArgs> = {}>(args?: Subset<T, User$cardNewsSetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    cardNewsJobs<T extends User$cardNewsJobsArgs<ExtArgs> = {}>(args?: Subset<T, User$cardNewsJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assetCleanupJobs<T extends User$assetCleanupJobsArgs<ExtArgs> = {}>(args?: Subset<T, User$assetCleanupJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4955,6 +5629,7 @@ export namespace Prisma {
     readonly emailVerified: FieldRef<"User", 'DateTime'>
     readonly password: FieldRef<"User", 'String'>
     readonly credits: FieldRef<"User", 'Int'>
+    readonly reservedCredits: FieldRef<"User", 'Int'>
     readonly polarCustomerId: FieldRef<"User", 'String'>
     readonly image: FieldRef<"User", 'String'>
     readonly defaultLanguage: FieldRef<"User", 'String'>
@@ -5515,6 +6190,102 @@ export namespace Prisma {
   }
 
   /**
+   * User.creditReservations
+   */
+  export type User$creditReservationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    where?: CreditReservationWhereInput
+    orderBy?: CreditReservationOrderByWithRelationInput | CreditReservationOrderByWithRelationInput[]
+    cursor?: CreditReservationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CreditReservationScalarFieldEnum | CreditReservationScalarFieldEnum[]
+  }
+
+  /**
+   * User.cardNewsSets
+   */
+  export type User$cardNewsSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    where?: CardNewsSetWhereInput
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    cursor?: CardNewsSetWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsSetScalarFieldEnum | CardNewsSetScalarFieldEnum[]
+  }
+
+  /**
+   * User.cardNewsJobs
+   */
+  export type User$cardNewsJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    where?: CardNewsJobWhereInput
+    orderBy?: CardNewsJobOrderByWithRelationInput | CardNewsJobOrderByWithRelationInput[]
+    cursor?: CardNewsJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsJobScalarFieldEnum | CardNewsJobScalarFieldEnum[]
+  }
+
+  /**
+   * User.assetCleanupJobs
+   */
+  export type User$assetCleanupJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    where?: AssetCleanupJobWhereInput
+    orderBy?: AssetCleanupJobOrderByWithRelationInput | AssetCleanupJobOrderByWithRelationInput[]
+    cursor?: AssetCleanupJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssetCleanupJobScalarFieldEnum | AssetCleanupJobScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5584,6 +6355,7 @@ export namespace Prisma {
     reviewAttempt: number | null
     reviewReadyAt: Date | null
     transcriptS3Key: string | null
+    deletedAt: Date | null
     userId: string | null
   }
 
@@ -5610,6 +6382,7 @@ export namespace Prisma {
     reviewAttempt: number | null
     reviewReadyAt: Date | null
     transcriptS3Key: string | null
+    deletedAt: Date | null
     userId: string | null
   }
 
@@ -5637,6 +6410,7 @@ export namespace Prisma {
     reviewAttempt: number
     reviewReadyAt: number
     transcriptS3Key: number
+    deletedAt: number
     userId: number
     _all: number
   }
@@ -5681,6 +6455,7 @@ export namespace Prisma {
     reviewAttempt?: true
     reviewReadyAt?: true
     transcriptS3Key?: true
+    deletedAt?: true
     userId?: true
   }
 
@@ -5707,6 +6482,7 @@ export namespace Prisma {
     reviewAttempt?: true
     reviewReadyAt?: true
     transcriptS3Key?: true
+    deletedAt?: true
     userId?: true
   }
 
@@ -5734,6 +6510,7 @@ export namespace Prisma {
     reviewAttempt?: true
     reviewReadyAt?: true
     transcriptS3Key?: true
+    deletedAt?: true
     userId?: true
     _all?: true
   }
@@ -5848,6 +6625,7 @@ export namespace Prisma {
     reviewAttempt: number | null
     reviewReadyAt: Date | null
     transcriptS3Key: string | null
+    deletedAt: Date | null
     userId: string
     _count: UploadedFileCountAggregateOutputType | null
     _avg: UploadedFileAvgAggregateOutputType | null
@@ -5894,10 +6672,12 @@ export namespace Prisma {
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
+    deletedAt?: boolean
     userId?: boolean
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
     clipDrafts?: boolean | UploadedFile$clipDraftsArgs<ExtArgs>
+    cardNewsSets?: boolean | UploadedFile$cardNewsSetsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | UploadedFileCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5926,6 +6706,7 @@ export namespace Prisma {
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
+    deletedAt?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5954,6 +6735,7 @@ export namespace Prisma {
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
+    deletedAt?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedFile"]>
@@ -5982,14 +6764,16 @@ export namespace Prisma {
     reviewAttempt?: boolean
     reviewReadyAt?: boolean
     transcriptS3Key?: boolean
+    deletedAt?: boolean
     userId?: boolean
   }
 
-  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "reviewBeforeGenerate" | "captionStyle" | "videoPaddingPercent" | "reviewAttempt" | "reviewReadyAt" | "transcriptS3Key" | "userId", ExtArgs["result"]["uploadedFile"]>
+  export type UploadedFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "displayName" | "uploaded" | "status" | "createdAt" | "updatedAt" | "sourceUploadedAt" | "enqueueRequestedAt" | "queuedAt" | "processingStartedAt" | "terminalStatusAt" | "currentAttempt" | "lastSuccessfulAttempt" | "failureCode" | "language" | "targetClipCount" | "reviewBeforeGenerate" | "captionStyle" | "videoPaddingPercent" | "reviewAttempt" | "reviewReadyAt" | "transcriptS3Key" | "deletedAt" | "userId", ExtArgs["result"]["uploadedFile"]>
   export type UploadedFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clips?: boolean | UploadedFile$clipsArgs<ExtArgs>
     dispatches?: boolean | UploadedFile$dispatchesArgs<ExtArgs>
     clipDrafts?: boolean | UploadedFile$clipDraftsArgs<ExtArgs>
+    cardNewsSets?: boolean | UploadedFile$cardNewsSetsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | UploadedFileCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -6006,6 +6790,7 @@ export namespace Prisma {
       clips: Prisma.$ClipPayload<ExtArgs>[]
       dispatches: Prisma.$ProcessingDispatchPayload<ExtArgs>[]
       clipDrafts: Prisma.$ClipDraftPayload<ExtArgs>[]
+      cardNewsSets: Prisma.$CardNewsSetPayload<ExtArgs>[]
       user: Prisma.$UserPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -6032,6 +6817,7 @@ export namespace Prisma {
       reviewAttempt: number | null
       reviewReadyAt: Date | null
       transcriptS3Key: string | null
+      deletedAt: Date | null
       userId: string
     }, ExtArgs["result"]["uploadedFile"]>
     composites: {}
@@ -6430,6 +7216,7 @@ export namespace Prisma {
     clips<T extends UploadedFile$clipsArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$clipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     dispatches<T extends UploadedFile$dispatchesArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$dispatchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     clipDrafts<T extends UploadedFile$clipDraftsArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$clipDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClipDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    cardNewsSets<T extends UploadedFile$cardNewsSetsArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFile$cardNewsSetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -6483,6 +7270,7 @@ export namespace Prisma {
     readonly reviewAttempt: FieldRef<"UploadedFile", 'Int'>
     readonly reviewReadyAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly transcriptS3Key: FieldRef<"UploadedFile", 'String'>
+    readonly deletedAt: FieldRef<"UploadedFile", 'DateTime'>
     readonly userId: FieldRef<"UploadedFile", 'String'>
   }
     
@@ -6952,6 +7740,30 @@ export namespace Prisma {
   }
 
   /**
+   * UploadedFile.cardNewsSets
+   */
+  export type UploadedFile$cardNewsSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    where?: CardNewsSetWhereInput
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    cursor?: CardNewsSetWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsSetScalarFieldEnum | CardNewsSetScalarFieldEnum[]
+  }
+
+  /**
    * UploadedFile without action
    */
   export type UploadedFileDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7007,6 +7819,7 @@ export namespace Prisma {
     subtitleStatus: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    deletedAt: Date | null
     youtubeTitle: string | null
     youtubeDescription: string | null
     youtubeHashtags: string | null
@@ -7027,6 +7840,7 @@ export namespace Prisma {
     subtitleStatus: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    deletedAt: Date | null
     youtubeTitle: string | null
     youtubeDescription: string | null
     youtubeHashtags: string | null
@@ -7047,6 +7861,7 @@ export namespace Prisma {
     subtitleStatus: number
     createdAt: number
     updatedAt: number
+    deletedAt: number
     youtubeTitle: number
     youtubeDescription: number
     youtubeHashtags: number
@@ -7081,6 +7896,7 @@ export namespace Prisma {
     subtitleStatus?: true
     createdAt?: true
     updatedAt?: true
+    deletedAt?: true
     youtubeTitle?: true
     youtubeDescription?: true
     youtubeHashtags?: true
@@ -7101,6 +7917,7 @@ export namespace Prisma {
     subtitleStatus?: true
     createdAt?: true
     updatedAt?: true
+    deletedAt?: true
     youtubeTitle?: true
     youtubeDescription?: true
     youtubeHashtags?: true
@@ -7121,6 +7938,7 @@ export namespace Prisma {
     subtitleStatus?: true
     createdAt?: true
     updatedAt?: true
+    deletedAt?: true
     youtubeTitle?: true
     youtubeDescription?: true
     youtubeHashtags?: true
@@ -7228,6 +8046,7 @@ export namespace Prisma {
     subtitleStatus: string | null
     createdAt: Date
     updatedAt: Date
+    deletedAt: Date | null
     youtubeTitle: string | null
     youtubeDescription: string | null
     youtubeHashtags: string | null
@@ -7267,6 +8086,7 @@ export namespace Prisma {
     subtitleStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    deletedAt?: boolean
     youtubeTitle?: boolean
     youtubeDescription?: boolean
     youtubeHashtags?: boolean
@@ -7274,6 +8094,8 @@ export namespace Prisma {
     userId?: boolean
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
+    cardNewsSets?: boolean | Clip$cardNewsSetsArgs<ExtArgs>
+    _count?: boolean | ClipCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["clip"]>
 
   export type ClipSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7289,6 +8111,7 @@ export namespace Prisma {
     subtitleStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    deletedAt?: boolean
     youtubeTitle?: boolean
     youtubeDescription?: boolean
     youtubeHashtags?: boolean
@@ -7311,6 +8134,7 @@ export namespace Prisma {
     subtitleStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    deletedAt?: boolean
     youtubeTitle?: boolean
     youtubeDescription?: boolean
     youtubeHashtags?: boolean
@@ -7333,6 +8157,7 @@ export namespace Prisma {
     subtitleStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    deletedAt?: boolean
     youtubeTitle?: boolean
     youtubeDescription?: boolean
     youtubeHashtags?: boolean
@@ -7340,10 +8165,12 @@ export namespace Prisma {
     userId?: boolean
   }
 
-  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "processingAttempt" | "startSeconds" | "endSeconds" | "scriptText" | "clipType" | "hook" | "payoff" | "subtitleStatus" | "createdAt" | "updatedAt" | "youtubeTitle" | "youtubeDescription" | "youtubeHashtags" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
+  export type ClipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "s3Key" | "processingAttempt" | "startSeconds" | "endSeconds" | "scriptText" | "clipType" | "hook" | "payoff" | "subtitleStatus" | "createdAt" | "updatedAt" | "deletedAt" | "youtubeTitle" | "youtubeDescription" | "youtubeHashtags" | "uploadedFileId" | "userId", ExtArgs["result"]["clip"]>
   export type ClipInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
+    cardNewsSets?: boolean | Clip$cardNewsSetsArgs<ExtArgs>
+    _count?: boolean | ClipCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ClipIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     uploadedFile?: boolean | Clip$uploadedFileArgs<ExtArgs>
@@ -7359,6 +8186,7 @@ export namespace Prisma {
     objects: {
       uploadedFile: Prisma.$UploadedFilePayload<ExtArgs> | null
       user: Prisma.$UserPayload<ExtArgs>
+      cardNewsSets: Prisma.$CardNewsSetPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7373,6 +8201,7 @@ export namespace Prisma {
       subtitleStatus: string | null
       createdAt: Date
       updatedAt: Date
+      deletedAt: Date | null
       youtubeTitle: string | null
       youtubeDescription: string | null
       youtubeHashtags: string | null
@@ -7774,6 +8603,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     uploadedFile<T extends Clip$uploadedFileArgs<ExtArgs> = {}>(args?: Subset<T, Clip$uploadedFileArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    cardNewsSets<T extends Clip$cardNewsSetsArgs<ExtArgs> = {}>(args?: Subset<T, Clip$cardNewsSetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7815,6 +8645,7 @@ export namespace Prisma {
     readonly subtitleStatus: FieldRef<"Clip", 'String'>
     readonly createdAt: FieldRef<"Clip", 'DateTime'>
     readonly updatedAt: FieldRef<"Clip", 'DateTime'>
+    readonly deletedAt: FieldRef<"Clip", 'DateTime'>
     readonly youtubeTitle: FieldRef<"Clip", 'String'>
     readonly youtubeDescription: FieldRef<"Clip", 'String'>
     readonly youtubeHashtags: FieldRef<"Clip", 'String'>
@@ -8232,6 +9063,30 @@ export namespace Prisma {
      */
     include?: UploadedFileInclude<ExtArgs> | null
     where?: UploadedFileWhereInput
+  }
+
+  /**
+   * Clip.cardNewsSets
+   */
+  export type Clip$cardNewsSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    where?: CardNewsSetWhereInput
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    cursor?: CardNewsSetWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsSetScalarFieldEnum | CardNewsSetScalarFieldEnum[]
   }
 
   /**
@@ -9530,6 +10385,14 @@ export namespace Prisma {
     lockedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
+    workerRunId: string | null
+    modalCallId: string | null
+    modalSpawnState: string | null
+    reservationId: string | null
+    claimedAt: Date | null
+    leaseUntil: Date | null
+    heartbeatAt: Date | null
+    deadlineAt: Date | null
   }
 
   export type ProcessingDispatchMaxAggregateOutputType = {
@@ -9545,6 +10408,14 @@ export namespace Prisma {
     lockedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
+    workerRunId: string | null
+    modalCallId: string | null
+    modalSpawnState: string | null
+    reservationId: string | null
+    claimedAt: Date | null
+    leaseUntil: Date | null
+    heartbeatAt: Date | null
+    deadlineAt: Date | null
   }
 
   export type ProcessingDispatchCountAggregateOutputType = {
@@ -9560,6 +10431,16 @@ export namespace Prisma {
     lockedAt: number
     createdAt: number
     updatedAt: number
+    workerRunId: number
+    modalCallId: number
+    modalSpawnState: number
+    producerEndEvidence: number
+    reservationId: number
+    inputSnapshot: number
+    claimedAt: number
+    leaseUntil: number
+    heartbeatAt: number
+    deadlineAt: number
     _all: number
   }
 
@@ -9587,6 +10468,14 @@ export namespace Prisma {
     lockedAt?: true
     createdAt?: true
     updatedAt?: true
+    workerRunId?: true
+    modalCallId?: true
+    modalSpawnState?: true
+    reservationId?: true
+    claimedAt?: true
+    leaseUntil?: true
+    heartbeatAt?: true
+    deadlineAt?: true
   }
 
   export type ProcessingDispatchMaxAggregateInputType = {
@@ -9602,6 +10491,14 @@ export namespace Prisma {
     lockedAt?: true
     createdAt?: true
     updatedAt?: true
+    workerRunId?: true
+    modalCallId?: true
+    modalSpawnState?: true
+    reservationId?: true
+    claimedAt?: true
+    leaseUntil?: true
+    heartbeatAt?: true
+    deadlineAt?: true
   }
 
   export type ProcessingDispatchCountAggregateInputType = {
@@ -9617,6 +10514,16 @@ export namespace Prisma {
     lockedAt?: true
     createdAt?: true
     updatedAt?: true
+    workerRunId?: true
+    modalCallId?: true
+    modalSpawnState?: true
+    producerEndEvidence?: true
+    reservationId?: true
+    inputSnapshot?: true
+    claimedAt?: true
+    leaseUntil?: true
+    heartbeatAt?: true
+    deadlineAt?: true
     _all?: true
   }
 
@@ -9719,6 +10626,16 @@ export namespace Prisma {
     lockedAt: Date | null
     createdAt: Date
     updatedAt: Date
+    workerRunId: string | null
+    modalCallId: string | null
+    modalSpawnState: string
+    producerEndEvidence: JsonValue | null
+    reservationId: string | null
+    inputSnapshot: JsonValue | null
+    claimedAt: Date | null
+    leaseUntil: Date | null
+    heartbeatAt: Date | null
+    deadlineAt: Date | null
     _count: ProcessingDispatchCountAggregateOutputType | null
     _avg: ProcessingDispatchAvgAggregateOutputType | null
     _sum: ProcessingDispatchSumAggregateOutputType | null
@@ -9753,6 +10670,17 @@ export namespace Prisma {
     lockedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    modalSpawnState?: boolean
+    producerEndEvidence?: boolean
+    reservationId?: boolean
+    inputSnapshot?: boolean
+    claimedAt?: boolean
+    leaseUntil?: boolean
+    heartbeatAt?: boolean
+    deadlineAt?: boolean
+    reservation?: boolean | ProcessingDispatch$reservationArgs<ExtArgs>
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["processingDispatch"]>
 
@@ -9769,6 +10697,17 @@ export namespace Prisma {
     lockedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    modalSpawnState?: boolean
+    producerEndEvidence?: boolean
+    reservationId?: boolean
+    inputSnapshot?: boolean
+    claimedAt?: boolean
+    leaseUntil?: boolean
+    heartbeatAt?: boolean
+    deadlineAt?: boolean
+    reservation?: boolean | ProcessingDispatch$reservationArgs<ExtArgs>
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["processingDispatch"]>
 
@@ -9785,6 +10724,17 @@ export namespace Prisma {
     lockedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    modalSpawnState?: boolean
+    producerEndEvidence?: boolean
+    reservationId?: boolean
+    inputSnapshot?: boolean
+    claimedAt?: boolean
+    leaseUntil?: boolean
+    heartbeatAt?: boolean
+    deadlineAt?: boolean
+    reservation?: boolean | ProcessingDispatch$reservationArgs<ExtArgs>
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["processingDispatch"]>
 
@@ -9801,22 +10751,36 @@ export namespace Prisma {
     lockedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    modalSpawnState?: boolean
+    producerEndEvidence?: boolean
+    reservationId?: boolean
+    inputSnapshot?: boolean
+    claimedAt?: boolean
+    leaseUntil?: boolean
+    heartbeatAt?: boolean
+    deadlineAt?: boolean
   }
 
-  export type ProcessingDispatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "kind" | "status" | "dispatchCount" | "lastError" | "dispatchedAt" | "nextRetryAt" | "lockedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["processingDispatch"]>
+  export type ProcessingDispatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "uploadedFileId" | "attempt" | "kind" | "status" | "dispatchCount" | "lastError" | "dispatchedAt" | "nextRetryAt" | "lockedAt" | "createdAt" | "updatedAt" | "workerRunId" | "modalCallId" | "modalSpawnState" | "producerEndEvidence" | "reservationId" | "inputSnapshot" | "claimedAt" | "leaseUntil" | "heartbeatAt" | "deadlineAt", ExtArgs["result"]["processingDispatch"]>
   export type ProcessingDispatchInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    reservation?: boolean | ProcessingDispatch$reservationArgs<ExtArgs>
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }
   export type ProcessingDispatchIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    reservation?: boolean | ProcessingDispatch$reservationArgs<ExtArgs>
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }
   export type ProcessingDispatchIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    reservation?: boolean | ProcessingDispatch$reservationArgs<ExtArgs>
     uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
   }
 
   export type $ProcessingDispatchPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ProcessingDispatch"
     objects: {
+      reservation: Prisma.$CreditReservationPayload<ExtArgs> | null
       uploadedFile: Prisma.$UploadedFilePayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -9832,6 +10796,16 @@ export namespace Prisma {
       lockedAt: Date | null
       createdAt: Date
       updatedAt: Date
+      workerRunId: string | null
+      modalCallId: string | null
+      modalSpawnState: string
+      producerEndEvidence: Prisma.JsonValue | null
+      reservationId: string | null
+      inputSnapshot: Prisma.JsonValue | null
+      claimedAt: Date | null
+      leaseUntil: Date | null
+      heartbeatAt: Date | null
+      deadlineAt: Date | null
     }, ExtArgs["result"]["processingDispatch"]>
     composites: {}
   }
@@ -10226,6 +11200,7 @@ export namespace Prisma {
    */
   export interface Prisma__ProcessingDispatchClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    reservation<T extends ProcessingDispatch$reservationArgs<ExtArgs> = {}>(args?: Subset<T, ProcessingDispatch$reservationArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     uploadedFile<T extends UploadedFileDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFileDefaultArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -10268,6 +11243,16 @@ export namespace Prisma {
     readonly lockedAt: FieldRef<"ProcessingDispatch", 'DateTime'>
     readonly createdAt: FieldRef<"ProcessingDispatch", 'DateTime'>
     readonly updatedAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly workerRunId: FieldRef<"ProcessingDispatch", 'String'>
+    readonly modalCallId: FieldRef<"ProcessingDispatch", 'String'>
+    readonly modalSpawnState: FieldRef<"ProcessingDispatch", 'String'>
+    readonly producerEndEvidence: FieldRef<"ProcessingDispatch", 'Json'>
+    readonly reservationId: FieldRef<"ProcessingDispatch", 'String'>
+    readonly inputSnapshot: FieldRef<"ProcessingDispatch", 'Json'>
+    readonly claimedAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly leaseUntil: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly heartbeatAt: FieldRef<"ProcessingDispatch", 'DateTime'>
+    readonly deadlineAt: FieldRef<"ProcessingDispatch", 'DateTime'>
   }
     
 
@@ -10664,6 +11649,25 @@ export namespace Prisma {
   }
 
   /**
+   * ProcessingDispatch.reservation
+   */
+  export type ProcessingDispatch$reservationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    where?: CreditReservationWhereInput
+  }
+
+  /**
    * ProcessingDispatch without action
    */
   export type ProcessingDispatchDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10679,6 +11683,6608 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ProcessingDispatchInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CreditReservation
+   */
+
+  export type AggregateCreditReservation = {
+    _count: CreditReservationCountAggregateOutputType | null
+    _avg: CreditReservationAvgAggregateOutputType | null
+    _sum: CreditReservationSumAggregateOutputType | null
+    _min: CreditReservationMinAggregateOutputType | null
+    _max: CreditReservationMaxAggregateOutputType | null
+  }
+
+  export type CreditReservationAvgAggregateOutputType = {
+    reservedAmount: number | null
+    chargedAmount: number | null
+  }
+
+  export type CreditReservationSumAggregateOutputType = {
+    reservedAmount: number | null
+    chargedAmount: number | null
+  }
+
+  export type CreditReservationMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    operationKey: string | null
+    kind: string | null
+    reservedAmount: number | null
+    chargedAmount: number | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    settledAt: Date | null
+    releasedAt: Date | null
+  }
+
+  export type CreditReservationMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    operationKey: string | null
+    kind: string | null
+    reservedAmount: number | null
+    chargedAmount: number | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    settledAt: Date | null
+    releasedAt: Date | null
+  }
+
+  export type CreditReservationCountAggregateOutputType = {
+    id: number
+    userId: number
+    operationKey: number
+    kind: number
+    reservedAmount: number
+    chargedAmount: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    settledAt: number
+    releasedAt: number
+    _all: number
+  }
+
+
+  export type CreditReservationAvgAggregateInputType = {
+    reservedAmount?: true
+    chargedAmount?: true
+  }
+
+  export type CreditReservationSumAggregateInputType = {
+    reservedAmount?: true
+    chargedAmount?: true
+  }
+
+  export type CreditReservationMinAggregateInputType = {
+    id?: true
+    userId?: true
+    operationKey?: true
+    kind?: true
+    reservedAmount?: true
+    chargedAmount?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    settledAt?: true
+    releasedAt?: true
+  }
+
+  export type CreditReservationMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    operationKey?: true
+    kind?: true
+    reservedAmount?: true
+    chargedAmount?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    settledAt?: true
+    releasedAt?: true
+  }
+
+  export type CreditReservationCountAggregateInputType = {
+    id?: true
+    userId?: true
+    operationKey?: true
+    kind?: true
+    reservedAmount?: true
+    chargedAmount?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    settledAt?: true
+    releasedAt?: true
+    _all?: true
+  }
+
+  export type CreditReservationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CreditReservation to aggregate.
+     */
+    where?: CreditReservationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditReservations to fetch.
+     */
+    orderBy?: CreditReservationOrderByWithRelationInput | CreditReservationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CreditReservationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditReservations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditReservations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CreditReservations
+    **/
+    _count?: true | CreditReservationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CreditReservationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CreditReservationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CreditReservationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CreditReservationMaxAggregateInputType
+  }
+
+  export type GetCreditReservationAggregateType<T extends CreditReservationAggregateArgs> = {
+        [P in keyof T & keyof AggregateCreditReservation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCreditReservation[P]>
+      : GetScalarType<T[P], AggregateCreditReservation[P]>
+  }
+
+
+
+
+  export type CreditReservationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CreditReservationWhereInput
+    orderBy?: CreditReservationOrderByWithAggregationInput | CreditReservationOrderByWithAggregationInput[]
+    by: CreditReservationScalarFieldEnum[] | CreditReservationScalarFieldEnum
+    having?: CreditReservationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CreditReservationCountAggregateInputType | true
+    _avg?: CreditReservationAvgAggregateInputType
+    _sum?: CreditReservationSumAggregateInputType
+    _min?: CreditReservationMinAggregateInputType
+    _max?: CreditReservationMaxAggregateInputType
+  }
+
+  export type CreditReservationGroupByOutputType = {
+    id: string
+    userId: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount: number
+    status: string
+    createdAt: Date
+    updatedAt: Date
+    settledAt: Date | null
+    releasedAt: Date | null
+    _count: CreditReservationCountAggregateOutputType | null
+    _avg: CreditReservationAvgAggregateOutputType | null
+    _sum: CreditReservationSumAggregateOutputType | null
+    _min: CreditReservationMinAggregateOutputType | null
+    _max: CreditReservationMaxAggregateOutputType | null
+  }
+
+  type GetCreditReservationGroupByPayload<T extends CreditReservationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CreditReservationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CreditReservationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CreditReservationGroupByOutputType[P]>
+            : GetScalarType<T[P], CreditReservationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CreditReservationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    operationKey?: boolean
+    kind?: boolean
+    reservedAmount?: boolean
+    chargedAmount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    settledAt?: boolean
+    releasedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    dispatches?: boolean | CreditReservation$dispatchesArgs<ExtArgs>
+    cardNewsJobs?: boolean | CreditReservation$cardNewsJobsArgs<ExtArgs>
+    _count?: boolean | CreditReservationCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["creditReservation"]>
+
+  export type CreditReservationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    operationKey?: boolean
+    kind?: boolean
+    reservedAmount?: boolean
+    chargedAmount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    settledAt?: boolean
+    releasedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["creditReservation"]>
+
+  export type CreditReservationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    operationKey?: boolean
+    kind?: boolean
+    reservedAmount?: boolean
+    chargedAmount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    settledAt?: boolean
+    releasedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["creditReservation"]>
+
+  export type CreditReservationSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    operationKey?: boolean
+    kind?: boolean
+    reservedAmount?: boolean
+    chargedAmount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    settledAt?: boolean
+    releasedAt?: boolean
+  }
+
+  export type CreditReservationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "operationKey" | "kind" | "reservedAmount" | "chargedAmount" | "status" | "createdAt" | "updatedAt" | "settledAt" | "releasedAt", ExtArgs["result"]["creditReservation"]>
+  export type CreditReservationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    dispatches?: boolean | CreditReservation$dispatchesArgs<ExtArgs>
+    cardNewsJobs?: boolean | CreditReservation$cardNewsJobsArgs<ExtArgs>
+    _count?: boolean | CreditReservationCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CreditReservationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type CreditReservationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $CreditReservationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CreditReservation"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      dispatches: Prisma.$ProcessingDispatchPayload<ExtArgs>[]
+      cardNewsJobs: Prisma.$CardNewsJobPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      operationKey: string
+      kind: string
+      reservedAmount: number
+      chargedAmount: number
+      status: string
+      createdAt: Date
+      updatedAt: Date
+      settledAt: Date | null
+      releasedAt: Date | null
+    }, ExtArgs["result"]["creditReservation"]>
+    composites: {}
+  }
+
+  type CreditReservationGetPayload<S extends boolean | null | undefined | CreditReservationDefaultArgs> = $Result.GetResult<Prisma.$CreditReservationPayload, S>
+
+  type CreditReservationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CreditReservationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CreditReservationCountAggregateInputType | true
+    }
+
+  export interface CreditReservationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CreditReservation'], meta: { name: 'CreditReservation' } }
+    /**
+     * Find zero or one CreditReservation that matches the filter.
+     * @param {CreditReservationFindUniqueArgs} args - Arguments to find a CreditReservation
+     * @example
+     * // Get one CreditReservation
+     * const creditReservation = await prisma.creditReservation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CreditReservationFindUniqueArgs>(args: SelectSubset<T, CreditReservationFindUniqueArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CreditReservation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CreditReservationFindUniqueOrThrowArgs} args - Arguments to find a CreditReservation
+     * @example
+     * // Get one CreditReservation
+     * const creditReservation = await prisma.creditReservation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CreditReservationFindUniqueOrThrowArgs>(args: SelectSubset<T, CreditReservationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CreditReservation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditReservationFindFirstArgs} args - Arguments to find a CreditReservation
+     * @example
+     * // Get one CreditReservation
+     * const creditReservation = await prisma.creditReservation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CreditReservationFindFirstArgs>(args?: SelectSubset<T, CreditReservationFindFirstArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CreditReservation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditReservationFindFirstOrThrowArgs} args - Arguments to find a CreditReservation
+     * @example
+     * // Get one CreditReservation
+     * const creditReservation = await prisma.creditReservation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CreditReservationFindFirstOrThrowArgs>(args?: SelectSubset<T, CreditReservationFindFirstOrThrowArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CreditReservations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditReservationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CreditReservations
+     * const creditReservations = await prisma.creditReservation.findMany()
+     * 
+     * // Get first 10 CreditReservations
+     * const creditReservations = await prisma.creditReservation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const creditReservationWithIdOnly = await prisma.creditReservation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CreditReservationFindManyArgs>(args?: SelectSubset<T, CreditReservationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CreditReservation.
+     * @param {CreditReservationCreateArgs} args - Arguments to create a CreditReservation.
+     * @example
+     * // Create one CreditReservation
+     * const CreditReservation = await prisma.creditReservation.create({
+     *   data: {
+     *     // ... data to create a CreditReservation
+     *   }
+     * })
+     * 
+     */
+    create<T extends CreditReservationCreateArgs>(args: SelectSubset<T, CreditReservationCreateArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CreditReservations.
+     * @param {CreditReservationCreateManyArgs} args - Arguments to create many CreditReservations.
+     * @example
+     * // Create many CreditReservations
+     * const creditReservation = await prisma.creditReservation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CreditReservationCreateManyArgs>(args?: SelectSubset<T, CreditReservationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CreditReservations and returns the data saved in the database.
+     * @param {CreditReservationCreateManyAndReturnArgs} args - Arguments to create many CreditReservations.
+     * @example
+     * // Create many CreditReservations
+     * const creditReservation = await prisma.creditReservation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CreditReservations and only return the `id`
+     * const creditReservationWithIdOnly = await prisma.creditReservation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CreditReservationCreateManyAndReturnArgs>(args?: SelectSubset<T, CreditReservationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CreditReservation.
+     * @param {CreditReservationDeleteArgs} args - Arguments to delete one CreditReservation.
+     * @example
+     * // Delete one CreditReservation
+     * const CreditReservation = await prisma.creditReservation.delete({
+     *   where: {
+     *     // ... filter to delete one CreditReservation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CreditReservationDeleteArgs>(args: SelectSubset<T, CreditReservationDeleteArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CreditReservation.
+     * @param {CreditReservationUpdateArgs} args - Arguments to update one CreditReservation.
+     * @example
+     * // Update one CreditReservation
+     * const creditReservation = await prisma.creditReservation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CreditReservationUpdateArgs>(args: SelectSubset<T, CreditReservationUpdateArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CreditReservations.
+     * @param {CreditReservationDeleteManyArgs} args - Arguments to filter CreditReservations to delete.
+     * @example
+     * // Delete a few CreditReservations
+     * const { count } = await prisma.creditReservation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CreditReservationDeleteManyArgs>(args?: SelectSubset<T, CreditReservationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CreditReservations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditReservationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CreditReservations
+     * const creditReservation = await prisma.creditReservation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CreditReservationUpdateManyArgs>(args: SelectSubset<T, CreditReservationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CreditReservations and returns the data updated in the database.
+     * @param {CreditReservationUpdateManyAndReturnArgs} args - Arguments to update many CreditReservations.
+     * @example
+     * // Update many CreditReservations
+     * const creditReservation = await prisma.creditReservation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CreditReservations and only return the `id`
+     * const creditReservationWithIdOnly = await prisma.creditReservation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CreditReservationUpdateManyAndReturnArgs>(args: SelectSubset<T, CreditReservationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CreditReservation.
+     * @param {CreditReservationUpsertArgs} args - Arguments to update or create a CreditReservation.
+     * @example
+     * // Update or create a CreditReservation
+     * const creditReservation = await prisma.creditReservation.upsert({
+     *   create: {
+     *     // ... data to create a CreditReservation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CreditReservation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CreditReservationUpsertArgs>(args: SelectSubset<T, CreditReservationUpsertArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CreditReservations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditReservationCountArgs} args - Arguments to filter CreditReservations to count.
+     * @example
+     * // Count the number of CreditReservations
+     * const count = await prisma.creditReservation.count({
+     *   where: {
+     *     // ... the filter for the CreditReservations we want to count
+     *   }
+     * })
+    **/
+    count<T extends CreditReservationCountArgs>(
+      args?: Subset<T, CreditReservationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CreditReservationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CreditReservation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditReservationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CreditReservationAggregateArgs>(args: Subset<T, CreditReservationAggregateArgs>): Prisma.PrismaPromise<GetCreditReservationAggregateType<T>>
+
+    /**
+     * Group by CreditReservation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditReservationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CreditReservationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CreditReservationGroupByArgs['orderBy'] }
+        : { orderBy?: CreditReservationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CreditReservationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCreditReservationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CreditReservation model
+   */
+  readonly fields: CreditReservationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CreditReservation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CreditReservationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    dispatches<T extends CreditReservation$dispatchesArgs<ExtArgs> = {}>(args?: Subset<T, CreditReservation$dispatchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcessingDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    cardNewsJobs<T extends CreditReservation$cardNewsJobsArgs<ExtArgs> = {}>(args?: Subset<T, CreditReservation$cardNewsJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CreditReservation model
+   */
+  interface CreditReservationFieldRefs {
+    readonly id: FieldRef<"CreditReservation", 'String'>
+    readonly userId: FieldRef<"CreditReservation", 'String'>
+    readonly operationKey: FieldRef<"CreditReservation", 'String'>
+    readonly kind: FieldRef<"CreditReservation", 'String'>
+    readonly reservedAmount: FieldRef<"CreditReservation", 'Int'>
+    readonly chargedAmount: FieldRef<"CreditReservation", 'Int'>
+    readonly status: FieldRef<"CreditReservation", 'String'>
+    readonly createdAt: FieldRef<"CreditReservation", 'DateTime'>
+    readonly updatedAt: FieldRef<"CreditReservation", 'DateTime'>
+    readonly settledAt: FieldRef<"CreditReservation", 'DateTime'>
+    readonly releasedAt: FieldRef<"CreditReservation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CreditReservation findUnique
+   */
+  export type CreditReservationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * Filter, which CreditReservation to fetch.
+     */
+    where: CreditReservationWhereUniqueInput
+  }
+
+  /**
+   * CreditReservation findUniqueOrThrow
+   */
+  export type CreditReservationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * Filter, which CreditReservation to fetch.
+     */
+    where: CreditReservationWhereUniqueInput
+  }
+
+  /**
+   * CreditReservation findFirst
+   */
+  export type CreditReservationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * Filter, which CreditReservation to fetch.
+     */
+    where?: CreditReservationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditReservations to fetch.
+     */
+    orderBy?: CreditReservationOrderByWithRelationInput | CreditReservationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CreditReservations.
+     */
+    cursor?: CreditReservationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditReservations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditReservations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CreditReservations.
+     */
+    distinct?: CreditReservationScalarFieldEnum | CreditReservationScalarFieldEnum[]
+  }
+
+  /**
+   * CreditReservation findFirstOrThrow
+   */
+  export type CreditReservationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * Filter, which CreditReservation to fetch.
+     */
+    where?: CreditReservationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditReservations to fetch.
+     */
+    orderBy?: CreditReservationOrderByWithRelationInput | CreditReservationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CreditReservations.
+     */
+    cursor?: CreditReservationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditReservations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditReservations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CreditReservations.
+     */
+    distinct?: CreditReservationScalarFieldEnum | CreditReservationScalarFieldEnum[]
+  }
+
+  /**
+   * CreditReservation findMany
+   */
+  export type CreditReservationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * Filter, which CreditReservations to fetch.
+     */
+    where?: CreditReservationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditReservations to fetch.
+     */
+    orderBy?: CreditReservationOrderByWithRelationInput | CreditReservationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CreditReservations.
+     */
+    cursor?: CreditReservationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditReservations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditReservations.
+     */
+    skip?: number
+    distinct?: CreditReservationScalarFieldEnum | CreditReservationScalarFieldEnum[]
+  }
+
+  /**
+   * CreditReservation create
+   */
+  export type CreditReservationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CreditReservation.
+     */
+    data: XOR<CreditReservationCreateInput, CreditReservationUncheckedCreateInput>
+  }
+
+  /**
+   * CreditReservation createMany
+   */
+  export type CreditReservationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CreditReservations.
+     */
+    data: CreditReservationCreateManyInput | CreditReservationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CreditReservation createManyAndReturn
+   */
+  export type CreditReservationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * The data used to create many CreditReservations.
+     */
+    data: CreditReservationCreateManyInput | CreditReservationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CreditReservation update
+   */
+  export type CreditReservationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CreditReservation.
+     */
+    data: XOR<CreditReservationUpdateInput, CreditReservationUncheckedUpdateInput>
+    /**
+     * Choose, which CreditReservation to update.
+     */
+    where: CreditReservationWhereUniqueInput
+  }
+
+  /**
+   * CreditReservation updateMany
+   */
+  export type CreditReservationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CreditReservations.
+     */
+    data: XOR<CreditReservationUpdateManyMutationInput, CreditReservationUncheckedUpdateManyInput>
+    /**
+     * Filter which CreditReservations to update
+     */
+    where?: CreditReservationWhereInput
+    /**
+     * Limit how many CreditReservations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditReservation updateManyAndReturn
+   */
+  export type CreditReservationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * The data used to update CreditReservations.
+     */
+    data: XOR<CreditReservationUpdateManyMutationInput, CreditReservationUncheckedUpdateManyInput>
+    /**
+     * Filter which CreditReservations to update
+     */
+    where?: CreditReservationWhereInput
+    /**
+     * Limit how many CreditReservations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CreditReservation upsert
+   */
+  export type CreditReservationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CreditReservation to update in case it exists.
+     */
+    where: CreditReservationWhereUniqueInput
+    /**
+     * In case the CreditReservation found by the `where` argument doesn't exist, create a new CreditReservation with this data.
+     */
+    create: XOR<CreditReservationCreateInput, CreditReservationUncheckedCreateInput>
+    /**
+     * In case the CreditReservation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CreditReservationUpdateInput, CreditReservationUncheckedUpdateInput>
+  }
+
+  /**
+   * CreditReservation delete
+   */
+  export type CreditReservationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    /**
+     * Filter which CreditReservation to delete.
+     */
+    where: CreditReservationWhereUniqueInput
+  }
+
+  /**
+   * CreditReservation deleteMany
+   */
+  export type CreditReservationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CreditReservations to delete
+     */
+    where?: CreditReservationWhereInput
+    /**
+     * Limit how many CreditReservations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditReservation.dispatches
+   */
+  export type CreditReservation$dispatchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcessingDispatch
+     */
+    select?: ProcessingDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProcessingDispatch
+     */
+    omit?: ProcessingDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcessingDispatchInclude<ExtArgs> | null
+    where?: ProcessingDispatchWhereInput
+    orderBy?: ProcessingDispatchOrderByWithRelationInput | ProcessingDispatchOrderByWithRelationInput[]
+    cursor?: ProcessingDispatchWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProcessingDispatchScalarFieldEnum | ProcessingDispatchScalarFieldEnum[]
+  }
+
+  /**
+   * CreditReservation.cardNewsJobs
+   */
+  export type CreditReservation$cardNewsJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    where?: CardNewsJobWhereInput
+    orderBy?: CardNewsJobOrderByWithRelationInput | CardNewsJobOrderByWithRelationInput[]
+    cursor?: CardNewsJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsJobScalarFieldEnum | CardNewsJobScalarFieldEnum[]
+  }
+
+  /**
+   * CreditReservation without action
+   */
+  export type CreditReservationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CardNewsSet
+   */
+
+  export type AggregateCardNewsSet = {
+    _count: CardNewsSetCountAggregateOutputType | null
+    _avg: CardNewsSetAvgAggregateOutputType | null
+    _sum: CardNewsSetSumAggregateOutputType | null
+    _min: CardNewsSetMinAggregateOutputType | null
+    _max: CardNewsSetMaxAggregateOutputType | null
+  }
+
+  export type CardNewsSetAvgAggregateOutputType = {
+    draftRevision: number | null
+    publishedRevision: number | null
+    pendingRenderRevision: number | null
+  }
+
+  export type CardNewsSetSumAggregateOutputType = {
+    draftRevision: number | null
+    publishedRevision: number | null
+    pendingRenderRevision: number | null
+  }
+
+  export type CardNewsSetMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    clipId: string | null
+    uploadedFileId: string | null
+    sourceHash: string | null
+    language: string | null
+    draftRevision: number | null
+    publishedRevision: number | null
+    pendingRenderRevision: number | null
+    regeneratedFromId: string | null
+    status: string | null
+    deletedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CardNewsSetMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    clipId: string | null
+    uploadedFileId: string | null
+    sourceHash: string | null
+    language: string | null
+    draftRevision: number | null
+    publishedRevision: number | null
+    pendingRenderRevision: number | null
+    regeneratedFromId: string | null
+    status: string | null
+    deletedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CardNewsSetCountAggregateOutputType = {
+    id: number
+    userId: number
+    clipId: number
+    uploadedFileId: number
+    sourceSnapshot: number
+    sourceHash: number
+    language: number
+    draftDocument: number
+    draftSnapshots: number
+    draftRevision: number
+    publishedRevision: number
+    pendingRenderRevision: number
+    regeneratedFromId: number
+    status: number
+    deletedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CardNewsSetAvgAggregateInputType = {
+    draftRevision?: true
+    publishedRevision?: true
+    pendingRenderRevision?: true
+  }
+
+  export type CardNewsSetSumAggregateInputType = {
+    draftRevision?: true
+    publishedRevision?: true
+    pendingRenderRevision?: true
+  }
+
+  export type CardNewsSetMinAggregateInputType = {
+    id?: true
+    userId?: true
+    clipId?: true
+    uploadedFileId?: true
+    sourceHash?: true
+    language?: true
+    draftRevision?: true
+    publishedRevision?: true
+    pendingRenderRevision?: true
+    regeneratedFromId?: true
+    status?: true
+    deletedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CardNewsSetMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    clipId?: true
+    uploadedFileId?: true
+    sourceHash?: true
+    language?: true
+    draftRevision?: true
+    publishedRevision?: true
+    pendingRenderRevision?: true
+    regeneratedFromId?: true
+    status?: true
+    deletedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CardNewsSetCountAggregateInputType = {
+    id?: true
+    userId?: true
+    clipId?: true
+    uploadedFileId?: true
+    sourceSnapshot?: true
+    sourceHash?: true
+    language?: true
+    draftDocument?: true
+    draftSnapshots?: true
+    draftRevision?: true
+    publishedRevision?: true
+    pendingRenderRevision?: true
+    regeneratedFromId?: true
+    status?: true
+    deletedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CardNewsSetAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CardNewsSet to aggregate.
+     */
+    where?: CardNewsSetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsSets to fetch.
+     */
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CardNewsSetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsSets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsSets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CardNewsSets
+    **/
+    _count?: true | CardNewsSetCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CardNewsSetAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CardNewsSetSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CardNewsSetMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CardNewsSetMaxAggregateInputType
+  }
+
+  export type GetCardNewsSetAggregateType<T extends CardNewsSetAggregateArgs> = {
+        [P in keyof T & keyof AggregateCardNewsSet]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCardNewsSet[P]>
+      : GetScalarType<T[P], AggregateCardNewsSet[P]>
+  }
+
+
+
+
+  export type CardNewsSetGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsSetWhereInput
+    orderBy?: CardNewsSetOrderByWithAggregationInput | CardNewsSetOrderByWithAggregationInput[]
+    by: CardNewsSetScalarFieldEnum[] | CardNewsSetScalarFieldEnum
+    having?: CardNewsSetScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CardNewsSetCountAggregateInputType | true
+    _avg?: CardNewsSetAvgAggregateInputType
+    _sum?: CardNewsSetSumAggregateInputType
+    _min?: CardNewsSetMinAggregateInputType
+    _max?: CardNewsSetMaxAggregateInputType
+  }
+
+  export type CardNewsSetGroupByOutputType = {
+    id: string
+    userId: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonValue
+    sourceHash: string
+    language: string
+    draftDocument: JsonValue | null
+    draftSnapshots: JsonValue
+    draftRevision: number
+    publishedRevision: number
+    pendingRenderRevision: number | null
+    regeneratedFromId: string | null
+    status: string
+    deletedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CardNewsSetCountAggregateOutputType | null
+    _avg: CardNewsSetAvgAggregateOutputType | null
+    _sum: CardNewsSetSumAggregateOutputType | null
+    _min: CardNewsSetMinAggregateOutputType | null
+    _max: CardNewsSetMaxAggregateOutputType | null
+  }
+
+  type GetCardNewsSetGroupByPayload<T extends CardNewsSetGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CardNewsSetGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CardNewsSetGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CardNewsSetGroupByOutputType[P]>
+            : GetScalarType<T[P], CardNewsSetGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CardNewsSetSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    clipId?: boolean
+    uploadedFileId?: boolean
+    sourceSnapshot?: boolean
+    sourceHash?: boolean
+    language?: boolean
+    draftDocument?: boolean
+    draftSnapshots?: boolean
+    draftRevision?: boolean
+    publishedRevision?: boolean
+    pendingRenderRevision?: boolean
+    regeneratedFromId?: boolean
+    status?: boolean
+    deletedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    clip?: boolean | ClipDefaultArgs<ExtArgs>
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+    regeneratedFrom?: boolean | CardNewsSet$regeneratedFromArgs<ExtArgs>
+    regeneratedSets?: boolean | CardNewsSet$regeneratedSetsArgs<ExtArgs>
+    jobs?: boolean | CardNewsSet$jobsArgs<ExtArgs>
+    _count?: boolean | CardNewsSetCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsSet"]>
+
+  export type CardNewsSetSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    clipId?: boolean
+    uploadedFileId?: boolean
+    sourceSnapshot?: boolean
+    sourceHash?: boolean
+    language?: boolean
+    draftDocument?: boolean
+    draftSnapshots?: boolean
+    draftRevision?: boolean
+    publishedRevision?: boolean
+    pendingRenderRevision?: boolean
+    regeneratedFromId?: boolean
+    status?: boolean
+    deletedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    clip?: boolean | ClipDefaultArgs<ExtArgs>
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+    regeneratedFrom?: boolean | CardNewsSet$regeneratedFromArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsSet"]>
+
+  export type CardNewsSetSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    clipId?: boolean
+    uploadedFileId?: boolean
+    sourceSnapshot?: boolean
+    sourceHash?: boolean
+    language?: boolean
+    draftDocument?: boolean
+    draftSnapshots?: boolean
+    draftRevision?: boolean
+    publishedRevision?: boolean
+    pendingRenderRevision?: boolean
+    regeneratedFromId?: boolean
+    status?: boolean
+    deletedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    clip?: boolean | ClipDefaultArgs<ExtArgs>
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+    regeneratedFrom?: boolean | CardNewsSet$regeneratedFromArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsSet"]>
+
+  export type CardNewsSetSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    clipId?: boolean
+    uploadedFileId?: boolean
+    sourceSnapshot?: boolean
+    sourceHash?: boolean
+    language?: boolean
+    draftDocument?: boolean
+    draftSnapshots?: boolean
+    draftRevision?: boolean
+    publishedRevision?: boolean
+    pendingRenderRevision?: boolean
+    regeneratedFromId?: boolean
+    status?: boolean
+    deletedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CardNewsSetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "clipId" | "uploadedFileId" | "sourceSnapshot" | "sourceHash" | "language" | "draftDocument" | "draftSnapshots" | "draftRevision" | "publishedRevision" | "pendingRenderRevision" | "regeneratedFromId" | "status" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["cardNewsSet"]>
+  export type CardNewsSetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    clip?: boolean | ClipDefaultArgs<ExtArgs>
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+    regeneratedFrom?: boolean | CardNewsSet$regeneratedFromArgs<ExtArgs>
+    regeneratedSets?: boolean | CardNewsSet$regeneratedSetsArgs<ExtArgs>
+    jobs?: boolean | CardNewsSet$jobsArgs<ExtArgs>
+    _count?: boolean | CardNewsSetCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CardNewsSetIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    clip?: boolean | ClipDefaultArgs<ExtArgs>
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+    regeneratedFrom?: boolean | CardNewsSet$regeneratedFromArgs<ExtArgs>
+  }
+  export type CardNewsSetIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    clip?: boolean | ClipDefaultArgs<ExtArgs>
+    uploadedFile?: boolean | UploadedFileDefaultArgs<ExtArgs>
+    regeneratedFrom?: boolean | CardNewsSet$regeneratedFromArgs<ExtArgs>
+  }
+
+  export type $CardNewsSetPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CardNewsSet"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      clip: Prisma.$ClipPayload<ExtArgs>
+      uploadedFile: Prisma.$UploadedFilePayload<ExtArgs>
+      regeneratedFrom: Prisma.$CardNewsSetPayload<ExtArgs> | null
+      regeneratedSets: Prisma.$CardNewsSetPayload<ExtArgs>[]
+      jobs: Prisma.$CardNewsJobPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      clipId: string
+      uploadedFileId: string
+      sourceSnapshot: Prisma.JsonValue
+      sourceHash: string
+      language: string
+      draftDocument: Prisma.JsonValue | null
+      draftSnapshots: Prisma.JsonValue
+      draftRevision: number
+      publishedRevision: number
+      pendingRenderRevision: number | null
+      regeneratedFromId: string | null
+      status: string
+      deletedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["cardNewsSet"]>
+    composites: {}
+  }
+
+  type CardNewsSetGetPayload<S extends boolean | null | undefined | CardNewsSetDefaultArgs> = $Result.GetResult<Prisma.$CardNewsSetPayload, S>
+
+  type CardNewsSetCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CardNewsSetFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CardNewsSetCountAggregateInputType | true
+    }
+
+  export interface CardNewsSetDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CardNewsSet'], meta: { name: 'CardNewsSet' } }
+    /**
+     * Find zero or one CardNewsSet that matches the filter.
+     * @param {CardNewsSetFindUniqueArgs} args - Arguments to find a CardNewsSet
+     * @example
+     * // Get one CardNewsSet
+     * const cardNewsSet = await prisma.cardNewsSet.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CardNewsSetFindUniqueArgs>(args: SelectSubset<T, CardNewsSetFindUniqueArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CardNewsSet that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CardNewsSetFindUniqueOrThrowArgs} args - Arguments to find a CardNewsSet
+     * @example
+     * // Get one CardNewsSet
+     * const cardNewsSet = await prisma.cardNewsSet.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CardNewsSetFindUniqueOrThrowArgs>(args: SelectSubset<T, CardNewsSetFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CardNewsSet that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsSetFindFirstArgs} args - Arguments to find a CardNewsSet
+     * @example
+     * // Get one CardNewsSet
+     * const cardNewsSet = await prisma.cardNewsSet.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CardNewsSetFindFirstArgs>(args?: SelectSubset<T, CardNewsSetFindFirstArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CardNewsSet that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsSetFindFirstOrThrowArgs} args - Arguments to find a CardNewsSet
+     * @example
+     * // Get one CardNewsSet
+     * const cardNewsSet = await prisma.cardNewsSet.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CardNewsSetFindFirstOrThrowArgs>(args?: SelectSubset<T, CardNewsSetFindFirstOrThrowArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CardNewsSets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsSetFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CardNewsSets
+     * const cardNewsSets = await prisma.cardNewsSet.findMany()
+     * 
+     * // Get first 10 CardNewsSets
+     * const cardNewsSets = await prisma.cardNewsSet.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const cardNewsSetWithIdOnly = await prisma.cardNewsSet.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CardNewsSetFindManyArgs>(args?: SelectSubset<T, CardNewsSetFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CardNewsSet.
+     * @param {CardNewsSetCreateArgs} args - Arguments to create a CardNewsSet.
+     * @example
+     * // Create one CardNewsSet
+     * const CardNewsSet = await prisma.cardNewsSet.create({
+     *   data: {
+     *     // ... data to create a CardNewsSet
+     *   }
+     * })
+     * 
+     */
+    create<T extends CardNewsSetCreateArgs>(args: SelectSubset<T, CardNewsSetCreateArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CardNewsSets.
+     * @param {CardNewsSetCreateManyArgs} args - Arguments to create many CardNewsSets.
+     * @example
+     * // Create many CardNewsSets
+     * const cardNewsSet = await prisma.cardNewsSet.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CardNewsSetCreateManyArgs>(args?: SelectSubset<T, CardNewsSetCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CardNewsSets and returns the data saved in the database.
+     * @param {CardNewsSetCreateManyAndReturnArgs} args - Arguments to create many CardNewsSets.
+     * @example
+     * // Create many CardNewsSets
+     * const cardNewsSet = await prisma.cardNewsSet.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CardNewsSets and only return the `id`
+     * const cardNewsSetWithIdOnly = await prisma.cardNewsSet.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CardNewsSetCreateManyAndReturnArgs>(args?: SelectSubset<T, CardNewsSetCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CardNewsSet.
+     * @param {CardNewsSetDeleteArgs} args - Arguments to delete one CardNewsSet.
+     * @example
+     * // Delete one CardNewsSet
+     * const CardNewsSet = await prisma.cardNewsSet.delete({
+     *   where: {
+     *     // ... filter to delete one CardNewsSet
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CardNewsSetDeleteArgs>(args: SelectSubset<T, CardNewsSetDeleteArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CardNewsSet.
+     * @param {CardNewsSetUpdateArgs} args - Arguments to update one CardNewsSet.
+     * @example
+     * // Update one CardNewsSet
+     * const cardNewsSet = await prisma.cardNewsSet.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CardNewsSetUpdateArgs>(args: SelectSubset<T, CardNewsSetUpdateArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CardNewsSets.
+     * @param {CardNewsSetDeleteManyArgs} args - Arguments to filter CardNewsSets to delete.
+     * @example
+     * // Delete a few CardNewsSets
+     * const { count } = await prisma.cardNewsSet.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CardNewsSetDeleteManyArgs>(args?: SelectSubset<T, CardNewsSetDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CardNewsSets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsSetUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CardNewsSets
+     * const cardNewsSet = await prisma.cardNewsSet.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CardNewsSetUpdateManyArgs>(args: SelectSubset<T, CardNewsSetUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CardNewsSets and returns the data updated in the database.
+     * @param {CardNewsSetUpdateManyAndReturnArgs} args - Arguments to update many CardNewsSets.
+     * @example
+     * // Update many CardNewsSets
+     * const cardNewsSet = await prisma.cardNewsSet.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CardNewsSets and only return the `id`
+     * const cardNewsSetWithIdOnly = await prisma.cardNewsSet.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CardNewsSetUpdateManyAndReturnArgs>(args: SelectSubset<T, CardNewsSetUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CardNewsSet.
+     * @param {CardNewsSetUpsertArgs} args - Arguments to update or create a CardNewsSet.
+     * @example
+     * // Update or create a CardNewsSet
+     * const cardNewsSet = await prisma.cardNewsSet.upsert({
+     *   create: {
+     *     // ... data to create a CardNewsSet
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CardNewsSet we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CardNewsSetUpsertArgs>(args: SelectSubset<T, CardNewsSetUpsertArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CardNewsSets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsSetCountArgs} args - Arguments to filter CardNewsSets to count.
+     * @example
+     * // Count the number of CardNewsSets
+     * const count = await prisma.cardNewsSet.count({
+     *   where: {
+     *     // ... the filter for the CardNewsSets we want to count
+     *   }
+     * })
+    **/
+    count<T extends CardNewsSetCountArgs>(
+      args?: Subset<T, CardNewsSetCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CardNewsSetCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CardNewsSet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsSetAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CardNewsSetAggregateArgs>(args: Subset<T, CardNewsSetAggregateArgs>): Prisma.PrismaPromise<GetCardNewsSetAggregateType<T>>
+
+    /**
+     * Group by CardNewsSet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsSetGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CardNewsSetGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CardNewsSetGroupByArgs['orderBy'] }
+        : { orderBy?: CardNewsSetGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CardNewsSetGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCardNewsSetGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CardNewsSet model
+   */
+  readonly fields: CardNewsSetFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CardNewsSet.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CardNewsSetClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    clip<T extends ClipDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ClipDefaultArgs<ExtArgs>>): Prisma__ClipClient<$Result.GetResult<Prisma.$ClipPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    uploadedFile<T extends UploadedFileDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UploadedFileDefaultArgs<ExtArgs>>): Prisma__UploadedFileClient<$Result.GetResult<Prisma.$UploadedFilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    regeneratedFrom<T extends CardNewsSet$regeneratedFromArgs<ExtArgs> = {}>(args?: Subset<T, CardNewsSet$regeneratedFromArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    regeneratedSets<T extends CardNewsSet$regeneratedSetsArgs<ExtArgs> = {}>(args?: Subset<T, CardNewsSet$regeneratedSetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    jobs<T extends CardNewsSet$jobsArgs<ExtArgs> = {}>(args?: Subset<T, CardNewsSet$jobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CardNewsSet model
+   */
+  interface CardNewsSetFieldRefs {
+    readonly id: FieldRef<"CardNewsSet", 'String'>
+    readonly userId: FieldRef<"CardNewsSet", 'String'>
+    readonly clipId: FieldRef<"CardNewsSet", 'String'>
+    readonly uploadedFileId: FieldRef<"CardNewsSet", 'String'>
+    readonly sourceSnapshot: FieldRef<"CardNewsSet", 'Json'>
+    readonly sourceHash: FieldRef<"CardNewsSet", 'String'>
+    readonly language: FieldRef<"CardNewsSet", 'String'>
+    readonly draftDocument: FieldRef<"CardNewsSet", 'Json'>
+    readonly draftSnapshots: FieldRef<"CardNewsSet", 'Json'>
+    readonly draftRevision: FieldRef<"CardNewsSet", 'Int'>
+    readonly publishedRevision: FieldRef<"CardNewsSet", 'Int'>
+    readonly pendingRenderRevision: FieldRef<"CardNewsSet", 'Int'>
+    readonly regeneratedFromId: FieldRef<"CardNewsSet", 'String'>
+    readonly status: FieldRef<"CardNewsSet", 'String'>
+    readonly deletedAt: FieldRef<"CardNewsSet", 'DateTime'>
+    readonly createdAt: FieldRef<"CardNewsSet", 'DateTime'>
+    readonly updatedAt: FieldRef<"CardNewsSet", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CardNewsSet findUnique
+   */
+  export type CardNewsSetFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsSet to fetch.
+     */
+    where: CardNewsSetWhereUniqueInput
+  }
+
+  /**
+   * CardNewsSet findUniqueOrThrow
+   */
+  export type CardNewsSetFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsSet to fetch.
+     */
+    where: CardNewsSetWhereUniqueInput
+  }
+
+  /**
+   * CardNewsSet findFirst
+   */
+  export type CardNewsSetFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsSet to fetch.
+     */
+    where?: CardNewsSetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsSets to fetch.
+     */
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CardNewsSets.
+     */
+    cursor?: CardNewsSetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsSets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsSets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CardNewsSets.
+     */
+    distinct?: CardNewsSetScalarFieldEnum | CardNewsSetScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsSet findFirstOrThrow
+   */
+  export type CardNewsSetFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsSet to fetch.
+     */
+    where?: CardNewsSetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsSets to fetch.
+     */
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CardNewsSets.
+     */
+    cursor?: CardNewsSetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsSets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsSets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CardNewsSets.
+     */
+    distinct?: CardNewsSetScalarFieldEnum | CardNewsSetScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsSet findMany
+   */
+  export type CardNewsSetFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsSets to fetch.
+     */
+    where?: CardNewsSetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsSets to fetch.
+     */
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CardNewsSets.
+     */
+    cursor?: CardNewsSetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsSets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsSets.
+     */
+    skip?: number
+    distinct?: CardNewsSetScalarFieldEnum | CardNewsSetScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsSet create
+   */
+  export type CardNewsSetCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CardNewsSet.
+     */
+    data: XOR<CardNewsSetCreateInput, CardNewsSetUncheckedCreateInput>
+  }
+
+  /**
+   * CardNewsSet createMany
+   */
+  export type CardNewsSetCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CardNewsSets.
+     */
+    data: CardNewsSetCreateManyInput | CardNewsSetCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CardNewsSet createManyAndReturn
+   */
+  export type CardNewsSetCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * The data used to create many CardNewsSets.
+     */
+    data: CardNewsSetCreateManyInput | CardNewsSetCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsSet update
+   */
+  export type CardNewsSetUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CardNewsSet.
+     */
+    data: XOR<CardNewsSetUpdateInput, CardNewsSetUncheckedUpdateInput>
+    /**
+     * Choose, which CardNewsSet to update.
+     */
+    where: CardNewsSetWhereUniqueInput
+  }
+
+  /**
+   * CardNewsSet updateMany
+   */
+  export type CardNewsSetUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CardNewsSets.
+     */
+    data: XOR<CardNewsSetUpdateManyMutationInput, CardNewsSetUncheckedUpdateManyInput>
+    /**
+     * Filter which CardNewsSets to update
+     */
+    where?: CardNewsSetWhereInput
+    /**
+     * Limit how many CardNewsSets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CardNewsSet updateManyAndReturn
+   */
+  export type CardNewsSetUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * The data used to update CardNewsSets.
+     */
+    data: XOR<CardNewsSetUpdateManyMutationInput, CardNewsSetUncheckedUpdateManyInput>
+    /**
+     * Filter which CardNewsSets to update
+     */
+    where?: CardNewsSetWhereInput
+    /**
+     * Limit how many CardNewsSets to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsSet upsert
+   */
+  export type CardNewsSetUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CardNewsSet to update in case it exists.
+     */
+    where: CardNewsSetWhereUniqueInput
+    /**
+     * In case the CardNewsSet found by the `where` argument doesn't exist, create a new CardNewsSet with this data.
+     */
+    create: XOR<CardNewsSetCreateInput, CardNewsSetUncheckedCreateInput>
+    /**
+     * In case the CardNewsSet was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CardNewsSetUpdateInput, CardNewsSetUncheckedUpdateInput>
+  }
+
+  /**
+   * CardNewsSet delete
+   */
+  export type CardNewsSetDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    /**
+     * Filter which CardNewsSet to delete.
+     */
+    where: CardNewsSetWhereUniqueInput
+  }
+
+  /**
+   * CardNewsSet deleteMany
+   */
+  export type CardNewsSetDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CardNewsSets to delete
+     */
+    where?: CardNewsSetWhereInput
+    /**
+     * Limit how many CardNewsSets to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CardNewsSet.regeneratedFrom
+   */
+  export type CardNewsSet$regeneratedFromArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    where?: CardNewsSetWhereInput
+  }
+
+  /**
+   * CardNewsSet.regeneratedSets
+   */
+  export type CardNewsSet$regeneratedSetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+    where?: CardNewsSetWhereInput
+    orderBy?: CardNewsSetOrderByWithRelationInput | CardNewsSetOrderByWithRelationInput[]
+    cursor?: CardNewsSetWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsSetScalarFieldEnum | CardNewsSetScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsSet.jobs
+   */
+  export type CardNewsSet$jobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    where?: CardNewsJobWhereInput
+    orderBy?: CardNewsJobOrderByWithRelationInput | CardNewsJobOrderByWithRelationInput[]
+    cursor?: CardNewsJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsJobScalarFieldEnum | CardNewsJobScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsSet without action
+   */
+  export type CardNewsSetDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsSet
+     */
+    select?: CardNewsSetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsSet
+     */
+    omit?: CardNewsSetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsSetInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CardNewsJob
+   */
+
+  export type AggregateCardNewsJob = {
+    _count: CardNewsJobCountAggregateOutputType | null
+    _avg: CardNewsJobAvgAggregateOutputType | null
+    _sum: CardNewsJobSumAggregateOutputType | null
+    _min: CardNewsJobMinAggregateOutputType | null
+    _max: CardNewsJobMaxAggregateOutputType | null
+  }
+
+  export type CardNewsJobAvgAggregateOutputType = {
+    inputRevision: number | null
+    executionEpoch: number | null
+    dispatchCount: number | null
+  }
+
+  export type CardNewsJobSumAggregateOutputType = {
+    inputRevision: number | null
+    executionEpoch: number | null
+    dispatchCount: number | null
+  }
+
+  export type CardNewsJobMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    setId: string | null
+    kind: string | null
+    requestId: string | null
+    requestHash: string | null
+    inputRevision: number | null
+    executionEpoch: number | null
+    status: string | null
+    stage: string | null
+    reservationId: string | null
+    templateVersion: string | null
+    deadlineAt: Date | null
+    dispatchStatus: string | null
+    dispatchLeaseUntil: Date | null
+    nextDispatchAt: Date | null
+    dispatchCount: number | null
+    lastDispatchError: string | null
+    dispatchedAt: Date | null
+    claimedAt: Date | null
+    heartbeatAt: Date | null
+    workerRunId: string | null
+    modalCallId: string | null
+    modalSpawnState: string | null
+    selectedManifestKey: string | null
+    selectedInvocationId: string | null
+    progressInvocationId: string | null
+    failureCode: string | null
+    completedAt: Date | null
+    outputRetiredAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CardNewsJobMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    setId: string | null
+    kind: string | null
+    requestId: string | null
+    requestHash: string | null
+    inputRevision: number | null
+    executionEpoch: number | null
+    status: string | null
+    stage: string | null
+    reservationId: string | null
+    templateVersion: string | null
+    deadlineAt: Date | null
+    dispatchStatus: string | null
+    dispatchLeaseUntil: Date | null
+    nextDispatchAt: Date | null
+    dispatchCount: number | null
+    lastDispatchError: string | null
+    dispatchedAt: Date | null
+    claimedAt: Date | null
+    heartbeatAt: Date | null
+    workerRunId: string | null
+    modalCallId: string | null
+    modalSpawnState: string | null
+    selectedManifestKey: string | null
+    selectedInvocationId: string | null
+    progressInvocationId: string | null
+    failureCode: string | null
+    completedAt: Date | null
+    outputRetiredAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CardNewsJobCountAggregateOutputType = {
+    id: number
+    userId: number
+    setId: number
+    kind: number
+    requestId: number
+    requestHash: number
+    inputRevision: number
+    inputSnapshot: number
+    executionEpoch: number
+    status: number
+    stage: number
+    reservationId: number
+    templateVersion: number
+    deadlineAt: number
+    dispatchStatus: number
+    dispatchLeaseUntil: number
+    nextDispatchAt: number
+    dispatchCount: number
+    lastDispatchError: number
+    dispatchedAt: number
+    claimedAt: number
+    heartbeatAt: number
+    workerRunId: number
+    modalCallId: number
+    callbackInbox: number
+    modalSpawnState: number
+    selectedManifestKey: number
+    selectedInvocationId: number
+    progressInvocationId: number
+    manifest: number
+    failureCode: number
+    completedAt: number
+    usageMetrics: number
+    analyticsContext: number
+    pendingAnalytics: number
+    outputRetiredAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CardNewsJobAvgAggregateInputType = {
+    inputRevision?: true
+    executionEpoch?: true
+    dispatchCount?: true
+  }
+
+  export type CardNewsJobSumAggregateInputType = {
+    inputRevision?: true
+    executionEpoch?: true
+    dispatchCount?: true
+  }
+
+  export type CardNewsJobMinAggregateInputType = {
+    id?: true
+    userId?: true
+    setId?: true
+    kind?: true
+    requestId?: true
+    requestHash?: true
+    inputRevision?: true
+    executionEpoch?: true
+    status?: true
+    stage?: true
+    reservationId?: true
+    templateVersion?: true
+    deadlineAt?: true
+    dispatchStatus?: true
+    dispatchLeaseUntil?: true
+    nextDispatchAt?: true
+    dispatchCount?: true
+    lastDispatchError?: true
+    dispatchedAt?: true
+    claimedAt?: true
+    heartbeatAt?: true
+    workerRunId?: true
+    modalCallId?: true
+    modalSpawnState?: true
+    selectedManifestKey?: true
+    selectedInvocationId?: true
+    progressInvocationId?: true
+    failureCode?: true
+    completedAt?: true
+    outputRetiredAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CardNewsJobMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    setId?: true
+    kind?: true
+    requestId?: true
+    requestHash?: true
+    inputRevision?: true
+    executionEpoch?: true
+    status?: true
+    stage?: true
+    reservationId?: true
+    templateVersion?: true
+    deadlineAt?: true
+    dispatchStatus?: true
+    dispatchLeaseUntil?: true
+    nextDispatchAt?: true
+    dispatchCount?: true
+    lastDispatchError?: true
+    dispatchedAt?: true
+    claimedAt?: true
+    heartbeatAt?: true
+    workerRunId?: true
+    modalCallId?: true
+    modalSpawnState?: true
+    selectedManifestKey?: true
+    selectedInvocationId?: true
+    progressInvocationId?: true
+    failureCode?: true
+    completedAt?: true
+    outputRetiredAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CardNewsJobCountAggregateInputType = {
+    id?: true
+    userId?: true
+    setId?: true
+    kind?: true
+    requestId?: true
+    requestHash?: true
+    inputRevision?: true
+    inputSnapshot?: true
+    executionEpoch?: true
+    status?: true
+    stage?: true
+    reservationId?: true
+    templateVersion?: true
+    deadlineAt?: true
+    dispatchStatus?: true
+    dispatchLeaseUntil?: true
+    nextDispatchAt?: true
+    dispatchCount?: true
+    lastDispatchError?: true
+    dispatchedAt?: true
+    claimedAt?: true
+    heartbeatAt?: true
+    workerRunId?: true
+    modalCallId?: true
+    callbackInbox?: true
+    modalSpawnState?: true
+    selectedManifestKey?: true
+    selectedInvocationId?: true
+    progressInvocationId?: true
+    manifest?: true
+    failureCode?: true
+    completedAt?: true
+    usageMetrics?: true
+    analyticsContext?: true
+    pendingAnalytics?: true
+    outputRetiredAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CardNewsJobAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CardNewsJob to aggregate.
+     */
+    where?: CardNewsJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsJobs to fetch.
+     */
+    orderBy?: CardNewsJobOrderByWithRelationInput | CardNewsJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CardNewsJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CardNewsJobs
+    **/
+    _count?: true | CardNewsJobCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CardNewsJobAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CardNewsJobSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CardNewsJobMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CardNewsJobMaxAggregateInputType
+  }
+
+  export type GetCardNewsJobAggregateType<T extends CardNewsJobAggregateArgs> = {
+        [P in keyof T & keyof AggregateCardNewsJob]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCardNewsJob[P]>
+      : GetScalarType<T[P], AggregateCardNewsJob[P]>
+  }
+
+
+
+
+  export type CardNewsJobGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsJobWhereInput
+    orderBy?: CardNewsJobOrderByWithAggregationInput | CardNewsJobOrderByWithAggregationInput[]
+    by: CardNewsJobScalarFieldEnum[] | CardNewsJobScalarFieldEnum
+    having?: CardNewsJobScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CardNewsJobCountAggregateInputType | true
+    _avg?: CardNewsJobAvgAggregateInputType
+    _sum?: CardNewsJobSumAggregateInputType
+    _min?: CardNewsJobMinAggregateInputType
+    _max?: CardNewsJobMaxAggregateInputType
+  }
+
+  export type CardNewsJobGroupByOutputType = {
+    id: string
+    userId: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonValue
+    executionEpoch: number
+    status: string
+    stage: string
+    reservationId: string | null
+    templateVersion: string
+    deadlineAt: Date
+    dispatchStatus: string
+    dispatchLeaseUntil: Date | null
+    nextDispatchAt: Date | null
+    dispatchCount: number
+    lastDispatchError: string | null
+    dispatchedAt: Date | null
+    claimedAt: Date | null
+    heartbeatAt: Date | null
+    workerRunId: string | null
+    modalCallId: string | null
+    callbackInbox: JsonValue
+    modalSpawnState: string
+    selectedManifestKey: string | null
+    selectedInvocationId: string | null
+    progressInvocationId: string | null
+    manifest: JsonValue | null
+    failureCode: string | null
+    completedAt: Date | null
+    usageMetrics: JsonValue | null
+    analyticsContext: JsonValue | null
+    pendingAnalytics: JsonValue
+    outputRetiredAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CardNewsJobCountAggregateOutputType | null
+    _avg: CardNewsJobAvgAggregateOutputType | null
+    _sum: CardNewsJobSumAggregateOutputType | null
+    _min: CardNewsJobMinAggregateOutputType | null
+    _max: CardNewsJobMaxAggregateOutputType | null
+  }
+
+  type GetCardNewsJobGroupByPayload<T extends CardNewsJobGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CardNewsJobGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CardNewsJobGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CardNewsJobGroupByOutputType[P]>
+            : GetScalarType<T[P], CardNewsJobGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CardNewsJobSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    setId?: boolean
+    kind?: boolean
+    requestId?: boolean
+    requestHash?: boolean
+    inputRevision?: boolean
+    inputSnapshot?: boolean
+    executionEpoch?: boolean
+    status?: boolean
+    stage?: boolean
+    reservationId?: boolean
+    templateVersion?: boolean
+    deadlineAt?: boolean
+    dispatchStatus?: boolean
+    dispatchLeaseUntil?: boolean
+    nextDispatchAt?: boolean
+    dispatchCount?: boolean
+    lastDispatchError?: boolean
+    dispatchedAt?: boolean
+    claimedAt?: boolean
+    heartbeatAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    callbackInbox?: boolean
+    modalSpawnState?: boolean
+    selectedManifestKey?: boolean
+    selectedInvocationId?: boolean
+    progressInvocationId?: boolean
+    manifest?: boolean
+    failureCode?: boolean
+    completedAt?: boolean
+    usageMetrics?: boolean
+    analyticsContext?: boolean
+    pendingAnalytics?: boolean
+    outputRetiredAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    set?: boolean | CardNewsSetDefaultArgs<ExtArgs>
+    reservation?: boolean | CardNewsJob$reservationArgs<ExtArgs>
+    invocations?: boolean | CardNewsJob$invocationsArgs<ExtArgs>
+    _count?: boolean | CardNewsJobCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsJob"]>
+
+  export type CardNewsJobSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    setId?: boolean
+    kind?: boolean
+    requestId?: boolean
+    requestHash?: boolean
+    inputRevision?: boolean
+    inputSnapshot?: boolean
+    executionEpoch?: boolean
+    status?: boolean
+    stage?: boolean
+    reservationId?: boolean
+    templateVersion?: boolean
+    deadlineAt?: boolean
+    dispatchStatus?: boolean
+    dispatchLeaseUntil?: boolean
+    nextDispatchAt?: boolean
+    dispatchCount?: boolean
+    lastDispatchError?: boolean
+    dispatchedAt?: boolean
+    claimedAt?: boolean
+    heartbeatAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    callbackInbox?: boolean
+    modalSpawnState?: boolean
+    selectedManifestKey?: boolean
+    selectedInvocationId?: boolean
+    progressInvocationId?: boolean
+    manifest?: boolean
+    failureCode?: boolean
+    completedAt?: boolean
+    usageMetrics?: boolean
+    analyticsContext?: boolean
+    pendingAnalytics?: boolean
+    outputRetiredAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    set?: boolean | CardNewsSetDefaultArgs<ExtArgs>
+    reservation?: boolean | CardNewsJob$reservationArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsJob"]>
+
+  export type CardNewsJobSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    setId?: boolean
+    kind?: boolean
+    requestId?: boolean
+    requestHash?: boolean
+    inputRevision?: boolean
+    inputSnapshot?: boolean
+    executionEpoch?: boolean
+    status?: boolean
+    stage?: boolean
+    reservationId?: boolean
+    templateVersion?: boolean
+    deadlineAt?: boolean
+    dispatchStatus?: boolean
+    dispatchLeaseUntil?: boolean
+    nextDispatchAt?: boolean
+    dispatchCount?: boolean
+    lastDispatchError?: boolean
+    dispatchedAt?: boolean
+    claimedAt?: boolean
+    heartbeatAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    callbackInbox?: boolean
+    modalSpawnState?: boolean
+    selectedManifestKey?: boolean
+    selectedInvocationId?: boolean
+    progressInvocationId?: boolean
+    manifest?: boolean
+    failureCode?: boolean
+    completedAt?: boolean
+    usageMetrics?: boolean
+    analyticsContext?: boolean
+    pendingAnalytics?: boolean
+    outputRetiredAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    set?: boolean | CardNewsSetDefaultArgs<ExtArgs>
+    reservation?: boolean | CardNewsJob$reservationArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsJob"]>
+
+  export type CardNewsJobSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    setId?: boolean
+    kind?: boolean
+    requestId?: boolean
+    requestHash?: boolean
+    inputRevision?: boolean
+    inputSnapshot?: boolean
+    executionEpoch?: boolean
+    status?: boolean
+    stage?: boolean
+    reservationId?: boolean
+    templateVersion?: boolean
+    deadlineAt?: boolean
+    dispatchStatus?: boolean
+    dispatchLeaseUntil?: boolean
+    nextDispatchAt?: boolean
+    dispatchCount?: boolean
+    lastDispatchError?: boolean
+    dispatchedAt?: boolean
+    claimedAt?: boolean
+    heartbeatAt?: boolean
+    workerRunId?: boolean
+    modalCallId?: boolean
+    callbackInbox?: boolean
+    modalSpawnState?: boolean
+    selectedManifestKey?: boolean
+    selectedInvocationId?: boolean
+    progressInvocationId?: boolean
+    manifest?: boolean
+    failureCode?: boolean
+    completedAt?: boolean
+    usageMetrics?: boolean
+    analyticsContext?: boolean
+    pendingAnalytics?: boolean
+    outputRetiredAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CardNewsJobOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "setId" | "kind" | "requestId" | "requestHash" | "inputRevision" | "inputSnapshot" | "executionEpoch" | "status" | "stage" | "reservationId" | "templateVersion" | "deadlineAt" | "dispatchStatus" | "dispatchLeaseUntil" | "nextDispatchAt" | "dispatchCount" | "lastDispatchError" | "dispatchedAt" | "claimedAt" | "heartbeatAt" | "workerRunId" | "modalCallId" | "callbackInbox" | "modalSpawnState" | "selectedManifestKey" | "selectedInvocationId" | "progressInvocationId" | "manifest" | "failureCode" | "completedAt" | "usageMetrics" | "analyticsContext" | "pendingAnalytics" | "outputRetiredAt" | "createdAt" | "updatedAt", ExtArgs["result"]["cardNewsJob"]>
+  export type CardNewsJobInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    set?: boolean | CardNewsSetDefaultArgs<ExtArgs>
+    reservation?: boolean | CardNewsJob$reservationArgs<ExtArgs>
+    invocations?: boolean | CardNewsJob$invocationsArgs<ExtArgs>
+    _count?: boolean | CardNewsJobCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CardNewsJobIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    set?: boolean | CardNewsSetDefaultArgs<ExtArgs>
+    reservation?: boolean | CardNewsJob$reservationArgs<ExtArgs>
+  }
+  export type CardNewsJobIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    set?: boolean | CardNewsSetDefaultArgs<ExtArgs>
+    reservation?: boolean | CardNewsJob$reservationArgs<ExtArgs>
+  }
+
+  export type $CardNewsJobPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CardNewsJob"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      set: Prisma.$CardNewsSetPayload<ExtArgs>
+      reservation: Prisma.$CreditReservationPayload<ExtArgs> | null
+      invocations: Prisma.$CardNewsInvocationPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      setId: string
+      kind: string
+      requestId: string
+      requestHash: string
+      inputRevision: number
+      inputSnapshot: Prisma.JsonValue
+      executionEpoch: number
+      status: string
+      stage: string
+      reservationId: string | null
+      templateVersion: string
+      deadlineAt: Date
+      dispatchStatus: string
+      dispatchLeaseUntil: Date | null
+      nextDispatchAt: Date | null
+      dispatchCount: number
+      lastDispatchError: string | null
+      dispatchedAt: Date | null
+      claimedAt: Date | null
+      heartbeatAt: Date | null
+      workerRunId: string | null
+      modalCallId: string | null
+      callbackInbox: Prisma.JsonValue
+      modalSpawnState: string
+      selectedManifestKey: string | null
+      selectedInvocationId: string | null
+      progressInvocationId: string | null
+      manifest: Prisma.JsonValue | null
+      failureCode: string | null
+      completedAt: Date | null
+      usageMetrics: Prisma.JsonValue | null
+      analyticsContext: Prisma.JsonValue | null
+      pendingAnalytics: Prisma.JsonValue
+      outputRetiredAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["cardNewsJob"]>
+    composites: {}
+  }
+
+  type CardNewsJobGetPayload<S extends boolean | null | undefined | CardNewsJobDefaultArgs> = $Result.GetResult<Prisma.$CardNewsJobPayload, S>
+
+  type CardNewsJobCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CardNewsJobFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CardNewsJobCountAggregateInputType | true
+    }
+
+  export interface CardNewsJobDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CardNewsJob'], meta: { name: 'CardNewsJob' } }
+    /**
+     * Find zero or one CardNewsJob that matches the filter.
+     * @param {CardNewsJobFindUniqueArgs} args - Arguments to find a CardNewsJob
+     * @example
+     * // Get one CardNewsJob
+     * const cardNewsJob = await prisma.cardNewsJob.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CardNewsJobFindUniqueArgs>(args: SelectSubset<T, CardNewsJobFindUniqueArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CardNewsJob that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CardNewsJobFindUniqueOrThrowArgs} args - Arguments to find a CardNewsJob
+     * @example
+     * // Get one CardNewsJob
+     * const cardNewsJob = await prisma.cardNewsJob.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CardNewsJobFindUniqueOrThrowArgs>(args: SelectSubset<T, CardNewsJobFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CardNewsJob that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsJobFindFirstArgs} args - Arguments to find a CardNewsJob
+     * @example
+     * // Get one CardNewsJob
+     * const cardNewsJob = await prisma.cardNewsJob.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CardNewsJobFindFirstArgs>(args?: SelectSubset<T, CardNewsJobFindFirstArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CardNewsJob that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsJobFindFirstOrThrowArgs} args - Arguments to find a CardNewsJob
+     * @example
+     * // Get one CardNewsJob
+     * const cardNewsJob = await prisma.cardNewsJob.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CardNewsJobFindFirstOrThrowArgs>(args?: SelectSubset<T, CardNewsJobFindFirstOrThrowArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CardNewsJobs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsJobFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CardNewsJobs
+     * const cardNewsJobs = await prisma.cardNewsJob.findMany()
+     * 
+     * // Get first 10 CardNewsJobs
+     * const cardNewsJobs = await prisma.cardNewsJob.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const cardNewsJobWithIdOnly = await prisma.cardNewsJob.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CardNewsJobFindManyArgs>(args?: SelectSubset<T, CardNewsJobFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CardNewsJob.
+     * @param {CardNewsJobCreateArgs} args - Arguments to create a CardNewsJob.
+     * @example
+     * // Create one CardNewsJob
+     * const CardNewsJob = await prisma.cardNewsJob.create({
+     *   data: {
+     *     // ... data to create a CardNewsJob
+     *   }
+     * })
+     * 
+     */
+    create<T extends CardNewsJobCreateArgs>(args: SelectSubset<T, CardNewsJobCreateArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CardNewsJobs.
+     * @param {CardNewsJobCreateManyArgs} args - Arguments to create many CardNewsJobs.
+     * @example
+     * // Create many CardNewsJobs
+     * const cardNewsJob = await prisma.cardNewsJob.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CardNewsJobCreateManyArgs>(args?: SelectSubset<T, CardNewsJobCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CardNewsJobs and returns the data saved in the database.
+     * @param {CardNewsJobCreateManyAndReturnArgs} args - Arguments to create many CardNewsJobs.
+     * @example
+     * // Create many CardNewsJobs
+     * const cardNewsJob = await prisma.cardNewsJob.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CardNewsJobs and only return the `id`
+     * const cardNewsJobWithIdOnly = await prisma.cardNewsJob.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CardNewsJobCreateManyAndReturnArgs>(args?: SelectSubset<T, CardNewsJobCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CardNewsJob.
+     * @param {CardNewsJobDeleteArgs} args - Arguments to delete one CardNewsJob.
+     * @example
+     * // Delete one CardNewsJob
+     * const CardNewsJob = await prisma.cardNewsJob.delete({
+     *   where: {
+     *     // ... filter to delete one CardNewsJob
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CardNewsJobDeleteArgs>(args: SelectSubset<T, CardNewsJobDeleteArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CardNewsJob.
+     * @param {CardNewsJobUpdateArgs} args - Arguments to update one CardNewsJob.
+     * @example
+     * // Update one CardNewsJob
+     * const cardNewsJob = await prisma.cardNewsJob.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CardNewsJobUpdateArgs>(args: SelectSubset<T, CardNewsJobUpdateArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CardNewsJobs.
+     * @param {CardNewsJobDeleteManyArgs} args - Arguments to filter CardNewsJobs to delete.
+     * @example
+     * // Delete a few CardNewsJobs
+     * const { count } = await prisma.cardNewsJob.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CardNewsJobDeleteManyArgs>(args?: SelectSubset<T, CardNewsJobDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CardNewsJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsJobUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CardNewsJobs
+     * const cardNewsJob = await prisma.cardNewsJob.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CardNewsJobUpdateManyArgs>(args: SelectSubset<T, CardNewsJobUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CardNewsJobs and returns the data updated in the database.
+     * @param {CardNewsJobUpdateManyAndReturnArgs} args - Arguments to update many CardNewsJobs.
+     * @example
+     * // Update many CardNewsJobs
+     * const cardNewsJob = await prisma.cardNewsJob.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CardNewsJobs and only return the `id`
+     * const cardNewsJobWithIdOnly = await prisma.cardNewsJob.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CardNewsJobUpdateManyAndReturnArgs>(args: SelectSubset<T, CardNewsJobUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CardNewsJob.
+     * @param {CardNewsJobUpsertArgs} args - Arguments to update or create a CardNewsJob.
+     * @example
+     * // Update or create a CardNewsJob
+     * const cardNewsJob = await prisma.cardNewsJob.upsert({
+     *   create: {
+     *     // ... data to create a CardNewsJob
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CardNewsJob we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CardNewsJobUpsertArgs>(args: SelectSubset<T, CardNewsJobUpsertArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CardNewsJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsJobCountArgs} args - Arguments to filter CardNewsJobs to count.
+     * @example
+     * // Count the number of CardNewsJobs
+     * const count = await prisma.cardNewsJob.count({
+     *   where: {
+     *     // ... the filter for the CardNewsJobs we want to count
+     *   }
+     * })
+    **/
+    count<T extends CardNewsJobCountArgs>(
+      args?: Subset<T, CardNewsJobCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CardNewsJobCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CardNewsJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsJobAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CardNewsJobAggregateArgs>(args: Subset<T, CardNewsJobAggregateArgs>): Prisma.PrismaPromise<GetCardNewsJobAggregateType<T>>
+
+    /**
+     * Group by CardNewsJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsJobGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CardNewsJobGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CardNewsJobGroupByArgs['orderBy'] }
+        : { orderBy?: CardNewsJobGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CardNewsJobGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCardNewsJobGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CardNewsJob model
+   */
+  readonly fields: CardNewsJobFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CardNewsJob.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CardNewsJobClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    set<T extends CardNewsSetDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CardNewsSetDefaultArgs<ExtArgs>>): Prisma__CardNewsSetClient<$Result.GetResult<Prisma.$CardNewsSetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    reservation<T extends CardNewsJob$reservationArgs<ExtArgs> = {}>(args?: Subset<T, CardNewsJob$reservationArgs<ExtArgs>>): Prisma__CreditReservationClient<$Result.GetResult<Prisma.$CreditReservationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    invocations<T extends CardNewsJob$invocationsArgs<ExtArgs> = {}>(args?: Subset<T, CardNewsJob$invocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CardNewsJob model
+   */
+  interface CardNewsJobFieldRefs {
+    readonly id: FieldRef<"CardNewsJob", 'String'>
+    readonly userId: FieldRef<"CardNewsJob", 'String'>
+    readonly setId: FieldRef<"CardNewsJob", 'String'>
+    readonly kind: FieldRef<"CardNewsJob", 'String'>
+    readonly requestId: FieldRef<"CardNewsJob", 'String'>
+    readonly requestHash: FieldRef<"CardNewsJob", 'String'>
+    readonly inputRevision: FieldRef<"CardNewsJob", 'Int'>
+    readonly inputSnapshot: FieldRef<"CardNewsJob", 'Json'>
+    readonly executionEpoch: FieldRef<"CardNewsJob", 'Int'>
+    readonly status: FieldRef<"CardNewsJob", 'String'>
+    readonly stage: FieldRef<"CardNewsJob", 'String'>
+    readonly reservationId: FieldRef<"CardNewsJob", 'String'>
+    readonly templateVersion: FieldRef<"CardNewsJob", 'String'>
+    readonly deadlineAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly dispatchStatus: FieldRef<"CardNewsJob", 'String'>
+    readonly dispatchLeaseUntil: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly nextDispatchAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly dispatchCount: FieldRef<"CardNewsJob", 'Int'>
+    readonly lastDispatchError: FieldRef<"CardNewsJob", 'String'>
+    readonly dispatchedAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly claimedAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly heartbeatAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly workerRunId: FieldRef<"CardNewsJob", 'String'>
+    readonly modalCallId: FieldRef<"CardNewsJob", 'String'>
+    readonly callbackInbox: FieldRef<"CardNewsJob", 'Json'>
+    readonly modalSpawnState: FieldRef<"CardNewsJob", 'String'>
+    readonly selectedManifestKey: FieldRef<"CardNewsJob", 'String'>
+    readonly selectedInvocationId: FieldRef<"CardNewsJob", 'String'>
+    readonly progressInvocationId: FieldRef<"CardNewsJob", 'String'>
+    readonly manifest: FieldRef<"CardNewsJob", 'Json'>
+    readonly failureCode: FieldRef<"CardNewsJob", 'String'>
+    readonly completedAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly usageMetrics: FieldRef<"CardNewsJob", 'Json'>
+    readonly analyticsContext: FieldRef<"CardNewsJob", 'Json'>
+    readonly pendingAnalytics: FieldRef<"CardNewsJob", 'Json'>
+    readonly outputRetiredAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly createdAt: FieldRef<"CardNewsJob", 'DateTime'>
+    readonly updatedAt: FieldRef<"CardNewsJob", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CardNewsJob findUnique
+   */
+  export type CardNewsJobFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsJob to fetch.
+     */
+    where: CardNewsJobWhereUniqueInput
+  }
+
+  /**
+   * CardNewsJob findUniqueOrThrow
+   */
+  export type CardNewsJobFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsJob to fetch.
+     */
+    where: CardNewsJobWhereUniqueInput
+  }
+
+  /**
+   * CardNewsJob findFirst
+   */
+  export type CardNewsJobFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsJob to fetch.
+     */
+    where?: CardNewsJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsJobs to fetch.
+     */
+    orderBy?: CardNewsJobOrderByWithRelationInput | CardNewsJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CardNewsJobs.
+     */
+    cursor?: CardNewsJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CardNewsJobs.
+     */
+    distinct?: CardNewsJobScalarFieldEnum | CardNewsJobScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsJob findFirstOrThrow
+   */
+  export type CardNewsJobFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsJob to fetch.
+     */
+    where?: CardNewsJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsJobs to fetch.
+     */
+    orderBy?: CardNewsJobOrderByWithRelationInput | CardNewsJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CardNewsJobs.
+     */
+    cursor?: CardNewsJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CardNewsJobs.
+     */
+    distinct?: CardNewsJobScalarFieldEnum | CardNewsJobScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsJob findMany
+   */
+  export type CardNewsJobFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsJobs to fetch.
+     */
+    where?: CardNewsJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsJobs to fetch.
+     */
+    orderBy?: CardNewsJobOrderByWithRelationInput | CardNewsJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CardNewsJobs.
+     */
+    cursor?: CardNewsJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsJobs.
+     */
+    skip?: number
+    distinct?: CardNewsJobScalarFieldEnum | CardNewsJobScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsJob create
+   */
+  export type CardNewsJobCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CardNewsJob.
+     */
+    data: XOR<CardNewsJobCreateInput, CardNewsJobUncheckedCreateInput>
+  }
+
+  /**
+   * CardNewsJob createMany
+   */
+  export type CardNewsJobCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CardNewsJobs.
+     */
+    data: CardNewsJobCreateManyInput | CardNewsJobCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CardNewsJob createManyAndReturn
+   */
+  export type CardNewsJobCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * The data used to create many CardNewsJobs.
+     */
+    data: CardNewsJobCreateManyInput | CardNewsJobCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsJob update
+   */
+  export type CardNewsJobUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CardNewsJob.
+     */
+    data: XOR<CardNewsJobUpdateInput, CardNewsJobUncheckedUpdateInput>
+    /**
+     * Choose, which CardNewsJob to update.
+     */
+    where: CardNewsJobWhereUniqueInput
+  }
+
+  /**
+   * CardNewsJob updateMany
+   */
+  export type CardNewsJobUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CardNewsJobs.
+     */
+    data: XOR<CardNewsJobUpdateManyMutationInput, CardNewsJobUncheckedUpdateManyInput>
+    /**
+     * Filter which CardNewsJobs to update
+     */
+    where?: CardNewsJobWhereInput
+    /**
+     * Limit how many CardNewsJobs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CardNewsJob updateManyAndReturn
+   */
+  export type CardNewsJobUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * The data used to update CardNewsJobs.
+     */
+    data: XOR<CardNewsJobUpdateManyMutationInput, CardNewsJobUncheckedUpdateManyInput>
+    /**
+     * Filter which CardNewsJobs to update
+     */
+    where?: CardNewsJobWhereInput
+    /**
+     * Limit how many CardNewsJobs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsJob upsert
+   */
+  export type CardNewsJobUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CardNewsJob to update in case it exists.
+     */
+    where: CardNewsJobWhereUniqueInput
+    /**
+     * In case the CardNewsJob found by the `where` argument doesn't exist, create a new CardNewsJob with this data.
+     */
+    create: XOR<CardNewsJobCreateInput, CardNewsJobUncheckedCreateInput>
+    /**
+     * In case the CardNewsJob was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CardNewsJobUpdateInput, CardNewsJobUncheckedUpdateInput>
+  }
+
+  /**
+   * CardNewsJob delete
+   */
+  export type CardNewsJobDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+    /**
+     * Filter which CardNewsJob to delete.
+     */
+    where: CardNewsJobWhereUniqueInput
+  }
+
+  /**
+   * CardNewsJob deleteMany
+   */
+  export type CardNewsJobDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CardNewsJobs to delete
+     */
+    where?: CardNewsJobWhereInput
+    /**
+     * Limit how many CardNewsJobs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CardNewsJob.reservation
+   */
+  export type CardNewsJob$reservationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditReservation
+     */
+    select?: CreditReservationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditReservation
+     */
+    omit?: CreditReservationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CreditReservationInclude<ExtArgs> | null
+    where?: CreditReservationWhereInput
+  }
+
+  /**
+   * CardNewsJob.invocations
+   */
+  export type CardNewsJob$invocationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    where?: CardNewsInvocationWhereInput
+    orderBy?: CardNewsInvocationOrderByWithRelationInput | CardNewsInvocationOrderByWithRelationInput[]
+    cursor?: CardNewsInvocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CardNewsInvocationScalarFieldEnum | CardNewsInvocationScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsJob without action
+   */
+  export type CardNewsJobDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsJob
+     */
+    select?: CardNewsJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsJob
+     */
+    omit?: CardNewsJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsJobInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CardNewsInvocation
+   */
+
+  export type AggregateCardNewsInvocation = {
+    _count: CardNewsInvocationCountAggregateOutputType | null
+    _avg: CardNewsInvocationAvgAggregateOutputType | null
+    _sum: CardNewsInvocationSumAggregateOutputType | null
+    _min: CardNewsInvocationMinAggregateOutputType | null
+    _max: CardNewsInvocationMaxAggregateOutputType | null
+  }
+
+  export type CardNewsInvocationAvgAggregateOutputType = {
+    executionEpoch: number | null
+    progressSequence: number | null
+  }
+
+  export type CardNewsInvocationSumAggregateOutputType = {
+    executionEpoch: number | null
+    progressSequence: number | null
+  }
+
+  export type CardNewsInvocationMinAggregateOutputType = {
+    id: string | null
+    jobId: string | null
+    executionEpoch: number | null
+    invocationId: string | null
+    modalCallId: string | null
+    writeDeadlineAt: Date | null
+    status: string | null
+    progressSequence: number | null
+    stage: string | null
+    registeredAt: Date | null
+    endedAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CardNewsInvocationMaxAggregateOutputType = {
+    id: string | null
+    jobId: string | null
+    executionEpoch: number | null
+    invocationId: string | null
+    modalCallId: string | null
+    writeDeadlineAt: Date | null
+    status: string | null
+    progressSequence: number | null
+    stage: string | null
+    registeredAt: Date | null
+    endedAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CardNewsInvocationCountAggregateOutputType = {
+    id: number
+    jobId: number
+    executionEpoch: number
+    invocationId: number
+    modalCallId: number
+    writeDeadlineAt: number
+    status: number
+    progressSequence: number
+    stage: number
+    producerEndEvidence: number
+    registeredAt: number
+    endedAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CardNewsInvocationAvgAggregateInputType = {
+    executionEpoch?: true
+    progressSequence?: true
+  }
+
+  export type CardNewsInvocationSumAggregateInputType = {
+    executionEpoch?: true
+    progressSequence?: true
+  }
+
+  export type CardNewsInvocationMinAggregateInputType = {
+    id?: true
+    jobId?: true
+    executionEpoch?: true
+    invocationId?: true
+    modalCallId?: true
+    writeDeadlineAt?: true
+    status?: true
+    progressSequence?: true
+    stage?: true
+    registeredAt?: true
+    endedAt?: true
+    updatedAt?: true
+  }
+
+  export type CardNewsInvocationMaxAggregateInputType = {
+    id?: true
+    jobId?: true
+    executionEpoch?: true
+    invocationId?: true
+    modalCallId?: true
+    writeDeadlineAt?: true
+    status?: true
+    progressSequence?: true
+    stage?: true
+    registeredAt?: true
+    endedAt?: true
+    updatedAt?: true
+  }
+
+  export type CardNewsInvocationCountAggregateInputType = {
+    id?: true
+    jobId?: true
+    executionEpoch?: true
+    invocationId?: true
+    modalCallId?: true
+    writeDeadlineAt?: true
+    status?: true
+    progressSequence?: true
+    stage?: true
+    producerEndEvidence?: true
+    registeredAt?: true
+    endedAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CardNewsInvocationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CardNewsInvocation to aggregate.
+     */
+    where?: CardNewsInvocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsInvocations to fetch.
+     */
+    orderBy?: CardNewsInvocationOrderByWithRelationInput | CardNewsInvocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CardNewsInvocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsInvocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsInvocations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CardNewsInvocations
+    **/
+    _count?: true | CardNewsInvocationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CardNewsInvocationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CardNewsInvocationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CardNewsInvocationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CardNewsInvocationMaxAggregateInputType
+  }
+
+  export type GetCardNewsInvocationAggregateType<T extends CardNewsInvocationAggregateArgs> = {
+        [P in keyof T & keyof AggregateCardNewsInvocation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCardNewsInvocation[P]>
+      : GetScalarType<T[P], AggregateCardNewsInvocation[P]>
+  }
+
+
+
+
+  export type CardNewsInvocationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CardNewsInvocationWhereInput
+    orderBy?: CardNewsInvocationOrderByWithAggregationInput | CardNewsInvocationOrderByWithAggregationInput[]
+    by: CardNewsInvocationScalarFieldEnum[] | CardNewsInvocationScalarFieldEnum
+    having?: CardNewsInvocationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CardNewsInvocationCountAggregateInputType | true
+    _avg?: CardNewsInvocationAvgAggregateInputType
+    _sum?: CardNewsInvocationSumAggregateInputType
+    _min?: CardNewsInvocationMinAggregateInputType
+    _max?: CardNewsInvocationMaxAggregateInputType
+  }
+
+  export type CardNewsInvocationGroupByOutputType = {
+    id: string
+    jobId: string
+    executionEpoch: number
+    invocationId: string
+    modalCallId: string
+    writeDeadlineAt: Date
+    status: string
+    progressSequence: number
+    stage: string
+    producerEndEvidence: JsonValue | null
+    registeredAt: Date
+    endedAt: Date | null
+    updatedAt: Date
+    _count: CardNewsInvocationCountAggregateOutputType | null
+    _avg: CardNewsInvocationAvgAggregateOutputType | null
+    _sum: CardNewsInvocationSumAggregateOutputType | null
+    _min: CardNewsInvocationMinAggregateOutputType | null
+    _max: CardNewsInvocationMaxAggregateOutputType | null
+  }
+
+  type GetCardNewsInvocationGroupByPayload<T extends CardNewsInvocationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CardNewsInvocationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CardNewsInvocationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CardNewsInvocationGroupByOutputType[P]>
+            : GetScalarType<T[P], CardNewsInvocationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CardNewsInvocationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    jobId?: boolean
+    executionEpoch?: boolean
+    invocationId?: boolean
+    modalCallId?: boolean
+    writeDeadlineAt?: boolean
+    status?: boolean
+    progressSequence?: boolean
+    stage?: boolean
+    producerEndEvidence?: boolean
+    registeredAt?: boolean
+    endedAt?: boolean
+    updatedAt?: boolean
+    job?: boolean | CardNewsJobDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsInvocation"]>
+
+  export type CardNewsInvocationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    jobId?: boolean
+    executionEpoch?: boolean
+    invocationId?: boolean
+    modalCallId?: boolean
+    writeDeadlineAt?: boolean
+    status?: boolean
+    progressSequence?: boolean
+    stage?: boolean
+    producerEndEvidence?: boolean
+    registeredAt?: boolean
+    endedAt?: boolean
+    updatedAt?: boolean
+    job?: boolean | CardNewsJobDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsInvocation"]>
+
+  export type CardNewsInvocationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    jobId?: boolean
+    executionEpoch?: boolean
+    invocationId?: boolean
+    modalCallId?: boolean
+    writeDeadlineAt?: boolean
+    status?: boolean
+    progressSequence?: boolean
+    stage?: boolean
+    producerEndEvidence?: boolean
+    registeredAt?: boolean
+    endedAt?: boolean
+    updatedAt?: boolean
+    job?: boolean | CardNewsJobDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cardNewsInvocation"]>
+
+  export type CardNewsInvocationSelectScalar = {
+    id?: boolean
+    jobId?: boolean
+    executionEpoch?: boolean
+    invocationId?: boolean
+    modalCallId?: boolean
+    writeDeadlineAt?: boolean
+    status?: boolean
+    progressSequence?: boolean
+    stage?: boolean
+    producerEndEvidence?: boolean
+    registeredAt?: boolean
+    endedAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CardNewsInvocationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "jobId" | "executionEpoch" | "invocationId" | "modalCallId" | "writeDeadlineAt" | "status" | "progressSequence" | "stage" | "producerEndEvidence" | "registeredAt" | "endedAt" | "updatedAt", ExtArgs["result"]["cardNewsInvocation"]>
+  export type CardNewsInvocationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    job?: boolean | CardNewsJobDefaultArgs<ExtArgs>
+  }
+  export type CardNewsInvocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    job?: boolean | CardNewsJobDefaultArgs<ExtArgs>
+  }
+  export type CardNewsInvocationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    job?: boolean | CardNewsJobDefaultArgs<ExtArgs>
+  }
+
+  export type $CardNewsInvocationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CardNewsInvocation"
+    objects: {
+      job: Prisma.$CardNewsJobPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      jobId: string
+      executionEpoch: number
+      invocationId: string
+      modalCallId: string
+      writeDeadlineAt: Date
+      status: string
+      progressSequence: number
+      stage: string
+      producerEndEvidence: Prisma.JsonValue | null
+      registeredAt: Date
+      endedAt: Date | null
+      updatedAt: Date
+    }, ExtArgs["result"]["cardNewsInvocation"]>
+    composites: {}
+  }
+
+  type CardNewsInvocationGetPayload<S extends boolean | null | undefined | CardNewsInvocationDefaultArgs> = $Result.GetResult<Prisma.$CardNewsInvocationPayload, S>
+
+  type CardNewsInvocationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CardNewsInvocationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CardNewsInvocationCountAggregateInputType | true
+    }
+
+  export interface CardNewsInvocationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CardNewsInvocation'], meta: { name: 'CardNewsInvocation' } }
+    /**
+     * Find zero or one CardNewsInvocation that matches the filter.
+     * @param {CardNewsInvocationFindUniqueArgs} args - Arguments to find a CardNewsInvocation
+     * @example
+     * // Get one CardNewsInvocation
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CardNewsInvocationFindUniqueArgs>(args: SelectSubset<T, CardNewsInvocationFindUniqueArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CardNewsInvocation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CardNewsInvocationFindUniqueOrThrowArgs} args - Arguments to find a CardNewsInvocation
+     * @example
+     * // Get one CardNewsInvocation
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CardNewsInvocationFindUniqueOrThrowArgs>(args: SelectSubset<T, CardNewsInvocationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CardNewsInvocation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsInvocationFindFirstArgs} args - Arguments to find a CardNewsInvocation
+     * @example
+     * // Get one CardNewsInvocation
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CardNewsInvocationFindFirstArgs>(args?: SelectSubset<T, CardNewsInvocationFindFirstArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CardNewsInvocation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsInvocationFindFirstOrThrowArgs} args - Arguments to find a CardNewsInvocation
+     * @example
+     * // Get one CardNewsInvocation
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CardNewsInvocationFindFirstOrThrowArgs>(args?: SelectSubset<T, CardNewsInvocationFindFirstOrThrowArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CardNewsInvocations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsInvocationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CardNewsInvocations
+     * const cardNewsInvocations = await prisma.cardNewsInvocation.findMany()
+     * 
+     * // Get first 10 CardNewsInvocations
+     * const cardNewsInvocations = await prisma.cardNewsInvocation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const cardNewsInvocationWithIdOnly = await prisma.cardNewsInvocation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CardNewsInvocationFindManyArgs>(args?: SelectSubset<T, CardNewsInvocationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CardNewsInvocation.
+     * @param {CardNewsInvocationCreateArgs} args - Arguments to create a CardNewsInvocation.
+     * @example
+     * // Create one CardNewsInvocation
+     * const CardNewsInvocation = await prisma.cardNewsInvocation.create({
+     *   data: {
+     *     // ... data to create a CardNewsInvocation
+     *   }
+     * })
+     * 
+     */
+    create<T extends CardNewsInvocationCreateArgs>(args: SelectSubset<T, CardNewsInvocationCreateArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CardNewsInvocations.
+     * @param {CardNewsInvocationCreateManyArgs} args - Arguments to create many CardNewsInvocations.
+     * @example
+     * // Create many CardNewsInvocations
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CardNewsInvocationCreateManyArgs>(args?: SelectSubset<T, CardNewsInvocationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CardNewsInvocations and returns the data saved in the database.
+     * @param {CardNewsInvocationCreateManyAndReturnArgs} args - Arguments to create many CardNewsInvocations.
+     * @example
+     * // Create many CardNewsInvocations
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CardNewsInvocations and only return the `id`
+     * const cardNewsInvocationWithIdOnly = await prisma.cardNewsInvocation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CardNewsInvocationCreateManyAndReturnArgs>(args?: SelectSubset<T, CardNewsInvocationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CardNewsInvocation.
+     * @param {CardNewsInvocationDeleteArgs} args - Arguments to delete one CardNewsInvocation.
+     * @example
+     * // Delete one CardNewsInvocation
+     * const CardNewsInvocation = await prisma.cardNewsInvocation.delete({
+     *   where: {
+     *     // ... filter to delete one CardNewsInvocation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CardNewsInvocationDeleteArgs>(args: SelectSubset<T, CardNewsInvocationDeleteArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CardNewsInvocation.
+     * @param {CardNewsInvocationUpdateArgs} args - Arguments to update one CardNewsInvocation.
+     * @example
+     * // Update one CardNewsInvocation
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CardNewsInvocationUpdateArgs>(args: SelectSubset<T, CardNewsInvocationUpdateArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CardNewsInvocations.
+     * @param {CardNewsInvocationDeleteManyArgs} args - Arguments to filter CardNewsInvocations to delete.
+     * @example
+     * // Delete a few CardNewsInvocations
+     * const { count } = await prisma.cardNewsInvocation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CardNewsInvocationDeleteManyArgs>(args?: SelectSubset<T, CardNewsInvocationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CardNewsInvocations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsInvocationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CardNewsInvocations
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CardNewsInvocationUpdateManyArgs>(args: SelectSubset<T, CardNewsInvocationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CardNewsInvocations and returns the data updated in the database.
+     * @param {CardNewsInvocationUpdateManyAndReturnArgs} args - Arguments to update many CardNewsInvocations.
+     * @example
+     * // Update many CardNewsInvocations
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CardNewsInvocations and only return the `id`
+     * const cardNewsInvocationWithIdOnly = await prisma.cardNewsInvocation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CardNewsInvocationUpdateManyAndReturnArgs>(args: SelectSubset<T, CardNewsInvocationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CardNewsInvocation.
+     * @param {CardNewsInvocationUpsertArgs} args - Arguments to update or create a CardNewsInvocation.
+     * @example
+     * // Update or create a CardNewsInvocation
+     * const cardNewsInvocation = await prisma.cardNewsInvocation.upsert({
+     *   create: {
+     *     // ... data to create a CardNewsInvocation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CardNewsInvocation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CardNewsInvocationUpsertArgs>(args: SelectSubset<T, CardNewsInvocationUpsertArgs<ExtArgs>>): Prisma__CardNewsInvocationClient<$Result.GetResult<Prisma.$CardNewsInvocationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CardNewsInvocations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsInvocationCountArgs} args - Arguments to filter CardNewsInvocations to count.
+     * @example
+     * // Count the number of CardNewsInvocations
+     * const count = await prisma.cardNewsInvocation.count({
+     *   where: {
+     *     // ... the filter for the CardNewsInvocations we want to count
+     *   }
+     * })
+    **/
+    count<T extends CardNewsInvocationCountArgs>(
+      args?: Subset<T, CardNewsInvocationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CardNewsInvocationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CardNewsInvocation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsInvocationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CardNewsInvocationAggregateArgs>(args: Subset<T, CardNewsInvocationAggregateArgs>): Prisma.PrismaPromise<GetCardNewsInvocationAggregateType<T>>
+
+    /**
+     * Group by CardNewsInvocation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CardNewsInvocationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CardNewsInvocationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CardNewsInvocationGroupByArgs['orderBy'] }
+        : { orderBy?: CardNewsInvocationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CardNewsInvocationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCardNewsInvocationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CardNewsInvocation model
+   */
+  readonly fields: CardNewsInvocationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CardNewsInvocation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CardNewsInvocationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    job<T extends CardNewsJobDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CardNewsJobDefaultArgs<ExtArgs>>): Prisma__CardNewsJobClient<$Result.GetResult<Prisma.$CardNewsJobPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CardNewsInvocation model
+   */
+  interface CardNewsInvocationFieldRefs {
+    readonly id: FieldRef<"CardNewsInvocation", 'String'>
+    readonly jobId: FieldRef<"CardNewsInvocation", 'String'>
+    readonly executionEpoch: FieldRef<"CardNewsInvocation", 'Int'>
+    readonly invocationId: FieldRef<"CardNewsInvocation", 'String'>
+    readonly modalCallId: FieldRef<"CardNewsInvocation", 'String'>
+    readonly writeDeadlineAt: FieldRef<"CardNewsInvocation", 'DateTime'>
+    readonly status: FieldRef<"CardNewsInvocation", 'String'>
+    readonly progressSequence: FieldRef<"CardNewsInvocation", 'Int'>
+    readonly stage: FieldRef<"CardNewsInvocation", 'String'>
+    readonly producerEndEvidence: FieldRef<"CardNewsInvocation", 'Json'>
+    readonly registeredAt: FieldRef<"CardNewsInvocation", 'DateTime'>
+    readonly endedAt: FieldRef<"CardNewsInvocation", 'DateTime'>
+    readonly updatedAt: FieldRef<"CardNewsInvocation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CardNewsInvocation findUnique
+   */
+  export type CardNewsInvocationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsInvocation to fetch.
+     */
+    where: CardNewsInvocationWhereUniqueInput
+  }
+
+  /**
+   * CardNewsInvocation findUniqueOrThrow
+   */
+  export type CardNewsInvocationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsInvocation to fetch.
+     */
+    where: CardNewsInvocationWhereUniqueInput
+  }
+
+  /**
+   * CardNewsInvocation findFirst
+   */
+  export type CardNewsInvocationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsInvocation to fetch.
+     */
+    where?: CardNewsInvocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsInvocations to fetch.
+     */
+    orderBy?: CardNewsInvocationOrderByWithRelationInput | CardNewsInvocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CardNewsInvocations.
+     */
+    cursor?: CardNewsInvocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsInvocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsInvocations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CardNewsInvocations.
+     */
+    distinct?: CardNewsInvocationScalarFieldEnum | CardNewsInvocationScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsInvocation findFirstOrThrow
+   */
+  export type CardNewsInvocationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsInvocation to fetch.
+     */
+    where?: CardNewsInvocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsInvocations to fetch.
+     */
+    orderBy?: CardNewsInvocationOrderByWithRelationInput | CardNewsInvocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CardNewsInvocations.
+     */
+    cursor?: CardNewsInvocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsInvocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsInvocations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CardNewsInvocations.
+     */
+    distinct?: CardNewsInvocationScalarFieldEnum | CardNewsInvocationScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsInvocation findMany
+   */
+  export type CardNewsInvocationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * Filter, which CardNewsInvocations to fetch.
+     */
+    where?: CardNewsInvocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CardNewsInvocations to fetch.
+     */
+    orderBy?: CardNewsInvocationOrderByWithRelationInput | CardNewsInvocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CardNewsInvocations.
+     */
+    cursor?: CardNewsInvocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CardNewsInvocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CardNewsInvocations.
+     */
+    skip?: number
+    distinct?: CardNewsInvocationScalarFieldEnum | CardNewsInvocationScalarFieldEnum[]
+  }
+
+  /**
+   * CardNewsInvocation create
+   */
+  export type CardNewsInvocationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CardNewsInvocation.
+     */
+    data: XOR<CardNewsInvocationCreateInput, CardNewsInvocationUncheckedCreateInput>
+  }
+
+  /**
+   * CardNewsInvocation createMany
+   */
+  export type CardNewsInvocationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CardNewsInvocations.
+     */
+    data: CardNewsInvocationCreateManyInput | CardNewsInvocationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CardNewsInvocation createManyAndReturn
+   */
+  export type CardNewsInvocationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * The data used to create many CardNewsInvocations.
+     */
+    data: CardNewsInvocationCreateManyInput | CardNewsInvocationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsInvocation update
+   */
+  export type CardNewsInvocationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CardNewsInvocation.
+     */
+    data: XOR<CardNewsInvocationUpdateInput, CardNewsInvocationUncheckedUpdateInput>
+    /**
+     * Choose, which CardNewsInvocation to update.
+     */
+    where: CardNewsInvocationWhereUniqueInput
+  }
+
+  /**
+   * CardNewsInvocation updateMany
+   */
+  export type CardNewsInvocationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CardNewsInvocations.
+     */
+    data: XOR<CardNewsInvocationUpdateManyMutationInput, CardNewsInvocationUncheckedUpdateManyInput>
+    /**
+     * Filter which CardNewsInvocations to update
+     */
+    where?: CardNewsInvocationWhereInput
+    /**
+     * Limit how many CardNewsInvocations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CardNewsInvocation updateManyAndReturn
+   */
+  export type CardNewsInvocationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * The data used to update CardNewsInvocations.
+     */
+    data: XOR<CardNewsInvocationUpdateManyMutationInput, CardNewsInvocationUncheckedUpdateManyInput>
+    /**
+     * Filter which CardNewsInvocations to update
+     */
+    where?: CardNewsInvocationWhereInput
+    /**
+     * Limit how many CardNewsInvocations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CardNewsInvocation upsert
+   */
+  export type CardNewsInvocationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CardNewsInvocation to update in case it exists.
+     */
+    where: CardNewsInvocationWhereUniqueInput
+    /**
+     * In case the CardNewsInvocation found by the `where` argument doesn't exist, create a new CardNewsInvocation with this data.
+     */
+    create: XOR<CardNewsInvocationCreateInput, CardNewsInvocationUncheckedCreateInput>
+    /**
+     * In case the CardNewsInvocation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CardNewsInvocationUpdateInput, CardNewsInvocationUncheckedUpdateInput>
+  }
+
+  /**
+   * CardNewsInvocation delete
+   */
+  export type CardNewsInvocationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+    /**
+     * Filter which CardNewsInvocation to delete.
+     */
+    where: CardNewsInvocationWhereUniqueInput
+  }
+
+  /**
+   * CardNewsInvocation deleteMany
+   */
+  export type CardNewsInvocationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CardNewsInvocations to delete
+     */
+    where?: CardNewsInvocationWhereInput
+    /**
+     * Limit how many CardNewsInvocations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CardNewsInvocation without action
+   */
+  export type CardNewsInvocationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CardNewsInvocation
+     */
+    select?: CardNewsInvocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CardNewsInvocation
+     */
+    omit?: CardNewsInvocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CardNewsInvocationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssetCleanupJob
+   */
+
+  export type AggregateAssetCleanupJob = {
+    _count: AssetCleanupJobCountAggregateOutputType | null
+    _avg: AssetCleanupJobAvgAggregateOutputType | null
+    _sum: AssetCleanupJobSumAggregateOutputType | null
+    _min: AssetCleanupJobMinAggregateOutputType | null
+    _max: AssetCleanupJobMaxAggregateOutputType | null
+  }
+
+  export type AssetCleanupJobAvgAggregateOutputType = {
+    attemptCount: number | null
+  }
+
+  export type AssetCleanupJobSumAggregateOutputType = {
+    attemptCount: number | null
+  }
+
+  export type AssetCleanupJobMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    kind: string | null
+    scopeId: string | null
+    status: string | null
+    notBefore: Date | null
+    leaseUntil: Date | null
+    nextRetryAt: Date | null
+    attemptCount: number | null
+    lastError: string | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AssetCleanupJobMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    kind: string | null
+    scopeId: string | null
+    status: string | null
+    notBefore: Date | null
+    leaseUntil: Date | null
+    nextRetryAt: Date | null
+    attemptCount: number | null
+    lastError: string | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AssetCleanupJobCountAggregateOutputType = {
+    id: number
+    userId: number
+    kind: number
+    scopeId: number
+    scopeSnapshot: number
+    exactKeys: number
+    dedicatedPrefixes: number
+    retainedReferences: number
+    producerReferences: number
+    cursor: number
+    failedKeys: number
+    status: number
+    notBefore: number
+    leaseUntil: number
+    nextRetryAt: number
+    attemptCount: number
+    lastError: number
+    completedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AssetCleanupJobAvgAggregateInputType = {
+    attemptCount?: true
+  }
+
+  export type AssetCleanupJobSumAggregateInputType = {
+    attemptCount?: true
+  }
+
+  export type AssetCleanupJobMinAggregateInputType = {
+    id?: true
+    userId?: true
+    kind?: true
+    scopeId?: true
+    status?: true
+    notBefore?: true
+    leaseUntil?: true
+    nextRetryAt?: true
+    attemptCount?: true
+    lastError?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AssetCleanupJobMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    kind?: true
+    scopeId?: true
+    status?: true
+    notBefore?: true
+    leaseUntil?: true
+    nextRetryAt?: true
+    attemptCount?: true
+    lastError?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AssetCleanupJobCountAggregateInputType = {
+    id?: true
+    userId?: true
+    kind?: true
+    scopeId?: true
+    scopeSnapshot?: true
+    exactKeys?: true
+    dedicatedPrefixes?: true
+    retainedReferences?: true
+    producerReferences?: true
+    cursor?: true
+    failedKeys?: true
+    status?: true
+    notBefore?: true
+    leaseUntil?: true
+    nextRetryAt?: true
+    attemptCount?: true
+    lastError?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AssetCleanupJobAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssetCleanupJob to aggregate.
+     */
+    where?: AssetCleanupJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssetCleanupJobs to fetch.
+     */
+    orderBy?: AssetCleanupJobOrderByWithRelationInput | AssetCleanupJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AssetCleanupJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssetCleanupJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssetCleanupJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AssetCleanupJobs
+    **/
+    _count?: true | AssetCleanupJobCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AssetCleanupJobAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AssetCleanupJobSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssetCleanupJobMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssetCleanupJobMaxAggregateInputType
+  }
+
+  export type GetAssetCleanupJobAggregateType<T extends AssetCleanupJobAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssetCleanupJob]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssetCleanupJob[P]>
+      : GetScalarType<T[P], AggregateAssetCleanupJob[P]>
+  }
+
+
+
+
+  export type AssetCleanupJobGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssetCleanupJobWhereInput
+    orderBy?: AssetCleanupJobOrderByWithAggregationInput | AssetCleanupJobOrderByWithAggregationInput[]
+    by: AssetCleanupJobScalarFieldEnum[] | AssetCleanupJobScalarFieldEnum
+    having?: AssetCleanupJobScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssetCleanupJobCountAggregateInputType | true
+    _avg?: AssetCleanupJobAvgAggregateInputType
+    _sum?: AssetCleanupJobSumAggregateInputType
+    _min?: AssetCleanupJobMinAggregateInputType
+    _max?: AssetCleanupJobMaxAggregateInputType
+  }
+
+  export type AssetCleanupJobGroupByOutputType = {
+    id: string
+    userId: string
+    kind: string
+    scopeId: string
+    scopeSnapshot: JsonValue
+    exactKeys: JsonValue
+    dedicatedPrefixes: JsonValue
+    retainedReferences: JsonValue
+    producerReferences: JsonValue
+    cursor: JsonValue | null
+    failedKeys: JsonValue
+    status: string
+    notBefore: Date
+    leaseUntil: Date | null
+    nextRetryAt: Date | null
+    attemptCount: number
+    lastError: string | null
+    completedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AssetCleanupJobCountAggregateOutputType | null
+    _avg: AssetCleanupJobAvgAggregateOutputType | null
+    _sum: AssetCleanupJobSumAggregateOutputType | null
+    _min: AssetCleanupJobMinAggregateOutputType | null
+    _max: AssetCleanupJobMaxAggregateOutputType | null
+  }
+
+  type GetAssetCleanupJobGroupByPayload<T extends AssetCleanupJobGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssetCleanupJobGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssetCleanupJobGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssetCleanupJobGroupByOutputType[P]>
+            : GetScalarType<T[P], AssetCleanupJobGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssetCleanupJobSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    kind?: boolean
+    scopeId?: boolean
+    scopeSnapshot?: boolean
+    exactKeys?: boolean
+    dedicatedPrefixes?: boolean
+    retainedReferences?: boolean
+    producerReferences?: boolean
+    cursor?: boolean
+    failedKeys?: boolean
+    status?: boolean
+    notBefore?: boolean
+    leaseUntil?: boolean
+    nextRetryAt?: boolean
+    attemptCount?: boolean
+    lastError?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assetCleanupJob"]>
+
+  export type AssetCleanupJobSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    kind?: boolean
+    scopeId?: boolean
+    scopeSnapshot?: boolean
+    exactKeys?: boolean
+    dedicatedPrefixes?: boolean
+    retainedReferences?: boolean
+    producerReferences?: boolean
+    cursor?: boolean
+    failedKeys?: boolean
+    status?: boolean
+    notBefore?: boolean
+    leaseUntil?: boolean
+    nextRetryAt?: boolean
+    attemptCount?: boolean
+    lastError?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assetCleanupJob"]>
+
+  export type AssetCleanupJobSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    kind?: boolean
+    scopeId?: boolean
+    scopeSnapshot?: boolean
+    exactKeys?: boolean
+    dedicatedPrefixes?: boolean
+    retainedReferences?: boolean
+    producerReferences?: boolean
+    cursor?: boolean
+    failedKeys?: boolean
+    status?: boolean
+    notBefore?: boolean
+    leaseUntil?: boolean
+    nextRetryAt?: boolean
+    attemptCount?: boolean
+    lastError?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assetCleanupJob"]>
+
+  export type AssetCleanupJobSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    kind?: boolean
+    scopeId?: boolean
+    scopeSnapshot?: boolean
+    exactKeys?: boolean
+    dedicatedPrefixes?: boolean
+    retainedReferences?: boolean
+    producerReferences?: boolean
+    cursor?: boolean
+    failedKeys?: boolean
+    status?: boolean
+    notBefore?: boolean
+    leaseUntil?: boolean
+    nextRetryAt?: boolean
+    attemptCount?: boolean
+    lastError?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AssetCleanupJobOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "kind" | "scopeId" | "scopeSnapshot" | "exactKeys" | "dedicatedPrefixes" | "retainedReferences" | "producerReferences" | "cursor" | "failedKeys" | "status" | "notBefore" | "leaseUntil" | "nextRetryAt" | "attemptCount" | "lastError" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["assetCleanupJob"]>
+  export type AssetCleanupJobInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type AssetCleanupJobIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type AssetCleanupJobIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $AssetCleanupJobPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssetCleanupJob"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      kind: string
+      scopeId: string
+      scopeSnapshot: Prisma.JsonValue
+      exactKeys: Prisma.JsonValue
+      dedicatedPrefixes: Prisma.JsonValue
+      retainedReferences: Prisma.JsonValue
+      producerReferences: Prisma.JsonValue
+      cursor: Prisma.JsonValue | null
+      failedKeys: Prisma.JsonValue
+      status: string
+      notBefore: Date
+      leaseUntil: Date | null
+      nextRetryAt: Date | null
+      attemptCount: number
+      lastError: string | null
+      completedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["assetCleanupJob"]>
+    composites: {}
+  }
+
+  type AssetCleanupJobGetPayload<S extends boolean | null | undefined | AssetCleanupJobDefaultArgs> = $Result.GetResult<Prisma.$AssetCleanupJobPayload, S>
+
+  type AssetCleanupJobCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AssetCleanupJobFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AssetCleanupJobCountAggregateInputType | true
+    }
+
+  export interface AssetCleanupJobDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssetCleanupJob'], meta: { name: 'AssetCleanupJob' } }
+    /**
+     * Find zero or one AssetCleanupJob that matches the filter.
+     * @param {AssetCleanupJobFindUniqueArgs} args - Arguments to find a AssetCleanupJob
+     * @example
+     * // Get one AssetCleanupJob
+     * const assetCleanupJob = await prisma.assetCleanupJob.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssetCleanupJobFindUniqueArgs>(args: SelectSubset<T, AssetCleanupJobFindUniqueArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AssetCleanupJob that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AssetCleanupJobFindUniqueOrThrowArgs} args - Arguments to find a AssetCleanupJob
+     * @example
+     * // Get one AssetCleanupJob
+     * const assetCleanupJob = await prisma.assetCleanupJob.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssetCleanupJobFindUniqueOrThrowArgs>(args: SelectSubset<T, AssetCleanupJobFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssetCleanupJob that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssetCleanupJobFindFirstArgs} args - Arguments to find a AssetCleanupJob
+     * @example
+     * // Get one AssetCleanupJob
+     * const assetCleanupJob = await prisma.assetCleanupJob.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssetCleanupJobFindFirstArgs>(args?: SelectSubset<T, AssetCleanupJobFindFirstArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssetCleanupJob that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssetCleanupJobFindFirstOrThrowArgs} args - Arguments to find a AssetCleanupJob
+     * @example
+     * // Get one AssetCleanupJob
+     * const assetCleanupJob = await prisma.assetCleanupJob.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssetCleanupJobFindFirstOrThrowArgs>(args?: SelectSubset<T, AssetCleanupJobFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AssetCleanupJobs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssetCleanupJobFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssetCleanupJobs
+     * const assetCleanupJobs = await prisma.assetCleanupJob.findMany()
+     * 
+     * // Get first 10 AssetCleanupJobs
+     * const assetCleanupJobs = await prisma.assetCleanupJob.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const assetCleanupJobWithIdOnly = await prisma.assetCleanupJob.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AssetCleanupJobFindManyArgs>(args?: SelectSubset<T, AssetCleanupJobFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AssetCleanupJob.
+     * @param {AssetCleanupJobCreateArgs} args - Arguments to create a AssetCleanupJob.
+     * @example
+     * // Create one AssetCleanupJob
+     * const AssetCleanupJob = await prisma.assetCleanupJob.create({
+     *   data: {
+     *     // ... data to create a AssetCleanupJob
+     *   }
+     * })
+     * 
+     */
+    create<T extends AssetCleanupJobCreateArgs>(args: SelectSubset<T, AssetCleanupJobCreateArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AssetCleanupJobs.
+     * @param {AssetCleanupJobCreateManyArgs} args - Arguments to create many AssetCleanupJobs.
+     * @example
+     * // Create many AssetCleanupJobs
+     * const assetCleanupJob = await prisma.assetCleanupJob.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AssetCleanupJobCreateManyArgs>(args?: SelectSubset<T, AssetCleanupJobCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssetCleanupJobs and returns the data saved in the database.
+     * @param {AssetCleanupJobCreateManyAndReturnArgs} args - Arguments to create many AssetCleanupJobs.
+     * @example
+     * // Create many AssetCleanupJobs
+     * const assetCleanupJob = await prisma.assetCleanupJob.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AssetCleanupJobs and only return the `id`
+     * const assetCleanupJobWithIdOnly = await prisma.assetCleanupJob.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AssetCleanupJobCreateManyAndReturnArgs>(args?: SelectSubset<T, AssetCleanupJobCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AssetCleanupJob.
+     * @param {AssetCleanupJobDeleteArgs} args - Arguments to delete one AssetCleanupJob.
+     * @example
+     * // Delete one AssetCleanupJob
+     * const AssetCleanupJob = await prisma.assetCleanupJob.delete({
+     *   where: {
+     *     // ... filter to delete one AssetCleanupJob
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AssetCleanupJobDeleteArgs>(args: SelectSubset<T, AssetCleanupJobDeleteArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AssetCleanupJob.
+     * @param {AssetCleanupJobUpdateArgs} args - Arguments to update one AssetCleanupJob.
+     * @example
+     * // Update one AssetCleanupJob
+     * const assetCleanupJob = await prisma.assetCleanupJob.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AssetCleanupJobUpdateArgs>(args: SelectSubset<T, AssetCleanupJobUpdateArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AssetCleanupJobs.
+     * @param {AssetCleanupJobDeleteManyArgs} args - Arguments to filter AssetCleanupJobs to delete.
+     * @example
+     * // Delete a few AssetCleanupJobs
+     * const { count } = await prisma.assetCleanupJob.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AssetCleanupJobDeleteManyArgs>(args?: SelectSubset<T, AssetCleanupJobDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssetCleanupJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssetCleanupJobUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssetCleanupJobs
+     * const assetCleanupJob = await prisma.assetCleanupJob.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AssetCleanupJobUpdateManyArgs>(args: SelectSubset<T, AssetCleanupJobUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssetCleanupJobs and returns the data updated in the database.
+     * @param {AssetCleanupJobUpdateManyAndReturnArgs} args - Arguments to update many AssetCleanupJobs.
+     * @example
+     * // Update many AssetCleanupJobs
+     * const assetCleanupJob = await prisma.assetCleanupJob.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AssetCleanupJobs and only return the `id`
+     * const assetCleanupJobWithIdOnly = await prisma.assetCleanupJob.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AssetCleanupJobUpdateManyAndReturnArgs>(args: SelectSubset<T, AssetCleanupJobUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AssetCleanupJob.
+     * @param {AssetCleanupJobUpsertArgs} args - Arguments to update or create a AssetCleanupJob.
+     * @example
+     * // Update or create a AssetCleanupJob
+     * const assetCleanupJob = await prisma.assetCleanupJob.upsert({
+     *   create: {
+     *     // ... data to create a AssetCleanupJob
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssetCleanupJob we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssetCleanupJobUpsertArgs>(args: SelectSubset<T, AssetCleanupJobUpsertArgs<ExtArgs>>): Prisma__AssetCleanupJobClient<$Result.GetResult<Prisma.$AssetCleanupJobPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AssetCleanupJobs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssetCleanupJobCountArgs} args - Arguments to filter AssetCleanupJobs to count.
+     * @example
+     * // Count the number of AssetCleanupJobs
+     * const count = await prisma.assetCleanupJob.count({
+     *   where: {
+     *     // ... the filter for the AssetCleanupJobs we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssetCleanupJobCountArgs>(
+      args?: Subset<T, AssetCleanupJobCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssetCleanupJobCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssetCleanupJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssetCleanupJobAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssetCleanupJobAggregateArgs>(args: Subset<T, AssetCleanupJobAggregateArgs>): Prisma.PrismaPromise<GetAssetCleanupJobAggregateType<T>>
+
+    /**
+     * Group by AssetCleanupJob.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssetCleanupJobGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AssetCleanupJobGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssetCleanupJobGroupByArgs['orderBy'] }
+        : { orderBy?: AssetCleanupJobGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssetCleanupJobGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssetCleanupJobGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssetCleanupJob model
+   */
+  readonly fields: AssetCleanupJobFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssetCleanupJob.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssetCleanupJobClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssetCleanupJob model
+   */
+  interface AssetCleanupJobFieldRefs {
+    readonly id: FieldRef<"AssetCleanupJob", 'String'>
+    readonly userId: FieldRef<"AssetCleanupJob", 'String'>
+    readonly kind: FieldRef<"AssetCleanupJob", 'String'>
+    readonly scopeId: FieldRef<"AssetCleanupJob", 'String'>
+    readonly scopeSnapshot: FieldRef<"AssetCleanupJob", 'Json'>
+    readonly exactKeys: FieldRef<"AssetCleanupJob", 'Json'>
+    readonly dedicatedPrefixes: FieldRef<"AssetCleanupJob", 'Json'>
+    readonly retainedReferences: FieldRef<"AssetCleanupJob", 'Json'>
+    readonly producerReferences: FieldRef<"AssetCleanupJob", 'Json'>
+    readonly cursor: FieldRef<"AssetCleanupJob", 'Json'>
+    readonly failedKeys: FieldRef<"AssetCleanupJob", 'Json'>
+    readonly status: FieldRef<"AssetCleanupJob", 'String'>
+    readonly notBefore: FieldRef<"AssetCleanupJob", 'DateTime'>
+    readonly leaseUntil: FieldRef<"AssetCleanupJob", 'DateTime'>
+    readonly nextRetryAt: FieldRef<"AssetCleanupJob", 'DateTime'>
+    readonly attemptCount: FieldRef<"AssetCleanupJob", 'Int'>
+    readonly lastError: FieldRef<"AssetCleanupJob", 'String'>
+    readonly completedAt: FieldRef<"AssetCleanupJob", 'DateTime'>
+    readonly createdAt: FieldRef<"AssetCleanupJob", 'DateTime'>
+    readonly updatedAt: FieldRef<"AssetCleanupJob", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AssetCleanupJob findUnique
+   */
+  export type AssetCleanupJobFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * Filter, which AssetCleanupJob to fetch.
+     */
+    where: AssetCleanupJobWhereUniqueInput
+  }
+
+  /**
+   * AssetCleanupJob findUniqueOrThrow
+   */
+  export type AssetCleanupJobFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * Filter, which AssetCleanupJob to fetch.
+     */
+    where: AssetCleanupJobWhereUniqueInput
+  }
+
+  /**
+   * AssetCleanupJob findFirst
+   */
+  export type AssetCleanupJobFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * Filter, which AssetCleanupJob to fetch.
+     */
+    where?: AssetCleanupJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssetCleanupJobs to fetch.
+     */
+    orderBy?: AssetCleanupJobOrderByWithRelationInput | AssetCleanupJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AssetCleanupJobs.
+     */
+    cursor?: AssetCleanupJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssetCleanupJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssetCleanupJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AssetCleanupJobs.
+     */
+    distinct?: AssetCleanupJobScalarFieldEnum | AssetCleanupJobScalarFieldEnum[]
+  }
+
+  /**
+   * AssetCleanupJob findFirstOrThrow
+   */
+  export type AssetCleanupJobFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * Filter, which AssetCleanupJob to fetch.
+     */
+    where?: AssetCleanupJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssetCleanupJobs to fetch.
+     */
+    orderBy?: AssetCleanupJobOrderByWithRelationInput | AssetCleanupJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AssetCleanupJobs.
+     */
+    cursor?: AssetCleanupJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssetCleanupJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssetCleanupJobs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AssetCleanupJobs.
+     */
+    distinct?: AssetCleanupJobScalarFieldEnum | AssetCleanupJobScalarFieldEnum[]
+  }
+
+  /**
+   * AssetCleanupJob findMany
+   */
+  export type AssetCleanupJobFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * Filter, which AssetCleanupJobs to fetch.
+     */
+    where?: AssetCleanupJobWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssetCleanupJobs to fetch.
+     */
+    orderBy?: AssetCleanupJobOrderByWithRelationInput | AssetCleanupJobOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AssetCleanupJobs.
+     */
+    cursor?: AssetCleanupJobWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssetCleanupJobs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssetCleanupJobs.
+     */
+    skip?: number
+    distinct?: AssetCleanupJobScalarFieldEnum | AssetCleanupJobScalarFieldEnum[]
+  }
+
+  /**
+   * AssetCleanupJob create
+   */
+  export type AssetCleanupJobCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AssetCleanupJob.
+     */
+    data: XOR<AssetCleanupJobCreateInput, AssetCleanupJobUncheckedCreateInput>
+  }
+
+  /**
+   * AssetCleanupJob createMany
+   */
+  export type AssetCleanupJobCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssetCleanupJobs.
+     */
+    data: AssetCleanupJobCreateManyInput | AssetCleanupJobCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssetCleanupJob createManyAndReturn
+   */
+  export type AssetCleanupJobCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * The data used to create many AssetCleanupJobs.
+     */
+    data: AssetCleanupJobCreateManyInput | AssetCleanupJobCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssetCleanupJob update
+   */
+  export type AssetCleanupJobUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AssetCleanupJob.
+     */
+    data: XOR<AssetCleanupJobUpdateInput, AssetCleanupJobUncheckedUpdateInput>
+    /**
+     * Choose, which AssetCleanupJob to update.
+     */
+    where: AssetCleanupJobWhereUniqueInput
+  }
+
+  /**
+   * AssetCleanupJob updateMany
+   */
+  export type AssetCleanupJobUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssetCleanupJobs.
+     */
+    data: XOR<AssetCleanupJobUpdateManyMutationInput, AssetCleanupJobUncheckedUpdateManyInput>
+    /**
+     * Filter which AssetCleanupJobs to update
+     */
+    where?: AssetCleanupJobWhereInput
+    /**
+     * Limit how many AssetCleanupJobs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssetCleanupJob updateManyAndReturn
+   */
+  export type AssetCleanupJobUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * The data used to update AssetCleanupJobs.
+     */
+    data: XOR<AssetCleanupJobUpdateManyMutationInput, AssetCleanupJobUncheckedUpdateManyInput>
+    /**
+     * Filter which AssetCleanupJobs to update
+     */
+    where?: AssetCleanupJobWhereInput
+    /**
+     * Limit how many AssetCleanupJobs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssetCleanupJob upsert
+   */
+  export type AssetCleanupJobUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AssetCleanupJob to update in case it exists.
+     */
+    where: AssetCleanupJobWhereUniqueInput
+    /**
+     * In case the AssetCleanupJob found by the `where` argument doesn't exist, create a new AssetCleanupJob with this data.
+     */
+    create: XOR<AssetCleanupJobCreateInput, AssetCleanupJobUncheckedCreateInput>
+    /**
+     * In case the AssetCleanupJob was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssetCleanupJobUpdateInput, AssetCleanupJobUncheckedUpdateInput>
+  }
+
+  /**
+   * AssetCleanupJob delete
+   */
+  export type AssetCleanupJobDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
+    /**
+     * Filter which AssetCleanupJob to delete.
+     */
+    where: AssetCleanupJobWhereUniqueInput
+  }
+
+  /**
+   * AssetCleanupJob deleteMany
+   */
+  export type AssetCleanupJobDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssetCleanupJobs to delete
+     */
+    where?: AssetCleanupJobWhereInput
+    /**
+     * Limit how many AssetCleanupJobs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssetCleanupJob without action
+   */
+  export type AssetCleanupJobDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssetCleanupJob
+     */
+    select?: AssetCleanupJobSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssetCleanupJob
+     */
+    omit?: AssetCleanupJobOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssetCleanupJobInclude<ExtArgs> | null
   }
 
 
@@ -15166,6 +22772,7 @@ export namespace Prisma {
     emailVerified: 'emailVerified',
     password: 'password',
     credits: 'credits',
+    reservedCredits: 'reservedCredits',
     polarCustomerId: 'polarCustomerId',
     image: 'image',
     defaultLanguage: 'defaultLanguage',
@@ -15204,6 +22811,7 @@ export namespace Prisma {
     reviewAttempt: 'reviewAttempt',
     reviewReadyAt: 'reviewReadyAt',
     transcriptS3Key: 'transcriptS3Key',
+    deletedAt: 'deletedAt',
     userId: 'userId'
   };
 
@@ -15223,6 +22831,7 @@ export namespace Prisma {
     subtitleStatus: 'subtitleStatus',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt',
     youtubeTitle: 'youtubeTitle',
     youtubeDescription: 'youtubeDescription',
     youtubeHashtags: 'youtubeHashtags',
@@ -15266,10 +22875,149 @@ export namespace Prisma {
     nextRetryAt: 'nextRetryAt',
     lockedAt: 'lockedAt',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    workerRunId: 'workerRunId',
+    modalCallId: 'modalCallId',
+    modalSpawnState: 'modalSpawnState',
+    producerEndEvidence: 'producerEndEvidence',
+    reservationId: 'reservationId',
+    inputSnapshot: 'inputSnapshot',
+    claimedAt: 'claimedAt',
+    leaseUntil: 'leaseUntil',
+    heartbeatAt: 'heartbeatAt',
+    deadlineAt: 'deadlineAt'
   };
 
   export type ProcessingDispatchScalarFieldEnum = (typeof ProcessingDispatchScalarFieldEnum)[keyof typeof ProcessingDispatchScalarFieldEnum]
+
+
+  export const CreditReservationScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    operationKey: 'operationKey',
+    kind: 'kind',
+    reservedAmount: 'reservedAmount',
+    chargedAmount: 'chargedAmount',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    settledAt: 'settledAt',
+    releasedAt: 'releasedAt'
+  };
+
+  export type CreditReservationScalarFieldEnum = (typeof CreditReservationScalarFieldEnum)[keyof typeof CreditReservationScalarFieldEnum]
+
+
+  export const CardNewsSetScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    clipId: 'clipId',
+    uploadedFileId: 'uploadedFileId',
+    sourceSnapshot: 'sourceSnapshot',
+    sourceHash: 'sourceHash',
+    language: 'language',
+    draftDocument: 'draftDocument',
+    draftSnapshots: 'draftSnapshots',
+    draftRevision: 'draftRevision',
+    publishedRevision: 'publishedRevision',
+    pendingRenderRevision: 'pendingRenderRevision',
+    regeneratedFromId: 'regeneratedFromId',
+    status: 'status',
+    deletedAt: 'deletedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CardNewsSetScalarFieldEnum = (typeof CardNewsSetScalarFieldEnum)[keyof typeof CardNewsSetScalarFieldEnum]
+
+
+  export const CardNewsJobScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    setId: 'setId',
+    kind: 'kind',
+    requestId: 'requestId',
+    requestHash: 'requestHash',
+    inputRevision: 'inputRevision',
+    inputSnapshot: 'inputSnapshot',
+    executionEpoch: 'executionEpoch',
+    status: 'status',
+    stage: 'stage',
+    reservationId: 'reservationId',
+    templateVersion: 'templateVersion',
+    deadlineAt: 'deadlineAt',
+    dispatchStatus: 'dispatchStatus',
+    dispatchLeaseUntil: 'dispatchLeaseUntil',
+    nextDispatchAt: 'nextDispatchAt',
+    dispatchCount: 'dispatchCount',
+    lastDispatchError: 'lastDispatchError',
+    dispatchedAt: 'dispatchedAt',
+    claimedAt: 'claimedAt',
+    heartbeatAt: 'heartbeatAt',
+    workerRunId: 'workerRunId',
+    modalCallId: 'modalCallId',
+    callbackInbox: 'callbackInbox',
+    modalSpawnState: 'modalSpawnState',
+    selectedManifestKey: 'selectedManifestKey',
+    selectedInvocationId: 'selectedInvocationId',
+    progressInvocationId: 'progressInvocationId',
+    manifest: 'manifest',
+    failureCode: 'failureCode',
+    completedAt: 'completedAt',
+    usageMetrics: 'usageMetrics',
+    analyticsContext: 'analyticsContext',
+    pendingAnalytics: 'pendingAnalytics',
+    outputRetiredAt: 'outputRetiredAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CardNewsJobScalarFieldEnum = (typeof CardNewsJobScalarFieldEnum)[keyof typeof CardNewsJobScalarFieldEnum]
+
+
+  export const CardNewsInvocationScalarFieldEnum: {
+    id: 'id',
+    jobId: 'jobId',
+    executionEpoch: 'executionEpoch',
+    invocationId: 'invocationId',
+    modalCallId: 'modalCallId',
+    writeDeadlineAt: 'writeDeadlineAt',
+    status: 'status',
+    progressSequence: 'progressSequence',
+    stage: 'stage',
+    producerEndEvidence: 'producerEndEvidence',
+    registeredAt: 'registeredAt',
+    endedAt: 'endedAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CardNewsInvocationScalarFieldEnum = (typeof CardNewsInvocationScalarFieldEnum)[keyof typeof CardNewsInvocationScalarFieldEnum]
+
+
+  export const AssetCleanupJobScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    kind: 'kind',
+    scopeId: 'scopeId',
+    scopeSnapshot: 'scopeSnapshot',
+    exactKeys: 'exactKeys',
+    dedicatedPrefixes: 'dedicatedPrefixes',
+    retainedReferences: 'retainedReferences',
+    producerReferences: 'producerReferences',
+    cursor: 'cursor',
+    failedKeys: 'failedKeys',
+    status: 'status',
+    notBefore: 'notBefore',
+    leaseUntil: 'leaseUntil',
+    nextRetryAt: 'nextRetryAt',
+    attemptCount: 'attemptCount',
+    lastError: 'lastError',
+    completedAt: 'completedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AssetCleanupJobScalarFieldEnum = (typeof AssetCleanupJobScalarFieldEnum)[keyof typeof AssetCleanupJobScalarFieldEnum]
 
 
   export const SubscriptionScalarFieldEnum: {
@@ -15344,6 +23092,13 @@ export namespace Prisma {
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const QueryMode: {
@@ -15614,6 +23369,7 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
     password?: StringNullableFilter<"User"> | string | null
     credits?: IntFilter<"User"> | number
+    reservedCredits?: IntFilter<"User"> | number
     polarCustomerId?: StringNullableFilter<"User"> | string | null
     image?: StringNullableFilter<"User"> | string | null
     defaultLanguage?: StringNullableFilter<"User"> | string | null
@@ -15630,6 +23386,10 @@ export namespace Prisma {
     subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null
     orders?: OrderListRelationFilter
     analyticsEvents?: AnalyticsEventListRelationFilter
+    creditReservations?: CreditReservationListRelationFilter
+    cardNewsSets?: CardNewsSetListRelationFilter
+    cardNewsJobs?: CardNewsJobListRelationFilter
+    assetCleanupJobs?: AssetCleanupJobListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -15639,6 +23399,7 @@ export namespace Prisma {
     emailVerified?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     credits?: SortOrder
+    reservedCredits?: SortOrder
     polarCustomerId?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     defaultLanguage?: SortOrderInput | SortOrder
@@ -15655,6 +23416,10 @@ export namespace Prisma {
     subscription?: SubscriptionOrderByWithRelationInput
     orders?: OrderOrderByRelationAggregateInput
     analyticsEvents?: AnalyticsEventOrderByRelationAggregateInput
+    creditReservations?: CreditReservationOrderByRelationAggregateInput
+    cardNewsSets?: CardNewsSetOrderByRelationAggregateInput
+    cardNewsJobs?: CardNewsJobOrderByRelationAggregateInput
+    assetCleanupJobs?: AssetCleanupJobOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -15668,6 +23433,7 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
     password?: StringNullableFilter<"User"> | string | null
     credits?: IntFilter<"User"> | number
+    reservedCredits?: IntFilter<"User"> | number
     image?: StringNullableFilter<"User"> | string | null
     defaultLanguage?: StringNullableFilter<"User"> | string | null
     defaultClipCount?: IntNullableFilter<"User"> | number | null
@@ -15683,6 +23449,10 @@ export namespace Prisma {
     subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null
     orders?: OrderListRelationFilter
     analyticsEvents?: AnalyticsEventListRelationFilter
+    creditReservations?: CreditReservationListRelationFilter
+    cardNewsSets?: CardNewsSetListRelationFilter
+    cardNewsJobs?: CardNewsJobListRelationFilter
+    assetCleanupJobs?: AssetCleanupJobListRelationFilter
   }, "id" | "email" | "polarCustomerId">
 
   export type UserOrderByWithAggregationInput = {
@@ -15692,6 +23462,7 @@ export namespace Prisma {
     emailVerified?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     credits?: SortOrder
+    reservedCredits?: SortOrder
     polarCustomerId?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     defaultLanguage?: SortOrderInput | SortOrder
@@ -15718,6 +23489,7 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     password?: StringNullableWithAggregatesFilter<"User"> | string | null
     credits?: IntWithAggregatesFilter<"User"> | number
+    reservedCredits?: IntWithAggregatesFilter<"User"> | number
     polarCustomerId?: StringNullableWithAggregatesFilter<"User"> | string | null
     image?: StringNullableWithAggregatesFilter<"User"> | string | null
     defaultLanguage?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -15756,10 +23528,12 @@ export namespace Prisma {
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
+    deletedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
     dispatches?: ProcessingDispatchListRelationFilter
     clipDrafts?: ClipDraftListRelationFilter
+    cardNewsSets?: CardNewsSetListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -15787,10 +23561,12 @@ export namespace Prisma {
     reviewAttempt?: SortOrderInput | SortOrder
     reviewReadyAt?: SortOrderInput | SortOrder
     transcriptS3Key?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     userId?: SortOrder
     clips?: ClipOrderByRelationAggregateInput
     dispatches?: ProcessingDispatchOrderByRelationAggregateInput
     clipDrafts?: ClipDraftOrderByRelationAggregateInput
+    cardNewsSets?: CardNewsSetOrderByRelationAggregateInput
     user?: UserOrderByWithRelationInput
   }
 
@@ -15821,10 +23597,12 @@ export namespace Prisma {
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
+    deletedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     userId?: StringFilter<"UploadedFile"> | string
     clips?: ClipListRelationFilter
     dispatches?: ProcessingDispatchListRelationFilter
     clipDrafts?: ClipDraftListRelationFilter
+    cardNewsSets?: CardNewsSetListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
@@ -15852,6 +23630,7 @@ export namespace Prisma {
     reviewAttempt?: SortOrderInput | SortOrder
     reviewReadyAt?: SortOrderInput | SortOrder
     transcriptS3Key?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     userId?: SortOrder
     _count?: UploadedFileCountOrderByAggregateInput
     _avg?: UploadedFileAvgOrderByAggregateInput
@@ -15887,6 +23666,7 @@ export namespace Prisma {
     reviewAttempt?: IntNullableWithAggregatesFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableWithAggregatesFilter<"UploadedFile"> | string | null
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"UploadedFile"> | Date | string | null
     userId?: StringWithAggregatesFilter<"UploadedFile"> | string
   }
 
@@ -15906,6 +23686,7 @@ export namespace Prisma {
     subtitleStatus?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Clip"> | Date | string | null
     youtubeTitle?: StringNullableFilter<"Clip"> | string | null
     youtubeDescription?: StringNullableFilter<"Clip"> | string | null
     youtubeHashtags?: StringNullableFilter<"Clip"> | string | null
@@ -15913,6 +23694,7 @@ export namespace Prisma {
     userId?: StringFilter<"Clip"> | string
     uploadedFile?: XOR<UploadedFileNullableScalarRelationFilter, UploadedFileWhereInput> | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    cardNewsSets?: CardNewsSetListRelationFilter
   }
 
   export type ClipOrderByWithRelationInput = {
@@ -15928,6 +23710,7 @@ export namespace Prisma {
     subtitleStatus?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     youtubeTitle?: SortOrderInput | SortOrder
     youtubeDescription?: SortOrderInput | SortOrder
     youtubeHashtags?: SortOrderInput | SortOrder
@@ -15935,6 +23718,7 @@ export namespace Prisma {
     userId?: SortOrder
     uploadedFile?: UploadedFileOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
+    cardNewsSets?: CardNewsSetOrderByRelationAggregateInput
   }
 
   export type ClipWhereUniqueInput = Prisma.AtLeast<{
@@ -15954,6 +23738,7 @@ export namespace Prisma {
     subtitleStatus?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Clip"> | Date | string | null
     youtubeTitle?: StringNullableFilter<"Clip"> | string | null
     youtubeDescription?: StringNullableFilter<"Clip"> | string | null
     youtubeHashtags?: StringNullableFilter<"Clip"> | string | null
@@ -15961,6 +23746,7 @@ export namespace Prisma {
     userId?: StringFilter<"Clip"> | string
     uploadedFile?: XOR<UploadedFileNullableScalarRelationFilter, UploadedFileWhereInput> | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    cardNewsSets?: CardNewsSetListRelationFilter
   }, "id" | "uploadedFileId_processingAttempt_s3Key">
 
   export type ClipOrderByWithAggregationInput = {
@@ -15976,6 +23762,7 @@ export namespace Prisma {
     subtitleStatus?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     youtubeTitle?: SortOrderInput | SortOrder
     youtubeDescription?: SortOrderInput | SortOrder
     youtubeHashtags?: SortOrderInput | SortOrder
@@ -16004,6 +23791,7 @@ export namespace Prisma {
     subtitleStatus?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Clip"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"Clip"> | Date | string | null
     youtubeTitle?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     youtubeDescription?: StringNullableWithAggregatesFilter<"Clip"> | string | null
     youtubeHashtags?: StringNullableWithAggregatesFilter<"Clip"> | string | null
@@ -16135,6 +23923,17 @@ export namespace Prisma {
     lockedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
     createdAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
     updatedAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    workerRunId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    modalCallId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    modalSpawnState?: StringFilter<"ProcessingDispatch"> | string
+    producerEndEvidence?: JsonNullableFilter<"ProcessingDispatch">
+    reservationId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    inputSnapshot?: JsonNullableFilter<"ProcessingDispatch">
+    claimedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    leaseUntil?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    heartbeatAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    deadlineAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    reservation?: XOR<CreditReservationNullableScalarRelationFilter, CreditReservationWhereInput> | null
     uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
   }
 
@@ -16151,6 +23950,17 @@ export namespace Prisma {
     lockedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    workerRunId?: SortOrderInput | SortOrder
+    modalCallId?: SortOrderInput | SortOrder
+    modalSpawnState?: SortOrder
+    producerEndEvidence?: SortOrderInput | SortOrder
+    reservationId?: SortOrderInput | SortOrder
+    inputSnapshot?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    leaseUntil?: SortOrderInput | SortOrder
+    heartbeatAt?: SortOrderInput | SortOrder
+    deadlineAt?: SortOrderInput | SortOrder
+    reservation?: CreditReservationOrderByWithRelationInput
     uploadedFile?: UploadedFileOrderByWithRelationInput
   }
 
@@ -16171,6 +23981,17 @@ export namespace Prisma {
     lockedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
     createdAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
     updatedAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    workerRunId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    modalCallId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    modalSpawnState?: StringFilter<"ProcessingDispatch"> | string
+    producerEndEvidence?: JsonNullableFilter<"ProcessingDispatch">
+    reservationId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    inputSnapshot?: JsonNullableFilter<"ProcessingDispatch">
+    claimedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    leaseUntil?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    heartbeatAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    deadlineAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    reservation?: XOR<CreditReservationNullableScalarRelationFilter, CreditReservationWhereInput> | null
     uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
   }, "id" | "uploadedFileId_attempt">
 
@@ -16187,6 +24008,16 @@ export namespace Prisma {
     lockedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    workerRunId?: SortOrderInput | SortOrder
+    modalCallId?: SortOrderInput | SortOrder
+    modalSpawnState?: SortOrder
+    producerEndEvidence?: SortOrderInput | SortOrder
+    reservationId?: SortOrderInput | SortOrder
+    inputSnapshot?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    leaseUntil?: SortOrderInput | SortOrder
+    heartbeatAt?: SortOrderInput | SortOrder
+    deadlineAt?: SortOrderInput | SortOrder
     _count?: ProcessingDispatchCountOrderByAggregateInput
     _avg?: ProcessingDispatchAvgOrderByAggregateInput
     _max?: ProcessingDispatchMaxOrderByAggregateInput
@@ -16210,6 +24041,703 @@ export namespace Prisma {
     lockedAt?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ProcessingDispatch"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ProcessingDispatch"> | Date | string
+    workerRunId?: StringNullableWithAggregatesFilter<"ProcessingDispatch"> | string | null
+    modalCallId?: StringNullableWithAggregatesFilter<"ProcessingDispatch"> | string | null
+    modalSpawnState?: StringWithAggregatesFilter<"ProcessingDispatch"> | string
+    producerEndEvidence?: JsonNullableWithAggregatesFilter<"ProcessingDispatch">
+    reservationId?: StringNullableWithAggregatesFilter<"ProcessingDispatch"> | string | null
+    inputSnapshot?: JsonNullableWithAggregatesFilter<"ProcessingDispatch">
+    claimedAt?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
+    leaseUntil?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
+    heartbeatAt?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
+    deadlineAt?: DateTimeNullableWithAggregatesFilter<"ProcessingDispatch"> | Date | string | null
+  }
+
+  export type CreditReservationWhereInput = {
+    AND?: CreditReservationWhereInput | CreditReservationWhereInput[]
+    OR?: CreditReservationWhereInput[]
+    NOT?: CreditReservationWhereInput | CreditReservationWhereInput[]
+    id?: StringFilter<"CreditReservation"> | string
+    userId?: StringFilter<"CreditReservation"> | string
+    operationKey?: StringFilter<"CreditReservation"> | string
+    kind?: StringFilter<"CreditReservation"> | string
+    reservedAmount?: IntFilter<"CreditReservation"> | number
+    chargedAmount?: IntFilter<"CreditReservation"> | number
+    status?: StringFilter<"CreditReservation"> | string
+    createdAt?: DateTimeFilter<"CreditReservation"> | Date | string
+    updatedAt?: DateTimeFilter<"CreditReservation"> | Date | string
+    settledAt?: DateTimeNullableFilter<"CreditReservation"> | Date | string | null
+    releasedAt?: DateTimeNullableFilter<"CreditReservation"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    dispatches?: ProcessingDispatchListRelationFilter
+    cardNewsJobs?: CardNewsJobListRelationFilter
+  }
+
+  export type CreditReservationOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    operationKey?: SortOrder
+    kind?: SortOrder
+    reservedAmount?: SortOrder
+    chargedAmount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    settledAt?: SortOrderInput | SortOrder
+    releasedAt?: SortOrderInput | SortOrder
+    user?: UserOrderByWithRelationInput
+    dispatches?: ProcessingDispatchOrderByRelationAggregateInput
+    cardNewsJobs?: CardNewsJobOrderByRelationAggregateInput
+  }
+
+  export type CreditReservationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    operationKey?: string
+    AND?: CreditReservationWhereInput | CreditReservationWhereInput[]
+    OR?: CreditReservationWhereInput[]
+    NOT?: CreditReservationWhereInput | CreditReservationWhereInput[]
+    userId?: StringFilter<"CreditReservation"> | string
+    kind?: StringFilter<"CreditReservation"> | string
+    reservedAmount?: IntFilter<"CreditReservation"> | number
+    chargedAmount?: IntFilter<"CreditReservation"> | number
+    status?: StringFilter<"CreditReservation"> | string
+    createdAt?: DateTimeFilter<"CreditReservation"> | Date | string
+    updatedAt?: DateTimeFilter<"CreditReservation"> | Date | string
+    settledAt?: DateTimeNullableFilter<"CreditReservation"> | Date | string | null
+    releasedAt?: DateTimeNullableFilter<"CreditReservation"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    dispatches?: ProcessingDispatchListRelationFilter
+    cardNewsJobs?: CardNewsJobListRelationFilter
+  }, "id" | "operationKey">
+
+  export type CreditReservationOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    operationKey?: SortOrder
+    kind?: SortOrder
+    reservedAmount?: SortOrder
+    chargedAmount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    settledAt?: SortOrderInput | SortOrder
+    releasedAt?: SortOrderInput | SortOrder
+    _count?: CreditReservationCountOrderByAggregateInput
+    _avg?: CreditReservationAvgOrderByAggregateInput
+    _max?: CreditReservationMaxOrderByAggregateInput
+    _min?: CreditReservationMinOrderByAggregateInput
+    _sum?: CreditReservationSumOrderByAggregateInput
+  }
+
+  export type CreditReservationScalarWhereWithAggregatesInput = {
+    AND?: CreditReservationScalarWhereWithAggregatesInput | CreditReservationScalarWhereWithAggregatesInput[]
+    OR?: CreditReservationScalarWhereWithAggregatesInput[]
+    NOT?: CreditReservationScalarWhereWithAggregatesInput | CreditReservationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CreditReservation"> | string
+    userId?: StringWithAggregatesFilter<"CreditReservation"> | string
+    operationKey?: StringWithAggregatesFilter<"CreditReservation"> | string
+    kind?: StringWithAggregatesFilter<"CreditReservation"> | string
+    reservedAmount?: IntWithAggregatesFilter<"CreditReservation"> | number
+    chargedAmount?: IntWithAggregatesFilter<"CreditReservation"> | number
+    status?: StringWithAggregatesFilter<"CreditReservation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"CreditReservation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CreditReservation"> | Date | string
+    settledAt?: DateTimeNullableWithAggregatesFilter<"CreditReservation"> | Date | string | null
+    releasedAt?: DateTimeNullableWithAggregatesFilter<"CreditReservation"> | Date | string | null
+  }
+
+  export type CardNewsSetWhereInput = {
+    AND?: CardNewsSetWhereInput | CardNewsSetWhereInput[]
+    OR?: CardNewsSetWhereInput[]
+    NOT?: CardNewsSetWhereInput | CardNewsSetWhereInput[]
+    id?: StringFilter<"CardNewsSet"> | string
+    userId?: StringFilter<"CardNewsSet"> | string
+    clipId?: StringFilter<"CardNewsSet"> | string
+    uploadedFileId?: StringFilter<"CardNewsSet"> | string
+    sourceSnapshot?: JsonFilter<"CardNewsSet">
+    sourceHash?: StringFilter<"CardNewsSet"> | string
+    language?: StringFilter<"CardNewsSet"> | string
+    draftDocument?: JsonNullableFilter<"CardNewsSet">
+    draftSnapshots?: JsonFilter<"CardNewsSet">
+    draftRevision?: IntFilter<"CardNewsSet"> | number
+    publishedRevision?: IntFilter<"CardNewsSet"> | number
+    pendingRenderRevision?: IntNullableFilter<"CardNewsSet"> | number | null
+    regeneratedFromId?: StringNullableFilter<"CardNewsSet"> | string | null
+    status?: StringFilter<"CardNewsSet"> | string
+    deletedAt?: DateTimeNullableFilter<"CardNewsSet"> | Date | string | null
+    createdAt?: DateTimeFilter<"CardNewsSet"> | Date | string
+    updatedAt?: DateTimeFilter<"CardNewsSet"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    clip?: XOR<ClipScalarRelationFilter, ClipWhereInput>
+    uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
+    regeneratedFrom?: XOR<CardNewsSetNullableScalarRelationFilter, CardNewsSetWhereInput> | null
+    regeneratedSets?: CardNewsSetListRelationFilter
+    jobs?: CardNewsJobListRelationFilter
+  }
+
+  export type CardNewsSetOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    clipId?: SortOrder
+    uploadedFileId?: SortOrder
+    sourceSnapshot?: SortOrder
+    sourceHash?: SortOrder
+    language?: SortOrder
+    draftDocument?: SortOrderInput | SortOrder
+    draftSnapshots?: SortOrder
+    draftRevision?: SortOrder
+    publishedRevision?: SortOrder
+    pendingRenderRevision?: SortOrderInput | SortOrder
+    regeneratedFromId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    clip?: ClipOrderByWithRelationInput
+    uploadedFile?: UploadedFileOrderByWithRelationInput
+    regeneratedFrom?: CardNewsSetOrderByWithRelationInput
+    regeneratedSets?: CardNewsSetOrderByRelationAggregateInput
+    jobs?: CardNewsJobOrderByRelationAggregateInput
+  }
+
+  export type CardNewsSetWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CardNewsSetWhereInput | CardNewsSetWhereInput[]
+    OR?: CardNewsSetWhereInput[]
+    NOT?: CardNewsSetWhereInput | CardNewsSetWhereInput[]
+    userId?: StringFilter<"CardNewsSet"> | string
+    clipId?: StringFilter<"CardNewsSet"> | string
+    uploadedFileId?: StringFilter<"CardNewsSet"> | string
+    sourceSnapshot?: JsonFilter<"CardNewsSet">
+    sourceHash?: StringFilter<"CardNewsSet"> | string
+    language?: StringFilter<"CardNewsSet"> | string
+    draftDocument?: JsonNullableFilter<"CardNewsSet">
+    draftSnapshots?: JsonFilter<"CardNewsSet">
+    draftRevision?: IntFilter<"CardNewsSet"> | number
+    publishedRevision?: IntFilter<"CardNewsSet"> | number
+    pendingRenderRevision?: IntNullableFilter<"CardNewsSet"> | number | null
+    regeneratedFromId?: StringNullableFilter<"CardNewsSet"> | string | null
+    status?: StringFilter<"CardNewsSet"> | string
+    deletedAt?: DateTimeNullableFilter<"CardNewsSet"> | Date | string | null
+    createdAt?: DateTimeFilter<"CardNewsSet"> | Date | string
+    updatedAt?: DateTimeFilter<"CardNewsSet"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    clip?: XOR<ClipScalarRelationFilter, ClipWhereInput>
+    uploadedFile?: XOR<UploadedFileScalarRelationFilter, UploadedFileWhereInput>
+    regeneratedFrom?: XOR<CardNewsSetNullableScalarRelationFilter, CardNewsSetWhereInput> | null
+    regeneratedSets?: CardNewsSetListRelationFilter
+    jobs?: CardNewsJobListRelationFilter
+  }, "id">
+
+  export type CardNewsSetOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    clipId?: SortOrder
+    uploadedFileId?: SortOrder
+    sourceSnapshot?: SortOrder
+    sourceHash?: SortOrder
+    language?: SortOrder
+    draftDocument?: SortOrderInput | SortOrder
+    draftSnapshots?: SortOrder
+    draftRevision?: SortOrder
+    publishedRevision?: SortOrder
+    pendingRenderRevision?: SortOrderInput | SortOrder
+    regeneratedFromId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CardNewsSetCountOrderByAggregateInput
+    _avg?: CardNewsSetAvgOrderByAggregateInput
+    _max?: CardNewsSetMaxOrderByAggregateInput
+    _min?: CardNewsSetMinOrderByAggregateInput
+    _sum?: CardNewsSetSumOrderByAggregateInput
+  }
+
+  export type CardNewsSetScalarWhereWithAggregatesInput = {
+    AND?: CardNewsSetScalarWhereWithAggregatesInput | CardNewsSetScalarWhereWithAggregatesInput[]
+    OR?: CardNewsSetScalarWhereWithAggregatesInput[]
+    NOT?: CardNewsSetScalarWhereWithAggregatesInput | CardNewsSetScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CardNewsSet"> | string
+    userId?: StringWithAggregatesFilter<"CardNewsSet"> | string
+    clipId?: StringWithAggregatesFilter<"CardNewsSet"> | string
+    uploadedFileId?: StringWithAggregatesFilter<"CardNewsSet"> | string
+    sourceSnapshot?: JsonWithAggregatesFilter<"CardNewsSet">
+    sourceHash?: StringWithAggregatesFilter<"CardNewsSet"> | string
+    language?: StringWithAggregatesFilter<"CardNewsSet"> | string
+    draftDocument?: JsonNullableWithAggregatesFilter<"CardNewsSet">
+    draftSnapshots?: JsonWithAggregatesFilter<"CardNewsSet">
+    draftRevision?: IntWithAggregatesFilter<"CardNewsSet"> | number
+    publishedRevision?: IntWithAggregatesFilter<"CardNewsSet"> | number
+    pendingRenderRevision?: IntNullableWithAggregatesFilter<"CardNewsSet"> | number | null
+    regeneratedFromId?: StringNullableWithAggregatesFilter<"CardNewsSet"> | string | null
+    status?: StringWithAggregatesFilter<"CardNewsSet"> | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"CardNewsSet"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CardNewsSet"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CardNewsSet"> | Date | string
+  }
+
+  export type CardNewsJobWhereInput = {
+    AND?: CardNewsJobWhereInput | CardNewsJobWhereInput[]
+    OR?: CardNewsJobWhereInput[]
+    NOT?: CardNewsJobWhereInput | CardNewsJobWhereInput[]
+    id?: StringFilter<"CardNewsJob"> | string
+    userId?: StringFilter<"CardNewsJob"> | string
+    setId?: StringFilter<"CardNewsJob"> | string
+    kind?: StringFilter<"CardNewsJob"> | string
+    requestId?: StringFilter<"CardNewsJob"> | string
+    requestHash?: StringFilter<"CardNewsJob"> | string
+    inputRevision?: IntFilter<"CardNewsJob"> | number
+    inputSnapshot?: JsonFilter<"CardNewsJob">
+    executionEpoch?: IntFilter<"CardNewsJob"> | number
+    status?: StringFilter<"CardNewsJob"> | string
+    stage?: StringFilter<"CardNewsJob"> | string
+    reservationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    templateVersion?: StringFilter<"CardNewsJob"> | string
+    deadlineAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    dispatchStatus?: StringFilter<"CardNewsJob"> | string
+    dispatchLeaseUntil?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    nextDispatchAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    dispatchCount?: IntFilter<"CardNewsJob"> | number
+    lastDispatchError?: StringNullableFilter<"CardNewsJob"> | string | null
+    dispatchedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    claimedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    heartbeatAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    workerRunId?: StringNullableFilter<"CardNewsJob"> | string | null
+    modalCallId?: StringNullableFilter<"CardNewsJob"> | string | null
+    callbackInbox?: JsonFilter<"CardNewsJob">
+    modalSpawnState?: StringFilter<"CardNewsJob"> | string
+    selectedManifestKey?: StringNullableFilter<"CardNewsJob"> | string | null
+    selectedInvocationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    progressInvocationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    manifest?: JsonNullableFilter<"CardNewsJob">
+    failureCode?: StringNullableFilter<"CardNewsJob"> | string | null
+    completedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    usageMetrics?: JsonNullableFilter<"CardNewsJob">
+    analyticsContext?: JsonNullableFilter<"CardNewsJob">
+    pendingAnalytics?: JsonFilter<"CardNewsJob">
+    outputRetiredAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    createdAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    updatedAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    set?: XOR<CardNewsSetScalarRelationFilter, CardNewsSetWhereInput>
+    reservation?: XOR<CreditReservationNullableScalarRelationFilter, CreditReservationWhereInput> | null
+    invocations?: CardNewsInvocationListRelationFilter
+  }
+
+  export type CardNewsJobOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    setId?: SortOrder
+    kind?: SortOrder
+    requestId?: SortOrder
+    requestHash?: SortOrder
+    inputRevision?: SortOrder
+    inputSnapshot?: SortOrder
+    executionEpoch?: SortOrder
+    status?: SortOrder
+    stage?: SortOrder
+    reservationId?: SortOrderInput | SortOrder
+    templateVersion?: SortOrder
+    deadlineAt?: SortOrder
+    dispatchStatus?: SortOrder
+    dispatchLeaseUntil?: SortOrderInput | SortOrder
+    nextDispatchAt?: SortOrderInput | SortOrder
+    dispatchCount?: SortOrder
+    lastDispatchError?: SortOrderInput | SortOrder
+    dispatchedAt?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    heartbeatAt?: SortOrderInput | SortOrder
+    workerRunId?: SortOrderInput | SortOrder
+    modalCallId?: SortOrderInput | SortOrder
+    callbackInbox?: SortOrder
+    modalSpawnState?: SortOrder
+    selectedManifestKey?: SortOrderInput | SortOrder
+    selectedInvocationId?: SortOrderInput | SortOrder
+    progressInvocationId?: SortOrderInput | SortOrder
+    manifest?: SortOrderInput | SortOrder
+    failureCode?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    usageMetrics?: SortOrderInput | SortOrder
+    analyticsContext?: SortOrderInput | SortOrder
+    pendingAnalytics?: SortOrder
+    outputRetiredAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    set?: CardNewsSetOrderByWithRelationInput
+    reservation?: CreditReservationOrderByWithRelationInput
+    invocations?: CardNewsInvocationOrderByRelationAggregateInput
+  }
+
+  export type CardNewsJobWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_requestId?: CardNewsJobUserIdRequestIdCompoundUniqueInput
+    AND?: CardNewsJobWhereInput | CardNewsJobWhereInput[]
+    OR?: CardNewsJobWhereInput[]
+    NOT?: CardNewsJobWhereInput | CardNewsJobWhereInput[]
+    userId?: StringFilter<"CardNewsJob"> | string
+    setId?: StringFilter<"CardNewsJob"> | string
+    kind?: StringFilter<"CardNewsJob"> | string
+    requestId?: StringFilter<"CardNewsJob"> | string
+    requestHash?: StringFilter<"CardNewsJob"> | string
+    inputRevision?: IntFilter<"CardNewsJob"> | number
+    inputSnapshot?: JsonFilter<"CardNewsJob">
+    executionEpoch?: IntFilter<"CardNewsJob"> | number
+    status?: StringFilter<"CardNewsJob"> | string
+    stage?: StringFilter<"CardNewsJob"> | string
+    reservationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    templateVersion?: StringFilter<"CardNewsJob"> | string
+    deadlineAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    dispatchStatus?: StringFilter<"CardNewsJob"> | string
+    dispatchLeaseUntil?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    nextDispatchAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    dispatchCount?: IntFilter<"CardNewsJob"> | number
+    lastDispatchError?: StringNullableFilter<"CardNewsJob"> | string | null
+    dispatchedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    claimedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    heartbeatAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    workerRunId?: StringNullableFilter<"CardNewsJob"> | string | null
+    modalCallId?: StringNullableFilter<"CardNewsJob"> | string | null
+    callbackInbox?: JsonFilter<"CardNewsJob">
+    modalSpawnState?: StringFilter<"CardNewsJob"> | string
+    selectedManifestKey?: StringNullableFilter<"CardNewsJob"> | string | null
+    selectedInvocationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    progressInvocationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    manifest?: JsonNullableFilter<"CardNewsJob">
+    failureCode?: StringNullableFilter<"CardNewsJob"> | string | null
+    completedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    usageMetrics?: JsonNullableFilter<"CardNewsJob">
+    analyticsContext?: JsonNullableFilter<"CardNewsJob">
+    pendingAnalytics?: JsonFilter<"CardNewsJob">
+    outputRetiredAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    createdAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    updatedAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    set?: XOR<CardNewsSetScalarRelationFilter, CardNewsSetWhereInput>
+    reservation?: XOR<CreditReservationNullableScalarRelationFilter, CreditReservationWhereInput> | null
+    invocations?: CardNewsInvocationListRelationFilter
+  }, "id" | "userId_requestId">
+
+  export type CardNewsJobOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    setId?: SortOrder
+    kind?: SortOrder
+    requestId?: SortOrder
+    requestHash?: SortOrder
+    inputRevision?: SortOrder
+    inputSnapshot?: SortOrder
+    executionEpoch?: SortOrder
+    status?: SortOrder
+    stage?: SortOrder
+    reservationId?: SortOrderInput | SortOrder
+    templateVersion?: SortOrder
+    deadlineAt?: SortOrder
+    dispatchStatus?: SortOrder
+    dispatchLeaseUntil?: SortOrderInput | SortOrder
+    nextDispatchAt?: SortOrderInput | SortOrder
+    dispatchCount?: SortOrder
+    lastDispatchError?: SortOrderInput | SortOrder
+    dispatchedAt?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    heartbeatAt?: SortOrderInput | SortOrder
+    workerRunId?: SortOrderInput | SortOrder
+    modalCallId?: SortOrderInput | SortOrder
+    callbackInbox?: SortOrder
+    modalSpawnState?: SortOrder
+    selectedManifestKey?: SortOrderInput | SortOrder
+    selectedInvocationId?: SortOrderInput | SortOrder
+    progressInvocationId?: SortOrderInput | SortOrder
+    manifest?: SortOrderInput | SortOrder
+    failureCode?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    usageMetrics?: SortOrderInput | SortOrder
+    analyticsContext?: SortOrderInput | SortOrder
+    pendingAnalytics?: SortOrder
+    outputRetiredAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CardNewsJobCountOrderByAggregateInput
+    _avg?: CardNewsJobAvgOrderByAggregateInput
+    _max?: CardNewsJobMaxOrderByAggregateInput
+    _min?: CardNewsJobMinOrderByAggregateInput
+    _sum?: CardNewsJobSumOrderByAggregateInput
+  }
+
+  export type CardNewsJobScalarWhereWithAggregatesInput = {
+    AND?: CardNewsJobScalarWhereWithAggregatesInput | CardNewsJobScalarWhereWithAggregatesInput[]
+    OR?: CardNewsJobScalarWhereWithAggregatesInput[]
+    NOT?: CardNewsJobScalarWhereWithAggregatesInput | CardNewsJobScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    userId?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    setId?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    kind?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    requestId?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    requestHash?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    inputRevision?: IntWithAggregatesFilter<"CardNewsJob"> | number
+    inputSnapshot?: JsonWithAggregatesFilter<"CardNewsJob">
+    executionEpoch?: IntWithAggregatesFilter<"CardNewsJob"> | number
+    status?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    stage?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    reservationId?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    templateVersion?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    deadlineAt?: DateTimeWithAggregatesFilter<"CardNewsJob"> | Date | string
+    dispatchStatus?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    dispatchLeaseUntil?: DateTimeNullableWithAggregatesFilter<"CardNewsJob"> | Date | string | null
+    nextDispatchAt?: DateTimeNullableWithAggregatesFilter<"CardNewsJob"> | Date | string | null
+    dispatchCount?: IntWithAggregatesFilter<"CardNewsJob"> | number
+    lastDispatchError?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    dispatchedAt?: DateTimeNullableWithAggregatesFilter<"CardNewsJob"> | Date | string | null
+    claimedAt?: DateTimeNullableWithAggregatesFilter<"CardNewsJob"> | Date | string | null
+    heartbeatAt?: DateTimeNullableWithAggregatesFilter<"CardNewsJob"> | Date | string | null
+    workerRunId?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    modalCallId?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    callbackInbox?: JsonWithAggregatesFilter<"CardNewsJob">
+    modalSpawnState?: StringWithAggregatesFilter<"CardNewsJob"> | string
+    selectedManifestKey?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    selectedInvocationId?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    progressInvocationId?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    manifest?: JsonNullableWithAggregatesFilter<"CardNewsJob">
+    failureCode?: StringNullableWithAggregatesFilter<"CardNewsJob"> | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"CardNewsJob"> | Date | string | null
+    usageMetrics?: JsonNullableWithAggregatesFilter<"CardNewsJob">
+    analyticsContext?: JsonNullableWithAggregatesFilter<"CardNewsJob">
+    pendingAnalytics?: JsonWithAggregatesFilter<"CardNewsJob">
+    outputRetiredAt?: DateTimeNullableWithAggregatesFilter<"CardNewsJob"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CardNewsJob"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CardNewsJob"> | Date | string
+  }
+
+  export type CardNewsInvocationWhereInput = {
+    AND?: CardNewsInvocationWhereInput | CardNewsInvocationWhereInput[]
+    OR?: CardNewsInvocationWhereInput[]
+    NOT?: CardNewsInvocationWhereInput | CardNewsInvocationWhereInput[]
+    id?: StringFilter<"CardNewsInvocation"> | string
+    jobId?: StringFilter<"CardNewsInvocation"> | string
+    executionEpoch?: IntFilter<"CardNewsInvocation"> | number
+    invocationId?: StringFilter<"CardNewsInvocation"> | string
+    modalCallId?: StringFilter<"CardNewsInvocation"> | string
+    writeDeadlineAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    status?: StringFilter<"CardNewsInvocation"> | string
+    progressSequence?: IntFilter<"CardNewsInvocation"> | number
+    stage?: StringFilter<"CardNewsInvocation"> | string
+    producerEndEvidence?: JsonNullableFilter<"CardNewsInvocation">
+    registeredAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    endedAt?: DateTimeNullableFilter<"CardNewsInvocation"> | Date | string | null
+    updatedAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    job?: XOR<CardNewsJobScalarRelationFilter, CardNewsJobWhereInput>
+  }
+
+  export type CardNewsInvocationOrderByWithRelationInput = {
+    id?: SortOrder
+    jobId?: SortOrder
+    executionEpoch?: SortOrder
+    invocationId?: SortOrder
+    modalCallId?: SortOrder
+    writeDeadlineAt?: SortOrder
+    status?: SortOrder
+    progressSequence?: SortOrder
+    stage?: SortOrder
+    producerEndEvidence?: SortOrderInput | SortOrder
+    registeredAt?: SortOrder
+    endedAt?: SortOrderInput | SortOrder
+    updatedAt?: SortOrder
+    job?: CardNewsJobOrderByWithRelationInput
+  }
+
+  export type CardNewsInvocationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    jobId_executionEpoch_invocationId?: CardNewsInvocationJobIdExecutionEpochInvocationIdCompoundUniqueInput
+    AND?: CardNewsInvocationWhereInput | CardNewsInvocationWhereInput[]
+    OR?: CardNewsInvocationWhereInput[]
+    NOT?: CardNewsInvocationWhereInput | CardNewsInvocationWhereInput[]
+    jobId?: StringFilter<"CardNewsInvocation"> | string
+    executionEpoch?: IntFilter<"CardNewsInvocation"> | number
+    invocationId?: StringFilter<"CardNewsInvocation"> | string
+    modalCallId?: StringFilter<"CardNewsInvocation"> | string
+    writeDeadlineAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    status?: StringFilter<"CardNewsInvocation"> | string
+    progressSequence?: IntFilter<"CardNewsInvocation"> | number
+    stage?: StringFilter<"CardNewsInvocation"> | string
+    producerEndEvidence?: JsonNullableFilter<"CardNewsInvocation">
+    registeredAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    endedAt?: DateTimeNullableFilter<"CardNewsInvocation"> | Date | string | null
+    updatedAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    job?: XOR<CardNewsJobScalarRelationFilter, CardNewsJobWhereInput>
+  }, "id" | "jobId_executionEpoch_invocationId">
+
+  export type CardNewsInvocationOrderByWithAggregationInput = {
+    id?: SortOrder
+    jobId?: SortOrder
+    executionEpoch?: SortOrder
+    invocationId?: SortOrder
+    modalCallId?: SortOrder
+    writeDeadlineAt?: SortOrder
+    status?: SortOrder
+    progressSequence?: SortOrder
+    stage?: SortOrder
+    producerEndEvidence?: SortOrderInput | SortOrder
+    registeredAt?: SortOrder
+    endedAt?: SortOrderInput | SortOrder
+    updatedAt?: SortOrder
+    _count?: CardNewsInvocationCountOrderByAggregateInput
+    _avg?: CardNewsInvocationAvgOrderByAggregateInput
+    _max?: CardNewsInvocationMaxOrderByAggregateInput
+    _min?: CardNewsInvocationMinOrderByAggregateInput
+    _sum?: CardNewsInvocationSumOrderByAggregateInput
+  }
+
+  export type CardNewsInvocationScalarWhereWithAggregatesInput = {
+    AND?: CardNewsInvocationScalarWhereWithAggregatesInput | CardNewsInvocationScalarWhereWithAggregatesInput[]
+    OR?: CardNewsInvocationScalarWhereWithAggregatesInput[]
+    NOT?: CardNewsInvocationScalarWhereWithAggregatesInput | CardNewsInvocationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CardNewsInvocation"> | string
+    jobId?: StringWithAggregatesFilter<"CardNewsInvocation"> | string
+    executionEpoch?: IntWithAggregatesFilter<"CardNewsInvocation"> | number
+    invocationId?: StringWithAggregatesFilter<"CardNewsInvocation"> | string
+    modalCallId?: StringWithAggregatesFilter<"CardNewsInvocation"> | string
+    writeDeadlineAt?: DateTimeWithAggregatesFilter<"CardNewsInvocation"> | Date | string
+    status?: StringWithAggregatesFilter<"CardNewsInvocation"> | string
+    progressSequence?: IntWithAggregatesFilter<"CardNewsInvocation"> | number
+    stage?: StringWithAggregatesFilter<"CardNewsInvocation"> | string
+    producerEndEvidence?: JsonNullableWithAggregatesFilter<"CardNewsInvocation">
+    registeredAt?: DateTimeWithAggregatesFilter<"CardNewsInvocation"> | Date | string
+    endedAt?: DateTimeNullableWithAggregatesFilter<"CardNewsInvocation"> | Date | string | null
+    updatedAt?: DateTimeWithAggregatesFilter<"CardNewsInvocation"> | Date | string
+  }
+
+  export type AssetCleanupJobWhereInput = {
+    AND?: AssetCleanupJobWhereInput | AssetCleanupJobWhereInput[]
+    OR?: AssetCleanupJobWhereInput[]
+    NOT?: AssetCleanupJobWhereInput | AssetCleanupJobWhereInput[]
+    id?: StringFilter<"AssetCleanupJob"> | string
+    userId?: StringFilter<"AssetCleanupJob"> | string
+    kind?: StringFilter<"AssetCleanupJob"> | string
+    scopeId?: StringFilter<"AssetCleanupJob"> | string
+    scopeSnapshot?: JsonFilter<"AssetCleanupJob">
+    exactKeys?: JsonFilter<"AssetCleanupJob">
+    dedicatedPrefixes?: JsonFilter<"AssetCleanupJob">
+    retainedReferences?: JsonFilter<"AssetCleanupJob">
+    producerReferences?: JsonFilter<"AssetCleanupJob">
+    cursor?: JsonNullableFilter<"AssetCleanupJob">
+    failedKeys?: JsonFilter<"AssetCleanupJob">
+    status?: StringFilter<"AssetCleanupJob"> | string
+    notBefore?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    leaseUntil?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    nextRetryAt?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    attemptCount?: IntFilter<"AssetCleanupJob"> | number
+    lastError?: StringNullableFilter<"AssetCleanupJob"> | string | null
+    completedAt?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    createdAt?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    updatedAt?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type AssetCleanupJobOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    kind?: SortOrder
+    scopeId?: SortOrder
+    scopeSnapshot?: SortOrder
+    exactKeys?: SortOrder
+    dedicatedPrefixes?: SortOrder
+    retainedReferences?: SortOrder
+    producerReferences?: SortOrder
+    cursor?: SortOrderInput | SortOrder
+    failedKeys?: SortOrder
+    status?: SortOrder
+    notBefore?: SortOrder
+    leaseUntil?: SortOrderInput | SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    attemptCount?: SortOrder
+    lastError?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type AssetCleanupJobWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AssetCleanupJobWhereInput | AssetCleanupJobWhereInput[]
+    OR?: AssetCleanupJobWhereInput[]
+    NOT?: AssetCleanupJobWhereInput | AssetCleanupJobWhereInput[]
+    userId?: StringFilter<"AssetCleanupJob"> | string
+    kind?: StringFilter<"AssetCleanupJob"> | string
+    scopeId?: StringFilter<"AssetCleanupJob"> | string
+    scopeSnapshot?: JsonFilter<"AssetCleanupJob">
+    exactKeys?: JsonFilter<"AssetCleanupJob">
+    dedicatedPrefixes?: JsonFilter<"AssetCleanupJob">
+    retainedReferences?: JsonFilter<"AssetCleanupJob">
+    producerReferences?: JsonFilter<"AssetCleanupJob">
+    cursor?: JsonNullableFilter<"AssetCleanupJob">
+    failedKeys?: JsonFilter<"AssetCleanupJob">
+    status?: StringFilter<"AssetCleanupJob"> | string
+    notBefore?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    leaseUntil?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    nextRetryAt?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    attemptCount?: IntFilter<"AssetCleanupJob"> | number
+    lastError?: StringNullableFilter<"AssetCleanupJob"> | string | null
+    completedAt?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    createdAt?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    updatedAt?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type AssetCleanupJobOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    kind?: SortOrder
+    scopeId?: SortOrder
+    scopeSnapshot?: SortOrder
+    exactKeys?: SortOrder
+    dedicatedPrefixes?: SortOrder
+    retainedReferences?: SortOrder
+    producerReferences?: SortOrder
+    cursor?: SortOrderInput | SortOrder
+    failedKeys?: SortOrder
+    status?: SortOrder
+    notBefore?: SortOrder
+    leaseUntil?: SortOrderInput | SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    attemptCount?: SortOrder
+    lastError?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AssetCleanupJobCountOrderByAggregateInput
+    _avg?: AssetCleanupJobAvgOrderByAggregateInput
+    _max?: AssetCleanupJobMaxOrderByAggregateInput
+    _min?: AssetCleanupJobMinOrderByAggregateInput
+    _sum?: AssetCleanupJobSumOrderByAggregateInput
+  }
+
+  export type AssetCleanupJobScalarWhereWithAggregatesInput = {
+    AND?: AssetCleanupJobScalarWhereWithAggregatesInput | AssetCleanupJobScalarWhereWithAggregatesInput[]
+    OR?: AssetCleanupJobScalarWhereWithAggregatesInput[]
+    NOT?: AssetCleanupJobScalarWhereWithAggregatesInput | AssetCleanupJobScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssetCleanupJob"> | string
+    userId?: StringWithAggregatesFilter<"AssetCleanupJob"> | string
+    kind?: StringWithAggregatesFilter<"AssetCleanupJob"> | string
+    scopeId?: StringWithAggregatesFilter<"AssetCleanupJob"> | string
+    scopeSnapshot?: JsonWithAggregatesFilter<"AssetCleanupJob">
+    exactKeys?: JsonWithAggregatesFilter<"AssetCleanupJob">
+    dedicatedPrefixes?: JsonWithAggregatesFilter<"AssetCleanupJob">
+    retainedReferences?: JsonWithAggregatesFilter<"AssetCleanupJob">
+    producerReferences?: JsonWithAggregatesFilter<"AssetCleanupJob">
+    cursor?: JsonNullableWithAggregatesFilter<"AssetCleanupJob">
+    failedKeys?: JsonWithAggregatesFilter<"AssetCleanupJob">
+    status?: StringWithAggregatesFilter<"AssetCleanupJob"> | string
+    notBefore?: DateTimeWithAggregatesFilter<"AssetCleanupJob"> | Date | string
+    leaseUntil?: DateTimeNullableWithAggregatesFilter<"AssetCleanupJob"> | Date | string | null
+    nextRetryAt?: DateTimeNullableWithAggregatesFilter<"AssetCleanupJob"> | Date | string | null
+    attemptCount?: IntWithAggregatesFilter<"AssetCleanupJob"> | number
+    lastError?: StringNullableWithAggregatesFilter<"AssetCleanupJob"> | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"AssetCleanupJob"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AssetCleanupJob"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AssetCleanupJob"> | Date | string
   }
 
   export type SubscriptionWhereInput = {
@@ -16670,6 +25198,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -16686,6 +25215,10 @@ export namespace Prisma {
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -16695,6 +25228,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -16711,6 +25245,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -16720,6 +25258,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16736,6 +25275,10 @@ export namespace Prisma {
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -16745,6 +25288,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16761,6 +25305,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -16770,6 +25318,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -16788,6 +25337,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16806,6 +25356,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16841,9 +25392,11 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -16871,10 +25424,12 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     userId: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileUpdateInput = {
@@ -16901,9 +25456,11 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -16931,10 +25488,12 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileCreateManyInput = {
@@ -16961,6 +25520,7 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     userId: string
   }
 
@@ -16988,6 +25548,7 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UploadedFileUncheckedUpdateManyInput = {
@@ -17014,6 +25575,7 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -17030,11 +25592,13 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
     uploadedFile?: UploadedFileCreateNestedOneWithoutClipsInput
     user: UserCreateNestedOneWithoutClipsInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutClipInput
   }
 
   export type ClipUncheckedCreateInput = {
@@ -17050,11 +25614,13 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
     uploadedFileId?: string | null
     userId: string
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutClipInput
   }
 
   export type ClipUpdateInput = {
@@ -17070,11 +25636,13 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFile?: UploadedFileUpdateOneWithoutClipsNestedInput
     user?: UserUpdateOneRequiredWithoutClipsNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutClipNestedInput
   }
 
   export type ClipUncheckedUpdateInput = {
@@ -17090,11 +25658,13 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutClipNestedInput
   }
 
   export type ClipCreateManyInput = {
@@ -17110,6 +25680,7 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
@@ -17130,6 +25701,7 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17148,6 +25720,7 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17292,6 +25865,16 @@ export namespace Prisma {
     lockedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
+    reservation?: CreditReservationCreateNestedOneWithoutDispatchesInput
     uploadedFile: UploadedFileCreateNestedOneWithoutDispatchesInput
   }
 
@@ -17308,6 +25891,16 @@ export namespace Prisma {
     lockedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
   }
 
   export type ProcessingDispatchUpdateInput = {
@@ -17322,6 +25915,16 @@ export namespace Prisma {
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reservation?: CreditReservationUpdateOneWithoutDispatchesNestedInput
     uploadedFile?: UploadedFileUpdateOneRequiredWithoutDispatchesNestedInput
   }
 
@@ -17338,6 +25941,16 @@ export namespace Prisma {
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ProcessingDispatchCreateManyInput = {
@@ -17353,6 +25966,16 @@ export namespace Prisma {
     lockedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
   }
 
   export type ProcessingDispatchUpdateManyMutationInput = {
@@ -17367,6 +25990,15 @@ export namespace Prisma {
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ProcessingDispatchUncheckedUpdateManyInput = {
@@ -17380,6 +26012,824 @@ export namespace Prisma {
     dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CreditReservationCreateInput = {
+    id?: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutCreditReservationsInput
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutReservationInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationUncheckedCreateInput = {
+    id?: string
+    userId: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutReservationInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutCreditReservationsNestedInput
+    dispatches?: ProcessingDispatchUpdateManyWithoutReservationNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutReservationNestedInput
+  }
+
+  export type CreditReservationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutReservationNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutReservationNestedInput
+  }
+
+  export type CreditReservationCreateManyInput = {
+    id?: string
+    userId: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+  }
+
+  export type CreditReservationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CreditReservationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CardNewsSetCreateInput = {
+    id?: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsSetsInput
+    clip: ClipCreateNestedOneWithoutCardNewsSetsInput
+    uploadedFile: UploadedFileCreateNestedOneWithoutCardNewsSetsInput
+    regeneratedFrom?: CardNewsSetCreateNestedOneWithoutRegeneratedSetsInput
+    regeneratedSets?: CardNewsSetCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetUncheckedCreateInput = {
+    id?: string
+    userId: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    regeneratedSets?: CardNewsSetUncheckedCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobUncheckedCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    clip?: ClipUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    regeneratedFrom?: CardNewsSetUpdateOneWithoutRegeneratedSetsNestedInput
+    regeneratedSets?: CardNewsSetUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    regeneratedSets?: CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUncheckedUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetCreateManyInput = {
+    id?: string
+    userId: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsSetUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsSetUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsJobCreateInput = {
+    id?: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsJobsInput
+    set: CardNewsSetCreateNestedOneWithoutJobsInput
+    reservation?: CreditReservationCreateNestedOneWithoutCardNewsJobsInput
+    invocations?: CardNewsInvocationCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobUncheckedCreateInput = {
+    id?: string
+    userId: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    reservationId?: string | null
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    invocations?: CardNewsInvocationUncheckedCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsJobsNestedInput
+    set?: CardNewsSetUpdateOneRequiredWithoutJobsNestedInput
+    reservation?: CreditReservationUpdateOneWithoutCardNewsJobsNestedInput
+    invocations?: CardNewsInvocationUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    setId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    invocations?: CardNewsInvocationUncheckedUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobCreateManyInput = {
+    id?: string
+    userId: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    reservationId?: string | null
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsJobUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsJobUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    setId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsInvocationCreateInput = {
+    id?: string
+    executionEpoch: number
+    invocationId: string
+    modalCallId: string
+    writeDeadlineAt: Date | string
+    status?: string
+    progressSequence?: number
+    stage?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: Date | string
+    endedAt?: Date | string | null
+    updatedAt?: Date | string
+    job: CardNewsJobCreateNestedOneWithoutInvocationsInput
+  }
+
+  export type CardNewsInvocationUncheckedCreateInput = {
+    id?: string
+    jobId: string
+    executionEpoch: number
+    invocationId: string
+    modalCallId: string
+    writeDeadlineAt: Date | string
+    status?: string
+    progressSequence?: number
+    stage?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: Date | string
+    endedAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsInvocationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    invocationId?: StringFieldUpdateOperationsInput | string
+    modalCallId?: StringFieldUpdateOperationsInput | string
+    writeDeadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    progressSequence?: IntFieldUpdateOperationsInput | number
+    stage?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    job?: CardNewsJobUpdateOneRequiredWithoutInvocationsNestedInput
+  }
+
+  export type CardNewsInvocationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    jobId?: StringFieldUpdateOperationsInput | string
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    invocationId?: StringFieldUpdateOperationsInput | string
+    modalCallId?: StringFieldUpdateOperationsInput | string
+    writeDeadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    progressSequence?: IntFieldUpdateOperationsInput | number
+    stage?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsInvocationCreateManyInput = {
+    id?: string
+    jobId: string
+    executionEpoch: number
+    invocationId: string
+    modalCallId: string
+    writeDeadlineAt: Date | string
+    status?: string
+    progressSequence?: number
+    stage?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: Date | string
+    endedAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsInvocationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    invocationId?: StringFieldUpdateOperationsInput | string
+    modalCallId?: StringFieldUpdateOperationsInput | string
+    writeDeadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    progressSequence?: IntFieldUpdateOperationsInput | number
+    stage?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsInvocationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    jobId?: StringFieldUpdateOperationsInput | string
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    invocationId?: StringFieldUpdateOperationsInput | string
+    modalCallId?: StringFieldUpdateOperationsInput | string
+    writeDeadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    progressSequence?: IntFieldUpdateOperationsInput | number
+    stage?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssetCleanupJobCreateInput = {
+    id?: string
+    kind: string
+    scopeId: string
+    scopeSnapshot: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: string
+    notBefore?: Date | string
+    leaseUntil?: Date | string | null
+    nextRetryAt?: Date | string | null
+    attemptCount?: number
+    lastError?: string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutAssetCleanupJobsInput
+  }
+
+  export type AssetCleanupJobUncheckedCreateInput = {
+    id?: string
+    userId: string
+    kind: string
+    scopeId: string
+    scopeSnapshot: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: string
+    notBefore?: Date | string
+    leaseUntil?: Date | string | null
+    nextRetryAt?: Date | string | null
+    attemptCount?: number
+    lastError?: string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssetCleanupJobUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    scopeSnapshot?: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    notBefore?: DateTimeFieldUpdateOperationsInput | Date | string
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutAssetCleanupJobsNestedInput
+  }
+
+  export type AssetCleanupJobUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    scopeSnapshot?: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    notBefore?: DateTimeFieldUpdateOperationsInput | Date | string
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssetCleanupJobCreateManyInput = {
+    id?: string
+    userId: string
+    kind: string
+    scopeId: string
+    scopeSnapshot: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: string
+    notBefore?: Date | string
+    leaseUntil?: Date | string | null
+    nextRetryAt?: Date | string | null
+    attemptCount?: number
+    lastError?: string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssetCleanupJobUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    scopeSnapshot?: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    notBefore?: DateTimeFieldUpdateOperationsInput | Date | string
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssetCleanupJobUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    scopeSnapshot?: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    notBefore?: DateTimeFieldUpdateOperationsInput | Date | string
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -18006,6 +27456,30 @@ export namespace Prisma {
     none?: AnalyticsEventWhereInput
   }
 
+  export type CreditReservationListRelationFilter = {
+    every?: CreditReservationWhereInput
+    some?: CreditReservationWhereInput
+    none?: CreditReservationWhereInput
+  }
+
+  export type CardNewsSetListRelationFilter = {
+    every?: CardNewsSetWhereInput
+    some?: CardNewsSetWhereInput
+    none?: CardNewsSetWhereInput
+  }
+
+  export type CardNewsJobListRelationFilter = {
+    every?: CardNewsJobWhereInput
+    some?: CardNewsJobWhereInput
+    none?: CardNewsJobWhereInput
+  }
+
+  export type AssetCleanupJobListRelationFilter = {
+    every?: AssetCleanupJobWhereInput
+    some?: AssetCleanupJobWhereInput
+    none?: AssetCleanupJobWhereInput
+  }
+
   export type AccountOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -18030,6 +27504,22 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type CreditReservationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CardNewsSetOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CardNewsJobOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AssetCleanupJobOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -18037,6 +27527,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     password?: SortOrder
     credits?: SortOrder
+    reservedCredits?: SortOrder
     polarCustomerId?: SortOrder
     image?: SortOrder
     defaultLanguage?: SortOrder
@@ -18050,6 +27541,7 @@ export namespace Prisma {
 
   export type UserAvgOrderByAggregateInput = {
     credits?: SortOrder
+    reservedCredits?: SortOrder
     defaultClipCount?: SortOrder
     defaultVideoPaddingPercent?: SortOrder
   }
@@ -18061,6 +27553,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     password?: SortOrder
     credits?: SortOrder
+    reservedCredits?: SortOrder
     polarCustomerId?: SortOrder
     image?: SortOrder
     defaultLanguage?: SortOrder
@@ -18076,6 +27569,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     password?: SortOrder
     credits?: SortOrder
+    reservedCredits?: SortOrder
     polarCustomerId?: SortOrder
     image?: SortOrder
     defaultLanguage?: SortOrder
@@ -18086,6 +27580,7 @@ export namespace Prisma {
 
   export type UserSumOrderByAggregateInput = {
     credits?: SortOrder
+    reservedCredits?: SortOrder
     defaultClipCount?: SortOrder
     defaultVideoPaddingPercent?: SortOrder
   }
@@ -18203,6 +27698,7 @@ export namespace Prisma {
     reviewAttempt?: SortOrder
     reviewReadyAt?: SortOrder
     transcriptS3Key?: SortOrder
+    deletedAt?: SortOrder
     userId?: SortOrder
   }
 
@@ -18237,6 +27733,7 @@ export namespace Prisma {
     reviewAttempt?: SortOrder
     reviewReadyAt?: SortOrder
     transcriptS3Key?: SortOrder
+    deletedAt?: SortOrder
     userId?: SortOrder
   }
 
@@ -18263,6 +27760,7 @@ export namespace Prisma {
     reviewAttempt?: SortOrder
     reviewReadyAt?: SortOrder
     transcriptS3Key?: SortOrder
+    deletedAt?: SortOrder
     userId?: SortOrder
   }
 
@@ -18317,6 +27815,7 @@ export namespace Prisma {
     subtitleStatus?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    deletedAt?: SortOrder
     youtubeTitle?: SortOrder
     youtubeDescription?: SortOrder
     youtubeHashtags?: SortOrder
@@ -18343,6 +27842,7 @@ export namespace Prisma {
     subtitleStatus?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    deletedAt?: SortOrder
     youtubeTitle?: SortOrder
     youtubeDescription?: SortOrder
     youtubeHashtags?: SortOrder
@@ -18363,6 +27863,7 @@ export namespace Prisma {
     subtitleStatus?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    deletedAt?: SortOrder
     youtubeTitle?: SortOrder
     youtubeDescription?: SortOrder
     youtubeHashtags?: SortOrder
@@ -18502,6 +28003,11 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type CreditReservationNullableScalarRelationFilter = {
+    is?: CreditReservationWhereInput | null
+    isNot?: CreditReservationWhereInput | null
+  }
+
   export type ProcessingDispatchUploadedFileIdAttemptCompoundUniqueInput = {
     uploadedFileId: string
     attempt: number
@@ -18520,6 +28026,16 @@ export namespace Prisma {
     lockedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    workerRunId?: SortOrder
+    modalCallId?: SortOrder
+    modalSpawnState?: SortOrder
+    producerEndEvidence?: SortOrder
+    reservationId?: SortOrder
+    inputSnapshot?: SortOrder
+    claimedAt?: SortOrder
+    leaseUntil?: SortOrder
+    heartbeatAt?: SortOrder
+    deadlineAt?: SortOrder
   }
 
   export type ProcessingDispatchAvgOrderByAggregateInput = {
@@ -18540,6 +28056,14 @@ export namespace Prisma {
     lockedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    workerRunId?: SortOrder
+    modalCallId?: SortOrder
+    modalSpawnState?: SortOrder
+    reservationId?: SortOrder
+    claimedAt?: SortOrder
+    leaseUntil?: SortOrder
+    heartbeatAt?: SortOrder
+    deadlineAt?: SortOrder
   }
 
   export type ProcessingDispatchMinOrderByAggregateInput = {
@@ -18555,11 +28079,469 @@ export namespace Prisma {
     lockedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    workerRunId?: SortOrder
+    modalCallId?: SortOrder
+    modalSpawnState?: SortOrder
+    reservationId?: SortOrder
+    claimedAt?: SortOrder
+    leaseUntil?: SortOrder
+    heartbeatAt?: SortOrder
+    deadlineAt?: SortOrder
   }
 
   export type ProcessingDispatchSumOrderByAggregateInput = {
     attempt?: SortOrder
     dispatchCount?: SortOrder
+  }
+
+  export type CreditReservationCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    operationKey?: SortOrder
+    kind?: SortOrder
+    reservedAmount?: SortOrder
+    chargedAmount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    settledAt?: SortOrder
+    releasedAt?: SortOrder
+  }
+
+  export type CreditReservationAvgOrderByAggregateInput = {
+    reservedAmount?: SortOrder
+    chargedAmount?: SortOrder
+  }
+
+  export type CreditReservationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    operationKey?: SortOrder
+    kind?: SortOrder
+    reservedAmount?: SortOrder
+    chargedAmount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    settledAt?: SortOrder
+    releasedAt?: SortOrder
+  }
+
+  export type CreditReservationMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    operationKey?: SortOrder
+    kind?: SortOrder
+    reservedAmount?: SortOrder
+    chargedAmount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    settledAt?: SortOrder
+    releasedAt?: SortOrder
+  }
+
+  export type CreditReservationSumOrderByAggregateInput = {
+    reservedAmount?: SortOrder
+    chargedAmount?: SortOrder
+  }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type ClipScalarRelationFilter = {
+    is?: ClipWhereInput
+    isNot?: ClipWhereInput
+  }
+
+  export type CardNewsSetNullableScalarRelationFilter = {
+    is?: CardNewsSetWhereInput | null
+    isNot?: CardNewsSetWhereInput | null
+  }
+
+  export type CardNewsSetCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    clipId?: SortOrder
+    uploadedFileId?: SortOrder
+    sourceSnapshot?: SortOrder
+    sourceHash?: SortOrder
+    language?: SortOrder
+    draftDocument?: SortOrder
+    draftSnapshots?: SortOrder
+    draftRevision?: SortOrder
+    publishedRevision?: SortOrder
+    pendingRenderRevision?: SortOrder
+    regeneratedFromId?: SortOrder
+    status?: SortOrder
+    deletedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsSetAvgOrderByAggregateInput = {
+    draftRevision?: SortOrder
+    publishedRevision?: SortOrder
+    pendingRenderRevision?: SortOrder
+  }
+
+  export type CardNewsSetMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    clipId?: SortOrder
+    uploadedFileId?: SortOrder
+    sourceHash?: SortOrder
+    language?: SortOrder
+    draftRevision?: SortOrder
+    publishedRevision?: SortOrder
+    pendingRenderRevision?: SortOrder
+    regeneratedFromId?: SortOrder
+    status?: SortOrder
+    deletedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsSetMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    clipId?: SortOrder
+    uploadedFileId?: SortOrder
+    sourceHash?: SortOrder
+    language?: SortOrder
+    draftRevision?: SortOrder
+    publishedRevision?: SortOrder
+    pendingRenderRevision?: SortOrder
+    regeneratedFromId?: SortOrder
+    status?: SortOrder
+    deletedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsSetSumOrderByAggregateInput = {
+    draftRevision?: SortOrder
+    publishedRevision?: SortOrder
+    pendingRenderRevision?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
+  }
+
+  export type CardNewsSetScalarRelationFilter = {
+    is?: CardNewsSetWhereInput
+    isNot?: CardNewsSetWhereInput
+  }
+
+  export type CardNewsInvocationListRelationFilter = {
+    every?: CardNewsInvocationWhereInput
+    some?: CardNewsInvocationWhereInput
+    none?: CardNewsInvocationWhereInput
+  }
+
+  export type CardNewsInvocationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CardNewsJobUserIdRequestIdCompoundUniqueInput = {
+    userId: string
+    requestId: string
+  }
+
+  export type CardNewsJobCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    setId?: SortOrder
+    kind?: SortOrder
+    requestId?: SortOrder
+    requestHash?: SortOrder
+    inputRevision?: SortOrder
+    inputSnapshot?: SortOrder
+    executionEpoch?: SortOrder
+    status?: SortOrder
+    stage?: SortOrder
+    reservationId?: SortOrder
+    templateVersion?: SortOrder
+    deadlineAt?: SortOrder
+    dispatchStatus?: SortOrder
+    dispatchLeaseUntil?: SortOrder
+    nextDispatchAt?: SortOrder
+    dispatchCount?: SortOrder
+    lastDispatchError?: SortOrder
+    dispatchedAt?: SortOrder
+    claimedAt?: SortOrder
+    heartbeatAt?: SortOrder
+    workerRunId?: SortOrder
+    modalCallId?: SortOrder
+    callbackInbox?: SortOrder
+    modalSpawnState?: SortOrder
+    selectedManifestKey?: SortOrder
+    selectedInvocationId?: SortOrder
+    progressInvocationId?: SortOrder
+    manifest?: SortOrder
+    failureCode?: SortOrder
+    completedAt?: SortOrder
+    usageMetrics?: SortOrder
+    analyticsContext?: SortOrder
+    pendingAnalytics?: SortOrder
+    outputRetiredAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsJobAvgOrderByAggregateInput = {
+    inputRevision?: SortOrder
+    executionEpoch?: SortOrder
+    dispatchCount?: SortOrder
+  }
+
+  export type CardNewsJobMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    setId?: SortOrder
+    kind?: SortOrder
+    requestId?: SortOrder
+    requestHash?: SortOrder
+    inputRevision?: SortOrder
+    executionEpoch?: SortOrder
+    status?: SortOrder
+    stage?: SortOrder
+    reservationId?: SortOrder
+    templateVersion?: SortOrder
+    deadlineAt?: SortOrder
+    dispatchStatus?: SortOrder
+    dispatchLeaseUntil?: SortOrder
+    nextDispatchAt?: SortOrder
+    dispatchCount?: SortOrder
+    lastDispatchError?: SortOrder
+    dispatchedAt?: SortOrder
+    claimedAt?: SortOrder
+    heartbeatAt?: SortOrder
+    workerRunId?: SortOrder
+    modalCallId?: SortOrder
+    modalSpawnState?: SortOrder
+    selectedManifestKey?: SortOrder
+    selectedInvocationId?: SortOrder
+    progressInvocationId?: SortOrder
+    failureCode?: SortOrder
+    completedAt?: SortOrder
+    outputRetiredAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsJobMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    setId?: SortOrder
+    kind?: SortOrder
+    requestId?: SortOrder
+    requestHash?: SortOrder
+    inputRevision?: SortOrder
+    executionEpoch?: SortOrder
+    status?: SortOrder
+    stage?: SortOrder
+    reservationId?: SortOrder
+    templateVersion?: SortOrder
+    deadlineAt?: SortOrder
+    dispatchStatus?: SortOrder
+    dispatchLeaseUntil?: SortOrder
+    nextDispatchAt?: SortOrder
+    dispatchCount?: SortOrder
+    lastDispatchError?: SortOrder
+    dispatchedAt?: SortOrder
+    claimedAt?: SortOrder
+    heartbeatAt?: SortOrder
+    workerRunId?: SortOrder
+    modalCallId?: SortOrder
+    modalSpawnState?: SortOrder
+    selectedManifestKey?: SortOrder
+    selectedInvocationId?: SortOrder
+    progressInvocationId?: SortOrder
+    failureCode?: SortOrder
+    completedAt?: SortOrder
+    outputRetiredAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsJobSumOrderByAggregateInput = {
+    inputRevision?: SortOrder
+    executionEpoch?: SortOrder
+    dispatchCount?: SortOrder
+  }
+
+  export type CardNewsJobScalarRelationFilter = {
+    is?: CardNewsJobWhereInput
+    isNot?: CardNewsJobWhereInput
+  }
+
+  export type CardNewsInvocationJobIdExecutionEpochInvocationIdCompoundUniqueInput = {
+    jobId: string
+    executionEpoch: number
+    invocationId: string
+  }
+
+  export type CardNewsInvocationCountOrderByAggregateInput = {
+    id?: SortOrder
+    jobId?: SortOrder
+    executionEpoch?: SortOrder
+    invocationId?: SortOrder
+    modalCallId?: SortOrder
+    writeDeadlineAt?: SortOrder
+    status?: SortOrder
+    progressSequence?: SortOrder
+    stage?: SortOrder
+    producerEndEvidence?: SortOrder
+    registeredAt?: SortOrder
+    endedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsInvocationAvgOrderByAggregateInput = {
+    executionEpoch?: SortOrder
+    progressSequence?: SortOrder
+  }
+
+  export type CardNewsInvocationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    jobId?: SortOrder
+    executionEpoch?: SortOrder
+    invocationId?: SortOrder
+    modalCallId?: SortOrder
+    writeDeadlineAt?: SortOrder
+    status?: SortOrder
+    progressSequence?: SortOrder
+    stage?: SortOrder
+    registeredAt?: SortOrder
+    endedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsInvocationMinOrderByAggregateInput = {
+    id?: SortOrder
+    jobId?: SortOrder
+    executionEpoch?: SortOrder
+    invocationId?: SortOrder
+    modalCallId?: SortOrder
+    writeDeadlineAt?: SortOrder
+    status?: SortOrder
+    progressSequence?: SortOrder
+    stage?: SortOrder
+    registeredAt?: SortOrder
+    endedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CardNewsInvocationSumOrderByAggregateInput = {
+    executionEpoch?: SortOrder
+    progressSequence?: SortOrder
+  }
+
+  export type AssetCleanupJobCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    kind?: SortOrder
+    scopeId?: SortOrder
+    scopeSnapshot?: SortOrder
+    exactKeys?: SortOrder
+    dedicatedPrefixes?: SortOrder
+    retainedReferences?: SortOrder
+    producerReferences?: SortOrder
+    cursor?: SortOrder
+    failedKeys?: SortOrder
+    status?: SortOrder
+    notBefore?: SortOrder
+    leaseUntil?: SortOrder
+    nextRetryAt?: SortOrder
+    attemptCount?: SortOrder
+    lastError?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssetCleanupJobAvgOrderByAggregateInput = {
+    attemptCount?: SortOrder
+  }
+
+  export type AssetCleanupJobMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    kind?: SortOrder
+    scopeId?: SortOrder
+    status?: SortOrder
+    notBefore?: SortOrder
+    leaseUntil?: SortOrder
+    nextRetryAt?: SortOrder
+    attemptCount?: SortOrder
+    lastError?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssetCleanupJobMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    kind?: SortOrder
+    scopeId?: SortOrder
+    status?: SortOrder
+    notBefore?: SortOrder
+    leaseUntil?: SortOrder
+    nextRetryAt?: SortOrder
+    attemptCount?: SortOrder
+    lastError?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssetCleanupJobSumOrderByAggregateInput = {
+    attemptCount?: SortOrder
   }
 
   export type SubscriptionCountOrderByAggregateInput = {
@@ -18820,6 +28802,34 @@ export namespace Prisma {
     connect?: AnalyticsEventWhereUniqueInput | AnalyticsEventWhereUniqueInput[]
   }
 
+  export type CreditReservationCreateNestedManyWithoutUserInput = {
+    create?: XOR<CreditReservationCreateWithoutUserInput, CreditReservationUncheckedCreateWithoutUserInput> | CreditReservationCreateWithoutUserInput[] | CreditReservationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutUserInput | CreditReservationCreateOrConnectWithoutUserInput[]
+    createMany?: CreditReservationCreateManyUserInputEnvelope
+    connect?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+  }
+
+  export type CardNewsSetCreateNestedManyWithoutUserInput = {
+    create?: XOR<CardNewsSetCreateWithoutUserInput, CardNewsSetUncheckedCreateWithoutUserInput> | CardNewsSetCreateWithoutUserInput[] | CardNewsSetUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUserInput | CardNewsSetCreateOrConnectWithoutUserInput[]
+    createMany?: CardNewsSetCreateManyUserInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+  }
+
+  export type CardNewsJobCreateNestedManyWithoutUserInput = {
+    create?: XOR<CardNewsJobCreateWithoutUserInput, CardNewsJobUncheckedCreateWithoutUserInput> | CardNewsJobCreateWithoutUserInput[] | CardNewsJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutUserInput | CardNewsJobCreateOrConnectWithoutUserInput[]
+    createMany?: CardNewsJobCreateManyUserInputEnvelope
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+  }
+
+  export type AssetCleanupJobCreateNestedManyWithoutUserInput = {
+    create?: XOR<AssetCleanupJobCreateWithoutUserInput, AssetCleanupJobUncheckedCreateWithoutUserInput> | AssetCleanupJobCreateWithoutUserInput[] | AssetCleanupJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssetCleanupJobCreateOrConnectWithoutUserInput | AssetCleanupJobCreateOrConnectWithoutUserInput[]
+    createMany?: AssetCleanupJobCreateManyUserInputEnvelope
+    connect?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -18866,6 +28876,34 @@ export namespace Prisma {
     connectOrCreate?: AnalyticsEventCreateOrConnectWithoutUserInput | AnalyticsEventCreateOrConnectWithoutUserInput[]
     createMany?: AnalyticsEventCreateManyUserInputEnvelope
     connect?: AnalyticsEventWhereUniqueInput | AnalyticsEventWhereUniqueInput[]
+  }
+
+  export type CreditReservationUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<CreditReservationCreateWithoutUserInput, CreditReservationUncheckedCreateWithoutUserInput> | CreditReservationCreateWithoutUserInput[] | CreditReservationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutUserInput | CreditReservationCreateOrConnectWithoutUserInput[]
+    createMany?: CreditReservationCreateManyUserInputEnvelope
+    connect?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+  }
+
+  export type CardNewsSetUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<CardNewsSetCreateWithoutUserInput, CardNewsSetUncheckedCreateWithoutUserInput> | CardNewsSetCreateWithoutUserInput[] | CardNewsSetUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUserInput | CardNewsSetCreateOrConnectWithoutUserInput[]
+    createMany?: CardNewsSetCreateManyUserInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+  }
+
+  export type CardNewsJobUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<CardNewsJobCreateWithoutUserInput, CardNewsJobUncheckedCreateWithoutUserInput> | CardNewsJobCreateWithoutUserInput[] | CardNewsJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutUserInput | CardNewsJobCreateOrConnectWithoutUserInput[]
+    createMany?: CardNewsJobCreateManyUserInputEnvelope
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+  }
+
+  export type AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<AssetCleanupJobCreateWithoutUserInput, AssetCleanupJobUncheckedCreateWithoutUserInput> | AssetCleanupJobCreateWithoutUserInput[] | AssetCleanupJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssetCleanupJobCreateOrConnectWithoutUserInput | AssetCleanupJobCreateOrConnectWithoutUserInput[]
+    createMany?: AssetCleanupJobCreateManyUserInputEnvelope
+    connect?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
   }
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -18978,6 +29016,62 @@ export namespace Prisma {
     deleteMany?: AnalyticsEventScalarWhereInput | AnalyticsEventScalarWhereInput[]
   }
 
+  export type CreditReservationUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CreditReservationCreateWithoutUserInput, CreditReservationUncheckedCreateWithoutUserInput> | CreditReservationCreateWithoutUserInput[] | CreditReservationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutUserInput | CreditReservationCreateOrConnectWithoutUserInput[]
+    upsert?: CreditReservationUpsertWithWhereUniqueWithoutUserInput | CreditReservationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CreditReservationCreateManyUserInputEnvelope
+    set?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    disconnect?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    delete?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    connect?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    update?: CreditReservationUpdateWithWhereUniqueWithoutUserInput | CreditReservationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CreditReservationUpdateManyWithWhereWithoutUserInput | CreditReservationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CreditReservationScalarWhereInput | CreditReservationScalarWhereInput[]
+  }
+
+  export type CardNewsSetUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutUserInput, CardNewsSetUncheckedCreateWithoutUserInput> | CardNewsSetCreateWithoutUserInput[] | CardNewsSetUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUserInput | CardNewsSetCreateOrConnectWithoutUserInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutUserInput | CardNewsSetUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CardNewsSetCreateManyUserInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutUserInput | CardNewsSetUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutUserInput | CardNewsSetUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+  }
+
+  export type CardNewsJobUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CardNewsJobCreateWithoutUserInput, CardNewsJobUncheckedCreateWithoutUserInput> | CardNewsJobCreateWithoutUserInput[] | CardNewsJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutUserInput | CardNewsJobCreateOrConnectWithoutUserInput[]
+    upsert?: CardNewsJobUpsertWithWhereUniqueWithoutUserInput | CardNewsJobUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CardNewsJobCreateManyUserInputEnvelope
+    set?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    disconnect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    delete?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    update?: CardNewsJobUpdateWithWhereUniqueWithoutUserInput | CardNewsJobUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CardNewsJobUpdateManyWithWhereWithoutUserInput | CardNewsJobUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+  }
+
+  export type AssetCleanupJobUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AssetCleanupJobCreateWithoutUserInput, AssetCleanupJobUncheckedCreateWithoutUserInput> | AssetCleanupJobCreateWithoutUserInput[] | AssetCleanupJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssetCleanupJobCreateOrConnectWithoutUserInput | AssetCleanupJobCreateOrConnectWithoutUserInput[]
+    upsert?: AssetCleanupJobUpsertWithWhereUniqueWithoutUserInput | AssetCleanupJobUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AssetCleanupJobCreateManyUserInputEnvelope
+    set?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    disconnect?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    delete?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    connect?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    update?: AssetCleanupJobUpdateWithWhereUniqueWithoutUserInput | AssetCleanupJobUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AssetCleanupJobUpdateManyWithWhereWithoutUserInput | AssetCleanupJobUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AssetCleanupJobScalarWhereInput | AssetCleanupJobScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -19072,6 +29166,62 @@ export namespace Prisma {
     deleteMany?: AnalyticsEventScalarWhereInput | AnalyticsEventScalarWhereInput[]
   }
 
+  export type CreditReservationUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CreditReservationCreateWithoutUserInput, CreditReservationUncheckedCreateWithoutUserInput> | CreditReservationCreateWithoutUserInput[] | CreditReservationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutUserInput | CreditReservationCreateOrConnectWithoutUserInput[]
+    upsert?: CreditReservationUpsertWithWhereUniqueWithoutUserInput | CreditReservationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CreditReservationCreateManyUserInputEnvelope
+    set?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    disconnect?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    delete?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    connect?: CreditReservationWhereUniqueInput | CreditReservationWhereUniqueInput[]
+    update?: CreditReservationUpdateWithWhereUniqueWithoutUserInput | CreditReservationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CreditReservationUpdateManyWithWhereWithoutUserInput | CreditReservationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CreditReservationScalarWhereInput | CreditReservationScalarWhereInput[]
+  }
+
+  export type CardNewsSetUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutUserInput, CardNewsSetUncheckedCreateWithoutUserInput> | CardNewsSetCreateWithoutUserInput[] | CardNewsSetUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUserInput | CardNewsSetCreateOrConnectWithoutUserInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutUserInput | CardNewsSetUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CardNewsSetCreateManyUserInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutUserInput | CardNewsSetUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutUserInput | CardNewsSetUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+  }
+
+  export type CardNewsJobUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CardNewsJobCreateWithoutUserInput, CardNewsJobUncheckedCreateWithoutUserInput> | CardNewsJobCreateWithoutUserInput[] | CardNewsJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutUserInput | CardNewsJobCreateOrConnectWithoutUserInput[]
+    upsert?: CardNewsJobUpsertWithWhereUniqueWithoutUserInput | CardNewsJobUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CardNewsJobCreateManyUserInputEnvelope
+    set?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    disconnect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    delete?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    update?: CardNewsJobUpdateWithWhereUniqueWithoutUserInput | CardNewsJobUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CardNewsJobUpdateManyWithWhereWithoutUserInput | CardNewsJobUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+  }
+
+  export type AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AssetCleanupJobCreateWithoutUserInput, AssetCleanupJobUncheckedCreateWithoutUserInput> | AssetCleanupJobCreateWithoutUserInput[] | AssetCleanupJobUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssetCleanupJobCreateOrConnectWithoutUserInput | AssetCleanupJobCreateOrConnectWithoutUserInput[]
+    upsert?: AssetCleanupJobUpsertWithWhereUniqueWithoutUserInput | AssetCleanupJobUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AssetCleanupJobCreateManyUserInputEnvelope
+    set?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    disconnect?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    delete?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    connect?: AssetCleanupJobWhereUniqueInput | AssetCleanupJobWhereUniqueInput[]
+    update?: AssetCleanupJobUpdateWithWhereUniqueWithoutUserInput | AssetCleanupJobUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AssetCleanupJobUpdateManyWithWhereWithoutUserInput | AssetCleanupJobUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AssetCleanupJobScalarWhereInput | AssetCleanupJobScalarWhereInput[]
+  }
+
   export type ClipCreateNestedManyWithoutUploadedFileInput = {
     create?: XOR<ClipCreateWithoutUploadedFileInput, ClipUncheckedCreateWithoutUploadedFileInput> | ClipCreateWithoutUploadedFileInput[] | ClipUncheckedCreateWithoutUploadedFileInput[]
     connectOrCreate?: ClipCreateOrConnectWithoutUploadedFileInput | ClipCreateOrConnectWithoutUploadedFileInput[]
@@ -19091,6 +29241,13 @@ export namespace Prisma {
     connectOrCreate?: ClipDraftCreateOrConnectWithoutUploadedFileInput | ClipDraftCreateOrConnectWithoutUploadedFileInput[]
     createMany?: ClipDraftCreateManyUploadedFileInputEnvelope
     connect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+  }
+
+  export type CardNewsSetCreateNestedManyWithoutUploadedFileInput = {
+    create?: XOR<CardNewsSetCreateWithoutUploadedFileInput, CardNewsSetUncheckedCreateWithoutUploadedFileInput> | CardNewsSetCreateWithoutUploadedFileInput[] | CardNewsSetUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUploadedFileInput | CardNewsSetCreateOrConnectWithoutUploadedFileInput[]
+    createMany?: CardNewsSetCreateManyUploadedFileInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
   }
 
   export type UserCreateNestedOneWithoutUploadedFilesInput = {
@@ -19118,6 +29275,13 @@ export namespace Prisma {
     connectOrCreate?: ClipDraftCreateOrConnectWithoutUploadedFileInput | ClipDraftCreateOrConnectWithoutUploadedFileInput[]
     createMany?: ClipDraftCreateManyUploadedFileInputEnvelope
     connect?: ClipDraftWhereUniqueInput | ClipDraftWhereUniqueInput[]
+  }
+
+  export type CardNewsSetUncheckedCreateNestedManyWithoutUploadedFileInput = {
+    create?: XOR<CardNewsSetCreateWithoutUploadedFileInput, CardNewsSetUncheckedCreateWithoutUploadedFileInput> | CardNewsSetCreateWithoutUploadedFileInput[] | CardNewsSetUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUploadedFileInput | CardNewsSetCreateOrConnectWithoutUploadedFileInput[]
+    createMany?: CardNewsSetCreateManyUploadedFileInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -19164,6 +29328,20 @@ export namespace Prisma {
     update?: ClipDraftUpdateWithWhereUniqueWithoutUploadedFileInput | ClipDraftUpdateWithWhereUniqueWithoutUploadedFileInput[]
     updateMany?: ClipDraftUpdateManyWithWhereWithoutUploadedFileInput | ClipDraftUpdateManyWithWhereWithoutUploadedFileInput[]
     deleteMany?: ClipDraftScalarWhereInput | ClipDraftScalarWhereInput[]
+  }
+
+  export type CardNewsSetUpdateManyWithoutUploadedFileNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutUploadedFileInput, CardNewsSetUncheckedCreateWithoutUploadedFileInput> | CardNewsSetCreateWithoutUploadedFileInput[] | CardNewsSetUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUploadedFileInput | CardNewsSetCreateOrConnectWithoutUploadedFileInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutUploadedFileInput | CardNewsSetUpsertWithWhereUniqueWithoutUploadedFileInput[]
+    createMany?: CardNewsSetCreateManyUploadedFileInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutUploadedFileInput | CardNewsSetUpdateWithWhereUniqueWithoutUploadedFileInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutUploadedFileInput | CardNewsSetUpdateManyWithWhereWithoutUploadedFileInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
   }
 
   export type UserUpdateOneRequiredWithoutUploadedFilesNestedInput = {
@@ -19216,6 +29394,20 @@ export namespace Prisma {
     deleteMany?: ClipDraftScalarWhereInput | ClipDraftScalarWhereInput[]
   }
 
+  export type CardNewsSetUncheckedUpdateManyWithoutUploadedFileNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutUploadedFileInput, CardNewsSetUncheckedCreateWithoutUploadedFileInput> | CardNewsSetCreateWithoutUploadedFileInput[] | CardNewsSetUncheckedCreateWithoutUploadedFileInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutUploadedFileInput | CardNewsSetCreateOrConnectWithoutUploadedFileInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutUploadedFileInput | CardNewsSetUpsertWithWhereUniqueWithoutUploadedFileInput[]
+    createMany?: CardNewsSetCreateManyUploadedFileInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutUploadedFileInput | CardNewsSetUpdateWithWhereUniqueWithoutUploadedFileInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutUploadedFileInput | CardNewsSetUpdateManyWithWhereWithoutUploadedFileInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+  }
+
   export type UploadedFileCreateNestedOneWithoutClipsInput = {
     create?: XOR<UploadedFileCreateWithoutClipsInput, UploadedFileUncheckedCreateWithoutClipsInput>
     connectOrCreate?: UploadedFileCreateOrConnectWithoutClipsInput
@@ -19226,6 +29418,20 @@ export namespace Prisma {
     create?: XOR<UserCreateWithoutClipsInput, UserUncheckedCreateWithoutClipsInput>
     connectOrCreate?: UserCreateOrConnectWithoutClipsInput
     connect?: UserWhereUniqueInput
+  }
+
+  export type CardNewsSetCreateNestedManyWithoutClipInput = {
+    create?: XOR<CardNewsSetCreateWithoutClipInput, CardNewsSetUncheckedCreateWithoutClipInput> | CardNewsSetCreateWithoutClipInput[] | CardNewsSetUncheckedCreateWithoutClipInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutClipInput | CardNewsSetCreateOrConnectWithoutClipInput[]
+    createMany?: CardNewsSetCreateManyClipInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+  }
+
+  export type CardNewsSetUncheckedCreateNestedManyWithoutClipInput = {
+    create?: XOR<CardNewsSetCreateWithoutClipInput, CardNewsSetUncheckedCreateWithoutClipInput> | CardNewsSetCreateWithoutClipInput[] | CardNewsSetUncheckedCreateWithoutClipInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutClipInput | CardNewsSetCreateOrConnectWithoutClipInput[]
+    createMany?: CardNewsSetCreateManyClipInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
   }
 
   export type NullableFloatFieldUpdateOperationsInput = {
@@ -19254,6 +29460,34 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutClipsInput, UserUpdateWithoutClipsInput>, UserUncheckedUpdateWithoutClipsInput>
   }
 
+  export type CardNewsSetUpdateManyWithoutClipNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutClipInput, CardNewsSetUncheckedCreateWithoutClipInput> | CardNewsSetCreateWithoutClipInput[] | CardNewsSetUncheckedCreateWithoutClipInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutClipInput | CardNewsSetCreateOrConnectWithoutClipInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutClipInput | CardNewsSetUpsertWithWhereUniqueWithoutClipInput[]
+    createMany?: CardNewsSetCreateManyClipInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutClipInput | CardNewsSetUpdateWithWhereUniqueWithoutClipInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutClipInput | CardNewsSetUpdateManyWithWhereWithoutClipInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+  }
+
+  export type CardNewsSetUncheckedUpdateManyWithoutClipNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutClipInput, CardNewsSetUncheckedCreateWithoutClipInput> | CardNewsSetCreateWithoutClipInput[] | CardNewsSetUncheckedCreateWithoutClipInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutClipInput | CardNewsSetCreateOrConnectWithoutClipInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutClipInput | CardNewsSetUpsertWithWhereUniqueWithoutClipInput[]
+    createMany?: CardNewsSetCreateManyClipInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutClipInput | CardNewsSetUpdateWithWhereUniqueWithoutClipInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutClipInput | CardNewsSetUpdateManyWithWhereWithoutClipInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+  }
+
   export type UploadedFileCreateNestedOneWithoutClipDraftsInput = {
     create?: XOR<UploadedFileCreateWithoutClipDraftsInput, UploadedFileUncheckedCreateWithoutClipDraftsInput>
     connectOrCreate?: UploadedFileCreateOrConnectWithoutClipDraftsInput
@@ -19276,10 +29510,26 @@ export namespace Prisma {
     update?: XOR<XOR<UploadedFileUpdateToOneWithWhereWithoutClipDraftsInput, UploadedFileUpdateWithoutClipDraftsInput>, UploadedFileUncheckedUpdateWithoutClipDraftsInput>
   }
 
+  export type CreditReservationCreateNestedOneWithoutDispatchesInput = {
+    create?: XOR<CreditReservationCreateWithoutDispatchesInput, CreditReservationUncheckedCreateWithoutDispatchesInput>
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutDispatchesInput
+    connect?: CreditReservationWhereUniqueInput
+  }
+
   export type UploadedFileCreateNestedOneWithoutDispatchesInput = {
     create?: XOR<UploadedFileCreateWithoutDispatchesInput, UploadedFileUncheckedCreateWithoutDispatchesInput>
     connectOrCreate?: UploadedFileCreateOrConnectWithoutDispatchesInput
     connect?: UploadedFileWhereUniqueInput
+  }
+
+  export type CreditReservationUpdateOneWithoutDispatchesNestedInput = {
+    create?: XOR<CreditReservationCreateWithoutDispatchesInput, CreditReservationUncheckedCreateWithoutDispatchesInput>
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutDispatchesInput
+    upsert?: CreditReservationUpsertWithoutDispatchesInput
+    disconnect?: CreditReservationWhereInput | boolean
+    delete?: CreditReservationWhereInput | boolean
+    connect?: CreditReservationWhereUniqueInput
+    update?: XOR<XOR<CreditReservationUpdateToOneWithWhereWithoutDispatchesInput, CreditReservationUpdateWithoutDispatchesInput>, CreditReservationUncheckedUpdateWithoutDispatchesInput>
   }
 
   export type UploadedFileUpdateOneRequiredWithoutDispatchesNestedInput = {
@@ -19288,6 +29538,360 @@ export namespace Prisma {
     upsert?: UploadedFileUpsertWithoutDispatchesInput
     connect?: UploadedFileWhereUniqueInput
     update?: XOR<XOR<UploadedFileUpdateToOneWithWhereWithoutDispatchesInput, UploadedFileUpdateWithoutDispatchesInput>, UploadedFileUncheckedUpdateWithoutDispatchesInput>
+  }
+
+  export type UserCreateNestedOneWithoutCreditReservationsInput = {
+    create?: XOR<UserCreateWithoutCreditReservationsInput, UserUncheckedCreateWithoutCreditReservationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreditReservationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ProcessingDispatchCreateNestedManyWithoutReservationInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutReservationInput, ProcessingDispatchUncheckedCreateWithoutReservationInput> | ProcessingDispatchCreateWithoutReservationInput[] | ProcessingDispatchUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutReservationInput | ProcessingDispatchCreateOrConnectWithoutReservationInput[]
+    createMany?: ProcessingDispatchCreateManyReservationInputEnvelope
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+  }
+
+  export type CardNewsJobCreateNestedManyWithoutReservationInput = {
+    create?: XOR<CardNewsJobCreateWithoutReservationInput, CardNewsJobUncheckedCreateWithoutReservationInput> | CardNewsJobCreateWithoutReservationInput[] | CardNewsJobUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutReservationInput | CardNewsJobCreateOrConnectWithoutReservationInput[]
+    createMany?: CardNewsJobCreateManyReservationInputEnvelope
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+  }
+
+  export type ProcessingDispatchUncheckedCreateNestedManyWithoutReservationInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutReservationInput, ProcessingDispatchUncheckedCreateWithoutReservationInput> | ProcessingDispatchCreateWithoutReservationInput[] | ProcessingDispatchUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutReservationInput | ProcessingDispatchCreateOrConnectWithoutReservationInput[]
+    createMany?: ProcessingDispatchCreateManyReservationInputEnvelope
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+  }
+
+  export type CardNewsJobUncheckedCreateNestedManyWithoutReservationInput = {
+    create?: XOR<CardNewsJobCreateWithoutReservationInput, CardNewsJobUncheckedCreateWithoutReservationInput> | CardNewsJobCreateWithoutReservationInput[] | CardNewsJobUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutReservationInput | CardNewsJobCreateOrConnectWithoutReservationInput[]
+    createMany?: CardNewsJobCreateManyReservationInputEnvelope
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+  }
+
+  export type UserUpdateOneRequiredWithoutCreditReservationsNestedInput = {
+    create?: XOR<UserCreateWithoutCreditReservationsInput, UserUncheckedCreateWithoutCreditReservationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreditReservationsInput
+    upsert?: UserUpsertWithoutCreditReservationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCreditReservationsInput, UserUpdateWithoutCreditReservationsInput>, UserUncheckedUpdateWithoutCreditReservationsInput>
+  }
+
+  export type ProcessingDispatchUpdateManyWithoutReservationNestedInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutReservationInput, ProcessingDispatchUncheckedCreateWithoutReservationInput> | ProcessingDispatchCreateWithoutReservationInput[] | ProcessingDispatchUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutReservationInput | ProcessingDispatchCreateOrConnectWithoutReservationInput[]
+    upsert?: ProcessingDispatchUpsertWithWhereUniqueWithoutReservationInput | ProcessingDispatchUpsertWithWhereUniqueWithoutReservationInput[]
+    createMany?: ProcessingDispatchCreateManyReservationInputEnvelope
+    set?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    disconnect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    delete?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    update?: ProcessingDispatchUpdateWithWhereUniqueWithoutReservationInput | ProcessingDispatchUpdateWithWhereUniqueWithoutReservationInput[]
+    updateMany?: ProcessingDispatchUpdateManyWithWhereWithoutReservationInput | ProcessingDispatchUpdateManyWithWhereWithoutReservationInput[]
+    deleteMany?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
+  }
+
+  export type CardNewsJobUpdateManyWithoutReservationNestedInput = {
+    create?: XOR<CardNewsJobCreateWithoutReservationInput, CardNewsJobUncheckedCreateWithoutReservationInput> | CardNewsJobCreateWithoutReservationInput[] | CardNewsJobUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutReservationInput | CardNewsJobCreateOrConnectWithoutReservationInput[]
+    upsert?: CardNewsJobUpsertWithWhereUniqueWithoutReservationInput | CardNewsJobUpsertWithWhereUniqueWithoutReservationInput[]
+    createMany?: CardNewsJobCreateManyReservationInputEnvelope
+    set?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    disconnect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    delete?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    update?: CardNewsJobUpdateWithWhereUniqueWithoutReservationInput | CardNewsJobUpdateWithWhereUniqueWithoutReservationInput[]
+    updateMany?: CardNewsJobUpdateManyWithWhereWithoutReservationInput | CardNewsJobUpdateManyWithWhereWithoutReservationInput[]
+    deleteMany?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+  }
+
+  export type ProcessingDispatchUncheckedUpdateManyWithoutReservationNestedInput = {
+    create?: XOR<ProcessingDispatchCreateWithoutReservationInput, ProcessingDispatchUncheckedCreateWithoutReservationInput> | ProcessingDispatchCreateWithoutReservationInput[] | ProcessingDispatchUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: ProcessingDispatchCreateOrConnectWithoutReservationInput | ProcessingDispatchCreateOrConnectWithoutReservationInput[]
+    upsert?: ProcessingDispatchUpsertWithWhereUniqueWithoutReservationInput | ProcessingDispatchUpsertWithWhereUniqueWithoutReservationInput[]
+    createMany?: ProcessingDispatchCreateManyReservationInputEnvelope
+    set?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    disconnect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    delete?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    connect?: ProcessingDispatchWhereUniqueInput | ProcessingDispatchWhereUniqueInput[]
+    update?: ProcessingDispatchUpdateWithWhereUniqueWithoutReservationInput | ProcessingDispatchUpdateWithWhereUniqueWithoutReservationInput[]
+    updateMany?: ProcessingDispatchUpdateManyWithWhereWithoutReservationInput | ProcessingDispatchUpdateManyWithWhereWithoutReservationInput[]
+    deleteMany?: ProcessingDispatchScalarWhereInput | ProcessingDispatchScalarWhereInput[]
+  }
+
+  export type CardNewsJobUncheckedUpdateManyWithoutReservationNestedInput = {
+    create?: XOR<CardNewsJobCreateWithoutReservationInput, CardNewsJobUncheckedCreateWithoutReservationInput> | CardNewsJobCreateWithoutReservationInput[] | CardNewsJobUncheckedCreateWithoutReservationInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutReservationInput | CardNewsJobCreateOrConnectWithoutReservationInput[]
+    upsert?: CardNewsJobUpsertWithWhereUniqueWithoutReservationInput | CardNewsJobUpsertWithWhereUniqueWithoutReservationInput[]
+    createMany?: CardNewsJobCreateManyReservationInputEnvelope
+    set?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    disconnect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    delete?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    update?: CardNewsJobUpdateWithWhereUniqueWithoutReservationInput | CardNewsJobUpdateWithWhereUniqueWithoutReservationInput[]
+    updateMany?: CardNewsJobUpdateManyWithWhereWithoutReservationInput | CardNewsJobUpdateManyWithWhereWithoutReservationInput[]
+    deleteMany?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutCardNewsSetsInput = {
+    create?: XOR<UserCreateWithoutCardNewsSetsInput, UserUncheckedCreateWithoutCardNewsSetsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCardNewsSetsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ClipCreateNestedOneWithoutCardNewsSetsInput = {
+    create?: XOR<ClipCreateWithoutCardNewsSetsInput, ClipUncheckedCreateWithoutCardNewsSetsInput>
+    connectOrCreate?: ClipCreateOrConnectWithoutCardNewsSetsInput
+    connect?: ClipWhereUniqueInput
+  }
+
+  export type UploadedFileCreateNestedOneWithoutCardNewsSetsInput = {
+    create?: XOR<UploadedFileCreateWithoutCardNewsSetsInput, UploadedFileUncheckedCreateWithoutCardNewsSetsInput>
+    connectOrCreate?: UploadedFileCreateOrConnectWithoutCardNewsSetsInput
+    connect?: UploadedFileWhereUniqueInput
+  }
+
+  export type CardNewsSetCreateNestedOneWithoutRegeneratedSetsInput = {
+    create?: XOR<CardNewsSetCreateWithoutRegeneratedSetsInput, CardNewsSetUncheckedCreateWithoutRegeneratedSetsInput>
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutRegeneratedSetsInput
+    connect?: CardNewsSetWhereUniqueInput
+  }
+
+  export type CardNewsSetCreateNestedManyWithoutRegeneratedFromInput = {
+    create?: XOR<CardNewsSetCreateWithoutRegeneratedFromInput, CardNewsSetUncheckedCreateWithoutRegeneratedFromInput> | CardNewsSetCreateWithoutRegeneratedFromInput[] | CardNewsSetUncheckedCreateWithoutRegeneratedFromInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutRegeneratedFromInput | CardNewsSetCreateOrConnectWithoutRegeneratedFromInput[]
+    createMany?: CardNewsSetCreateManyRegeneratedFromInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+  }
+
+  export type CardNewsJobCreateNestedManyWithoutSetInput = {
+    create?: XOR<CardNewsJobCreateWithoutSetInput, CardNewsJobUncheckedCreateWithoutSetInput> | CardNewsJobCreateWithoutSetInput[] | CardNewsJobUncheckedCreateWithoutSetInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutSetInput | CardNewsJobCreateOrConnectWithoutSetInput[]
+    createMany?: CardNewsJobCreateManySetInputEnvelope
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+  }
+
+  export type CardNewsSetUncheckedCreateNestedManyWithoutRegeneratedFromInput = {
+    create?: XOR<CardNewsSetCreateWithoutRegeneratedFromInput, CardNewsSetUncheckedCreateWithoutRegeneratedFromInput> | CardNewsSetCreateWithoutRegeneratedFromInput[] | CardNewsSetUncheckedCreateWithoutRegeneratedFromInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutRegeneratedFromInput | CardNewsSetCreateOrConnectWithoutRegeneratedFromInput[]
+    createMany?: CardNewsSetCreateManyRegeneratedFromInputEnvelope
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+  }
+
+  export type CardNewsJobUncheckedCreateNestedManyWithoutSetInput = {
+    create?: XOR<CardNewsJobCreateWithoutSetInput, CardNewsJobUncheckedCreateWithoutSetInput> | CardNewsJobCreateWithoutSetInput[] | CardNewsJobUncheckedCreateWithoutSetInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutSetInput | CardNewsJobCreateOrConnectWithoutSetInput[]
+    createMany?: CardNewsJobCreateManySetInputEnvelope
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+  }
+
+  export type UserUpdateOneRequiredWithoutCardNewsSetsNestedInput = {
+    create?: XOR<UserCreateWithoutCardNewsSetsInput, UserUncheckedCreateWithoutCardNewsSetsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCardNewsSetsInput
+    upsert?: UserUpsertWithoutCardNewsSetsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCardNewsSetsInput, UserUpdateWithoutCardNewsSetsInput>, UserUncheckedUpdateWithoutCardNewsSetsInput>
+  }
+
+  export type ClipUpdateOneRequiredWithoutCardNewsSetsNestedInput = {
+    create?: XOR<ClipCreateWithoutCardNewsSetsInput, ClipUncheckedCreateWithoutCardNewsSetsInput>
+    connectOrCreate?: ClipCreateOrConnectWithoutCardNewsSetsInput
+    upsert?: ClipUpsertWithoutCardNewsSetsInput
+    connect?: ClipWhereUniqueInput
+    update?: XOR<XOR<ClipUpdateToOneWithWhereWithoutCardNewsSetsInput, ClipUpdateWithoutCardNewsSetsInput>, ClipUncheckedUpdateWithoutCardNewsSetsInput>
+  }
+
+  export type UploadedFileUpdateOneRequiredWithoutCardNewsSetsNestedInput = {
+    create?: XOR<UploadedFileCreateWithoutCardNewsSetsInput, UploadedFileUncheckedCreateWithoutCardNewsSetsInput>
+    connectOrCreate?: UploadedFileCreateOrConnectWithoutCardNewsSetsInput
+    upsert?: UploadedFileUpsertWithoutCardNewsSetsInput
+    connect?: UploadedFileWhereUniqueInput
+    update?: XOR<XOR<UploadedFileUpdateToOneWithWhereWithoutCardNewsSetsInput, UploadedFileUpdateWithoutCardNewsSetsInput>, UploadedFileUncheckedUpdateWithoutCardNewsSetsInput>
+  }
+
+  export type CardNewsSetUpdateOneWithoutRegeneratedSetsNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutRegeneratedSetsInput, CardNewsSetUncheckedCreateWithoutRegeneratedSetsInput>
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutRegeneratedSetsInput
+    upsert?: CardNewsSetUpsertWithoutRegeneratedSetsInput
+    disconnect?: CardNewsSetWhereInput | boolean
+    delete?: CardNewsSetWhereInput | boolean
+    connect?: CardNewsSetWhereUniqueInput
+    update?: XOR<XOR<CardNewsSetUpdateToOneWithWhereWithoutRegeneratedSetsInput, CardNewsSetUpdateWithoutRegeneratedSetsInput>, CardNewsSetUncheckedUpdateWithoutRegeneratedSetsInput>
+  }
+
+  export type CardNewsSetUpdateManyWithoutRegeneratedFromNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutRegeneratedFromInput, CardNewsSetUncheckedCreateWithoutRegeneratedFromInput> | CardNewsSetCreateWithoutRegeneratedFromInput[] | CardNewsSetUncheckedCreateWithoutRegeneratedFromInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutRegeneratedFromInput | CardNewsSetCreateOrConnectWithoutRegeneratedFromInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutRegeneratedFromInput | CardNewsSetUpsertWithWhereUniqueWithoutRegeneratedFromInput[]
+    createMany?: CardNewsSetCreateManyRegeneratedFromInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutRegeneratedFromInput | CardNewsSetUpdateWithWhereUniqueWithoutRegeneratedFromInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutRegeneratedFromInput | CardNewsSetUpdateManyWithWhereWithoutRegeneratedFromInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+  }
+
+  export type CardNewsJobUpdateManyWithoutSetNestedInput = {
+    create?: XOR<CardNewsJobCreateWithoutSetInput, CardNewsJobUncheckedCreateWithoutSetInput> | CardNewsJobCreateWithoutSetInput[] | CardNewsJobUncheckedCreateWithoutSetInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutSetInput | CardNewsJobCreateOrConnectWithoutSetInput[]
+    upsert?: CardNewsJobUpsertWithWhereUniqueWithoutSetInput | CardNewsJobUpsertWithWhereUniqueWithoutSetInput[]
+    createMany?: CardNewsJobCreateManySetInputEnvelope
+    set?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    disconnect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    delete?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    update?: CardNewsJobUpdateWithWhereUniqueWithoutSetInput | CardNewsJobUpdateWithWhereUniqueWithoutSetInput[]
+    updateMany?: CardNewsJobUpdateManyWithWhereWithoutSetInput | CardNewsJobUpdateManyWithWhereWithoutSetInput[]
+    deleteMany?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+  }
+
+  export type CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutRegeneratedFromInput, CardNewsSetUncheckedCreateWithoutRegeneratedFromInput> | CardNewsSetCreateWithoutRegeneratedFromInput[] | CardNewsSetUncheckedCreateWithoutRegeneratedFromInput[]
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutRegeneratedFromInput | CardNewsSetCreateOrConnectWithoutRegeneratedFromInput[]
+    upsert?: CardNewsSetUpsertWithWhereUniqueWithoutRegeneratedFromInput | CardNewsSetUpsertWithWhereUniqueWithoutRegeneratedFromInput[]
+    createMany?: CardNewsSetCreateManyRegeneratedFromInputEnvelope
+    set?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    disconnect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    delete?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    connect?: CardNewsSetWhereUniqueInput | CardNewsSetWhereUniqueInput[]
+    update?: CardNewsSetUpdateWithWhereUniqueWithoutRegeneratedFromInput | CardNewsSetUpdateWithWhereUniqueWithoutRegeneratedFromInput[]
+    updateMany?: CardNewsSetUpdateManyWithWhereWithoutRegeneratedFromInput | CardNewsSetUpdateManyWithWhereWithoutRegeneratedFromInput[]
+    deleteMany?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+  }
+
+  export type CardNewsJobUncheckedUpdateManyWithoutSetNestedInput = {
+    create?: XOR<CardNewsJobCreateWithoutSetInput, CardNewsJobUncheckedCreateWithoutSetInput> | CardNewsJobCreateWithoutSetInput[] | CardNewsJobUncheckedCreateWithoutSetInput[]
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutSetInput | CardNewsJobCreateOrConnectWithoutSetInput[]
+    upsert?: CardNewsJobUpsertWithWhereUniqueWithoutSetInput | CardNewsJobUpsertWithWhereUniqueWithoutSetInput[]
+    createMany?: CardNewsJobCreateManySetInputEnvelope
+    set?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    disconnect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    delete?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    connect?: CardNewsJobWhereUniqueInput | CardNewsJobWhereUniqueInput[]
+    update?: CardNewsJobUpdateWithWhereUniqueWithoutSetInput | CardNewsJobUpdateWithWhereUniqueWithoutSetInput[]
+    updateMany?: CardNewsJobUpdateManyWithWhereWithoutSetInput | CardNewsJobUpdateManyWithWhereWithoutSetInput[]
+    deleteMany?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutCardNewsJobsInput = {
+    create?: XOR<UserCreateWithoutCardNewsJobsInput, UserUncheckedCreateWithoutCardNewsJobsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCardNewsJobsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type CardNewsSetCreateNestedOneWithoutJobsInput = {
+    create?: XOR<CardNewsSetCreateWithoutJobsInput, CardNewsSetUncheckedCreateWithoutJobsInput>
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutJobsInput
+    connect?: CardNewsSetWhereUniqueInput
+  }
+
+  export type CreditReservationCreateNestedOneWithoutCardNewsJobsInput = {
+    create?: XOR<CreditReservationCreateWithoutCardNewsJobsInput, CreditReservationUncheckedCreateWithoutCardNewsJobsInput>
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutCardNewsJobsInput
+    connect?: CreditReservationWhereUniqueInput
+  }
+
+  export type CardNewsInvocationCreateNestedManyWithoutJobInput = {
+    create?: XOR<CardNewsInvocationCreateWithoutJobInput, CardNewsInvocationUncheckedCreateWithoutJobInput> | CardNewsInvocationCreateWithoutJobInput[] | CardNewsInvocationUncheckedCreateWithoutJobInput[]
+    connectOrCreate?: CardNewsInvocationCreateOrConnectWithoutJobInput | CardNewsInvocationCreateOrConnectWithoutJobInput[]
+    createMany?: CardNewsInvocationCreateManyJobInputEnvelope
+    connect?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+  }
+
+  export type CardNewsInvocationUncheckedCreateNestedManyWithoutJobInput = {
+    create?: XOR<CardNewsInvocationCreateWithoutJobInput, CardNewsInvocationUncheckedCreateWithoutJobInput> | CardNewsInvocationCreateWithoutJobInput[] | CardNewsInvocationUncheckedCreateWithoutJobInput[]
+    connectOrCreate?: CardNewsInvocationCreateOrConnectWithoutJobInput | CardNewsInvocationCreateOrConnectWithoutJobInput[]
+    createMany?: CardNewsInvocationCreateManyJobInputEnvelope
+    connect?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+  }
+
+  export type UserUpdateOneRequiredWithoutCardNewsJobsNestedInput = {
+    create?: XOR<UserCreateWithoutCardNewsJobsInput, UserUncheckedCreateWithoutCardNewsJobsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCardNewsJobsInput
+    upsert?: UserUpsertWithoutCardNewsJobsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCardNewsJobsInput, UserUpdateWithoutCardNewsJobsInput>, UserUncheckedUpdateWithoutCardNewsJobsInput>
+  }
+
+  export type CardNewsSetUpdateOneRequiredWithoutJobsNestedInput = {
+    create?: XOR<CardNewsSetCreateWithoutJobsInput, CardNewsSetUncheckedCreateWithoutJobsInput>
+    connectOrCreate?: CardNewsSetCreateOrConnectWithoutJobsInput
+    upsert?: CardNewsSetUpsertWithoutJobsInput
+    connect?: CardNewsSetWhereUniqueInput
+    update?: XOR<XOR<CardNewsSetUpdateToOneWithWhereWithoutJobsInput, CardNewsSetUpdateWithoutJobsInput>, CardNewsSetUncheckedUpdateWithoutJobsInput>
+  }
+
+  export type CreditReservationUpdateOneWithoutCardNewsJobsNestedInput = {
+    create?: XOR<CreditReservationCreateWithoutCardNewsJobsInput, CreditReservationUncheckedCreateWithoutCardNewsJobsInput>
+    connectOrCreate?: CreditReservationCreateOrConnectWithoutCardNewsJobsInput
+    upsert?: CreditReservationUpsertWithoutCardNewsJobsInput
+    disconnect?: CreditReservationWhereInput | boolean
+    delete?: CreditReservationWhereInput | boolean
+    connect?: CreditReservationWhereUniqueInput
+    update?: XOR<XOR<CreditReservationUpdateToOneWithWhereWithoutCardNewsJobsInput, CreditReservationUpdateWithoutCardNewsJobsInput>, CreditReservationUncheckedUpdateWithoutCardNewsJobsInput>
+  }
+
+  export type CardNewsInvocationUpdateManyWithoutJobNestedInput = {
+    create?: XOR<CardNewsInvocationCreateWithoutJobInput, CardNewsInvocationUncheckedCreateWithoutJobInput> | CardNewsInvocationCreateWithoutJobInput[] | CardNewsInvocationUncheckedCreateWithoutJobInput[]
+    connectOrCreate?: CardNewsInvocationCreateOrConnectWithoutJobInput | CardNewsInvocationCreateOrConnectWithoutJobInput[]
+    upsert?: CardNewsInvocationUpsertWithWhereUniqueWithoutJobInput | CardNewsInvocationUpsertWithWhereUniqueWithoutJobInput[]
+    createMany?: CardNewsInvocationCreateManyJobInputEnvelope
+    set?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    disconnect?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    delete?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    connect?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    update?: CardNewsInvocationUpdateWithWhereUniqueWithoutJobInput | CardNewsInvocationUpdateWithWhereUniqueWithoutJobInput[]
+    updateMany?: CardNewsInvocationUpdateManyWithWhereWithoutJobInput | CardNewsInvocationUpdateManyWithWhereWithoutJobInput[]
+    deleteMany?: CardNewsInvocationScalarWhereInput | CardNewsInvocationScalarWhereInput[]
+  }
+
+  export type CardNewsInvocationUncheckedUpdateManyWithoutJobNestedInput = {
+    create?: XOR<CardNewsInvocationCreateWithoutJobInput, CardNewsInvocationUncheckedCreateWithoutJobInput> | CardNewsInvocationCreateWithoutJobInput[] | CardNewsInvocationUncheckedCreateWithoutJobInput[]
+    connectOrCreate?: CardNewsInvocationCreateOrConnectWithoutJobInput | CardNewsInvocationCreateOrConnectWithoutJobInput[]
+    upsert?: CardNewsInvocationUpsertWithWhereUniqueWithoutJobInput | CardNewsInvocationUpsertWithWhereUniqueWithoutJobInput[]
+    createMany?: CardNewsInvocationCreateManyJobInputEnvelope
+    set?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    disconnect?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    delete?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    connect?: CardNewsInvocationWhereUniqueInput | CardNewsInvocationWhereUniqueInput[]
+    update?: CardNewsInvocationUpdateWithWhereUniqueWithoutJobInput | CardNewsInvocationUpdateWithWhereUniqueWithoutJobInput[]
+    updateMany?: CardNewsInvocationUpdateManyWithWhereWithoutJobInput | CardNewsInvocationUpdateManyWithWhereWithoutJobInput[]
+    deleteMany?: CardNewsInvocationScalarWhereInput | CardNewsInvocationScalarWhereInput[]
+  }
+
+  export type CardNewsJobCreateNestedOneWithoutInvocationsInput = {
+    create?: XOR<CardNewsJobCreateWithoutInvocationsInput, CardNewsJobUncheckedCreateWithoutInvocationsInput>
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutInvocationsInput
+    connect?: CardNewsJobWhereUniqueInput
+  }
+
+  export type CardNewsJobUpdateOneRequiredWithoutInvocationsNestedInput = {
+    create?: XOR<CardNewsJobCreateWithoutInvocationsInput, CardNewsJobUncheckedCreateWithoutInvocationsInput>
+    connectOrCreate?: CardNewsJobCreateOrConnectWithoutInvocationsInput
+    upsert?: CardNewsJobUpsertWithoutInvocationsInput
+    connect?: CardNewsJobWhereUniqueInput
+    update?: XOR<XOR<CardNewsJobUpdateToOneWithWhereWithoutInvocationsInput, CardNewsJobUpdateWithoutInvocationsInput>, CardNewsJobUncheckedUpdateWithoutInvocationsInput>
+  }
+
+  export type UserCreateNestedOneWithoutAssetCleanupJobsInput = {
+    create?: XOR<UserCreateWithoutAssetCleanupJobsInput, UserUncheckedCreateWithoutAssetCleanupJobsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssetCleanupJobsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutAssetCleanupJobsNestedInput = {
+    create?: XOR<UserCreateWithoutAssetCleanupJobsInput, UserUncheckedCreateWithoutAssetCleanupJobsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssetCleanupJobsInput
+    upsert?: UserUpsertWithoutAssetCleanupJobsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAssetCleanupJobsInput, UserUpdateWithoutAssetCleanupJobsInput>, UserUncheckedUpdateWithoutAssetCleanupJobsInput>
   }
 
   export type UserCreateNestedOneWithoutSubscriptionInput = {
@@ -19602,6 +30206,29 @@ export namespace Prisma {
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type UserCreateWithoutAccountsInput = {
     id?: string
@@ -19610,6 +30237,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -19625,6 +30253,10 @@ export namespace Prisma {
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -19634,6 +30266,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -19649,6 +30282,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -19674,6 +30311,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19689,6 +30327,10 @@ export namespace Prisma {
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -19698,6 +30340,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19713,6 +30356,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -19722,6 +30369,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -19737,6 +30385,10 @@ export namespace Prisma {
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -19746,6 +30398,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -19761,6 +30414,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -19786,6 +30443,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19801,6 +30459,10 @@ export namespace Prisma {
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -19810,6 +30472,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19825,6 +30488,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AccountCreateWithoutUserInput = {
@@ -19913,9 +30580,11 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileUncheckedCreateWithoutUserInput = {
@@ -19942,9 +30611,11 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutUserInput = {
@@ -19970,10 +30641,12 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
     uploadedFile?: UploadedFileCreateNestedOneWithoutClipsInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutClipInput
   }
 
   export type ClipUncheckedCreateWithoutUserInput = {
@@ -19989,10 +30662,12 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
     uploadedFileId?: string | null
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutClipInput
   }
 
   export type ClipCreateOrConnectWithoutUserInput = {
@@ -20104,6 +30779,244 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CreditReservationCreateWithoutUserInput = {
+    id?: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutReservationInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationUncheckedCreateWithoutUserInput = {
+    id?: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutReservationInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationCreateOrConnectWithoutUserInput = {
+    where: CreditReservationWhereUniqueInput
+    create: XOR<CreditReservationCreateWithoutUserInput, CreditReservationUncheckedCreateWithoutUserInput>
+  }
+
+  export type CreditReservationCreateManyUserInputEnvelope = {
+    data: CreditReservationCreateManyUserInput | CreditReservationCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CardNewsSetCreateWithoutUserInput = {
+    id?: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    clip: ClipCreateNestedOneWithoutCardNewsSetsInput
+    uploadedFile: UploadedFileCreateNestedOneWithoutCardNewsSetsInput
+    regeneratedFrom?: CardNewsSetCreateNestedOneWithoutRegeneratedSetsInput
+    regeneratedSets?: CardNewsSetCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetUncheckedCreateWithoutUserInput = {
+    id?: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    regeneratedSets?: CardNewsSetUncheckedCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobUncheckedCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetCreateOrConnectWithoutUserInput = {
+    where: CardNewsSetWhereUniqueInput
+    create: XOR<CardNewsSetCreateWithoutUserInput, CardNewsSetUncheckedCreateWithoutUserInput>
+  }
+
+  export type CardNewsSetCreateManyUserInputEnvelope = {
+    data: CardNewsSetCreateManyUserInput | CardNewsSetCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CardNewsJobCreateWithoutUserInput = {
+    id?: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    set: CardNewsSetCreateNestedOneWithoutJobsInput
+    reservation?: CreditReservationCreateNestedOneWithoutCardNewsJobsInput
+    invocations?: CardNewsInvocationCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobUncheckedCreateWithoutUserInput = {
+    id?: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    reservationId?: string | null
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    invocations?: CardNewsInvocationUncheckedCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobCreateOrConnectWithoutUserInput = {
+    where: CardNewsJobWhereUniqueInput
+    create: XOR<CardNewsJobCreateWithoutUserInput, CardNewsJobUncheckedCreateWithoutUserInput>
+  }
+
+  export type CardNewsJobCreateManyUserInputEnvelope = {
+    data: CardNewsJobCreateManyUserInput | CardNewsJobCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AssetCleanupJobCreateWithoutUserInput = {
+    id?: string
+    kind: string
+    scopeId: string
+    scopeSnapshot: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: string
+    notBefore?: Date | string
+    leaseUntil?: Date | string | null
+    nextRetryAt?: Date | string | null
+    attemptCount?: number
+    lastError?: string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssetCleanupJobUncheckedCreateWithoutUserInput = {
+    id?: string
+    kind: string
+    scopeId: string
+    scopeSnapshot: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: string
+    notBefore?: Date | string
+    leaseUntil?: Date | string | null
+    nextRetryAt?: Date | string | null
+    attemptCount?: number
+    lastError?: string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssetCleanupJobCreateOrConnectWithoutUserInput = {
+    where: AssetCleanupJobWhereUniqueInput
+    create: XOR<AssetCleanupJobCreateWithoutUserInput, AssetCleanupJobUncheckedCreateWithoutUserInput>
+  }
+
+  export type AssetCleanupJobCreateManyUserInputEnvelope = {
+    data: AssetCleanupJobCreateManyUserInput | AssetCleanupJobCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
     where: AccountWhereUniqueInput
     update: XOR<AccountUpdateWithoutUserInput, AccountUncheckedUpdateWithoutUserInput>
@@ -20208,6 +31121,7 @@ export namespace Prisma {
     reviewAttempt?: IntNullableFilter<"UploadedFile"> | number | null
     reviewReadyAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     transcriptS3Key?: StringNullableFilter<"UploadedFile"> | string | null
+    deletedAt?: DateTimeNullableFilter<"UploadedFile"> | Date | string | null
     userId?: StringFilter<"UploadedFile"> | string
   }
 
@@ -20243,6 +31157,7 @@ export namespace Prisma {
     subtitleStatus?: StringNullableFilter<"Clip"> | string | null
     createdAt?: DateTimeFilter<"Clip"> | Date | string
     updatedAt?: DateTimeFilter<"Clip"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Clip"> | Date | string | null
     youtubeTitle?: StringNullableFilter<"Clip"> | string | null
     youtubeDescription?: StringNullableFilter<"Clip"> | string | null
     youtubeHashtags?: StringNullableFilter<"Clip"> | string | null
@@ -20354,6 +31269,180 @@ export namespace Prisma {
     userId?: StringNullableFilter<"AnalyticsEvent"> | string | null
   }
 
+  export type CreditReservationUpsertWithWhereUniqueWithoutUserInput = {
+    where: CreditReservationWhereUniqueInput
+    update: XOR<CreditReservationUpdateWithoutUserInput, CreditReservationUncheckedUpdateWithoutUserInput>
+    create: XOR<CreditReservationCreateWithoutUserInput, CreditReservationUncheckedCreateWithoutUserInput>
+  }
+
+  export type CreditReservationUpdateWithWhereUniqueWithoutUserInput = {
+    where: CreditReservationWhereUniqueInput
+    data: XOR<CreditReservationUpdateWithoutUserInput, CreditReservationUncheckedUpdateWithoutUserInput>
+  }
+
+  export type CreditReservationUpdateManyWithWhereWithoutUserInput = {
+    where: CreditReservationScalarWhereInput
+    data: XOR<CreditReservationUpdateManyMutationInput, CreditReservationUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type CreditReservationScalarWhereInput = {
+    AND?: CreditReservationScalarWhereInput | CreditReservationScalarWhereInput[]
+    OR?: CreditReservationScalarWhereInput[]
+    NOT?: CreditReservationScalarWhereInput | CreditReservationScalarWhereInput[]
+    id?: StringFilter<"CreditReservation"> | string
+    userId?: StringFilter<"CreditReservation"> | string
+    operationKey?: StringFilter<"CreditReservation"> | string
+    kind?: StringFilter<"CreditReservation"> | string
+    reservedAmount?: IntFilter<"CreditReservation"> | number
+    chargedAmount?: IntFilter<"CreditReservation"> | number
+    status?: StringFilter<"CreditReservation"> | string
+    createdAt?: DateTimeFilter<"CreditReservation"> | Date | string
+    updatedAt?: DateTimeFilter<"CreditReservation"> | Date | string
+    settledAt?: DateTimeNullableFilter<"CreditReservation"> | Date | string | null
+    releasedAt?: DateTimeNullableFilter<"CreditReservation"> | Date | string | null
+  }
+
+  export type CardNewsSetUpsertWithWhereUniqueWithoutUserInput = {
+    where: CardNewsSetWhereUniqueInput
+    update: XOR<CardNewsSetUpdateWithoutUserInput, CardNewsSetUncheckedUpdateWithoutUserInput>
+    create: XOR<CardNewsSetCreateWithoutUserInput, CardNewsSetUncheckedCreateWithoutUserInput>
+  }
+
+  export type CardNewsSetUpdateWithWhereUniqueWithoutUserInput = {
+    where: CardNewsSetWhereUniqueInput
+    data: XOR<CardNewsSetUpdateWithoutUserInput, CardNewsSetUncheckedUpdateWithoutUserInput>
+  }
+
+  export type CardNewsSetUpdateManyWithWhereWithoutUserInput = {
+    where: CardNewsSetScalarWhereInput
+    data: XOR<CardNewsSetUpdateManyMutationInput, CardNewsSetUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type CardNewsSetScalarWhereInput = {
+    AND?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+    OR?: CardNewsSetScalarWhereInput[]
+    NOT?: CardNewsSetScalarWhereInput | CardNewsSetScalarWhereInput[]
+    id?: StringFilter<"CardNewsSet"> | string
+    userId?: StringFilter<"CardNewsSet"> | string
+    clipId?: StringFilter<"CardNewsSet"> | string
+    uploadedFileId?: StringFilter<"CardNewsSet"> | string
+    sourceSnapshot?: JsonFilter<"CardNewsSet">
+    sourceHash?: StringFilter<"CardNewsSet"> | string
+    language?: StringFilter<"CardNewsSet"> | string
+    draftDocument?: JsonNullableFilter<"CardNewsSet">
+    draftSnapshots?: JsonFilter<"CardNewsSet">
+    draftRevision?: IntFilter<"CardNewsSet"> | number
+    publishedRevision?: IntFilter<"CardNewsSet"> | number
+    pendingRenderRevision?: IntNullableFilter<"CardNewsSet"> | number | null
+    regeneratedFromId?: StringNullableFilter<"CardNewsSet"> | string | null
+    status?: StringFilter<"CardNewsSet"> | string
+    deletedAt?: DateTimeNullableFilter<"CardNewsSet"> | Date | string | null
+    createdAt?: DateTimeFilter<"CardNewsSet"> | Date | string
+    updatedAt?: DateTimeFilter<"CardNewsSet"> | Date | string
+  }
+
+  export type CardNewsJobUpsertWithWhereUniqueWithoutUserInput = {
+    where: CardNewsJobWhereUniqueInput
+    update: XOR<CardNewsJobUpdateWithoutUserInput, CardNewsJobUncheckedUpdateWithoutUserInput>
+    create: XOR<CardNewsJobCreateWithoutUserInput, CardNewsJobUncheckedCreateWithoutUserInput>
+  }
+
+  export type CardNewsJobUpdateWithWhereUniqueWithoutUserInput = {
+    where: CardNewsJobWhereUniqueInput
+    data: XOR<CardNewsJobUpdateWithoutUserInput, CardNewsJobUncheckedUpdateWithoutUserInput>
+  }
+
+  export type CardNewsJobUpdateManyWithWhereWithoutUserInput = {
+    where: CardNewsJobScalarWhereInput
+    data: XOR<CardNewsJobUpdateManyMutationInput, CardNewsJobUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type CardNewsJobScalarWhereInput = {
+    AND?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+    OR?: CardNewsJobScalarWhereInput[]
+    NOT?: CardNewsJobScalarWhereInput | CardNewsJobScalarWhereInput[]
+    id?: StringFilter<"CardNewsJob"> | string
+    userId?: StringFilter<"CardNewsJob"> | string
+    setId?: StringFilter<"CardNewsJob"> | string
+    kind?: StringFilter<"CardNewsJob"> | string
+    requestId?: StringFilter<"CardNewsJob"> | string
+    requestHash?: StringFilter<"CardNewsJob"> | string
+    inputRevision?: IntFilter<"CardNewsJob"> | number
+    inputSnapshot?: JsonFilter<"CardNewsJob">
+    executionEpoch?: IntFilter<"CardNewsJob"> | number
+    status?: StringFilter<"CardNewsJob"> | string
+    stage?: StringFilter<"CardNewsJob"> | string
+    reservationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    templateVersion?: StringFilter<"CardNewsJob"> | string
+    deadlineAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    dispatchStatus?: StringFilter<"CardNewsJob"> | string
+    dispatchLeaseUntil?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    nextDispatchAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    dispatchCount?: IntFilter<"CardNewsJob"> | number
+    lastDispatchError?: StringNullableFilter<"CardNewsJob"> | string | null
+    dispatchedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    claimedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    heartbeatAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    workerRunId?: StringNullableFilter<"CardNewsJob"> | string | null
+    modalCallId?: StringNullableFilter<"CardNewsJob"> | string | null
+    callbackInbox?: JsonFilter<"CardNewsJob">
+    modalSpawnState?: StringFilter<"CardNewsJob"> | string
+    selectedManifestKey?: StringNullableFilter<"CardNewsJob"> | string | null
+    selectedInvocationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    progressInvocationId?: StringNullableFilter<"CardNewsJob"> | string | null
+    manifest?: JsonNullableFilter<"CardNewsJob">
+    failureCode?: StringNullableFilter<"CardNewsJob"> | string | null
+    completedAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    usageMetrics?: JsonNullableFilter<"CardNewsJob">
+    analyticsContext?: JsonNullableFilter<"CardNewsJob">
+    pendingAnalytics?: JsonFilter<"CardNewsJob">
+    outputRetiredAt?: DateTimeNullableFilter<"CardNewsJob"> | Date | string | null
+    createdAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+    updatedAt?: DateTimeFilter<"CardNewsJob"> | Date | string
+  }
+
+  export type AssetCleanupJobUpsertWithWhereUniqueWithoutUserInput = {
+    where: AssetCleanupJobWhereUniqueInput
+    update: XOR<AssetCleanupJobUpdateWithoutUserInput, AssetCleanupJobUncheckedUpdateWithoutUserInput>
+    create: XOR<AssetCleanupJobCreateWithoutUserInput, AssetCleanupJobUncheckedCreateWithoutUserInput>
+  }
+
+  export type AssetCleanupJobUpdateWithWhereUniqueWithoutUserInput = {
+    where: AssetCleanupJobWhereUniqueInput
+    data: XOR<AssetCleanupJobUpdateWithoutUserInput, AssetCleanupJobUncheckedUpdateWithoutUserInput>
+  }
+
+  export type AssetCleanupJobUpdateManyWithWhereWithoutUserInput = {
+    where: AssetCleanupJobScalarWhereInput
+    data: XOR<AssetCleanupJobUpdateManyMutationInput, AssetCleanupJobUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type AssetCleanupJobScalarWhereInput = {
+    AND?: AssetCleanupJobScalarWhereInput | AssetCleanupJobScalarWhereInput[]
+    OR?: AssetCleanupJobScalarWhereInput[]
+    NOT?: AssetCleanupJobScalarWhereInput | AssetCleanupJobScalarWhereInput[]
+    id?: StringFilter<"AssetCleanupJob"> | string
+    userId?: StringFilter<"AssetCleanupJob"> | string
+    kind?: StringFilter<"AssetCleanupJob"> | string
+    scopeId?: StringFilter<"AssetCleanupJob"> | string
+    scopeSnapshot?: JsonFilter<"AssetCleanupJob">
+    exactKeys?: JsonFilter<"AssetCleanupJob">
+    dedicatedPrefixes?: JsonFilter<"AssetCleanupJob">
+    retainedReferences?: JsonFilter<"AssetCleanupJob">
+    producerReferences?: JsonFilter<"AssetCleanupJob">
+    cursor?: JsonNullableFilter<"AssetCleanupJob">
+    failedKeys?: JsonFilter<"AssetCleanupJob">
+    status?: StringFilter<"AssetCleanupJob"> | string
+    notBefore?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    leaseUntil?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    nextRetryAt?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    attemptCount?: IntFilter<"AssetCleanupJob"> | number
+    lastError?: StringNullableFilter<"AssetCleanupJob"> | string | null
+    completedAt?: DateTimeNullableFilter<"AssetCleanupJob"> | Date | string | null
+    createdAt?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+    updatedAt?: DateTimeFilter<"AssetCleanupJob"> | Date | string
+  }
+
   export type ClipCreateWithoutUploadedFileInput = {
     id?: string
     s3Key: string
@@ -20367,10 +31456,12 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
     user: UserCreateNestedOneWithoutClipsInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutClipInput
   }
 
   export type ClipUncheckedCreateWithoutUploadedFileInput = {
@@ -20386,10 +31477,12 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
     userId: string
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutClipInput
   }
 
   export type ClipCreateOrConnectWithoutUploadedFileInput = {
@@ -20414,6 +31507,16 @@ export namespace Prisma {
     lockedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
+    reservation?: CreditReservationCreateNestedOneWithoutDispatchesInput
   }
 
   export type ProcessingDispatchUncheckedCreateWithoutUploadedFileInput = {
@@ -20428,6 +31531,16 @@ export namespace Prisma {
     lockedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
   }
 
   export type ProcessingDispatchCreateOrConnectWithoutUploadedFileInput = {
@@ -20484,6 +31597,58 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CardNewsSetCreateWithoutUploadedFileInput = {
+    id?: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsSetsInput
+    clip: ClipCreateNestedOneWithoutCardNewsSetsInput
+    regeneratedFrom?: CardNewsSetCreateNestedOneWithoutRegeneratedSetsInput
+    regeneratedSets?: CardNewsSetCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetUncheckedCreateWithoutUploadedFileInput = {
+    id?: string
+    userId: string
+    clipId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    regeneratedSets?: CardNewsSetUncheckedCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobUncheckedCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetCreateOrConnectWithoutUploadedFileInput = {
+    where: CardNewsSetWhereUniqueInput
+    create: XOR<CardNewsSetCreateWithoutUploadedFileInput, CardNewsSetUncheckedCreateWithoutUploadedFileInput>
+  }
+
+  export type CardNewsSetCreateManyUploadedFileInputEnvelope = {
+    data: CardNewsSetCreateManyUploadedFileInput | CardNewsSetCreateManyUploadedFileInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserCreateWithoutUploadedFilesInput = {
     id?: string
     name?: string | null
@@ -20491,6 +31656,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -20506,6 +31672,10 @@ export namespace Prisma {
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutUploadedFilesInput = {
@@ -20515,6 +31685,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -20530,6 +31701,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutUploadedFilesInput = {
@@ -20585,6 +31760,16 @@ export namespace Prisma {
     lockedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
     createdAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
     updatedAt?: DateTimeFilter<"ProcessingDispatch"> | Date | string
+    workerRunId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    modalCallId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    modalSpawnState?: StringFilter<"ProcessingDispatch"> | string
+    producerEndEvidence?: JsonNullableFilter<"ProcessingDispatch">
+    reservationId?: StringNullableFilter<"ProcessingDispatch"> | string | null
+    inputSnapshot?: JsonNullableFilter<"ProcessingDispatch">
+    claimedAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    leaseUntil?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    heartbeatAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
+    deadlineAt?: DateTimeNullableFilter<"ProcessingDispatch"> | Date | string | null
   }
 
   export type ClipDraftUpsertWithWhereUniqueWithoutUploadedFileInput = {
@@ -20624,6 +31809,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ClipDraft"> | Date | string
   }
 
+  export type CardNewsSetUpsertWithWhereUniqueWithoutUploadedFileInput = {
+    where: CardNewsSetWhereUniqueInput
+    update: XOR<CardNewsSetUpdateWithoutUploadedFileInput, CardNewsSetUncheckedUpdateWithoutUploadedFileInput>
+    create: XOR<CardNewsSetCreateWithoutUploadedFileInput, CardNewsSetUncheckedCreateWithoutUploadedFileInput>
+  }
+
+  export type CardNewsSetUpdateWithWhereUniqueWithoutUploadedFileInput = {
+    where: CardNewsSetWhereUniqueInput
+    data: XOR<CardNewsSetUpdateWithoutUploadedFileInput, CardNewsSetUncheckedUpdateWithoutUploadedFileInput>
+  }
+
+  export type CardNewsSetUpdateManyWithWhereWithoutUploadedFileInput = {
+    where: CardNewsSetScalarWhereInput
+    data: XOR<CardNewsSetUpdateManyMutationInput, CardNewsSetUncheckedUpdateManyWithoutUploadedFileInput>
+  }
+
   export type UserUpsertWithoutUploadedFilesInput = {
     update: XOR<UserUpdateWithoutUploadedFilesInput, UserUncheckedUpdateWithoutUploadedFilesInput>
     create: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>
@@ -20642,6 +31843,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20657,6 +31859,10 @@ export namespace Prisma {
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutUploadedFilesInput = {
@@ -20666,6 +31872,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20681,6 +31888,10 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UploadedFileCreateWithoutClipsInput = {
@@ -20707,8 +31918,10 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -20736,9 +31949,11 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     userId: string
     dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutClipsInput = {
@@ -20753,6 +31968,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -20768,6 +31984,10 @@ export namespace Prisma {
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutClipsInput = {
@@ -20777,6 +31997,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -20792,11 +32013,67 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutClipsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutClipsInput, UserUncheckedCreateWithoutClipsInput>
+  }
+
+  export type CardNewsSetCreateWithoutClipInput = {
+    id?: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsSetsInput
+    uploadedFile: UploadedFileCreateNestedOneWithoutCardNewsSetsInput
+    regeneratedFrom?: CardNewsSetCreateNestedOneWithoutRegeneratedSetsInput
+    regeneratedSets?: CardNewsSetCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetUncheckedCreateWithoutClipInput = {
+    id?: string
+    userId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    regeneratedSets?: CardNewsSetUncheckedCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobUncheckedCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetCreateOrConnectWithoutClipInput = {
+    where: CardNewsSetWhereUniqueInput
+    create: XOR<CardNewsSetCreateWithoutClipInput, CardNewsSetUncheckedCreateWithoutClipInput>
+  }
+
+  export type CardNewsSetCreateManyClipInputEnvelope = {
+    data: CardNewsSetCreateManyClipInput | CardNewsSetCreateManyClipInput[]
+    skipDuplicates?: boolean
   }
 
   export type UploadedFileUpsertWithoutClipsInput = {
@@ -20834,8 +32111,10 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -20863,9 +32142,11 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
     dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UserUpsertWithoutClipsInput = {
@@ -20886,6 +32167,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20901,6 +32183,10 @@ export namespace Prisma {
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutClipsInput = {
@@ -20910,6 +32196,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -20925,6 +32212,26 @@ export namespace Prisma {
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CardNewsSetUpsertWithWhereUniqueWithoutClipInput = {
+    where: CardNewsSetWhereUniqueInput
+    update: XOR<CardNewsSetUpdateWithoutClipInput, CardNewsSetUncheckedUpdateWithoutClipInput>
+    create: XOR<CardNewsSetCreateWithoutClipInput, CardNewsSetUncheckedCreateWithoutClipInput>
+  }
+
+  export type CardNewsSetUpdateWithWhereUniqueWithoutClipInput = {
+    where: CardNewsSetWhereUniqueInput
+    data: XOR<CardNewsSetUpdateWithoutClipInput, CardNewsSetUncheckedUpdateWithoutClipInput>
+  }
+
+  export type CardNewsSetUpdateManyWithWhereWithoutClipInput = {
+    where: CardNewsSetScalarWhereInput
+    data: XOR<CardNewsSetUpdateManyMutationInput, CardNewsSetUncheckedUpdateManyWithoutClipInput>
   }
 
   export type UploadedFileCreateWithoutClipDraftsInput = {
@@ -20951,8 +32258,10 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -20980,9 +32289,11 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     userId: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
     dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutClipDraftsInput = {
@@ -21025,8 +32336,10 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -21054,9 +32367,46 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUploadedFileNestedInput
+  }
+
+  export type CreditReservationCreateWithoutDispatchesInput = {
+    id?: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutCreditReservationsInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationUncheckedCreateWithoutDispatchesInput = {
+    id?: string
+    userId: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationCreateOrConnectWithoutDispatchesInput = {
+    where: CreditReservationWhereUniqueInput
+    create: XOR<CreditReservationCreateWithoutDispatchesInput, CreditReservationUncheckedCreateWithoutDispatchesInput>
   }
 
   export type UploadedFileCreateWithoutDispatchesInput = {
@@ -21083,8 +32433,10 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     clips?: ClipCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUploadedFileInput
     user: UserCreateNestedOneWithoutUploadedFilesInput
   }
 
@@ -21112,14 +32464,57 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
     userId: string
     clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
     clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUploadedFileInput
   }
 
   export type UploadedFileCreateOrConnectWithoutDispatchesInput = {
     where: UploadedFileWhereUniqueInput
     create: XOR<UploadedFileCreateWithoutDispatchesInput, UploadedFileUncheckedCreateWithoutDispatchesInput>
+  }
+
+  export type CreditReservationUpsertWithoutDispatchesInput = {
+    update: XOR<CreditReservationUpdateWithoutDispatchesInput, CreditReservationUncheckedUpdateWithoutDispatchesInput>
+    create: XOR<CreditReservationCreateWithoutDispatchesInput, CreditReservationUncheckedCreateWithoutDispatchesInput>
+    where?: CreditReservationWhereInput
+  }
+
+  export type CreditReservationUpdateToOneWithWhereWithoutDispatchesInput = {
+    where?: CreditReservationWhereInput
+    data: XOR<CreditReservationUpdateWithoutDispatchesInput, CreditReservationUncheckedUpdateWithoutDispatchesInput>
+  }
+
+  export type CreditReservationUpdateWithoutDispatchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutCreditReservationsNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutReservationNestedInput
+  }
+
+  export type CreditReservationUncheckedUpdateWithoutDispatchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutReservationNestedInput
   }
 
   export type UploadedFileUpsertWithoutDispatchesInput = {
@@ -21157,8 +32552,10 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUploadedFileNestedInput
     user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
   }
 
@@ -21186,9 +32583,1668 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUploadedFileNestedInput
+  }
+
+  export type UserCreateWithoutCreditReservationsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
+    clips?: ClipCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionCreateNestedOneWithoutUserInput
+    orders?: OrderCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCreditReservationsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
+    clips?: ClipUncheckedCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
+    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCreditReservationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCreditReservationsInput, UserUncheckedCreateWithoutCreditReservationsInput>
+  }
+
+  export type ProcessingDispatchCreateWithoutReservationInput = {
+    id?: string
+    attempt: number
+    kind?: string
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
+    uploadedFile: UploadedFileCreateNestedOneWithoutDispatchesInput
+  }
+
+  export type ProcessingDispatchUncheckedCreateWithoutReservationInput = {
+    id?: string
+    uploadedFileId: string
+    attempt: number
+    kind?: string
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
+  }
+
+  export type ProcessingDispatchCreateOrConnectWithoutReservationInput = {
+    where: ProcessingDispatchWhereUniqueInput
+    create: XOR<ProcessingDispatchCreateWithoutReservationInput, ProcessingDispatchUncheckedCreateWithoutReservationInput>
+  }
+
+  export type ProcessingDispatchCreateManyReservationInputEnvelope = {
+    data: ProcessingDispatchCreateManyReservationInput | ProcessingDispatchCreateManyReservationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CardNewsJobCreateWithoutReservationInput = {
+    id?: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsJobsInput
+    set: CardNewsSetCreateNestedOneWithoutJobsInput
+    invocations?: CardNewsInvocationCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobUncheckedCreateWithoutReservationInput = {
+    id?: string
+    userId: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    invocations?: CardNewsInvocationUncheckedCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobCreateOrConnectWithoutReservationInput = {
+    where: CardNewsJobWhereUniqueInput
+    create: XOR<CardNewsJobCreateWithoutReservationInput, CardNewsJobUncheckedCreateWithoutReservationInput>
+  }
+
+  export type CardNewsJobCreateManyReservationInputEnvelope = {
+    data: CardNewsJobCreateManyReservationInput | CardNewsJobCreateManyReservationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutCreditReservationsInput = {
+    update: XOR<UserUpdateWithoutCreditReservationsInput, UserUncheckedUpdateWithoutCreditReservationsInput>
+    create: XOR<UserCreateWithoutCreditReservationsInput, UserUncheckedCreateWithoutCreditReservationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCreditReservationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCreditReservationsInput, UserUncheckedUpdateWithoutCreditReservationsInput>
+  }
+
+  export type UserUpdateWithoutCreditReservationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
+    clips?: ClipUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUpdateOneWithoutUserNestedInput
+    orders?: OrderUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCreditReservationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
+    clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ProcessingDispatchUpsertWithWhereUniqueWithoutReservationInput = {
+    where: ProcessingDispatchWhereUniqueInput
+    update: XOR<ProcessingDispatchUpdateWithoutReservationInput, ProcessingDispatchUncheckedUpdateWithoutReservationInput>
+    create: XOR<ProcessingDispatchCreateWithoutReservationInput, ProcessingDispatchUncheckedCreateWithoutReservationInput>
+  }
+
+  export type ProcessingDispatchUpdateWithWhereUniqueWithoutReservationInput = {
+    where: ProcessingDispatchWhereUniqueInput
+    data: XOR<ProcessingDispatchUpdateWithoutReservationInput, ProcessingDispatchUncheckedUpdateWithoutReservationInput>
+  }
+
+  export type ProcessingDispatchUpdateManyWithWhereWithoutReservationInput = {
+    where: ProcessingDispatchScalarWhereInput
+    data: XOR<ProcessingDispatchUpdateManyMutationInput, ProcessingDispatchUncheckedUpdateManyWithoutReservationInput>
+  }
+
+  export type CardNewsJobUpsertWithWhereUniqueWithoutReservationInput = {
+    where: CardNewsJobWhereUniqueInput
+    update: XOR<CardNewsJobUpdateWithoutReservationInput, CardNewsJobUncheckedUpdateWithoutReservationInput>
+    create: XOR<CardNewsJobCreateWithoutReservationInput, CardNewsJobUncheckedCreateWithoutReservationInput>
+  }
+
+  export type CardNewsJobUpdateWithWhereUniqueWithoutReservationInput = {
+    where: CardNewsJobWhereUniqueInput
+    data: XOR<CardNewsJobUpdateWithoutReservationInput, CardNewsJobUncheckedUpdateWithoutReservationInput>
+  }
+
+  export type CardNewsJobUpdateManyWithWhereWithoutReservationInput = {
+    where: CardNewsJobScalarWhereInput
+    data: XOR<CardNewsJobUpdateManyMutationInput, CardNewsJobUncheckedUpdateManyWithoutReservationInput>
+  }
+
+  export type UserCreateWithoutCardNewsSetsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
+    clips?: ClipCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionCreateNestedOneWithoutUserInput
+    orders?: OrderCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCardNewsSetsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
+    clips?: ClipUncheckedCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
+    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCardNewsSetsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCardNewsSetsInput, UserUncheckedCreateWithoutCardNewsSetsInput>
+  }
+
+  export type ClipCreateWithoutCardNewsSetsInput = {
+    id?: string
+    s3Key: string
+    processingAttempt?: number
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    subtitleStatus?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
+    uploadedFile?: UploadedFileCreateNestedOneWithoutClipsInput
+    user: UserCreateNestedOneWithoutClipsInput
+  }
+
+  export type ClipUncheckedCreateWithoutCardNewsSetsInput = {
+    id?: string
+    s3Key: string
+    processingAttempt?: number
+    startSeconds?: number | null
+    endSeconds?: number | null
+    scriptText?: string | null
+    clipType?: string | null
+    hook?: string | null
+    payoff?: string | null
+    subtitleStatus?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    youtubeTitle?: string | null
+    youtubeDescription?: string | null
+    youtubeHashtags?: string | null
+    uploadedFileId?: string | null
+    userId: string
+  }
+
+  export type ClipCreateOrConnectWithoutCardNewsSetsInput = {
+    where: ClipWhereUniqueInput
+    create: XOR<ClipCreateWithoutCardNewsSetsInput, ClipUncheckedCreateWithoutCardNewsSetsInput>
+  }
+
+  export type UploadedFileCreateWithoutCardNewsSetsInput = {
+    id?: string
+    s3Key: string
+    displayName?: string | null
+    uploaded?: boolean
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
+    processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
+    language?: string
+    targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
+    clips?: ClipCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftCreateNestedManyWithoutUploadedFileInput
+    user: UserCreateNestedOneWithoutUploadedFilesInput
+  }
+
+  export type UploadedFileUncheckedCreateWithoutCardNewsSetsInput = {
+    id?: string
+    s3Key: string
+    displayName?: string | null
+    uploaded?: boolean
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sourceUploadedAt?: Date | string | null
+    enqueueRequestedAt?: Date | string | null
+    queuedAt?: Date | string | null
+    processingStartedAt?: Date | string | null
+    terminalStatusAt?: Date | string | null
+    currentAttempt?: number
+    lastSuccessfulAttempt?: number
+    failureCode?: string | null
+    language?: string
+    targetClipCount?: number
+    reviewBeforeGenerate?: boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: number
+    reviewAttempt?: number | null
+    reviewReadyAt?: Date | string | null
+    transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
+    userId: string
+    clips?: ClipUncheckedCreateNestedManyWithoutUploadedFileInput
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutUploadedFileInput
+    clipDrafts?: ClipDraftUncheckedCreateNestedManyWithoutUploadedFileInput
+  }
+
+  export type UploadedFileCreateOrConnectWithoutCardNewsSetsInput = {
+    where: UploadedFileWhereUniqueInput
+    create: XOR<UploadedFileCreateWithoutCardNewsSetsInput, UploadedFileUncheckedCreateWithoutCardNewsSetsInput>
+  }
+
+  export type CardNewsSetCreateWithoutRegeneratedSetsInput = {
+    id?: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsSetsInput
+    clip: ClipCreateNestedOneWithoutCardNewsSetsInput
+    uploadedFile: UploadedFileCreateNestedOneWithoutCardNewsSetsInput
+    regeneratedFrom?: CardNewsSetCreateNestedOneWithoutRegeneratedSetsInput
+    jobs?: CardNewsJobCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetUncheckedCreateWithoutRegeneratedSetsInput = {
+    id?: string
+    userId: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    jobs?: CardNewsJobUncheckedCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetCreateOrConnectWithoutRegeneratedSetsInput = {
+    where: CardNewsSetWhereUniqueInput
+    create: XOR<CardNewsSetCreateWithoutRegeneratedSetsInput, CardNewsSetUncheckedCreateWithoutRegeneratedSetsInput>
+  }
+
+  export type CardNewsSetCreateWithoutRegeneratedFromInput = {
+    id?: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsSetsInput
+    clip: ClipCreateNestedOneWithoutCardNewsSetsInput
+    uploadedFile: UploadedFileCreateNestedOneWithoutCardNewsSetsInput
+    regeneratedSets?: CardNewsSetCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetUncheckedCreateWithoutRegeneratedFromInput = {
+    id?: string
+    userId: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    regeneratedSets?: CardNewsSetUncheckedCreateNestedManyWithoutRegeneratedFromInput
+    jobs?: CardNewsJobUncheckedCreateNestedManyWithoutSetInput
+  }
+
+  export type CardNewsSetCreateOrConnectWithoutRegeneratedFromInput = {
+    where: CardNewsSetWhereUniqueInput
+    create: XOR<CardNewsSetCreateWithoutRegeneratedFromInput, CardNewsSetUncheckedCreateWithoutRegeneratedFromInput>
+  }
+
+  export type CardNewsSetCreateManyRegeneratedFromInputEnvelope = {
+    data: CardNewsSetCreateManyRegeneratedFromInput | CardNewsSetCreateManyRegeneratedFromInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CardNewsJobCreateWithoutSetInput = {
+    id?: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsJobsInput
+    reservation?: CreditReservationCreateNestedOneWithoutCardNewsJobsInput
+    invocations?: CardNewsInvocationCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobUncheckedCreateWithoutSetInput = {
+    id?: string
+    userId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    reservationId?: string | null
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    invocations?: CardNewsInvocationUncheckedCreateNestedManyWithoutJobInput
+  }
+
+  export type CardNewsJobCreateOrConnectWithoutSetInput = {
+    where: CardNewsJobWhereUniqueInput
+    create: XOR<CardNewsJobCreateWithoutSetInput, CardNewsJobUncheckedCreateWithoutSetInput>
+  }
+
+  export type CardNewsJobCreateManySetInputEnvelope = {
+    data: CardNewsJobCreateManySetInput | CardNewsJobCreateManySetInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutCardNewsSetsInput = {
+    update: XOR<UserUpdateWithoutCardNewsSetsInput, UserUncheckedUpdateWithoutCardNewsSetsInput>
+    create: XOR<UserCreateWithoutCardNewsSetsInput, UserUncheckedCreateWithoutCardNewsSetsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCardNewsSetsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCardNewsSetsInput, UserUncheckedUpdateWithoutCardNewsSetsInput>
+  }
+
+  export type UserUpdateWithoutCardNewsSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
+    clips?: ClipUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUpdateOneWithoutUserNestedInput
+    orders?: OrderUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCardNewsSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
+    clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ClipUpsertWithoutCardNewsSetsInput = {
+    update: XOR<ClipUpdateWithoutCardNewsSetsInput, ClipUncheckedUpdateWithoutCardNewsSetsInput>
+    create: XOR<ClipCreateWithoutCardNewsSetsInput, ClipUncheckedCreateWithoutCardNewsSetsInput>
+    where?: ClipWhereInput
+  }
+
+  export type ClipUpdateToOneWithWhereWithoutCardNewsSetsInput = {
+    where?: ClipWhereInput
+    data: XOR<ClipUpdateWithoutCardNewsSetsInput, ClipUncheckedUpdateWithoutCardNewsSetsInput>
+  }
+
+  export type ClipUpdateWithoutCardNewsSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
+    uploadedFile?: UploadedFileUpdateOneWithoutClipsNestedInput
+    user?: UserUpdateOneRequiredWithoutClipsNestedInput
+  }
+
+  export type ClipUncheckedUpdateWithoutCardNewsSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    processingAttempt?: IntFieldUpdateOperationsInput | number
+    startSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    endSeconds?: NullableFloatFieldUpdateOperationsInput | number | null
+    scriptText?: NullableStringFieldUpdateOperationsInput | string | null
+    clipType?: NullableStringFieldUpdateOperationsInput | string | null
+    hook?: NullableStringFieldUpdateOperationsInput | string | null
+    payoff?: NullableStringFieldUpdateOperationsInput | string | null
+    subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
+    uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type UploadedFileUpsertWithoutCardNewsSetsInput = {
+    update: XOR<UploadedFileUpdateWithoutCardNewsSetsInput, UploadedFileUncheckedUpdateWithoutCardNewsSetsInput>
+    create: XOR<UploadedFileCreateWithoutCardNewsSetsInput, UploadedFileUncheckedCreateWithoutCardNewsSetsInput>
+    where?: UploadedFileWhereInput
+  }
+
+  export type UploadedFileUpdateToOneWithWhereWithoutCardNewsSetsInput = {
+    where?: UploadedFileWhereInput
+    data: XOR<UploadedFileUpdateWithoutCardNewsSetsInput, UploadedFileUncheckedUpdateWithoutCardNewsSetsInput>
+  }
+
+  export type UploadedFileUpdateWithoutCardNewsSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    uploaded?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clips?: ClipUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
+    user?: UserUpdateOneRequiredWithoutUploadedFilesNestedInput
+  }
+
+  export type UploadedFileUncheckedUpdateWithoutCardNewsSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    uploaded?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceUploadedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enqueueRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queuedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    processingStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    terminalStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentAttempt?: IntFieldUpdateOperationsInput | number
+    lastSuccessfulAttempt?: IntFieldUpdateOperationsInput | number
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    targetClipCount?: IntFieldUpdateOperationsInput | number
+    reviewBeforeGenerate?: BoolFieldUpdateOperationsInput | boolean
+    captionStyle?: NullableJsonNullValueInput | InputJsonValue
+    videoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
+    reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+    clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
+    clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
+  }
+
+  export type CardNewsSetUpsertWithoutRegeneratedSetsInput = {
+    update: XOR<CardNewsSetUpdateWithoutRegeneratedSetsInput, CardNewsSetUncheckedUpdateWithoutRegeneratedSetsInput>
+    create: XOR<CardNewsSetCreateWithoutRegeneratedSetsInput, CardNewsSetUncheckedCreateWithoutRegeneratedSetsInput>
+    where?: CardNewsSetWhereInput
+  }
+
+  export type CardNewsSetUpdateToOneWithWhereWithoutRegeneratedSetsInput = {
+    where?: CardNewsSetWhereInput
+    data: XOR<CardNewsSetUpdateWithoutRegeneratedSetsInput, CardNewsSetUncheckedUpdateWithoutRegeneratedSetsInput>
+  }
+
+  export type CardNewsSetUpdateWithoutRegeneratedSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    clip?: ClipUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    regeneratedFrom?: CardNewsSetUpdateOneWithoutRegeneratedSetsNestedInput
+    jobs?: CardNewsJobUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateWithoutRegeneratedSetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    jobs?: CardNewsJobUncheckedUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUpsertWithWhereUniqueWithoutRegeneratedFromInput = {
+    where: CardNewsSetWhereUniqueInput
+    update: XOR<CardNewsSetUpdateWithoutRegeneratedFromInput, CardNewsSetUncheckedUpdateWithoutRegeneratedFromInput>
+    create: XOR<CardNewsSetCreateWithoutRegeneratedFromInput, CardNewsSetUncheckedCreateWithoutRegeneratedFromInput>
+  }
+
+  export type CardNewsSetUpdateWithWhereUniqueWithoutRegeneratedFromInput = {
+    where: CardNewsSetWhereUniqueInput
+    data: XOR<CardNewsSetUpdateWithoutRegeneratedFromInput, CardNewsSetUncheckedUpdateWithoutRegeneratedFromInput>
+  }
+
+  export type CardNewsSetUpdateManyWithWhereWithoutRegeneratedFromInput = {
+    where: CardNewsSetScalarWhereInput
+    data: XOR<CardNewsSetUpdateManyMutationInput, CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromInput>
+  }
+
+  export type CardNewsJobUpsertWithWhereUniqueWithoutSetInput = {
+    where: CardNewsJobWhereUniqueInput
+    update: XOR<CardNewsJobUpdateWithoutSetInput, CardNewsJobUncheckedUpdateWithoutSetInput>
+    create: XOR<CardNewsJobCreateWithoutSetInput, CardNewsJobUncheckedCreateWithoutSetInput>
+  }
+
+  export type CardNewsJobUpdateWithWhereUniqueWithoutSetInput = {
+    where: CardNewsJobWhereUniqueInput
+    data: XOR<CardNewsJobUpdateWithoutSetInput, CardNewsJobUncheckedUpdateWithoutSetInput>
+  }
+
+  export type CardNewsJobUpdateManyWithWhereWithoutSetInput = {
+    where: CardNewsJobScalarWhereInput
+    data: XOR<CardNewsJobUpdateManyMutationInput, CardNewsJobUncheckedUpdateManyWithoutSetInput>
+  }
+
+  export type UserCreateWithoutCardNewsJobsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
+    clips?: ClipCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionCreateNestedOneWithoutUserInput
+    orders?: OrderCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCardNewsJobsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
+    clips?: ClipUncheckedCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
+    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCardNewsJobsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCardNewsJobsInput, UserUncheckedCreateWithoutCardNewsJobsInput>
+  }
+
+  export type CardNewsSetCreateWithoutJobsInput = {
+    id?: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsSetsInput
+    clip: ClipCreateNestedOneWithoutCardNewsSetsInput
+    uploadedFile: UploadedFileCreateNestedOneWithoutCardNewsSetsInput
+    regeneratedFrom?: CardNewsSetCreateNestedOneWithoutRegeneratedSetsInput
+    regeneratedSets?: CardNewsSetCreateNestedManyWithoutRegeneratedFromInput
+  }
+
+  export type CardNewsSetUncheckedCreateWithoutJobsInput = {
+    id?: string
+    userId: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    regeneratedSets?: CardNewsSetUncheckedCreateNestedManyWithoutRegeneratedFromInput
+  }
+
+  export type CardNewsSetCreateOrConnectWithoutJobsInput = {
+    where: CardNewsSetWhereUniqueInput
+    create: XOR<CardNewsSetCreateWithoutJobsInput, CardNewsSetUncheckedCreateWithoutJobsInput>
+  }
+
+  export type CreditReservationCreateWithoutCardNewsJobsInput = {
+    id?: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutCreditReservationsInput
+    dispatches?: ProcessingDispatchCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationUncheckedCreateWithoutCardNewsJobsInput = {
+    id?: string
+    userId: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+    dispatches?: ProcessingDispatchUncheckedCreateNestedManyWithoutReservationInput
+  }
+
+  export type CreditReservationCreateOrConnectWithoutCardNewsJobsInput = {
+    where: CreditReservationWhereUniqueInput
+    create: XOR<CreditReservationCreateWithoutCardNewsJobsInput, CreditReservationUncheckedCreateWithoutCardNewsJobsInput>
+  }
+
+  export type CardNewsInvocationCreateWithoutJobInput = {
+    id?: string
+    executionEpoch: number
+    invocationId: string
+    modalCallId: string
+    writeDeadlineAt: Date | string
+    status?: string
+    progressSequence?: number
+    stage?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: Date | string
+    endedAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsInvocationUncheckedCreateWithoutJobInput = {
+    id?: string
+    executionEpoch: number
+    invocationId: string
+    modalCallId: string
+    writeDeadlineAt: Date | string
+    status?: string
+    progressSequence?: number
+    stage?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: Date | string
+    endedAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsInvocationCreateOrConnectWithoutJobInput = {
+    where: CardNewsInvocationWhereUniqueInput
+    create: XOR<CardNewsInvocationCreateWithoutJobInput, CardNewsInvocationUncheckedCreateWithoutJobInput>
+  }
+
+  export type CardNewsInvocationCreateManyJobInputEnvelope = {
+    data: CardNewsInvocationCreateManyJobInput | CardNewsInvocationCreateManyJobInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutCardNewsJobsInput = {
+    update: XOR<UserUpdateWithoutCardNewsJobsInput, UserUncheckedUpdateWithoutCardNewsJobsInput>
+    create: XOR<UserCreateWithoutCardNewsJobsInput, UserUncheckedCreateWithoutCardNewsJobsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCardNewsJobsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCardNewsJobsInput, UserUncheckedUpdateWithoutCardNewsJobsInput>
+  }
+
+  export type UserUpdateWithoutCardNewsJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
+    clips?: ClipUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUpdateOneWithoutUserNestedInput
+    orders?: OrderUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCardNewsJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
+    clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CardNewsSetUpsertWithoutJobsInput = {
+    update: XOR<CardNewsSetUpdateWithoutJobsInput, CardNewsSetUncheckedUpdateWithoutJobsInput>
+    create: XOR<CardNewsSetCreateWithoutJobsInput, CardNewsSetUncheckedCreateWithoutJobsInput>
+    where?: CardNewsSetWhereInput
+  }
+
+  export type CardNewsSetUpdateToOneWithWhereWithoutJobsInput = {
+    where?: CardNewsSetWhereInput
+    data: XOR<CardNewsSetUpdateWithoutJobsInput, CardNewsSetUncheckedUpdateWithoutJobsInput>
+  }
+
+  export type CardNewsSetUpdateWithoutJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    clip?: ClipUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    regeneratedFrom?: CardNewsSetUpdateOneWithoutRegeneratedSetsNestedInput
+    regeneratedSets?: CardNewsSetUpdateManyWithoutRegeneratedFromNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateWithoutJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    regeneratedSets?: CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromNestedInput
+  }
+
+  export type CreditReservationUpsertWithoutCardNewsJobsInput = {
+    update: XOR<CreditReservationUpdateWithoutCardNewsJobsInput, CreditReservationUncheckedUpdateWithoutCardNewsJobsInput>
+    create: XOR<CreditReservationCreateWithoutCardNewsJobsInput, CreditReservationUncheckedCreateWithoutCardNewsJobsInput>
+    where?: CreditReservationWhereInput
+  }
+
+  export type CreditReservationUpdateToOneWithWhereWithoutCardNewsJobsInput = {
+    where?: CreditReservationWhereInput
+    data: XOR<CreditReservationUpdateWithoutCardNewsJobsInput, CreditReservationUncheckedUpdateWithoutCardNewsJobsInput>
+  }
+
+  export type CreditReservationUpdateWithoutCardNewsJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutCreditReservationsNestedInput
+    dispatches?: ProcessingDispatchUpdateManyWithoutReservationNestedInput
+  }
+
+  export type CreditReservationUncheckedUpdateWithoutCardNewsJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutReservationNestedInput
+  }
+
+  export type CardNewsInvocationUpsertWithWhereUniqueWithoutJobInput = {
+    where: CardNewsInvocationWhereUniqueInput
+    update: XOR<CardNewsInvocationUpdateWithoutJobInput, CardNewsInvocationUncheckedUpdateWithoutJobInput>
+    create: XOR<CardNewsInvocationCreateWithoutJobInput, CardNewsInvocationUncheckedCreateWithoutJobInput>
+  }
+
+  export type CardNewsInvocationUpdateWithWhereUniqueWithoutJobInput = {
+    where: CardNewsInvocationWhereUniqueInput
+    data: XOR<CardNewsInvocationUpdateWithoutJobInput, CardNewsInvocationUncheckedUpdateWithoutJobInput>
+  }
+
+  export type CardNewsInvocationUpdateManyWithWhereWithoutJobInput = {
+    where: CardNewsInvocationScalarWhereInput
+    data: XOR<CardNewsInvocationUpdateManyMutationInput, CardNewsInvocationUncheckedUpdateManyWithoutJobInput>
+  }
+
+  export type CardNewsInvocationScalarWhereInput = {
+    AND?: CardNewsInvocationScalarWhereInput | CardNewsInvocationScalarWhereInput[]
+    OR?: CardNewsInvocationScalarWhereInput[]
+    NOT?: CardNewsInvocationScalarWhereInput | CardNewsInvocationScalarWhereInput[]
+    id?: StringFilter<"CardNewsInvocation"> | string
+    jobId?: StringFilter<"CardNewsInvocation"> | string
+    executionEpoch?: IntFilter<"CardNewsInvocation"> | number
+    invocationId?: StringFilter<"CardNewsInvocation"> | string
+    modalCallId?: StringFilter<"CardNewsInvocation"> | string
+    writeDeadlineAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    status?: StringFilter<"CardNewsInvocation"> | string
+    progressSequence?: IntFilter<"CardNewsInvocation"> | number
+    stage?: StringFilter<"CardNewsInvocation"> | string
+    producerEndEvidence?: JsonNullableFilter<"CardNewsInvocation">
+    registeredAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+    endedAt?: DateTimeNullableFilter<"CardNewsInvocation"> | Date | string | null
+    updatedAt?: DateTimeFilter<"CardNewsInvocation"> | Date | string
+  }
+
+  export type CardNewsJobCreateWithoutInvocationsInput = {
+    id?: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCardNewsJobsInput
+    set: CardNewsSetCreateNestedOneWithoutJobsInput
+    reservation?: CreditReservationCreateNestedOneWithoutCardNewsJobsInput
+  }
+
+  export type CardNewsJobUncheckedCreateWithoutInvocationsInput = {
+    id?: string
+    userId: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    reservationId?: string | null
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsJobCreateOrConnectWithoutInvocationsInput = {
+    where: CardNewsJobWhereUniqueInput
+    create: XOR<CardNewsJobCreateWithoutInvocationsInput, CardNewsJobUncheckedCreateWithoutInvocationsInput>
+  }
+
+  export type CardNewsJobUpsertWithoutInvocationsInput = {
+    update: XOR<CardNewsJobUpdateWithoutInvocationsInput, CardNewsJobUncheckedUpdateWithoutInvocationsInput>
+    create: XOR<CardNewsJobCreateWithoutInvocationsInput, CardNewsJobUncheckedCreateWithoutInvocationsInput>
+    where?: CardNewsJobWhereInput
+  }
+
+  export type CardNewsJobUpdateToOneWithWhereWithoutInvocationsInput = {
+    where?: CardNewsJobWhereInput
+    data: XOR<CardNewsJobUpdateWithoutInvocationsInput, CardNewsJobUncheckedUpdateWithoutInvocationsInput>
+  }
+
+  export type CardNewsJobUpdateWithoutInvocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsJobsNestedInput
+    set?: CardNewsSetUpdateOneRequiredWithoutJobsNestedInput
+    reservation?: CreditReservationUpdateOneWithoutCardNewsJobsNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateWithoutInvocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    setId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserCreateWithoutAssetCleanupJobsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileCreateNestedManyWithoutUserInput
+    clips?: ClipCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionCreateNestedOneWithoutUserInput
+    orders?: OrderCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutAssetCleanupJobsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    password?: string | null
+    credits?: number
+    reservedCredits?: number
+    polarCustomerId?: string | null
+    image?: string | null
+    defaultLanguage?: string | null
+    defaultClipCount?: number | null
+    defaultReviewBeforeGenerate?: boolean | null
+    defaultVideoPaddingPercent?: number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    uploadedFiles?: UploadedFileUncheckedCreateNestedManyWithoutUserInput
+    clips?: ClipUncheckedCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
+    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutAssetCleanupJobsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAssetCleanupJobsInput, UserUncheckedCreateWithoutAssetCleanupJobsInput>
+  }
+
+  export type UserUpsertWithoutAssetCleanupJobsInput = {
+    update: XOR<UserUpdateWithoutAssetCleanupJobsInput, UserUncheckedUpdateWithoutAssetCleanupJobsInput>
+    create: XOR<UserCreateWithoutAssetCleanupJobsInput, UserUncheckedCreateWithoutAssetCleanupJobsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAssetCleanupJobsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAssetCleanupJobsInput, UserUncheckedUpdateWithoutAssetCleanupJobsInput>
+  }
+
+  export type UserUpdateWithoutAssetCleanupJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUpdateManyWithoutUserNestedInput
+    clips?: ClipUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUpdateOneWithoutUserNestedInput
+    orders?: OrderUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAssetCleanupJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
+    polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultClipCount?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultReviewBeforeGenerate?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    defaultVideoPaddingPercent?: IntFieldUpdateOperationsInput | number
+    defaultCaptionStyleEnglish?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyleKorean?: NullableJsonNullValueInput | InputJsonValue
+    defaultCaptionStyle?: NullableJsonNullValueInput | InputJsonValue
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    uploadedFiles?: UploadedFileUncheckedUpdateManyWithoutUserNestedInput
+    clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSubscriptionInput = {
@@ -21198,6 +34254,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -21213,6 +34270,10 @@ export namespace Prisma {
     clips?: ClipCreateNestedManyWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSubscriptionInput = {
@@ -21222,6 +34283,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -21237,6 +34299,10 @@ export namespace Prisma {
     clips?: ClipUncheckedCreateNestedManyWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSubscriptionInput = {
@@ -21262,6 +34328,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21277,6 +34344,10 @@ export namespace Prisma {
     clips?: ClipUpdateManyWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubscriptionInput = {
@@ -21286,6 +34357,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21301,6 +34373,10 @@ export namespace Prisma {
     clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutOrdersInput = {
@@ -21310,6 +34386,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -21325,6 +34402,10 @@ export namespace Prisma {
     clips?: ClipCreateNestedManyWithoutUserInput
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     analyticsEvents?: AnalyticsEventCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOrdersInput = {
@@ -21334,6 +34415,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -21349,6 +34431,10 @@ export namespace Prisma {
     clips?: ClipUncheckedCreateNestedManyWithoutUserInput
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     analyticsEvents?: AnalyticsEventUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOrdersInput = {
@@ -21374,6 +34460,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21389,6 +34476,10 @@ export namespace Prisma {
     clips?: ClipUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -21398,6 +34489,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21413,6 +34505,10 @@ export namespace Prisma {
     clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     analyticsEvents?: AnalyticsEventUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutAnalyticsEventsInput = {
@@ -21422,6 +34518,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -21437,6 +34534,10 @@ export namespace Prisma {
     clips?: ClipCreateNestedManyWithoutUserInput
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAnalyticsEventsInput = {
@@ -21446,6 +34547,7 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     password?: string | null
     credits?: number
+    reservedCredits?: number
     polarCustomerId?: string | null
     image?: string | null
     defaultLanguage?: string | null
@@ -21461,6 +34563,10 @@ export namespace Prisma {
     clips?: ClipUncheckedCreateNestedManyWithoutUserInput
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    creditReservations?: CreditReservationUncheckedCreateNestedManyWithoutUserInput
+    cardNewsSets?: CardNewsSetUncheckedCreateNestedManyWithoutUserInput
+    cardNewsJobs?: CardNewsJobUncheckedCreateNestedManyWithoutUserInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAnalyticsEventsInput = {
@@ -21486,6 +34592,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21501,6 +34608,10 @@ export namespace Prisma {
     clips?: ClipUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAnalyticsEventsInput = {
@@ -21510,6 +34621,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     credits?: IntFieldUpdateOperationsInput | number
+    reservedCredits?: IntFieldUpdateOperationsInput | number
     polarCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLanguage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21525,6 +34637,10 @@ export namespace Prisma {
     clips?: ClipUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    creditReservations?: CreditReservationUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUserNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutUserNestedInput
+    assetCleanupJobs?: AssetCleanupJobUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -21572,6 +34688,7 @@ export namespace Prisma {
     reviewAttempt?: number | null
     reviewReadyAt?: Date | string | null
     transcriptS3Key?: string | null
+    deletedAt?: Date | string | null
   }
 
   export type ClipCreateManyUserInput = {
@@ -21587,6 +34704,7 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
@@ -21612,6 +34730,100 @@ export namespace Prisma {
     referrer?: string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+  }
+
+  export type CreditReservationCreateManyUserInput = {
+    id?: string
+    operationKey: string
+    kind: string
+    reservedAmount: number
+    chargedAmount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    settledAt?: Date | string | null
+    releasedAt?: Date | string | null
+  }
+
+  export type CardNewsSetCreateManyUserInput = {
+    id?: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsJobCreateManyUserInput = {
+    id?: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    reservationId?: string | null
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssetCleanupJobCreateManyUserInput = {
+    id?: string
+    kind: string
+    scopeId: string
+    scopeSnapshot: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: string
+    notBefore?: Date | string
+    leaseUntil?: Date | string | null
+    nextRetryAt?: Date | string | null
+    attemptCount?: number
+    lastError?: string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -21701,9 +34913,11 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     clips?: ClipUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileUncheckedUpdateWithoutUserInput = {
@@ -21730,9 +34944,11 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     clips?: ClipUncheckedUpdateManyWithoutUploadedFileNestedInput
     dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileNestedInput
     clipDrafts?: ClipDraftUncheckedUpdateManyWithoutUploadedFileNestedInput
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutUploadedFileNestedInput
   }
 
   export type UploadedFileUncheckedUpdateManyWithoutUserInput = {
@@ -21759,6 +34975,7 @@ export namespace Prisma {
     reviewAttempt?: NullableIntFieldUpdateOperationsInput | number | null
     reviewReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     transcriptS3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ClipUpdateWithoutUserInput = {
@@ -21774,10 +34991,12 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFile?: UploadedFileUpdateOneWithoutClipsNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutClipNestedInput
   }
 
   export type ClipUncheckedUpdateWithoutUserInput = {
@@ -21793,10 +35012,12 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedFileId?: NullableStringFieldUpdateOperationsInput | string | null
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutClipNestedInput
   }
 
   export type ClipUncheckedUpdateManyWithoutUserInput = {
@@ -21812,6 +35033,7 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21881,6 +35103,298 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CreditReservationUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatches?: ProcessingDispatchUpdateManyWithoutReservationNestedInput
+    cardNewsJobs?: CardNewsJobUpdateManyWithoutReservationNestedInput
+  }
+
+  export type CreditReservationUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatches?: ProcessingDispatchUncheckedUpdateManyWithoutReservationNestedInput
+    cardNewsJobs?: CardNewsJobUncheckedUpdateManyWithoutReservationNestedInput
+  }
+
+  export type CreditReservationUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operationKey?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    reservedAmount?: IntFieldUpdateOperationsInput | number
+    chargedAmount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CardNewsSetUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clip?: ClipUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    regeneratedFrom?: CardNewsSetUpdateOneWithoutRegeneratedSetsNestedInput
+    regeneratedSets?: CardNewsSetUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    regeneratedSets?: CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUncheckedUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsJobUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    set?: CardNewsSetUpdateOneRequiredWithoutJobsNestedInput
+    reservation?: CreditReservationUpdateOneWithoutCardNewsJobsNestedInput
+    invocations?: CardNewsInvocationUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    setId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    invocations?: CardNewsInvocationUncheckedUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    setId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssetCleanupJobUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    scopeSnapshot?: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    notBefore?: DateTimeFieldUpdateOperationsInput | Date | string
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssetCleanupJobUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    scopeSnapshot?: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    notBefore?: DateTimeFieldUpdateOperationsInput | Date | string
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssetCleanupJobUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    scopeSnapshot?: JsonNullValueInput | InputJsonValue
+    exactKeys?: JsonNullValueInput | InputJsonValue
+    dedicatedPrefixes?: JsonNullValueInput | InputJsonValue
+    retainedReferences?: JsonNullValueInput | InputJsonValue
+    producerReferences?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    failedKeys?: JsonNullValueInput | InputJsonValue
+    status?: StringFieldUpdateOperationsInput | string
+    notBefore?: DateTimeFieldUpdateOperationsInput | Date | string
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ClipCreateManyUploadedFileInput = {
     id?: string
     s3Key: string
@@ -21894,6 +35408,7 @@ export namespace Prisma {
     subtitleStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    deletedAt?: Date | string | null
     youtubeTitle?: string | null
     youtubeDescription?: string | null
     youtubeHashtags?: string | null
@@ -21912,6 +35427,16 @@ export namespace Prisma {
     lockedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
   }
 
   export type ClipDraftCreateManyUploadedFileInput = {
@@ -21931,6 +35456,25 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type CardNewsSetCreateManyUploadedFileInput = {
+    id?: string
+    userId: string
+    clipId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ClipUpdateWithoutUploadedFileInput = {
     id?: StringFieldUpdateOperationsInput | string
     s3Key?: StringFieldUpdateOperationsInput | string
@@ -21944,10 +35488,12 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     user?: UserUpdateOneRequiredWithoutClipsNestedInput
+    cardNewsSets?: CardNewsSetUpdateManyWithoutClipNestedInput
   }
 
   export type ClipUncheckedUpdateWithoutUploadedFileInput = {
@@ -21963,10 +35509,12 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
+    cardNewsSets?: CardNewsSetUncheckedUpdateManyWithoutClipNestedInput
   }
 
   export type ClipUncheckedUpdateManyWithoutUploadedFileInput = {
@@ -21982,6 +35530,7 @@ export namespace Prisma {
     subtitleStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     youtubeTitle?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeDescription?: NullableStringFieldUpdateOperationsInput | string | null
     youtubeHashtags?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22000,6 +35549,16 @@ export namespace Prisma {
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reservation?: CreditReservationUpdateOneWithoutDispatchesNestedInput
   }
 
   export type ProcessingDispatchUncheckedUpdateWithoutUploadedFileInput = {
@@ -22014,6 +35573,16 @@ export namespace Prisma {
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ProcessingDispatchUncheckedUpdateManyWithoutUploadedFileInput = {
@@ -22028,6 +35597,16 @@ export namespace Prisma {
     lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ClipDraftUpdateWithoutUploadedFileInput = {
@@ -22078,6 +35657,707 @@ export namespace Prisma {
     referenceTranslation?: NullableStringFieldUpdateOperationsInput | string | null
     selected?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsSetUpdateWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    clip?: ClipUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    regeneratedFrom?: CardNewsSetUpdateOneWithoutRegeneratedSetsNestedInput
+    regeneratedSets?: CardNewsSetUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    regeneratedSets?: CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUncheckedUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateManyWithoutUploadedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsSetCreateManyClipInput = {
+    id?: string
+    userId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    regeneratedFromId?: string | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsSetUpdateWithoutClipInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    regeneratedFrom?: CardNewsSetUpdateOneWithoutRegeneratedSetsNestedInput
+    regeneratedSets?: CardNewsSetUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateWithoutClipInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    regeneratedSets?: CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUncheckedUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateManyWithoutClipInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    regeneratedFromId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProcessingDispatchCreateManyReservationInput = {
+    id?: string
+    uploadedFileId: string
+    attempt: number
+    kind?: string
+    status?: string
+    dispatchCount?: number
+    lastError?: string | null
+    dispatchedAt?: Date | string | null
+    nextRetryAt?: Date | string | null
+    lockedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    workerRunId?: string | null
+    modalCallId?: string | null
+    modalSpawnState?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: Date | string | null
+    leaseUntil?: Date | string | null
+    heartbeatAt?: Date | string | null
+    deadlineAt?: Date | string | null
+  }
+
+  export type CardNewsJobCreateManyReservationInput = {
+    id?: string
+    userId: string
+    setId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProcessingDispatchUpdateWithoutReservationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutDispatchesNestedInput
+  }
+
+  export type ProcessingDispatchUncheckedUpdateWithoutReservationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ProcessingDispatchUncheckedUpdateManyWithoutReservationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    attempt?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    inputSnapshot?: NullableJsonNullValueInput | InputJsonValue
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CardNewsJobUpdateWithoutReservationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsJobsNestedInput
+    set?: CardNewsSetUpdateOneRequiredWithoutJobsNestedInput
+    invocations?: CardNewsInvocationUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateWithoutReservationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    setId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    invocations?: CardNewsInvocationUncheckedUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateManyWithoutReservationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    setId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsSetCreateManyRegeneratedFromInput = {
+    id?: string
+    userId: string
+    clipId: string
+    uploadedFileId: string
+    sourceSnapshot: JsonNullValueInput | InputJsonValue
+    sourceHash: string
+    language: string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: number
+    publishedRevision?: number
+    pendingRenderRevision?: number | null
+    status?: string
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsJobCreateManySetInput = {
+    id?: string
+    userId: string
+    kind: string
+    requestId: string
+    requestHash: string
+    inputRevision: number
+    inputSnapshot: JsonNullValueInput | InputJsonValue
+    executionEpoch?: number
+    status?: string
+    stage?: string
+    reservationId?: string | null
+    templateVersion: string
+    deadlineAt: Date | string
+    dispatchStatus?: string
+    dispatchLeaseUntil?: Date | string | null
+    nextDispatchAt?: Date | string | null
+    dispatchCount?: number
+    lastDispatchError?: string | null
+    dispatchedAt?: Date | string | null
+    claimedAt?: Date | string | null
+    heartbeatAt?: Date | string | null
+    workerRunId?: string | null
+    modalCallId?: string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: string
+    selectedManifestKey?: string | null
+    selectedInvocationId?: string | null
+    progressInvocationId?: string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: string | null
+    completedAt?: Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsSetUpdateWithoutRegeneratedFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    clip?: ClipUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    uploadedFile?: UploadedFileUpdateOneRequiredWithoutCardNewsSetsNestedInput
+    regeneratedSets?: CardNewsSetUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateWithoutRegeneratedFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    regeneratedSets?: CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromNestedInput
+    jobs?: CardNewsJobUncheckedUpdateManyWithoutSetNestedInput
+  }
+
+  export type CardNewsSetUncheckedUpdateManyWithoutRegeneratedFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    clipId?: StringFieldUpdateOperationsInput | string
+    uploadedFileId?: StringFieldUpdateOperationsInput | string
+    sourceSnapshot?: JsonNullValueInput | InputJsonValue
+    sourceHash?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    draftDocument?: NullableJsonNullValueInput | InputJsonValue
+    draftSnapshots?: JsonNullValueInput | InputJsonValue
+    draftRevision?: IntFieldUpdateOperationsInput | number
+    publishedRevision?: IntFieldUpdateOperationsInput | number
+    pendingRenderRevision?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsJobUpdateWithoutSetInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCardNewsJobsNestedInput
+    reservation?: CreditReservationUpdateOneWithoutCardNewsJobsNestedInput
+    invocations?: CardNewsInvocationUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateWithoutSetInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    invocations?: CardNewsInvocationUncheckedUpdateManyWithoutJobNestedInput
+  }
+
+  export type CardNewsJobUncheckedUpdateManyWithoutSetInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    requestId?: StringFieldUpdateOperationsInput | string
+    requestHash?: StringFieldUpdateOperationsInput | string
+    inputRevision?: IntFieldUpdateOperationsInput | number
+    inputSnapshot?: JsonNullValueInput | InputJsonValue
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersion?: StringFieldUpdateOperationsInput | string
+    deadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatchStatus?: StringFieldUpdateOperationsInput | string
+    dispatchLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextDispatchAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dispatchCount?: IntFieldUpdateOperationsInput | number
+    lastDispatchError?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    heartbeatAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workerRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    modalCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    callbackInbox?: JsonNullValueInput | InputJsonValue
+    modalSpawnState?: StringFieldUpdateOperationsInput | string
+    selectedManifestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    progressInvocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    manifest?: NullableJsonNullValueInput | InputJsonValue
+    failureCode?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usageMetrics?: NullableJsonNullValueInput | InputJsonValue
+    analyticsContext?: NullableJsonNullValueInput | InputJsonValue
+    pendingAnalytics?: JsonNullValueInput | InputJsonValue
+    outputRetiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsInvocationCreateManyJobInput = {
+    id?: string
+    executionEpoch: number
+    invocationId: string
+    modalCallId: string
+    writeDeadlineAt: Date | string
+    status?: string
+    progressSequence?: number
+    stage?: string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: Date | string
+    endedAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type CardNewsInvocationUpdateWithoutJobInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    invocationId?: StringFieldUpdateOperationsInput | string
+    modalCallId?: StringFieldUpdateOperationsInput | string
+    writeDeadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    progressSequence?: IntFieldUpdateOperationsInput | number
+    stage?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsInvocationUncheckedUpdateWithoutJobInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    invocationId?: StringFieldUpdateOperationsInput | string
+    modalCallId?: StringFieldUpdateOperationsInput | string
+    writeDeadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    progressSequence?: IntFieldUpdateOperationsInput | number
+    stage?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CardNewsInvocationUncheckedUpdateManyWithoutJobInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionEpoch?: IntFieldUpdateOperationsInput | number
+    invocationId?: StringFieldUpdateOperationsInput | string
+    modalCallId?: StringFieldUpdateOperationsInput | string
+    writeDeadlineAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    progressSequence?: IntFieldUpdateOperationsInput | number
+    stage?: StringFieldUpdateOperationsInput | string
+    producerEndEvidence?: NullableJsonNullValueInput | InputJsonValue
+    registeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

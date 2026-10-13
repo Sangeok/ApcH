@@ -1,28 +1,30 @@
-import type { Prisma } from "@repo/db";
 import { env } from "~/env";
-import {
-  countClipsForAttemptS3Keys,
-  createClipsBulk,
-  updateClipMetadataFromBackendClips,
-} from "~/fsd/entities/clip/server";
 import {
   resolveModalPollAction,
   resolvePartialClipNoteCode,
 } from "~/fsd/entities/uploaded-file";
-import { completeUploadedFileProcessingAttempt } from "~/fsd/features/upload/api/complete-processing-attempt";
 import {
-  findCurrentProcessingAttemptContext,
+  claimProcessingAttempt,
+  beginProcessingSpawn,
+  recordProcessingSpawnResult,
+  markProcessingSpawnUnknown,
+  loadVideoProcessingContext,
+} from "~/fsd/features/upload/server";
+import {
+  settleProcessingAttempt,
+  findAttemptGeneratedClipKeys,
+} from "~/fsd/features/upload/server";
+import { findProcessingDispatchForAttempt } from "~/fsd/entities/processing-dispatch/server";
+import {
   isUploadedFileAttemptStillProcessing,
   markUploadedFileAttemptFailed,
-  markUploadedFileAttemptNoCredits,
   markUploadedFileAttemptReviewPending,
-  startUploadedFileProcessingAttempt,
 } from "~/fsd/entities/uploaded-file/server";
 import { PROCESSING_STALE_POLICY } from "~/fsd/entities/uploaded-file/model/stale-policy";
 import { stuckAlertElapsedMinutes } from "~/fsd/entities/uploaded-file/model/stuck-alert";
 import { createClipDraftsBulk } from "~/fsd/entities/clip-draft/server";
 import { cleanupExpiredAnalyticsEvents } from "~/fsd/entities/analytics-event/server";
-import { listS3Objects, objectExists } from "~/fsd/shared/api/s3";
+import { objectExists } from "~/fsd/shared/api/s3";
 import {
   flushReports,
   reportError,
@@ -90,114 +92,6 @@ function isSuccessfulModalStatus(status: unknown): boolean {
   );
 }
 
-async function findAttemptGeneratedClipKeys(
-  outputPrefix: string,
-): Promise<string[]> {
-  const clipCandidates = await listS3Objects(`${outputPrefix}/`);
-
-  return clipCandidates
-    .filter(
-      (key) => key.startsWith(`${outputPrefix}/clip_`) && key.endsWith(".mp4"),
-    )
-    .sort();
-}
-
-async function persistGeneratedClips(args: {
-  backendClips?: ProcessVideoBackendClip[];
-  outputPrefix: string;
-  uploadedFileId: string;
-  userId: string;
-  attempt: number;
-  expectedClipCount: number;
-}): Promise<{ clipsFound: number }> {
-  const {
-    backendClips,
-    outputPrefix,
-    uploadedFileId,
-    userId,
-    attempt,
-    expectedClipCount,
-  } = args;
-
-  const attemptClipKeys = await findAttemptGeneratedClipKeys(outputPrefix);
-  const cappedClipKeys = attemptClipKeys.slice(0, expectedClipCount);
-  const allowedClipKeys = new Set(cappedClipKeys);
-  const createDataByS3Key = new Map<string, Prisma.ClipCreateManyInput>();
-
-  if (Array.isArray(backendClips)) {
-    for (const clip of backendClips) {
-      if (
-        typeof clip.s3Key !== "string" ||
-        clip.s3Key.length === 0 ||
-        !allowedClipKeys.has(clip.s3Key)
-      ) {
-        continue;
-      }
-
-      createDataByS3Key.set(clip.s3Key, {
-        s3Key: clip.s3Key,
-        uploadedFileId,
-        userId,
-        processingAttempt: attempt,
-        startSeconds: clip.startSeconds ?? null,
-        endSeconds: clip.endSeconds ?? null,
-        scriptText: clip.scriptText ?? null,
-        youtubeTitle: clip.youtubeTitle ?? null,
-        youtubeDescription: clip.youtubeDescription ?? null,
-        youtubeHashtags: clip.youtubeHashtags
-          ? JSON.stringify(clip.youtubeHashtags)
-          : null,
-        clipType: clip.clipType ?? null,
-        hook: clip.hook ?? null,
-        payoff: clip.payoff ?? null,
-        subtitleStatus: clip.subtitleStatus ?? null,
-      });
-    }
-  }
-
-  for (const clipKey of cappedClipKeys) {
-    if (createDataByS3Key.has(clipKey)) {
-      continue;
-    }
-
-    createDataByS3Key.set(clipKey, {
-      s3Key: clipKey,
-      uploadedFileId,
-      userId,
-      processingAttempt: attempt,
-    });
-  }
-
-  await createClipsBulk([...createDataByS3Key.values()]);
-
-  const metadataClips = Array.isArray(backendClips)
-    ? backendClips.filter(
-        (clip): clip is ProcessVideoBackendClip & { s3Key: string } =>
-          typeof clip.s3Key === "string" &&
-          clip.s3Key.length > 0 &&
-          allowedClipKeys.has(clip.s3Key),
-      )
-    : [];
-
-  if (metadataClips.length > 0) {
-    await updateClipMetadataFromBackendClips({
-      uploadedFileId,
-      processingAttempt: attempt,
-      clips: metadataClips,
-    });
-  }
-
-  const dbClipCount = await countClipsForAttemptS3Keys(
-    uploadedFileId,
-    attempt,
-    cappedClipKeys,
-  );
-
-  return {
-    clipsFound: Math.min(dbClipCount, expectedClipCount),
-  };
-}
-
 async function countGeneratedClipKeys(outputPrefix: string): Promise<number> {
   return (await findAttemptGeneratedClipKeys(outputPrefix)).length;
 }
@@ -225,24 +119,16 @@ export const processVideo = inngest.createFunction(
       },
     ],
   },
-  async ({ event, step }): Promise<ProcessingRunResult> => {
-    const {
-      uploadedFileId,
-      language,
-      clipCount,
-      attempt,
-      outputPrefix,
-      moments,
-      transcriptS3Key,
-    } = event.data;
-
-    const context = await step.run("load-processing-context", async () => {
-      return findCurrentProcessingAttemptContext(uploadedFileId, attempt);
-    });
-
-    if (context?.status !== "queued") {
+  async ({ event, step, runId }): Promise<ProcessingRunResult> => {
+    const { uploadedFileId, attempt } = event.data;
+    const context = await step.run("load-processing-context", () =>
+      loadVideoProcessingContext(uploadedFileId, attempt),
+    );
+    if (!context || !["queued", "processing"].includes(context.status))
       return { skipped: true };
-    }
+    if (!["auto", "render"].includes(context.mode)) return { skipped: true };
+    const { language, clipCount, outputPrefix, moments, transcriptS3Key } =
+      context;
 
     const sourceCheck = await step.run(
       "check-source-object-exists",
@@ -304,26 +190,16 @@ export const processVideo = inngest.createFunction(
       return { skipped: false, status: "missing_source_object" };
     }
 
-    if (context.user.credits < clipCount) {
-      await step.run("mark-no-credits", async () => {
-        await markUploadedFileAttemptNoCredits(uploadedFileId, attempt, {
-          now: new Date(),
-        });
-      });
-
-      return { skipped: false, status: "no credits" };
-    }
-
-    const claimResult = await step.run("claim-processing-attempt", async () => {
-      return startUploadedFileProcessingAttempt(
+    const claimResult = await step.run("claim-processing-attempt", () =>
+      claimProcessingAttempt({
         uploadedFileId,
-        context.userId,
+        userId: context.userId,
         attempt,
-        {
-          now: new Date(),
-        },
-      );
-    });
+        workerRunId: runId,
+      }),
+    );
+    if (claimResult.status === "no_credits")
+      return { skipped: false, status: "no credits" };
 
     if (claimResult.status === "already_processing") {
       console.warn(
@@ -358,45 +234,82 @@ export const processVideo = inngest.createFunction(
         : undefined;
 
       const modalResponse = await step.run("send-to-modal", async () => {
-        // Render dispatch는 항상 비어 있지 않은 moments를 싣는다(디스패처가 빈 선택을
-        // 가드). auto/analyze 이벤트에는 moments 필드 자체가 없다.
-        const shouldRenderSelectedMoments =
-          moments !== undefined && moments.length > 0;
-
-        const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
-          method: "POST",
-          body: JSON.stringify({
-            uploaded_file_id: uploadedFileId,
-            s3_key: context.s3Key,
+        if (
+          !(await beginProcessingSpawn({
+            uploadedFileId,
             attempt,
-            language,
-            clip_count: clipCount,
-            mode: shouldRenderSelectedMoments ? "render" : "auto",
-            moments: shouldRenderSelectedMoments ? moments : undefined,
-            // JSON.stringify가 undefined 키를 떨어뜨리므로 null 스냅샷에선 키가 생략된다(render·auto 공통).
-            caption_style: requestCaptionStyle(
-              context.captionStyle as CaptionStyle | null, // 업로드 시점 스냅샷(UploadedFile.captionStyle)
-            ),
-            ...requestVideoFraming(context.videoPaddingPercent),
-            transcript_s3_key: transcriptS3Key ?? undefined,
-            output_prefix: outputPrefix,
-            callback_url: callbackUrl,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
-          },
-        });
-
-        if (!response.ok) {
-          const text = await response.text().catch(() => "");
-          throw new Error(
-            `Modal dispatch failed (${response.status}): ${text.slice(0, 500)}`,
+            workerRunId: runId,
+          }))
+        ) {
+          const existing = await findProcessingDispatchForAttempt(
+            uploadedFileId,
+            attempt,
           );
+          return {
+            status: "accepted",
+            call_id: existing?.modalCallId ?? null,
+          } as Record<string, unknown>;
         }
+        try {
+          // Render dispatch는 항상 비어 있지 않은 moments를 싣는다(디스패처가 빈 선택을
+          // 가드). auto/analyze 이벤트에는 moments 필드 자체가 없다.
+          const shouldRenderSelectedMoments =
+            moments !== undefined && moments.length > 0;
 
-        return (await response.json()) as Record<string, unknown>;
+          const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
+            method: "POST",
+            signal: AbortSignal.timeout(30_000),
+            body: JSON.stringify({
+              uploaded_file_id: uploadedFileId,
+              s3_key: context.s3Key,
+              attempt,
+              language,
+              clip_count: clipCount,
+              mode: shouldRenderSelectedMoments ? "render" : "auto",
+              moments: shouldRenderSelectedMoments ? moments : undefined,
+              // JSON.stringify가 undefined 키를 떨어뜨리므로 null 스냅샷에선 키가 생략된다(render·auto 공통).
+              caption_style: requestCaptionStyle(
+                context.captionStyle as CaptionStyle | null, // 업로드 시점 스냅샷(UploadedFile.captionStyle)
+              ),
+              ...requestVideoFraming(context.videoPaddingPercent),
+              transcript_s3_key: transcriptS3Key ?? undefined,
+              output_prefix: outputPrefix,
+              callback_url: callbackUrl,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
+            },
+          });
+
+          if (!response.ok) {
+            const text = await response.text().catch(() => "");
+            throw new Error(
+              `Modal dispatch failed (${response.status}): ${text.slice(0, 500)}`,
+            );
+          }
+
+          const result = (await response.json()) as Record<string, unknown>;
+          return result;
+        } catch (error) {
+          await markProcessingSpawnUnknown({
+            uploadedFileId,
+            attempt,
+            workerRunId: runId,
+          });
+          throw error;
+        }
       });
+      if (modalResponse.status !== "accepted" || modalResponse.call_id) {
+        await step.run("record-send-to-modal-result", () =>
+          recordProcessingSpawnResult({
+            uploadedFileId,
+            attempt,
+            workerRunId: runId,
+            response: modalResponse,
+          }),
+        );
+      }
 
       let backendClips: ProcessVideoBackendClip[] | undefined;
       let backendFailureMessage: string | null = null;
@@ -568,104 +481,44 @@ export const processVideo = inngest.createFunction(
         return { skipped: true, status: "attempt_no_longer_active" };
       }
 
-      const { clipsFound } = await step.run(
-        "persist-generated-clips",
-        async () => {
-          return persistGeneratedClips({
-            backendClips,
-            outputPrefix,
-            uploadedFileId,
-            userId: context.userId,
-            attempt,
+      const completion = await step.run("settle-processing-attempt", () =>
+        settleProcessingAttempt({
+          uploadedFileId,
+          attempt,
+          userId: context.userId,
+          backendClips,
+          failureCode: backendFailureMessage
+            ? "backend_failed"
+            : shouldWaitForCallback && !modalCallbackReceived
+              ? "callback_timeout"
+              : "no_clips_generated",
+          noteCode: resolvePartialClipNoteCode({
+            clipsFound: generatedClipCount,
             expectedClipCount: clipCount,
-          });
-        },
+            backendFailureMessage,
+          }),
+        }),
       );
-
-      if (backendFailureMessage && clipsFound > 0) {
-        console.warn(
-          "Modal reported failure after expected clips were generated",
-          backendFailureMessage,
-        );
-      }
-
-      if (backendFailureMessage && clipsFound === 0) {
-        throw new Error(backendFailureMessage);
-      }
-
-      const callbackTimedOutWithoutOutputs =
-        shouldWaitForCallback &&
-        !modalCallbackReceived &&
-        !generatedClipsDetected &&
-        generatedClipCount < clipCount;
-
-      if (callbackTimedOutWithoutOutputs && clipsFound === 0) {
-        await step.run("mark-callback-timeout", async () => {
-          await markUploadedFileAttemptFailed(
-            uploadedFileId,
-            attempt,
-            "callback_timeout",
-            {
-              now: new Date(),
-              statuses: ["processing"],
-            },
-          );
-        });
-
-        return { skipped: false, status: "callback_timeout" };
-      }
-
-      if (clipsFound === 0) {
-        await step.run("mark-no-clips-generated", async () => {
-          await markUploadedFileAttemptFailed(
-            uploadedFileId,
-            attempt,
-            "no_clips_generated",
-            {
-              now: new Date(),
-              statuses: ["processing"],
-            },
-          );
-        });
-
-        return { skipped: false, status: "no_clips_generated" };
-      }
-
-      const completion = await step.run(
-        "complete-processing-attempt",
-        async () => {
-          return completeUploadedFileProcessingAttempt({
-            uploadedFileId,
-            attempt,
-            userId: context.userId,
-            clipsFound,
-            noteCode: resolvePartialClipNoteCode({
-              clipsFound,
-              expectedClipCount: clipCount,
-              backendFailureMessage,
-            }),
-            now: new Date(),
-          });
-        },
-      );
-
-      if (!completion.completed) {
+      if (!completion.completed)
         return { skipped: true, status: "attempt_no_longer_active" };
-      }
+      if (completion.clipsFound === 0)
+        return {
+          skipped: false,
+          status: backendFailureMessage
+            ? "backend_failed"
+            : "no_clips_generated",
+        };
 
       return { skipped: false, status: "processed" };
     } catch (error) {
-      await step.run("mark-backend-failed", async () => {
-        await markUploadedFileAttemptFailed(
+      await step.run("settle-backend-failed", () =>
+        settleProcessingAttempt({
           uploadedFileId,
           attempt,
-          "backend_failed",
-          {
-            now: new Date(),
-            statuses: ["processing"],
-          },
-        );
-      });
+          userId: context.userId,
+          failureCode: "backend_failed",
+        }),
+      );
 
       throw error;
     }
@@ -705,17 +558,15 @@ export const analyzeVideo = inngest.createFunction(
       },
     ],
   },
-  async ({ event, step }): Promise<ProcessingRunResult> => {
-    const { uploadedFileId, language, clipCount, attempt, outputPrefix } =
-      event.data;
-
-    const context = await step.run("load-processing-context", async () => {
-      return findCurrentProcessingAttemptContext(uploadedFileId, attempt);
-    });
-
-    if (context?.status !== "queued") {
+  async ({ event, step, runId }): Promise<ProcessingRunResult> => {
+    const { uploadedFileId, attempt } = event.data;
+    const context = await step.run("load-processing-context", () =>
+      loadVideoProcessingContext(uploadedFileId, attempt),
+    );
+    if (!context || !["queued", "processing"].includes(context.status))
       return { skipped: true };
-    }
+    if (context.mode !== "analyze") return { skipped: true };
+    const { language, clipCount, outputPrefix } = context;
 
     const sourceCheck = await step.run(
       "check-source-object-exists",
@@ -761,26 +612,16 @@ export const analyzeVideo = inngest.createFunction(
 
     // 분석 자체는 크레딧을 차감하지 않지만, 잔여 크레딧이 없는 사용자의
     // GPU 사용을 막기 위해 최소 1 크레딧을 요구한다.
-    if (context.user.credits < 1) {
-      await step.run("mark-no-credits", async () => {
-        await markUploadedFileAttemptNoCredits(uploadedFileId, attempt, {
-          now: new Date(),
-        });
-      });
-
-      return { skipped: false, status: "no credits" };
-    }
-
-    const claimResult = await step.run("claim-processing-attempt", async () => {
-      return startUploadedFileProcessingAttempt(
+    const claimResult = await step.run("claim-processing-attempt", () =>
+      claimProcessingAttempt({
         uploadedFileId,
-        context.userId,
+        userId: context.userId,
         attempt,
-        {
-          now: new Date(),
-        },
-      );
-    });
+        workerRunId: runId,
+      }),
+    );
+    if (claimResult.status === "no_credits")
+      return { skipped: false, status: "no credits" };
 
     if (claimResult.status !== "started") {
       // 이전에는 status를 `: undefined`로 접어 두 결과가 한 리터럴에 섞였다.
@@ -807,34 +648,74 @@ export const analyzeVideo = inngest.createFunction(
         ? `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/modal`
         : undefined;
 
-      const modalResponse = await step.run("send-analyze-to-modal", async () => {
-        const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
-          method: "POST",
-          body: JSON.stringify({
-            uploaded_file_id: uploadedFileId,
-            s3_key: context.s3Key,
+      const modalResponse = await step.run(
+        "send-analyze-to-modal",
+        async () => {
+          if (
+            !(await beginProcessingSpawn({
+              uploadedFileId,
+              attempt,
+              workerRunId: runId,
+            }))
+          ) {
+            const existing = await findProcessingDispatchForAttempt(
+              uploadedFileId,
+              attempt,
+            );
+            return {
+              status: "accepted",
+              call_id: existing?.modalCallId ?? null,
+            } as Record<string, unknown>;
+          }
+          try {
+            const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
+              method: "POST",
+              signal: AbortSignal.timeout(30_000),
+              body: JSON.stringify({
+                uploaded_file_id: uploadedFileId,
+                s3_key: context.s3Key,
+                attempt,
+                language,
+                clip_count: clipCount,
+                mode: "analyze",
+                output_prefix: outputPrefix,
+                callback_url: callbackUrl,
+              }),
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
+              },
+            });
+
+            if (!response.ok) {
+              const text = await response.text().catch(() => "");
+              throw new Error(
+                `Modal analyze dispatch failed (${response.status}): ${text.slice(0, 500)}`,
+              );
+            }
+
+            const result = (await response.json()) as Record<string, unknown>;
+            return result;
+          } catch (error) {
+            await markProcessingSpawnUnknown({
+              uploadedFileId,
+              attempt,
+              workerRunId: runId,
+            });
+            throw error;
+          }
+        },
+      );
+      if (modalResponse.status !== "accepted" || modalResponse.call_id) {
+        await step.run("record-send-analyze-to-modal-result", () =>
+          recordProcessingSpawnResult({
+            uploadedFileId,
             attempt,
-            language,
-            clip_count: clipCount,
-            mode: "analyze",
-            output_prefix: outputPrefix,
-            callback_url: callbackUrl,
+            workerRunId: runId,
+            response: modalResponse,
           }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
-          },
-        });
-
-        if (!response.ok) {
-          const text = await response.text().catch(() => "");
-          throw new Error(
-            `Modal analyze dispatch failed (${response.status}): ${text.slice(0, 500)}`,
-          );
-        }
-
-        return (await response.json()) as Record<string, unknown>;
-      });
+        );
+      }
 
       const shouldWaitForCallback = modalResponse.status === "accepted";
 
@@ -901,7 +782,9 @@ export const analyzeVideo = inngest.createFunction(
       }
 
       const validMoments = analyzedMoments.filter(
-        (moment): moment is AnalyzedMomentPayload & {
+        (
+          moment,
+        ): moment is AnalyzedMomentPayload & {
           startSeconds: number;
           endSeconds: number;
         } =>

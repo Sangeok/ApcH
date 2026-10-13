@@ -6,5 +6,8 @@ export {
   createClipsBulk,
   deleteClipRecord,
   findClipById,
+  findCardNewsSourceClip,
+  lockClipForCardNews,
   updateClipMetadataFromBackendClips,
 } from "./api";
+export { findClipForDeletion, markClipsDeleting } from "./api";

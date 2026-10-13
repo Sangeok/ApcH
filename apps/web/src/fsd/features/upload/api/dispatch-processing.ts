@@ -7,9 +7,8 @@ import {
   markProcessingDispatchSent,
   type PendingProcessingDispatch,
 } from "~/fsd/entities/processing-dispatch/server";
-import { getSelectedRenderMomentsForAttempt } from "~/fsd/entities/clip-draft/server";
+import { parseVideoProcessingSnapshot } from "./claim-processing-attempt";
 import {
-  getAttemptOutputPrefix,
   getProcessingMatchKey,
   type ProcessingStatus,
 } from "~/fsd/entities/uploaded-file";
@@ -113,15 +112,15 @@ export async function dispatchProcessingRequestById(
       );
     }
 
+    const snapshot = parseVideoProcessingSnapshot(dispatch.inputSnapshot);
+    if (snapshot.mode !== dispatch.kind)
+      throw new Error("Stored dispatch mode mismatch");
     const baseEventData = {
       uploadedFileId: dispatch.uploadedFile.id,
       userId: dispatch.uploadedFile.userId,
-      language: dispatch.uploadedFile.language,
+      language: snapshot.language,
       attempt: dispatch.attempt,
-      outputPrefix: getAttemptOutputPrefix(
-        dispatch.uploadedFile.s3Key,
-        dispatch.attempt,
-      ),
+      outputPrefix: snapshot.outputPrefix,
       matchKey: getProcessingMatchKey(
         dispatch.uploadedFile.id,
         dispatch.attempt,
@@ -133,32 +132,20 @@ export async function dispatchProcessingRequestById(
         name: "analyze-video-events",
         data: {
           ...baseEventData,
-          clipCount: dispatch.uploadedFile.targetClipCount,
+          clipCount: snapshot.clipCount,
         },
       });
     } else if (dispatch.kind === "render") {
-      if (dispatch.uploadedFile.reviewAttempt === null) {
-        throw new Error("Render dispatch requires a completed analysis attempt");
-      }
-
-      // 선택 draft → RenderMoment 매핑은 clip-draft 엔티티가 소유한다(4.5(a)).
-      // 빈 선택은 confirm 액션이 사용자 경로에서 이미 막으므로, 아래 가드는
-      // 사용자 메시지가 아니라 방어선(dead_letter 경로)이다.
-      const renderMoments = await getSelectedRenderMomentsForAttempt(
-        dispatch.uploadedFile.id,
-        dispatch.uploadedFile.reviewAttempt,
-      );
-
-      if (renderMoments.length === 0) {
-        throw new Error("Render dispatch requires at least one selected clip draft");
-      }
+      const renderMoments = snapshot.moments ?? [];
+      if (!renderMoments.length)
+        throw new Error("Stored render dispatch has no moments");
 
       await inngest.send({
         name: "process-video-events",
         data: {
           ...baseEventData,
-          clipCount: renderMoments.length,
-          transcriptS3Key: dispatch.uploadedFile.transcriptS3Key,
+          clipCount: snapshot.clipCount,
+          transcriptS3Key: snapshot.transcriptS3Key,
           moments: renderMoments,
         },
       });
@@ -167,7 +154,7 @@ export async function dispatchProcessingRequestById(
         name: "process-video-events",
         data: {
           ...baseEventData,
-          clipCount: dispatch.uploadedFile.targetClipCount,
+          clipCount: snapshot.clipCount,
         },
       });
     }

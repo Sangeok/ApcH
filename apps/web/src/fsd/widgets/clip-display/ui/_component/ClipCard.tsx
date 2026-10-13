@@ -7,23 +7,31 @@ import { getClipPlayUrl } from "~/fsd/features/clip";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import { usePlayUrl } from "~/fsd/shared/lib/use-play-url";
 import { useScriptClipboard } from "../../model/use-script-clipboard";
-import {
-  clipTypeLabel,
-  hasClipRationale,
-} from "../../model/clip-rationale";
+import { clipTypeLabel, hasClipRationale } from "../../model/clip-rationale";
 import { subtitleFallbackNotice } from "../../model/subtitle-status";
 import { isNonEmptyString, parseJsonArray } from "~/fsd/shared/lib/utils";
 import { ClipActions } from "./ClipActions";
 import { ClipVideoPlayer } from "./ClipVideoPlayer";
 import { ScriptModal } from "./ScriptModal";
 import { YoutubeMetadataModal } from "./YoutubeMetadataModal";
+import type { CardNewsSummary } from "~/fsd/entities/card-news";
 
 interface ClipCardProps {
   clip: Clip;
   onOptimisticRemove: (clipId: string) => void;
+  cardNewsContext?: {
+    userId: string;
+    enabled: boolean;
+    creditBalance: { owned: number; reserved: number; available: number };
+    sets: CardNewsSummary[];
+  };
 }
 
-export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
+export default function ClipCard({
+  clip,
+  onOptimisticRemove,
+  cardNewsContext,
+}: ClipCardProps) {
   const playUrlState = usePlayUrl(clip.id, getClipPlayUrl);
   const [isScriptOpen, setIsScriptOpen] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
@@ -71,7 +79,10 @@ export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
       <ClipVideoPlayer state={playUrlState} onPlay={handlePlay} />
       {fallbackNotice && (
         <p className="flex items-start gap-1 text-xs leading-snug text-amber-600 dark:text-amber-500">
-          <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+          <AlertTriangle
+            className="mt-0.5 size-3 shrink-0"
+            aria-hidden="true"
+          />
           <span>{fallbackNotice}</span>
         </p>
       )}
@@ -101,6 +112,7 @@ export default function ClipCard({ clip, onOptimisticRemove }: ClipCardProps) {
         onOpenMetadata={() => setIsMetadataOpen(true)}
         onCopyScript={copyScript}
         onOptimisticRemove={onOptimisticRemove}
+        cardNewsContext={cardNewsContext}
       />
       <ScriptModal
         clip={clip}

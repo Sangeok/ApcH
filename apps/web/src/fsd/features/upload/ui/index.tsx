@@ -38,13 +38,13 @@ import { useReprocessUploadedFile } from "../model/use-reprocess-uploaded-file";
 interface UploadedFileActionsProps {
   uploadedFileId: string;
   status: ProcessingStatus;
-  currentUserCredits: number;
+  availableCredits: number;
 }
 
 export default function UploadedFileActions({
   uploadedFileId,
   status,
-  currentUserCredits,
+  availableCredits,
 }: UploadedFileActionsProps) {
   const router = useRouter();
   // 이 앱에서 가장 파괴적인 액션이라 blocking window.confirm 대신 앱의
@@ -59,9 +59,9 @@ export default function UploadedFileActions({
   const isActive = isActiveProcessingStatus(status);
   const isAnyActionPending =
     reprocessMutation.isPending || deleteMutation.isPending;
-  const shouldBuyCredits = status === "no credits" && currentUserCredits <= 0;
+  const shouldBuyCredits = status === "no credits" && availableCredits <= 0;
   const actionLabel =
-    status === "failed" || (status === "no credits" && currentUserCredits > 0)
+    status === "failed" || (status === "no credits" && availableCredits > 0)
       ? "Retry processing"
       : "Reprocess";
 
@@ -80,7 +80,7 @@ export default function UploadedFileActions({
     setIsDeleteDialogOpen(false);
     deleteMutation.mutate(uploadedFileId, {
       onSuccess: () => {
-        toast.success("Original file and clips deleted");
+        toast.success("Deletion accepted. Asset cleanup is in progress.");
       },
       onError: (error) => {
         toast.error(error.message);
@@ -141,8 +141,10 @@ export default function UploadedFileActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this upload?</AlertDialogTitle>
             <AlertDialogDescription>
-              The original file and all clips generated from it are deleted.
-              This cannot be undone, and spent credits are not refunded.
+              The original file, all generated clips, and all derived card news
+              sets (including paid regenerations) will be deleted after active
+              producers finish. This cannot be undone, and spent credits are not
+              refunded.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

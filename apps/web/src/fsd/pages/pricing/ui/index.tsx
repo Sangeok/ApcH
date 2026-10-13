@@ -29,7 +29,7 @@ export default function PricingPage() {
       <SeoPageHero
         eyebrow="Pricing"
         title="AI Podcast Clipper Pricing"
-        description="Start free with 3 credits. Credits are deducted after a successful processing run, one per generated clip with captions and vertical framing."
+        description="Start free with 3 credits. Video uses one credit per stored clip, including partial results. Card news, when enabled, uses a separate credit per complete set; manual edits and downloads are free."
         primaryCta={{ label: "Start free with 3 credits", href: "/login" }}
         secondaryCta={{ label: "See product tour", href: "/product-tour" }}
       />

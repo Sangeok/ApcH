@@ -151,6 +151,7 @@ exports.Prisma.UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   password: 'password',
   credits: 'credits',
+  reservedCredits: 'reservedCredits',
   polarCustomerId: 'polarCustomerId',
   image: 'image',
   defaultLanguage: 'defaultLanguage',
@@ -186,6 +187,7 @@ exports.Prisma.UploadedFileScalarFieldEnum = {
   reviewAttempt: 'reviewAttempt',
   reviewReadyAt: 'reviewReadyAt',
   transcriptS3Key: 'transcriptS3Key',
+  deletedAt: 'deletedAt',
   userId: 'userId'
 };
 
@@ -202,6 +204,7 @@ exports.Prisma.ClipScalarFieldEnum = {
   subtitleStatus: 'subtitleStatus',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt',
   youtubeTitle: 'youtubeTitle',
   youtubeDescription: 'youtubeDescription',
   youtubeHashtags: 'youtubeHashtags',
@@ -238,6 +241,130 @@ exports.Prisma.ProcessingDispatchScalarFieldEnum = {
   dispatchedAt: 'dispatchedAt',
   nextRetryAt: 'nextRetryAt',
   lockedAt: 'lockedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  workerRunId: 'workerRunId',
+  modalCallId: 'modalCallId',
+  modalSpawnState: 'modalSpawnState',
+  producerEndEvidence: 'producerEndEvidence',
+  reservationId: 'reservationId',
+  inputSnapshot: 'inputSnapshot',
+  claimedAt: 'claimedAt',
+  leaseUntil: 'leaseUntil',
+  heartbeatAt: 'heartbeatAt',
+  deadlineAt: 'deadlineAt'
+};
+
+exports.Prisma.CreditReservationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  operationKey: 'operationKey',
+  kind: 'kind',
+  reservedAmount: 'reservedAmount',
+  chargedAmount: 'chargedAmount',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  settledAt: 'settledAt',
+  releasedAt: 'releasedAt'
+};
+
+exports.Prisma.CardNewsSetScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  clipId: 'clipId',
+  uploadedFileId: 'uploadedFileId',
+  sourceSnapshot: 'sourceSnapshot',
+  sourceHash: 'sourceHash',
+  language: 'language',
+  draftDocument: 'draftDocument',
+  draftSnapshots: 'draftSnapshots',
+  draftRevision: 'draftRevision',
+  publishedRevision: 'publishedRevision',
+  pendingRenderRevision: 'pendingRenderRevision',
+  regeneratedFromId: 'regeneratedFromId',
+  status: 'status',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CardNewsJobScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  setId: 'setId',
+  kind: 'kind',
+  requestId: 'requestId',
+  requestHash: 'requestHash',
+  inputRevision: 'inputRevision',
+  inputSnapshot: 'inputSnapshot',
+  executionEpoch: 'executionEpoch',
+  status: 'status',
+  stage: 'stage',
+  reservationId: 'reservationId',
+  templateVersion: 'templateVersion',
+  deadlineAt: 'deadlineAt',
+  dispatchStatus: 'dispatchStatus',
+  dispatchLeaseUntil: 'dispatchLeaseUntil',
+  nextDispatchAt: 'nextDispatchAt',
+  dispatchCount: 'dispatchCount',
+  lastDispatchError: 'lastDispatchError',
+  dispatchedAt: 'dispatchedAt',
+  claimedAt: 'claimedAt',
+  heartbeatAt: 'heartbeatAt',
+  workerRunId: 'workerRunId',
+  modalCallId: 'modalCallId',
+  callbackInbox: 'callbackInbox',
+  modalSpawnState: 'modalSpawnState',
+  selectedManifestKey: 'selectedManifestKey',
+  selectedInvocationId: 'selectedInvocationId',
+  progressInvocationId: 'progressInvocationId',
+  manifest: 'manifest',
+  failureCode: 'failureCode',
+  completedAt: 'completedAt',
+  usageMetrics: 'usageMetrics',
+  analyticsContext: 'analyticsContext',
+  pendingAnalytics: 'pendingAnalytics',
+  outputRetiredAt: 'outputRetiredAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CardNewsInvocationScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  executionEpoch: 'executionEpoch',
+  invocationId: 'invocationId',
+  modalCallId: 'modalCallId',
+  writeDeadlineAt: 'writeDeadlineAt',
+  status: 'status',
+  progressSequence: 'progressSequence',
+  stage: 'stage',
+  producerEndEvidence: 'producerEndEvidence',
+  registeredAt: 'registeredAt',
+  endedAt: 'endedAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AssetCleanupJobScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  scopeId: 'scopeId',
+  scopeSnapshot: 'scopeSnapshot',
+  exactKeys: 'exactKeys',
+  dedicatedPrefixes: 'dedicatedPrefixes',
+  retainedReferences: 'retainedReferences',
+  producerReferences: 'producerReferences',
+  cursor: 'cursor',
+  failedKeys: 'failedKeys',
+  status: 'status',
+  notBefore: 'notBefore',
+  leaseUntil: 'leaseUntil',
+  nextRetryAt: 'nextRetryAt',
+  attemptCount: 'attemptCount',
+  lastError: 'lastError',
+  completedAt: 'completedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -298,6 +425,10 @@ exports.Prisma.NullableJsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -323,6 +454,11 @@ exports.Prisma.ModelName = {
   Clip: 'Clip',
   ClipDraft: 'ClipDraft',
   ProcessingDispatch: 'ProcessingDispatch',
+  CreditReservation: 'CreditReservation',
+  CardNewsSet: 'CardNewsSet',
+  CardNewsJob: 'CardNewsJob',
+  CardNewsInvocation: 'CardNewsInvocation',
+  AssetCleanupJob: 'AssetCleanupJob',
   Subscription: 'Subscription',
   Order: 'Order',
   AnalyticsEvent: 'AnalyticsEvent',

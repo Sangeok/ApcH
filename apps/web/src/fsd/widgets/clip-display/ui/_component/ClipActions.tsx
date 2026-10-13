@@ -11,6 +11,11 @@ import {
   Trash,
 } from "lucide-react";
 import { useTransition } from "react";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCardNewsMutations } from "~/fsd/features/card-news";
+import type { CardNewsSummary } from "~/fsd/entities/card-news";
 import { toast } from "sonner";
 import { useDeleteClip } from "~/fsd/features/clip";
 import { triggerDownload } from "~/fsd/shared/lib/triggerDownload";
@@ -34,6 +39,12 @@ interface ClipActionsProps {
   onCopyScript: () => void | Promise<void>;
   /** 낙관적 제거. 부모의 useOptimistic 리듀서라 부모가 소유한다. */
   onOptimisticRemove: (clipId: string) => void;
+  cardNewsContext?: {
+    userId: string;
+    enabled: boolean;
+    creditBalance: { owned: number; reserved: number; available: number };
+    sets: CardNewsSummary[];
+  };
 }
 
 export function ClipActions({
@@ -45,9 +56,16 @@ export function ClipActions({
   onOpenMetadata,
   onCopyScript,
   onOptimisticRemove,
+  cardNewsContext,
 }: ClipActionsProps) {
   const deleteMutation = useDeleteClip(clip.uploadedFileId);
   const [isDeleting, startDeleting] = useTransition();
+  const [showCreation, setShowCreation] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const router = useRouter();
+  const cardNews = useCardNewsMutations(cardNewsContext?.userId ?? clip.userId);
+  const derivedSets =
+    cardNewsContext?.sets.filter((set) => set.clipId === clip.id) ?? [];
 
   const handleDownload = () => {
     if (playUrlState.status !== "ready") return;
@@ -55,6 +73,13 @@ export function ClipActions({
   };
 
   const handleDelete = () => {
+    if (
+      derivedSets.length > 0 &&
+      !window.confirm(
+        `Delete this clip and ${derivedSets.length} derived card news sets, including paid regenerated sets? The original video and sibling clips remain.`,
+      )
+    )
+      return;
     startDeleting(async () => {
       // 서버 응답 **전에** 지운다. 이전에는 확인 뒤에 호출해서 이름과 달리
       // 낙관적이지 않았고, 삭제한 카드가 왕복이 끝날 때까지 남아 있었다.
@@ -63,7 +88,7 @@ export function ClipActions({
 
       try {
         await deleteMutation.mutateAsync(clip.id);
-        toast.success("Clip deleted");
+        toast.success("Deletion accepted. Asset cleanup is in progress.");
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Failed to delete clip",
@@ -74,6 +99,76 @@ export function ClipActions({
 
   return (
     <div className="flex flex-col gap-2">
+      {cardNewsContext?.enabled && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowCreation(!showCreation)}
+        >
+          Create card news · 1 credit
+        </Button>
+      )}
+      {showCreation && cardNewsContext && (
+        <div className="space-y-2 rounded border p-2 text-xs">
+          <p>
+            {cardNewsContext.creditBalance.available} available ·{" "}
+            {cardNewsContext.creditBalance.reserved} reserved
+          </p>
+          <p>
+            Target language follows this clip. The cover uses a scene from the
+            original video.
+          </p>
+          <label>
+            Theme{" "}
+            <select
+              className="bg-background rounded border p-1"
+              value={theme}
+              onChange={(event) =>
+                setTheme(event.target.value as "light" | "dark")
+              }
+            >
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+          <Button
+            size="sm"
+            className="w-full"
+            disabled={
+              cardNews.create.isPending ||
+              cardNewsContext.creditBalance.available < 1
+            }
+            onClick={() => {
+              void cardNews.create
+                .mutateAsync({
+                  clipId: clip.id,
+                  requestId: crypto.randomUUID(),
+                  theme,
+                })
+                .then((result) =>
+                  router.push(`/dashboard/card-news/${result.setId}`),
+                )
+                .catch((error: unknown) =>
+                  toast.error(
+                    error instanceof Error
+                      ? error.message
+                      : "Could not create card news",
+                  ),
+                );
+            }}
+          >
+            Generate · 1 credit
+          </Button>
+        </div>
+      )}
+      {derivedSets.length > 0 && (
+        <Link
+          className="text-center text-xs underline"
+          href={`/dashboard/card-news?clipId=${encodeURIComponent(clip.id)}`}
+        >
+          {derivedSets.length} card news set{derivedSets.length > 1 ? "s" : ""}
+        </Link>
+      )}
       <div className="flex items-center gap-2">
         <Button
           onClick={handleDownload}
