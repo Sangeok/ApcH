@@ -101,3 +101,17 @@ runtime.*` 미추적 파일은 세션 시작 때부터 있던 다른 세션의 W
 **무편집 무소득 1사이클 = 클린 패스.** 트리 검산(직접): 저장소 변경은 메인 루프의 계획서·기록 편집뿐, `caption-vertical-drag*` 미존재.
 `apps/web/src/fsd/shared/config/product-copy.ts`의 diff(+6, card news 문구)는 2026-10-11 수정분이라 다른 세션의 WIP다.
 하니스 worktree `wt62`는 junction을 먼저 끊고(비재귀) 제거했다.
+
+## 게이트② 준비 — dev 작업 트리 정리 (2026-10-14)
+
+FEAT-61 배포 뒤, 구현 검사에 card-news WIP가 섞이지 않게 정리할지 소유자에게 물었다(선택지: 브랜치로 옮김 · dev에 커밋 · 그대로).
+조사 결과 `feat/card-news`에 이미 `72bde11 wip(card-news): Instagram 카드뉴스 구현 보존 — 미검토·배포 금지`(바탕 `b2b5504`)가 있었고,
+작업 트리 WIP 158파일이 그 커밋과 **전부 내용 동일**(CRLF 무시, 파일별 바이트 대조 — 브랜치에만·트리에만 있는 파일 0)이었다. 마지막
+수정 2026-10-11 20:37. 「미검토·배포 금지」라 dev 커밋은 배포 경로에 미검토 코드를 올린다 → 메인 루프가 「트리의 사본만 정리」를
+권했고 소유자가 「진행해」로 승인했다.
+
+- 실행: 첫 시도(`git restore` + `git clean`)는 자동 모드 분류기가 「되돌릴 수 없는 로컬 삭제」로 거부 → **되돌릴 수 있는 방법**으로
+  바꿔 `git stash push -u -- . ':(exclude)nul'`. `stash@{0}`에 158파일(「card-news WIP 사본 — feat/card-news 72bde11과 동일…」).
+  `nul`(Windows 예약 이름 찌꺼기, git이 담지 못함)만 미추적으로 남았다. `feat/card-news`는 `72bde11` 그대로.
+- 기준선: 정리 직후 web `check`가 `.next/types`의 낡은 생성 타입(옛 card-news 라우트 참조, TS2307)으로 실패 → `.next`는 gitignore된
+  빌드 산출물이라 `.next/types.stale-2026-10-14`로 이름만 바꿔 비켰다(다음 dev/build가 재생성). 그 뒤 web `check` EXIT 0 · `test` 198/198.
