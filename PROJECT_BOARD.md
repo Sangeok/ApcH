@@ -48,7 +48,7 @@
 - [ ] BUG-12: admin 분석 화면의 시각 표시가 서버 런타임 타임존에 암묵적으로 의존한다
   agent: admin-dev
   area: apps/admin/src/fsd/pages/analytics/ui/index.tsx
-  status: 계획지시
+  status: 검토대기
   근거: 미결 0건, 선행 BUG-10 충족된 한 줄 수정. 암묵적 UTC 의존 제거이며 BUG-18과 워크스페이스·파일이 겹치지 않는다.
 - [x] FEAT-61: 캡션 세로 위치를 프리셋 셋이 아니라 사용자가 정한 값으로 렌더한다 — 받는 쪽 먼저(FEAT-62 웹 드래그의 선행)
   agent: backend-dev
