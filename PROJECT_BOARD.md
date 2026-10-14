@@ -43,7 +43,7 @@
 - [ ] BUG-18: 설정 `Video style` 카드의 저장 버튼이 둘(`Save framing`·`Save caption style`)이라, 여백과 자막 위치를 함께 편집해도 한쪽만 저장되고 나머지는 경고 없이 사라진다 — 저장을 하나로 합치고 미저장 변경을 표시한다
   agent: web-dev
   area: apps/web/src/fsd/pages/settings/ui/index.tsx + apps/web/src/fsd/features/settings/api/index.ts
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(2026-10-14 세션) — 설정에서 여백과 자막 위치를 함께 바꿨는데 `Save framing`을 누르지 않아 여백이 저장되지 않은 실사례
 - [ ] BUG-12: admin 분석 화면의 시각 표시가 서버 런타임 타임존에 암묵적으로 의존한다
   agent: admin-dev
