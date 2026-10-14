@@ -203,6 +203,7 @@ For each frame, select face with highest 60-frame rolling average score:
 - `AWS_DEFAULT_REGION`: Default is `ap-southeast-2`
 - `GEMINI_API_KEY`: For moment identification
 - `AUTH_TOKEN`: Bearer token for endpoint authentication
+- `MODAL_WEBHOOK_SECRET`: Bearer token on the callbacks to the web (`/api/webhooks/modal`); must equal the web env of the same name
 
 ## Dependencies
 
