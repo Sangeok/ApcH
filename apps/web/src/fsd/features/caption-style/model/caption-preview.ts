@@ -103,15 +103,27 @@ export function getPreviewShadowPx(previewHeightPx: number): number {
   return CAPTION_RENDER.SHADOW * previewScale(previewHeightPx);
 }
 
-// 세로 위치. top/bottom은 marginv(main.py CAPTION_POSITION_MARGINV)를 px로, middle은 중앙(둘 다 null).
+// libass 줄 상자 높이를 미리보기 px로 — CSS line-height로 쓴다. libass는 ASS fontsize를 줄 상자 높이(REAL_DIM)로
+// 요청하므로 폰트와 무관하게 fontsize × scale이다. leading-tight(1.25em)는 Anton에서 이 상자의 0.72배라 위 기준 자막이
+// 실렌더보다 26 ASS px 위에 그려졌다(FEAT-62 계획 검증 실측 — 이 값으로 바꾸면 위·아래 기준 모두 −9 px로 고르게 준다).
+export function getPreviewLineHeightPx(
+  assFontSize: number,
+  previewHeightPx: number,
+): number {
+  return assFontSize * previewScale(previewHeightPx);
+}
+
+// 세로 위치. top/bottom은 marginV(null이면 apps/backend/caption_position.py CAPTION_POSITION_MARGINV 프리셋)를 px로,
+// middle은 중앙(둘 다 null). 프리셋 폴백(`marginV ?? MARGINV`)은 이 함수 한 곳에만 있다.
 export function getPreviewVerticalInset(
   position: CaptionStyle["position"],
+  marginV: number | null,
   previewHeightPx: number,
 ): { top: number | null; bottom: number | null } {
   const scale = previewScale(previewHeightPx);
   if (position === "top")
-    return { top: CAPTION_RENDER.MARGINV.top * scale, bottom: null };
+    return { top: (marginV ?? CAPTION_RENDER.MARGINV.top) * scale, bottom: null };
   if (position === "bottom")
-    return { top: null, bottom: CAPTION_RENDER.MARGINV.bottom * scale };
-  return { top: null, bottom: null }; // middle
+    return { top: null, bottom: (marginV ?? CAPTION_RENDER.MARGINV.bottom) * scale };
+  return { top: null, bottom: null }; // middle (marginV 무시)
 }

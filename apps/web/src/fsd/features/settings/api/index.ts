@@ -52,7 +52,9 @@ export async function saveDefaultCaptionStyle(
     value: CaptionStyle | null,
   ): { ok: true; style: CaptionStyle | null } | { ok: false } => {
     if (value === null) return { ok: true, style: null };
-    const parsed = captionStyleSchema.safeParse(value);
+    // 옛 저장값에는 marginV 키가 없다(타입은 필수지만 런타임엔 undefined). z.number().nullable()은 undefined를
+    // 거부하므로 null로 받는다. 저장은 parsed.data라 null로 정규화되어 앞으로 키가 생긴다.
+    const parsed = captionStyleSchema.safeParse({ ...value, marginV: value.marginV ?? null });
     return parsed.success ? { ok: true, style: parsed.data } : { ok: false };
   };
 

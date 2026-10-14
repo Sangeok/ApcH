@@ -53,6 +53,7 @@ const EMPTY_STYLE: CaptionStyle = {
   outlineColor: null,
   outlineWidth: null,
   uppercase: null,
+  marginV: null,
 };
 
 export default function CaptionStyleEditor({
@@ -77,6 +78,7 @@ export default function CaptionStyleEditor({
     outlineColor: effectiveOutlineColor,
     outlineWidth: effectiveOutlineWidth,
     uppercase: effectiveUppercase,
+    marginV: effectiveMarginV,
   } = resolveEffectiveCaptionStyle(value, language);
 
   // 저장값(null 포함)을 그대로 펼친다. effective를 펼치면 위치만 바꿔도
@@ -132,12 +134,17 @@ export default function CaptionStyleEditor({
                 type="button"
                 size="sm"
                 variant={effectivePosition === position ? "default" : "outline"}
-                onClick={() => emit({ position })}
+                onClick={() => emit({ position, marginV: null })}
               >
                 {POSITION_LABELS[position]}
               </Button>
             ))}
           </div>
+          {sample && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Or drag the caption in the preview to set its height.
+            </p>
+          )}
         </div>
 
         <div>
@@ -319,6 +326,8 @@ export default function CaptionStyleEditor({
           maxWords={effectiveMaxWords}
           uppercase={effectiveUppercase}
           position={effectivePosition}
+          marginV={effectiveMarginV}
+          onVerticalChange={sample ? (next) => emit(next) : undefined}
           paddingPercent={paddingPercent}
           sample={sample}
         />
