@@ -46,9 +46,9 @@
 
 ## FEAT-61 — 캡션 세로 위치를 사용자 marginV로 렌더 (backend, 구현 2026-10-14)
 
-원천: `docs/agents/backend-dev/FEAT-61.md`·`docs/plans/FEAT-61.md` 「못 덮는 범위」. **미배포** — Modal 배포는 소유자 승인 후. 웹(FEAT-62)이 아직 `marginV`를 보내지 않으므로 사용자 여백 렌더는 FEAT-62 배포 뒤에야 웹 경유로 판정된다. **`〔auto〕` 태그를 붙이지 않는다**: Modal 컨테이너·실렌더 관측이다.
+원천: `docs/agents/backend-dev/FEAT-61.md`·`docs/plans/FEAT-61.md` 「못 덮는 범위」. **배포됨(2026-10-14 09:49 KST, `modal deploy main.py` — `ad1afe1` 기준, 소유자 지시 「배포해」)** — 마운트에 `PythonPackage:caption_position` 포함. 웹(FEAT-62)이 아직 `marginV`를 보내지 않으므로 사용자 여백 렌더는 FEAT-62 배포 뒤에야 웹 경유로 판정된다. **`〔auto〕` 태그를 붙이지 않는다**: Modal 컨테이너·실렌더 관측이다.
 
-- [ ] **새 이미지로 컨테이너가 기동하는가** — 배포 직후 `modal container list`로 활성 컨테이너가 전부 배포 시각 이후 시작인지 보고, 첫 처리 1건이 시작 단계에서 죽지 않는지(새 순수 모듈 `caption_position`이 이미지에 없으면 **모든 모드가 시작 시 `ModuleNotFoundError`**로 죽는다 — `test_modal_image_sources.py`가 막지만 실컨테이너가 유일한 증거다)
+- [x] **새 이미지로 컨테이너가 기동하는가** — 배포 직후 `modal container list`로 활성 컨테이너가 전부 배포 시각 이후 시작인지 보고, 첫 처리 1건이 시작 단계에서 죽지 않는지(새 순수 모듈 `caption_position`이 이미지에 없으면 **모든 모드가 시작 시 `ModuleNotFoundError`**로 죽는다 — `test_modal_image_sources.py`가 막지만 실컨테이너가 유일한 증거다) — 확인(2026-10-14, `modal container list` 실측: 배포 09:48:14~09:49:03 KST. 직후엔 옛 컨테이너 `ta-01M4V08H…`(01:07:10 KST 시작)와 새 컨테이너 `Pending`이 공존 → 09:49:49 KST에 옛 컨테이너 소멸, 새 컨테이너 `ta-01M4VY4MV4…` 09:49:22 KST 시작·같은 ID로 40초 이상 생존. `main.py` 최상위가 `caption_position`을 import하므로 생존이 곧 import 성공이다. 첫 처리 실행은 다음 줄의 업로드로 함께 본다)
 - [ ] **기존 프리셋 위치가 그대로인가**(회귀) — 배포 뒤 업로드 1건(Top 또는 Bottom 프리셋, 지금 웹 요청은 `marginV` 키가 없다)에서 자막이 배포 전과 같은 높이(Top 줄 상자 위끝 200 · Bottom 줄 상자 아래끝 아래에서 260, 1920 기준)에 나오는지. 옛·새 해석은 계획 검증에서 504입력 전수 등가였다
 - [ ] **사용자 marginV가 그 높이에 렌더되는가** — FEAT-62 배포 뒤 설정에서 자막을 끌어 저장 → 업로드 1건. top 기준이면 줄 상자 위끝이 위에서 `marginV`, bottom 기준이면 아래끝이 아래에서 `marginV`(로컬 libass 실측: 크기 122에서 글자 잉크는 줄 상자보다 위 34px·아래 14px 안쪽). 컨테이너 ffmpeg·libass는 로컬 측정과 빌드가 다르다 — FEAT-62 절의 「미리보기와 실렌더 위치」 확인과 같은 영상으로 닫는다
 

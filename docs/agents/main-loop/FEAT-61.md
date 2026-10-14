@@ -108,3 +108,14 @@ backend-dev 구현 보고: 완료, 스케치 대비 차이 없음, unittest 146 
 - 범위 밖 의존 → 백로그 후보: FEAT-62는 이미 등재돼 있다. 새 후보 없음.
 - 문서: 계획서 「범위 밖 의존」대로 `apps/backend/CLAUDE.md` 자막 절 세 줄을 갱신(위치 해석이 `caption_position.py`에 있음 · middle은 libass가 MarginV 무시 · top/bottom은 사용자 `marginV` 우선, 줄 상자 기준 · 허용값에 `marginV` int 0–960).
 - 원장: `docs/release-checks.md`에 FEAT-61 절 3줄(컨테이너 기동 · 프리셋 회귀 · 사용자 marginV 실렌더). 셋째는 FEAT-62 배포 뒤 같은 영상으로 닫는다.
+
+## Modal 배포 (2026-10-14)
+
+소유자 지시 「배포해」로 메인 루프가 `apps/backend`에서 `PYTHONUTF8=1 …/apch-backend/Scripts/python.exe -m modal deploy main.py`
+실행(`ad1afe1` 기준 작업 트리 — `main.py`와 등재 모듈은 커밋본과 같고, card-news 미추적 파일은 `main.py`가 import하지 않아
+마운트되지 않는다). 6.96초 성공, 마운트에 `PythonPackage:caption_position` 포함.
+
+배포 직후 탐침 메모리(옛 컨테이너가 요청을 받을 수 있다)대로 먼저 `modal container list`: 옛 컨테이너(01:07:10 KST 시작)와 새
+컨테이너 `Pending`이 공존 → 20초 간격 폴링으로 09:49:49 KST 옛 컨테이너 소멸, 새 컨테이너 `ta-01M4VY4MV4…`(09:49:22 KST 시작)만
+남아 같은 ID로 40초 이상 생존. 이번 배포는 요청 필드 검증이 바뀌지 않아 422 탐침이 판정력이 없다 — 새 이미지의 증거는 컨테이너
+생존(최상위 import 성공)이다. 원장 첫 줄을 이 근거로 닫았다. 프리셋 회귀·사용자 marginV 실렌더는 업로드가 필요하다(크레딧).
