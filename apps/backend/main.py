@@ -43,6 +43,7 @@ from temp_cleanup_policy import (
 from error_callback import build_error_callback_payload
 from moment_prompt import build_moment_prompt
 from caption_style_source import select_caption_style
+from caption_position import resolve_position
 from video_framing import (
     parse_video_padding_percent,
     resolve_video_padding_percent,
@@ -97,7 +98,7 @@ image = (modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04", add_p
         "fc-cache -f -v"
     ])
     .add_local_dir("asd", "/asd", copy=True)
-    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation", "video_framing"))
+    .add_local_python_source("s3_upload_policy", "translation_fallback", "temp_cleanup_policy", "error_callback", "moment_prompt", "caption_style_source", "reference_translation", "video_framing", "caption_position"))
 
 # Modal 앱 정의(이름/이미지 지정)
 app = modal.App("ai-podcast-clipper", image=image)
@@ -151,20 +152,6 @@ def validate_moments(clip_moments, video_duration: float | None = None) -> list:
     return validated
 
 
-# 캡션 위치 → ASS alignment (numpad 표기). "middle"(5)이 기존 하드코딩 값.
-CAPTION_POSITION_ALIGNMENT = {
-    "top": 8,
-    "middle": 5,
-    "bottom": 2,
-}
-
-# top/bottom 선택 시 사용할 세로 마진 초기값. 시각 튜닝 대상 (Open Questions 참고).
-CAPTION_POSITION_MARGINV = {
-    "top": 200,
-    "bottom": 260,
-}
-
-
 def parse_hex_color(value):
     """'#RRGGBB' 문자열을 pysubs2.Color로 변환. 형식이 아니면 None."""
     if not isinstance(value, str):
@@ -182,10 +169,6 @@ def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_w
     잘못된/누락된 값은 조용히 기본값으로 대체한다 (렌더 실패보다 기본 스타일 출력이 낫다).
     """
     style = caption_style if isinstance(caption_style, dict) else {}
-
-    position = style.get("position")
-    if position not in CAPTION_POSITION_ALIGNMENT:
-        position = "middle"
 
     fontsize = style.get("fontSize")
     if not isinstance(fontsize, (int, float)) or not (60 <= fontsize <= 200):
@@ -207,8 +190,7 @@ def resolve_caption_style(caption_style, *, default_fontsize: int, default_max_w
     uppercase = style.get("uppercase") is True
 
     return {
-        "alignment": CAPTION_POSITION_ALIGNMENT[position],
-        "marginv": default_marginv if position == "middle" else CAPTION_POSITION_MARGINV[position],
+        **resolve_position(style, default_marginv=default_marginv),
         "fontsize": int(fontsize),
         "max_word": max_word,
         "primary_color": primary_color,
