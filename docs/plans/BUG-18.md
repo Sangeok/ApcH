@@ -63,22 +63,26 @@ export interface VideoStyleSnapshot {
   captionStyles: CaptionStyleDefaults;
 }
 
-// CaptionStyle의 전 필드. 하나라도 빠지면 그 필드 변경이 미저장으로 안 잡힌다.
-const CAPTION_STYLE_KEYS = [
-  "position",
-  "fontSize",
-  "color",
-  "maxWordsPerLine",
-  "outlineColor",
-  "outlineWidth",
-  "uppercase",
-  "marginV",
-] as const satisfies readonly (keyof CaptionStyle)[];
+// CaptionStyle의 전 필드. 하나라도 빠지면 그 필드만 바꾼 편집이 미저장으로 안 잡혀
+// 저장 버튼이 켜지지 않는다. Record<keyof CaptionStyle, true>라 필드가 늘거나 빠지면
+// tsc가 깨진다 — 배열에 satisfies만 걸면 빠진 키를 못 잡는다(marginV가 FEAT-61·62에서 실제로 늘었다).
+const CAPTION_STYLE_FIELDS: Record<keyof CaptionStyle, true> = {
+  position: true,
+  fontSize: true,
+  color: true,
+  maxWordsPerLine: true,
+  outlineColor: true,
+  outlineWidth: true,
+  uppercase: true,
+  marginV: true,
+};
+const CAPTION_STYLE_KEYS = Object.keys(CAPTION_STYLE_FIELDS) as (keyof CaptionStyle)[];
 
 // null(=언어 기본값)과 객체는 DB에 다르게 쓰이므로 서로 다르다.
 // 둘 다 객체면 필드별로 비교하되 undefined와 null을 같게 본다
-// — 옛 저장값에는 marginV 키가 없어(런타임 undefined) 불러오자마자
-//   현재값(marginV: null)과 어긋나 거짓 미저장이 되는 것을 막는다.
+// — 옛 저장값에는 marginV 키가 없다(런타임 undefined). 그 위에서 Position 버튼을
+//   누르면 편집기가 marginV: null을 실어 보내므로(CaptionStyleEditor emit), 보이는 것이
+//   그대로여도 거짓 미저장이 되는 것을 막는다.
 function captionStyleEquals(
   a: CaptionStyle | null,
   b: CaptionStyle | null,
@@ -150,6 +154,8 @@ export async function saveVideoStyle(input: {
     value: CaptionStyle | null,
   ): { ok: true; style: CaptionStyle | null } | { ok: false } => {
     if (value === null) return { ok: true, style: null };
+    // 옛 저장값에는 marginV 키가 없다(타입은 필수지만 런타임엔 undefined). z.number().nullable()은 undefined를
+    // 거부하므로 null로 받는다. 저장은 parsed.data라 null로 정규화되어 앞으로 키가 생긴다.
     const parsed = captionStyleSchema.safeParse({
       ...value,
       marginV: value.marginV ?? null,
@@ -287,12 +293,18 @@ framing 도움말의 "Captions keep their current position. Applies to both lang
   8. **옛 저장값 회귀**: saved 캡션에 `marginV` 키 없음(undefined) vs current `marginV: null`, 나머지 동일 → `false`(undefined/null 합침 — 불러오자마자 거짓 미저장이 뜨지 않음)
   9. `marginV` 433 vs 200 → `true`
   10. 같은 값·다른 객체 참조 → `false`(참조가 아니라 값 비교)
+  11. **필드 전수** — `CaptionStyle`의 여덟 필드(`position`·`fontSize`·`color`·`maxWordsPerLine`·`outlineColor`·`outlineWidth`·`uppercase`·`marginV`) 각각에 대해, 그 필드 **하나만** 다른 값으로 바꾼 current → `true`. 표 하나를 돌리는 한 `it`이면 된다. 1~10만으로는 여덟 필드 중 다섯(`position`·`maxWordsPerLine`·`outlineColor`·`outlineWidth`·`uppercase`)을 비교 목록에서 지워도 전부 통과한다(메인 루프 2026-10-15 돌연변이 실측). tsc가 목록 누락을 잡지만 러너(tsx)는 타입을 보지 않으므로 런타임에서도 잡는다.
 - **못 덮는 범위(배포 후 수동 확인)**: 러너에 DOM이 없어 **저장 버튼 활성/비활성·`beforeunload` 경고·토스트·실제 DB 반영**은 판정하지 못한다. 합친 서버 액션·`db.user.update`의 원자성, `revalidatePath`, 분석 이벤트 전송도 러너 밖(외부 I/O)이다. 배포 후 수동 확인과 배포 원장(`docs/release-checks.md`, 편집은 메인 루프) 영향:
   - `:79` 「**저장 분리가 그대로인가**(회귀)」(FEAT-60, 미결) — 이 항목이 저장 분리를 폐기하므로 **대체 마감** 대상. 더 이상 "자막 저장이 여백을 안 건드린다"를 확인하지 않는다(의도적으로 함께 저장).
   - `:53` 「**스냅·프리셋·저장**」(FEAT-62) — `Save caption style` 문구가 `Save video style`로 바뀌므로 **재앵커** 대상. "끌어 놓고 저장 → 새로고침하면 같은 위치"는 버튼 이름만 바꿔 유효. "Framing 설명(「Captions keep their current position…」)은 그대로"는 그대로 참(그 문구 유지).
   - `:325` 「**설정 화면에 캡션 기본 스타일 카드가 보이고…**」 — `Save caption style` 문구를 `Save video style`로 **재앵커** 대상.
   - `:129`(FEAT-58, 확인됨·이력) — 손대지 않는다.
   - 신규 수동 확인 후보(메인 루프가 원장 등재 판단): ① 여백·두 언어 캡션을 함께 바꾸고 `Save video style` 한 번 → 새로고침 시 셋 다 반영. ② 저장 뒤 버튼 비활성, 편집하면 다시 활성 + "Unsaved changes" 표시. ③ 미저장 상태로 새로고침/탭 닫기 시 브라우저 경고. ④ `Reset framing`·`Reset both languages`는 로컬만 되돌리고 저장 전엔 DB 불변.
+
+## 합친 저장이 만드는 결합 (확인한 것)
+
+- **여백 저장이 캡션 검증에 묶인다.** 합친 액션은 두 언어 캡션이 `captionStyleSchema`를 통과해야 여백도 저장한다. 저장된 캡션이 지금 스키마를 못 넘으면 여백만 바꿔도 `Invalid caption style`로 실패한다. 2026-10-15 실제 DB 읽기 전용 재생 결과는 다음과 같다. 사용자 8명 가운데 저장된 캡션은 2개이고 둘 다 통과한다(`marginV` 정규화 후, 실패 0). 그중 하나는 `marginV` 키가 없는 옛 형태라 테스트 8의 합침이 실제 데이터에 필요하다. 앞으로 스키마 범위를 좁히는 항목은 기존 저장값의 통과 여부를 따로 확인해야 한다.
+- **두 탭 동시 저장은 세 컬럼 전체가 나중 저장으로 덮인다.** 전에는 여백과 캡션이 다른 액션이라 한 탭은 여백만, 다른 탭은 캡션만 저장할 수 있었다. 이제는 낡은 탭의 저장이 세 값을 함께 덮는다. 설정은 소유자 한 사람이 편집하는 값이고, 두 언어 캡션은 원래도 한 번에 덮였다(`updateUserDefaultCaptionStyle`). 그래서 받아들인다.
 
 ## 범위 밖 의존
 

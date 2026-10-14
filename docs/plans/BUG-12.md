@@ -15,7 +15,7 @@ agent: admin-dev
   - `src/fsd/pages/pipeline/model/briefing.ts:62,79` `daysOnBoard`/`nthDay` — `Date.UTC(...)` + `getUTC*`로 **명시적 UTC** 날짜 차 계산. 표시 아님.
   - `src/fsd/features/transition-pipeline-gate/model/transitions.ts:281` `holdResultLine` — `getUTCFullYear/getUTCMonth/getUTCDate`로 **명시적 UTC**(`commit-gate-transition.ts:143`이 `new Date()`를 넘김). 보드 `결과:` 줄(GitHub write)로 나가고 화면 표시 아님.
   - `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts:17` `new Date(windowStart).toISOString()` — GitHub 쿼리의 `since` 파라미터. `toISOString()`은 정의상 UTC 결정적. 표시 아님.
-  - `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts:63`, `src/fsd/pages/pipeline/page.tsx:24` `new Date()` — `deriveProgress`/`buildBriefing`에 넘기는 "현재 시각" 로직 입력. `progress.ts:9`가 `sinceIso/lastEventIso는 화면에 렌더하지 않는다`고 명시. 표시 아님.
+  - `src/fsd/features/run-pipeline-command/api/get-pipeline-progress.ts:63`, `src/app/(protected)/pipeline/page.tsx:24` `new Date()` — `deriveProgress`/`buildBriefing`에 넘기는 "현재 시각" 로직 입력. `progress.ts:9`가 `sinceIso/lastEventIso는 화면에 렌더하지 않는다`고 명시. 표시 아님.
   - `src/fsd/features/send-observability-test/api/send-observability-test-event.ts:36` `new Date().toISOString()` — Sentry 테스트 payload `processingStartedAt`. UTC 결정적. 화면 표시 아님.
   - `src/fsd/entities/analytics-event/api/queries.ts:45` `new Date(Date.now() - RANGE_DAYS[range]*...)` — DB `createdAt` 필터의 범위 시작. 에폭 상대 계산이라 TZ 무관, 표시 아님.
 - 결론: admin은 `:236`을 **제외하면** 모든 날짜 경로가 이미 명시적 UTC(`getUTC*`/`Date.UTC`/`toISOString`)이거나 비표시 로직이다. `:236`만 홀로 암묵 의존이다.
@@ -105,6 +105,7 @@ describe("format-date", () => {
 
 - **덮는 것**: `formatDateTime`가 런타임 로케일·타임존과 무관하게 고정 출력을 내는지(TZ를 `Asia/Seoul`로 강제한 뒤 동적 임포트해 골든 대조), `DATE_TIME_FORMATTER.resolvedOptions()`의 `timeZone === "UTC"`·`locale === "en"` 완전 일치. 러너가 UTC(CI·Vercel)여도 `timeZone`/`locale` 인자 제거 회귀가 잡히도록 TZ 강제 + 상수 수출이 핵심이다.
 - **못 덮는 범위**: `index.tsx:236`이 실제로 `formatDateTime`을 부르는지(화면 렌더)는 Node 러너가 DOM·React 렌더가 없어 판정하지 못한다 — 순수 포매터 계약만 러너가 덮고, 호출 연결은 수동 smoke 대상이다.
+- **보이는 형식이 바뀐다**: "Last seen" 칸은 지금 런타임 기본 로케일의 `toLocaleString()` 형식(en-US 런타임이면 `7/30/2026, 10:55:46 PM`처럼 초까지)이고, 이 변경 뒤에는 `Jul 30, 2026, 10:55 PM`(월 약칭, 초 없음)이다. 시각 값(UTC)은 같고 표기만 바뀐다 — web BUG-10과 같은 형식이다. 배포 후 수동 확인은 이 형식이 보이는지로 판정한다.
 
 ## 범위 밖 의존
 
