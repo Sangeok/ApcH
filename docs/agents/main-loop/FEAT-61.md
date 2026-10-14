@@ -92,3 +92,19 @@ source 둘 누락). 구현 영향 없음(코드 사용 전칭은 참). 경로 6�
 소유자가 「진행」으로 게이트②를 열었다(메인 루프가 권한 순서 — FEAT-61 구현승인 → Modal 배포 → FEAT-62 — 를 제시한 직후). 계획서는
 클린 패스본(`2e1e9c5` 시점) 그대로다. FEAT-62는 FEAT-61 배포 확인 뒤 따로 연다. 백엔드의 card-news WIP는 신규 파일뿐이고 `main.py`
 수정이 없어 이 구현과 겹치지 않음을 확인했다.
+
+## 완료 인수 (2026-10-14)
+
+backend-dev 구현 보고: 완료, 스케치 대비 차이 없음, unittest 146 → 161 OK · `py_compile` 0. 인수 조건 다섯을 직접 재현했다.
+
+| # | 조건 | 직접 확인 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | 세션 전 WIP를 뺀 `git status`: `main.py`(M)·`caption_position.py`·`test_caption_position.py`(신규) + 보드·백로그·`docs/agents/backend-dev/FEAT-61.md`. card-news 미추적 파일 그대로 |
+| 2 | diff ↔ 「구현 스케치」 | `caption_position.py`가 계획 블록과 **바이트 동일**(LF). `HEAD:main.py`에 계획 before/after 다섯을 기계 적용한 결과와 구현본의 차이는 빈 줄 3줄뿐 — 계획 산문이 지시한 빈 줄 정리(상수표 자리 2·position 블록 뒤 1)와 정확히 같다 |
+| 3 | 검증 명령 재실행 | `unittest discover -s apps/backend` **Ran 161 OK**(146 + 신규 15), `py_compile main.py` EXIT 0. 덤: 계획 검증의 돌연변이 13마리를 **구현자가 쓴 실제 테스트 파일**로 돌려 13/13 사멸(155 케이스 포함 확인) |
+| 4 | 백로그 제거 | `TASK_BACKLOG.md` diff는 FEAT-61 항목 4줄 삭제뿐. 남은 「FEAT-61」 언급은 FEAT-62 source의 선행 의존 |
+| 5 | `결과`가 가리키는 상세 기록 | `docs/agents/backend-dev/FEAT-61.md` 실재(62줄 — 구현 전 확인·고친 파일·스케치 차이·테스트·검증·못 덮는 범위·비고). 보드 `결과` 144자 |
+
+- 범위 밖 의존 → 백로그 후보: FEAT-62는 이미 등재돼 있다. 새 후보 없음.
+- 문서: 계획서 「범위 밖 의존」대로 `apps/backend/CLAUDE.md` 자막 절 세 줄을 갱신(위치 해석이 `caption_position.py`에 있음 · middle은 libass가 MarginV 무시 · top/bottom은 사용자 `marginV` 우선, 줄 상자 기준 · 허용값에 `marginV` int 0–960).
+- 원장: `docs/release-checks.md`에 FEAT-61 절 3줄(컨테이너 기동 · 프리셋 회귀 · 사용자 marginV 실렌더). 셋째는 FEAT-62 배포 뒤 같은 영상으로 닫는다.

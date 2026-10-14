@@ -148,9 +148,9 @@ GPU·S3·Gemini·Modal이 필요한 경로는 이 러너로 덮을 수 없다. �
      | marginv | 165 | 155 |
      | outline width | 1.1 | 1.3 |
 
-   - Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`CAPTION_POSITION_ALIGNMENT`)
-   - `marginv` uses the per-language default only for `middle`. `top` uses 200 and `bottom` uses 260 (`CAPTION_POSITION_MARGINV`)
-   - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` and `outlineColor` as `#RRGGBB` (defaulting to white and black), `outlineWidth` 0–6, `uppercase` as a boolean (applied to the event text, so it only changes Latin characters in a Korean line)
+   - Position is decided by `resolve_position` in the stdlib-pure `caption_position.py` (FEAT-61, `test_caption_position.py`); `resolve_caption_style` spreads its `alignment` and `marginv` into the result. Alignment defaults to `middle` (ASS alignment 5); `top` is 8 and `bottom` is 2 (`CAPTION_POSITION_ALIGNMENT`)
+   - `marginv` uses the per-language default only for `middle` — libass ignores MarginV for a vertically centered line (measured locally, 2026-10-14). For `top`/`bottom` it is the distance from that edge to the caption's **line box** (not the glyph ink): the user's `marginV` when valid, otherwise 200 for `top` and 260 for `bottom` (`CAPTION_POSITION_MARGINV`)
+   - Accepted user values: `fontSize` 60–200, `maxWordsPerLine` 1–8, `color` and `outlineColor` as `#RRGGBB` (defaulting to white and black), `outlineWidth` 0–6, `uppercase` as a boolean (applied to the event text, so it only changes Latin characters in a Korean line), `marginV` an `int` 0–960 (`MARGINV_MIN`/`MARGINV_MAX`, synced with the web `captionStyleSchema`; `bool`, `float`, out-of-range or missing fall back to the constants)
    - **pysubs2 `SSAStyle` attribute names carry no underscore** — `primarycolor`, `outlinecolor`, `borderstyle`, `backcolor`. It is a dataclass, so assigning `primary_color` raises nothing and silently renders the default. That exact typo shipped once and made every user-picked caption color render white
 5. **S3 Upload**: Final clip uploaded to same directory as source. Transient failures (throttling, timeouts, connection errors) retry with capped exponential backoff via `_s3_call_with_retry` (`main.py`), whose decisions live in the stdlib-pure `s3_upload_policy.py`; a final failure raises with the operation, key, and attempt count in the message (BUG-03)
 
