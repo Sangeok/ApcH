@@ -40,6 +40,16 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-10-14
+- [ ] BUG-18: 설정 `Video style` 카드의 저장 버튼이 둘(`Save framing`·`Save caption style`)이라, 여백과 자막 위치를 함께 편집해도 한쪽만 저장되고 나머지는 경고 없이 사라진다 — 저장을 하나로 합치고 미저장 변경을 표시한다
+  agent: web-dev
+  area: apps/web/src/fsd/pages/settings/ui/index.tsx + apps/web/src/fsd/features/settings/api/index.ts
+  status: 승인대기
+  근거: 소유자 직접 발주(2026-10-14 세션) — 설정에서 여백과 자막 위치를 함께 바꿨는데 `Save framing`을 누르지 않아 여백이 저장되지 않은 실사례
+- [ ] BUG-12: admin 분석 화면의 시각 표시가 서버 런타임 타임존에 암묵적으로 의존한다
+  agent: admin-dev
+  area: apps/admin/src/fsd/pages/analytics/ui/index.tsx
+  status: 승인대기
+  근거: 미결 0건, 선행 BUG-10 충족된 한 줄 수정. 암묵적 UTC 의존 제거이며 BUG-18과 워크스페이스·파일이 겹치지 않는다.
 - [x] FEAT-61: 캡션 세로 위치를 프리셋 셋이 아니라 사용자가 정한 값으로 렌더한다 — 받는 쪽 먼저(FEAT-62 웹 드래그의 선행)
   agent: backend-dev
   area: apps/backend/main.py
