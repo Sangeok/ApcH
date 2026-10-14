@@ -13,6 +13,7 @@ describe("resolveEffectiveCaptionStyle", () => {
       outlineColor: "#000000",
       outlineWidth: 1.1,
       uppercase: false,
+      marginV: null,
     });
   });
 
@@ -25,6 +26,7 @@ describe("resolveEffectiveCaptionStyle", () => {
       outlineColor: "#000000",
       outlineWidth: 1.3,
       uppercase: false,
+      marginV: null,
     });
   });
 
@@ -47,7 +49,29 @@ describe("resolveEffectiveCaptionStyle", () => {
       outlineColor: "#1D4ED8", // 있는 값 override
       outlineWidth: 1.3, // null → 한국어 기본값
       uppercase: false, // null → false
+      marginV: null, // 입력 style에 marginV 없음 → 패스스루 null
     });
+  });
+
+  it("passes a saved marginV through unchanged (including 0)", () => {
+    // marginV는 언어 기본값이 없다(position처럼) — 저장값을 그대로 낸다. 0도 null로 바꾸지 않는다(`??`).
+    const base = {
+      position: "top",
+      fontSize: 122,
+      color: "#FFFFFF",
+      maxWordsPerLine: 5,
+      outlineColor: "#000000",
+      outlineWidth: 1,
+      uppercase: false,
+    };
+    assert.equal(
+      resolveEffectiveCaptionStyle({ ...base, marginV: 300 }, "English").marginV,
+      300,
+    );
+    assert.equal(
+      resolveEffectiveCaptionStyle({ ...base, marginV: 0 }, "English").marginV,
+      0,
+    );
   });
 
   it("preserves a saved outlineWidth of 0 instead of the language default", () => {

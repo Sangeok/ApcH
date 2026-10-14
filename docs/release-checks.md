@@ -44,6 +44,28 @@
 
 ---
 
+## FEAT-62 — 설정 미리보기에서 자막을 끌어 세로 위치 지정 (web, 구현 2026-10-14)
+
+원천: `docs/agents/web-dev/FEAT-62.md`·`docs/plans/FEAT-62.md` 「못 덮는 범위」. **미배포** — `main` 합류(PR) 대기. 전제 FEAT-61은 2026-10-14 배포됨. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면·포인터 조작·실렌더다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [ ] **끌기 — 데스크톱·모바일** — `/dashboard/settings` 미리보기에서 자막을 마우스로 잡고 위아래로 끌면 따라오고(잡는 순간 튀지 않음 — 잡은 지점 보정), 폰에서 손가락으로 끌어도 페이지가 스크롤되지 않고 자막이 움직이는지(`touch-action: none`). 미리보기 가운데를 넘나들 때 위치가 튀지 않는지(기준 가장자리 전환)
+- [ ] **키보드·낭독기** — 자막에 Tab으로 포커스가 가고 ↑/↓로 움직이는지. 화면 낭독기가 「Caption vertical position」 슬라이더와 「N% from bottom」을 읽는지, Top·Bottom 프리셋 상태에서도 값이 있는지(top 프리셋 크기 122에서 86%)
+- [ ] **스냅·프리셋·저장** — Top/Middle/Bottom을 누르면 끌어 놓은 위치가 프리셋으로 돌아가고, 프리셋 칩(Bold Yellow 등)을 바꿔도 끌어 놓은 위치는 유지되는지. 끌어 놓고 `Save caption style` → 새로고침하면 같은 위치로 다시 그려지는지(저장값 패스스루). 업로드 폼 Video style 썸네일도 그 위치를 따르는지. Position 버튼 아래에 「Or drag the caption in the preview to set its height.」가 보이고, Framing 설명(「Captions keep their current position…」)은 그대로인지
+- [ ] **옛 저장값이 그대로 저장되는가**(회귀) — 이 배포 전에 저장해 둔 캡션 스타일(키 `marginV` 없음)을 불러와 다른 필드만 바꿔 저장해도 「Invalid caption style」 없이 저장되는지(서버가 누락 키를 null로 흡수 — 계획 검증에서 zod 실측)
+- [ ] **미리보기와 실렌더 위치** — 자막을 검은 띠(Framing) 안 등 특정 높이에 끌어 놓고 저장 → 업로드 1건. 실렌더 자막 높이가 미리보기와 맞는지(계획 검증 실측 잔여 오차: 한 줄 −9 ASS px = 1920의 0.5%, 두 줄 아래끝 −16px. 여러 줄은 줄바꿈 위치가 다를 수 있다 — 가로 충실도는 후속 후보). FEAT-61 절 셋째 줄과 같은 영상으로 닫는다
+
+---
+
+## FEAT-61 — 캡션 세로 위치를 사용자 marginV로 렌더 (backend, 구현 2026-10-14)
+
+원천: `docs/agents/backend-dev/FEAT-61.md`·`docs/plans/FEAT-61.md` 「못 덮는 범위」. **배포됨(2026-10-14 09:49 KST, `modal deploy main.py` — `ad1afe1` 기준, 소유자 지시 「배포해」)** — 마운트에 `PythonPackage:caption_position` 포함. 웹(FEAT-62)이 아직 `marginV`를 보내지 않으므로 사용자 여백 렌더는 FEAT-62 배포 뒤에야 웹 경유로 판정된다. **`〔auto〕` 태그를 붙이지 않는다**: Modal 컨테이너·실렌더 관측이다.
+
+- [x] **새 이미지로 컨테이너가 기동하는가** — 배포 직후 `modal container list`로 활성 컨테이너가 전부 배포 시각 이후 시작인지 보고, 첫 처리 1건이 시작 단계에서 죽지 않는지(새 순수 모듈 `caption_position`이 이미지에 없으면 **모든 모드가 시작 시 `ModuleNotFoundError`**로 죽는다 — `test_modal_image_sources.py`가 막지만 실컨테이너가 유일한 증거다) — 확인(2026-10-14, `modal container list` 실측: 배포 09:48:14~09:49:03 KST. 직후엔 옛 컨테이너 `ta-01M4V08H…`(01:07:10 KST 시작)와 새 컨테이너 `Pending`이 공존 → 09:49:49 KST에 옛 컨테이너 소멸, 새 컨테이너 `ta-01M4VY4MV4…` 09:49:22 KST 시작·같은 ID로 40초 이상 생존. `main.py` 최상위가 `caption_position`을 import하므로 생존이 곧 import 성공이다. 첫 처리 실행은 다음 줄의 업로드로 함께 본다)
+- [ ] **기존 프리셋 위치가 그대로인가**(회귀) — 배포 뒤 업로드 1건(Top 또는 Bottom 프리셋, 지금 웹 요청은 `marginV` 키가 없다)에서 자막이 배포 전과 같은 높이(Top 줄 상자 위끝 200 · Bottom 줄 상자 아래끝 아래에서 260, 1920 기준)에 나오는지. 옛·새 해석은 계획 검증에서 504입력 전수 등가였다
+- [ ] **사용자 marginV가 그 높이에 렌더되는가** — FEAT-62 배포 뒤 설정에서 자막을 끌어 저장 → 업로드 1건. top 기준이면 줄 상자 위끝이 위에서 `marginV`, bottom 기준이면 아래끝이 아래에서 `marginV`(로컬 libass 실측: 크기 122에서 글자 잉크는 줄 상자보다 위 34px·아래 14px 안쪽). 컨테이너 ffmpeg·libass는 로컬 측정과 빌드가 다르다 — FEAT-62 절의 「미리보기와 실렌더 위치」 확인과 같은 영상으로 닫는다
+
+---
+
 ## FEAT-60 — 설정 미리보기 Framing 여백 띠·임시 장면 (web, 구현 2026-10-13)
 
 원천: `docs/agents/web-dev/FEAT-60.md`·`docs/plans/FEAT-60.md` 「못 덮는 범위」 ①~⑥. **배포됨(2026-10-13, PR #130 합류 `43c17c3`)** — Vercel `Production – apc-h` success(배포 id 7027887443). 합류 직전 메인 루프가 `ea2e312` 깨끗한 사본에서 web `build` EXIT 0(정적 페이지 41/41)을 확인했다. 게이트는 인수 시 메인 루프가 직접 재실행했다: 깨끗한 HEAD 사본 + 세 파일 web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**, 메인 트리(다른 세션 card-news 변경 포함) `check` EXIT 0 · `test` 319/49/0. 구현 세 파일은 계획서 스케치를 HEAD에 기계 적용한 결과와 줄바꿈 외 바이트 동일했고, 인수 때 구현본을 SSR 렌더해 0·10·25% 모두 장면이 상자 안 `top/bottom: N%`에 있고 자막 레이어가 그 위, 왼쪽 칸 슬롯이 Preset 앞, 비-`sample` 경로에는 장면이 없음을 확인했다. 계획 검증 때 같은 코드를 headless 크롬으로 띄워 화자 축소(×0.80 / ×0.72 / ×0.50 — 10 / 14 / 25%)와 데스크톱·모바일 순서를 봤다 — 아래 줄은 **실서버·실 Tailwind·실서체**로만 닫힌다.

@@ -9,7 +9,7 @@ import {
 // features/settings·features/upload·features/clip-review가 딥 임포트해도 peer 위반이 없다
 // (shared는 W2/W6 면제). 캡션 계약의 원천 타입은 shared/config의 CaptionStyle 하나이며,
 // satisfies가 스키마-타입 드리프트를 막는다. 허용 범위는 백엔드 resolve_caption_style과 동기
-// (main.py: fontSize 60-200, maxWordsPerLine 1-8, outlineWidth 0-6).
+// (main.py: fontSize 60-200, maxWordsPerLine 1-8, outlineWidth 0-6 · caption_position.py: marginV 0-960).
 export const captionStyleSchema = z.object({
   position: z.enum(CAPTION_STYLE_OPTIONS.POSITIONS),
   fontSize: z
@@ -39,6 +39,12 @@ export const captionStyleSchema = z.object({
     .max(CAPTION_STYLE_OPTIONS.OUTLINE_WIDTH_RANGE.MAX)
     .nullable(),
   uppercase: z.boolean().nullable(),
+  marginV: z
+    .number()
+    .int()
+    .min(CAPTION_STYLE_OPTIONS.MARGIN_V_RANGE.MIN)
+    .max(CAPTION_STYLE_OPTIONS.MARGIN_V_RANGE.MAX)
+    .nullable(),
 }) satisfies z.ZodType<CaptionStyle>;
 
 export type CaptionStyleInput = CaptionStyle;
