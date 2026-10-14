@@ -120,3 +120,20 @@ FEAT-61 배포 뒤, 구현 검사에 card-news WIP가 섞이지 않게 정리할
 
 소유자가 「구현 승인」으로 게이트②를 열었다. 전제였던 FEAT-61 배포는 같은 날 09:49 KST 완료·컨테이너 기동 확인(`ff558ea`). 계획서는
 클린 패스본(`d19f814` 시점) 그대로다. 작업 트리는 위 정리로 깨끗하다(`nul`만 미추적).
+
+## 완료 인수 (2026-10-14)
+
+web-dev 구현 보고: 완료, 스케치 대비 차이 없음(포매팅만), `check` EXIT 0 · `test` 198 → 216. 인수 조건 다섯을 직접 재현했다.
+
+| # | 조건 | 직접 확인 |
+| --- | --- | --- |
+| 1 | 변경 파일 ↔ 「고칠 파일」 | `git status`: 계획 13파일(수정 11 · 신규 2) + 보드·백로그·`docs/agents/web-dev/FEAT-62.md`. 설정 문구 파일(`pages/settings/ui/index.tsx`)은 계획대로 무변경 |
+| 2 | diff ↔ 「구현 스케치」 | `HEAD` 사본에 계획 블록을 기계 적용(`apply62final.py`, before 전부 1회 일치)한 기대값과 공백 무시 대조 — 7파일 동일. 나머지 둘은 동작 무관: settings api는 계획 마커 줄의 설명이 주석 한 줄로 더 남음, Player는 import 순서 하나·주석 `(:150)` 제거·prettier 줄바꿈 |
+| 3 | 검증 명령 재실행 | 메인 트리(정리돼 WIP 없음) `npm run check` EXIT 0(FSD·lint·tsc) · `npm test` **216/216, 55 suite**. 덤: 계획 검증 돌연변이 19마리를 **구현자가 쓴 실제 테스트**로 돌려 19/19 사멸. 구현본 `renderToStaticMarkup` — 글자 11.73px·행간 20.33px(=122/6)·`marginV` 300 → `top:50px`·프리셋 bottom 43.33px·썸네일 `bottom:0%`, 프리셋에서도 `aria-valuenow`(86) — 위치 실측에 쓴 복제본과 같은 값이라 실측 잔여 오차(−9px)가 구현본에 그대로 적용된다 |
+| 4 | 백로그 제거 | diff는 FEAT-62 항목 4줄 삭제뿐, 남은 언급 0 |
+| 5 | `결과`가 가리키는 상세 기록 | `docs/agents/web-dev/FEAT-62.md` 실재(67줄). 보드 `결과` 148자 |
+
+- 사고 하나: 돌연변이 하니스가 Windows `Path.write_text`로 원본을 되쓰면서 `.ts` 셋의 줄 끝을 LF → CRLF로 바꿨다(내용 동일). 실행 전 떠 둔 스크래치패드 백업으로 바이트 그대로 되돌리고 10파일 `cmp` 일치를 확인했다. 앞선 하니스들은 스크래치패드 사본·worktree에서 돌아 영향이 없었다. 하니스 복원은 앞으로 `write_bytes`로 한다.
+- 범위 밖 의존 → 백로그 후보: **미리보기 가로 충실도**(libass 자간 EN 1.8·KR 1.2가 미리보기에 없어 한 줄 폭 6% 좁음 — `letter-spacing: 0.3px`로 829 vs 831, 여러 줄은 줄바꿈 방식 차이 잔존)를 소유자에게 제시한다.
+- 문서: `apps/web/CLAUDE.md` 테스트 표 — 수치(31 파일·55 suite·216), `caption-preview` 행에 줄 높이 계약·`marginV` 0 보존, `caption-vertical-drag` 행 신설, `effective-caption-style` 행에 패스스루 케이스.
+- 원장: `docs/release-checks.md`에 FEAT-62 절 5줄(끌기 · 키보드·낭독기 · 스냅·프리셋·저장 · 옛 저장값 회귀 · 미리보기↔실렌더). 다섯째는 FEAT-61 절 셋째와 같은 영상으로 닫는다.

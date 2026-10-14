@@ -44,6 +44,18 @@
 
 ---
 
+## FEAT-62 — 설정 미리보기에서 자막을 끌어 세로 위치 지정 (web, 구현 2026-10-14)
+
+원천: `docs/agents/web-dev/FEAT-62.md`·`docs/plans/FEAT-62.md` 「못 덮는 범위」. **미배포** — `main` 합류(PR) 대기. 전제 FEAT-61은 2026-10-14 배포됨. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면·포인터 조작·실렌더다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [ ] **끌기 — 데스크톱·모바일** — `/dashboard/settings` 미리보기에서 자막을 마우스로 잡고 위아래로 끌면 따라오고(잡는 순간 튀지 않음 — 잡은 지점 보정), 폰에서 손가락으로 끌어도 페이지가 스크롤되지 않고 자막이 움직이는지(`touch-action: none`). 미리보기 가운데를 넘나들 때 위치가 튀지 않는지(기준 가장자리 전환)
+- [ ] **키보드·낭독기** — 자막에 Tab으로 포커스가 가고 ↑/↓로 움직이는지. 화면 낭독기가 「Caption vertical position」 슬라이더와 「N% from bottom」을 읽는지, Top·Bottom 프리셋 상태에서도 값이 있는지(top 프리셋 크기 122에서 86%)
+- [ ] **스냅·프리셋·저장** — Top/Middle/Bottom을 누르면 끌어 놓은 위치가 프리셋으로 돌아가고, 프리셋 칩(Bold Yellow 등)을 바꿔도 끌어 놓은 위치는 유지되는지. 끌어 놓고 `Save caption style` → 새로고침하면 같은 위치로 다시 그려지는지(저장값 패스스루). 업로드 폼 Video style 썸네일도 그 위치를 따르는지. Position 버튼 아래에 「Or drag the caption in the preview to set its height.」가 보이고, Framing 설명(「Captions keep their current position…」)은 그대로인지
+- [ ] **옛 저장값이 그대로 저장되는가**(회귀) — 이 배포 전에 저장해 둔 캡션 스타일(키 `marginV` 없음)을 불러와 다른 필드만 바꿔 저장해도 「Invalid caption style」 없이 저장되는지(서버가 누락 키를 null로 흡수 — 계획 검증에서 zod 실측)
+- [ ] **미리보기와 실렌더 위치** — 자막을 검은 띠(Framing) 안 등 특정 높이에 끌어 놓고 저장 → 업로드 1건. 실렌더 자막 높이가 미리보기와 맞는지(계획 검증 실측 잔여 오차: 한 줄 −9 ASS px = 1920의 0.5%, 두 줄 아래끝 −16px. 여러 줄은 줄바꿈 위치가 다를 수 있다 — 가로 충실도는 후속 후보). FEAT-61 절 셋째 줄과 같은 영상으로 닫는다
+
+---
+
 ## FEAT-61 — 캡션 세로 위치를 사용자 marginV로 렌더 (backend, 구현 2026-10-14)
 
 원천: `docs/agents/backend-dev/FEAT-61.md`·`docs/plans/FEAT-61.md` 「못 덮는 범위」. **배포됨(2026-10-14 09:49 KST, `modal deploy main.py` — `ad1afe1` 기준, 소유자 지시 「배포해」)** — 마운트에 `PythonPackage:caption_position` 포함. 웹(FEAT-62)이 아직 `marginV`를 보내지 않으므로 사용자 여백 렌더는 FEAT-62 배포 뒤에야 웹 경유로 판정된다. **`〔auto〕` 태그를 붙이지 않는다**: Modal 컨테이너·실렌더 관측이다.
