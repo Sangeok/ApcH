@@ -115,3 +115,8 @@ FEAT-61 배포 뒤, 구현 검사에 card-news WIP가 섞이지 않게 정리할
   `nul`(Windows 예약 이름 찌꺼기, git이 담지 못함)만 미추적으로 남았다. `feat/card-news`는 `72bde11` 그대로.
 - 기준선: 정리 직후 web `check`가 `.next/types`의 낡은 생성 타입(옛 card-news 라우트 참조, TS2307)으로 실패 → `.next`는 gitignore된
   빌드 산출물이라 `.next/types.stale-2026-10-14`로 이름만 바꿔 비켰다(다음 dev/build가 재생성). 그 뒤 web `check` EXIT 0 · `test` 198/198.
+
+## 게이트② (2026-10-14)
+
+소유자가 「구현 승인」으로 게이트②를 열었다. 전제였던 FEAT-61 배포는 같은 날 09:49 KST 완료·컨테이너 기동 확인(`ff558ea`). 계획서는
+클린 패스본(`d19f814` 시점) 그대로다. 작업 트리는 위 정리로 깨끗하다(`nul`만 미추적).
