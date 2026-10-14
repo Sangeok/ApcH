@@ -71,3 +71,33 @@ worktree를 HEAD로 되돌리고 **고친 계획서의 블록만으로** 다시 
 
 비차단 위험(구현 단계): 작업 트리에 다른 세션의 card-news WIP가 있어 구현 시 `npm run check`가 그 코드까지 검사한다. 계획
 검증은 HEAD worktree 기준으로 통과했다.
+
+### 독립 패스 — plan-verifier 1사이클 (위생 1)
+
+브리핑 계약 셋(경로 1·2·3·4·5·7·8·9) — 검증자가 위반 없음을 확인. 보고: **문서 위생 1** — 「현재 동작」 44행 「7필드 전부
+`.nullable()`」의 여집합 `position`이 반례(`caption-style-schema.ts:14` 비-nullable enum, `constants.ts:118` 타입도 `| null`
+없음). 구현 영향 0(구현자가 고치는 실제 스키마·타입이 그대로 보여 준다). 이 문장은 web-dev 원문이고 메인 루프 라운드가 놓쳤다.
+나머지: 경로 2 추출 스케치 `tsc` 0(프로젝트와 같은 플래그), 경로 3 before 전부 바이트 일치 + 음성 컴파일 TS2741·TS2783 재현,
+경로 4 전칭 다섯 중 넷 참·하나가 위 결함, 경로 5 돌연변이 18마리 전부 사멸, 경로 7 0 케이스를 빼면 effective `??`→`||`가
+생존(장식 아님), 경로 8 프리셋에서도 `aria-valuenow`(top 86·middle 50)·`bottom:0` 보존·`lineHeight:20.333px`, 경로 9 zod
+`safeParse`로 키 누락 → `invalid_type` 거부(정규화 근거 실증). 미실행 경로 없음.
+
+해소: 44행을 「7필드이고 `position`을 뺀 6필드가 `.nullable()`」로 고치고 두 근거 줄을 내용과 함께 인용. 문서 위생만 나온
+사이클이라 정지 규칙 계수에 넣지 않는다. 트리 검산(직접): 저장소 변경은 메인 루프 편집뿐 — 검증자가 본 `card-news-verification-
+runtime.*` 미추적 파일은 세션 시작 때부터 있던 다른 세션의 WIP다. 2사이클 디스패치(같은 경로 목록).
+
+### 독립 패스 — plan-verifier 2사이클 (결함 0)
+
+브리핑 계약 셋(같은 목록) — 검증자가 위반 없음을 확인. 보고: 결함 0, 미실행 경로 없음.
+- 경로 1: 모든 인용 내용 일치(고친 44행의 `:14`·`constants.ts:118` 포함).
+- 경로 2: 추출 스케치를 프로젝트 tsconfig 미러로 `tsc --noEmit` EXIT 0, `satisfies z.ZodType<CaptionStyle>`가 marginV 추가 뒤에도 성립.
+- 경로 3: 모든 before 앵커 바이트 일치, TS2741·TS2783 음성 컴파일 재현.
+- 경로 4: 전칭 넷(MARGINV 읽기 둘·inset 소비자 둘·zod 읽기 0·`CaptionStyle` 리터럴은 EMPTY_STYLE과 프리셋 Omit뿐) 참.
+- 경로 5: 명세 29검사 이식, 돌연변이 13종 전부 사멸(종전 생존자 `??`→`||` 포함).
+- 경로 7: 무수정 `withPosition`이 새 스키마를 통과하지 못함(테스트 갱신이 장식 아님). 스키마 범위 제거는 계획의 어떤 테스트도 잡지 못하지만 outlineWidth 전례와 등가인 관행이라 결함 아님으로 판정.
+- 경로 8: 프리셋 top `aria-valuenow="86"`·middle `"50"`, 비드래그는 슬라이더 속성 없음, line-height px 방출.
+- 경로 9: zod 구조 파싱으로 0·960 통과 / 961·−1·10.5 거부, 옛 값 거부 → §7 정규화로 복구.
+
+**무편집 무소득 1사이클 = 클린 패스.** 트리 검산(직접): 저장소 변경은 메인 루프의 계획서·기록 편집뿐, `caption-vertical-drag*` 미존재.
+`apps/web/src/fsd/shared/config/product-copy.ts`의 diff(+6, card news 문구)는 2026-10-11 수정분이라 다른 세션의 WIP다.
+하니스 worktree `wt62`는 junction을 먼저 끊고(비재귀) 제거했다.
