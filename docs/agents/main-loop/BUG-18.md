@@ -107,3 +107,32 @@ web-dev가 계획서를 쓰고 `검토대기`로 바꿨다(`bcb646f`).
 
 소유자가 「구현 승인」으로 게이트②를 열었다. BUG-12도 함께 열었다. 계획서는 클린 패스본(`c6cad10` 시점) 그대로다.
 BUG-12와 워크스페이스·파일이 겹치지 않아 병렬로 구현한다. `apps/` 트리는 청결하다(`git status` 공백).
+
+## 인수 (2026-10-15)
+
+web-dev가 `완료`로 보고했다. 인수 조건 다섯은 메인 루프가 직접 봤다.
+
+1. **변경 파일 ↔ 「고칠 파일」**: `apps/web`에서 바뀐 파일은 수정 4(`entities/user/api/index.ts`·`entities/user/server.ts`·`features/settings/api/index.ts`·`pages/settings/ui/index.tsx`)와 신규 2(`pages/settings/model/video-style-dirty.ts`·`.test.mjs`)다. 계획서 표 6행과 같고 넘치는 파일은 없다.
+2. **diff ↔ 스케치**: 스크래치패드에 HEAD(`628bf03`) detached worktree를 만들었다. 현재 계획서에서 코드 블록 9개를 다시 추출해 라운드 1 하니스(`apply.py`)로 기계 적용하고, 결과를 구현과 비교했다. 블록 0·2는 라운드 1 뒤 계획서 수정으로 바뀐 것이 반영돼 있었다.
+   - `server.ts`·`features/settings/api/index.ts`는 바이트가 같다.
+   - `video-style-dirty.ts`는 `Object.keys(...)` 한 줄이 세 줄로 접혔을 뿐이다(포매터).
+   - `entities/user/api/index.ts`는 지우지 않는 리더 `getUserDefaultVideoPaddingPercent`의 위치만 다르다(구현 보고에 적힌 재배치).
+   - `pages/settings/ui/index.tsx`는 `hasUnsavedVideoStyle` 임포트 위치와 `const framing` 선언 위치가 다르다. `framing`은 순수 계산이라 훅 순서가 바뀌지 않는다.
+   - 분기·조건·리터럴·사용자 문구의 차이는 0이다.
+3. **검증 명령 재실행**: `npm run check -w apps/web` EXIT 0(`verify:fsd:test`, `verify:fsd`, `next lint` 경고 0, `tsc --noEmit`). `npm test -w apps/web`는 tests 227, suites 56, fail 0이다. 커밋할 테스트를 복사본에 돌려 돌연변이를 확인했다.
+   - 원본은 11/0이다.
+   - `CAPTION_STYLE_FIELDS`에서 필드 하나를 지운 돌연변이는 7종(`position`·`maxWordsPerLine`·`outlineColor`·`outlineWidth`·`uppercase`·`marginV`·`fontSize`) 모두 사멸했다. 계획 검증에서 생존 5였던 구멍이 커밋된 테스트에서 닫혀 있다.
+4. **백로그 제거**: `TASK_BACKLOG.md`에서 `BUG-18` 매치가 0이고, diff는 그 항목 줄 삭제뿐이다. 「Web / 프론트엔드 구조」 절은 빈 절로 남는다(「Admin / Dashboard」와 같은 형태).
+5. **상세 기록 실재**: `docs/agents/web-dev/BUG-18.md`가 있다(73줄). 고친 파일, 스케치 대비 차이, 검증, 못 덮은 범위, 비고 절이 들어 있다.
+
+삭제한 심볼(`saveDefaultCaptionStyle` 등 4개와 `persistVideoPadding`)과 옛 버튼 문구(`Save framing`·`Save caption style`)를 `apps/`·`packages/` 소스에서 찾았다. 남은 것은 `features/settings/api/index.ts:53`의 주석 「기존 saveDefaultCaptionStyle과 같은 관용」 하나다. 검증된 스케치에 들어 있던 문장이고 「기존」이라 적어 옛 함수를 가리킨다고 밝히므로 그대로 둔다. `.next/` 빌드 산출물의 매치는 옛 빌드라 무관하다.
+
+후속 처리:
+- **CLAUDE.md**: `apps/web/CLAUDE.md` 테스트 목록을 31/55/216에서 32/56/227로 고치고 `pages/settings/model/video-style-dirty.test.mjs` 행을 추가했다. 실제 `*.test.mjs` 32개와 표의 32행이 집합으로 같다.
+- **범위 밖 의존**: 없음. 백로그 후보도 없다.
+- **원장**:
+  - BUG-18 절을 신설하고 4줄(①~④)을 등재했다. ①에는 소유자 원래 보고 경로(`/dashboard` 업로드 폼 썸네일)와, 미확인 진단 (a)·(b)가 재현되면 별도 항목으로 만든다는 분기를 넣었다.
+  - FEAT-60 「저장 분리가 그대로인가」를 `대체(BUG-18)`로 닫았다.
+  - FEAT-62 「스냅·프리셋·저장」과 FEAT-42 「설정 화면에 캡션 기본 스타일 카드가…」의 버튼 이름을 `Save video style`로 재앵커했다. 배포 전 이름도 함께 적었다.
+  - FEAT-58 확인 이력 줄은 손대지 않았다.
+- **남긴 문서 위생**: `CaptionStyleEditor.tsx:33`의 「(요구 ⑤)」 꼬리표는 계획서 「비고」대로 고치지 않았다.

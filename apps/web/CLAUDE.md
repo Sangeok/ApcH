@@ -66,7 +66,7 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 31개 파일, 55 suite, 216개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 32개 파일, 56 suite, 227개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -90,6 +90,7 @@ npm test -w apps/web
 | `pages/dashboard/model/clip-count-budget.test.mjs` | 소스 재생 길이 → 구조적 클립 상한. `floor(D/30)` 경계, 옵션 최댓값(4) 클램프, 길이 미상(`null`·비유한·0 이하) 시 가드 없음(=4), 30초 미만 시 0. **`600초 → 4`는 회귀 테스트다** — 백로그가 FEAT-02의 원인으로 지목한 "10분 소스에 4개는 무리한 요청"이 사실이 아니고, 그 경우의 미달 생성은 `apps/backend` 하이라이트 탐지 문제임을 못박는다 |
 | `pages/dashboard/model/clip-count-notice.test.mjs` | 업로드 폼 클립 수 세그먼트 옆 안내(`clipCountNotice`, FEAT-59). 길이를 알고 상한<4면 `This video fits up to N clip(s). The AI may return fewer.`(단수/복수), 그 외 `The AI may return fewer.`, 30초 미만은 `null`(그 안내는 파일 줄에 destructive로 뜬다). **「길이를 아는가」를 따로 판정하지 않고 `getMaxFeasibleClipCount`의 미상→4·30초 미만→0 규칙에 기댄다** — 별도 가드는 도달 불가 분기가 되어 테스트로 고정되지 않았다(계획 검증에서 돌연변이 셋 생존). 골든 문구는 사용자에게 보이는 카피다 |
 | `pages/dashboard/model/upload-options-copy.test.mjs` | 업로드 버튼(`Upload and generate clips` / `Upload and review clips`)과 생성 방식 설명(`Generates clips immediately.` / `Edit clips before generating.`)의 생성 방식별 골든 문구(FEAT-59) |
+| `pages/settings/model/video-style-dirty.test.mjs` | 설정 `Video style` 카드의 미저장 판정(`hasUnsavedVideoStyle`, BUG-18). 여백과 두 언어 캡션을 한 스냅샷으로 비교한다 — 저장 버튼 활성과 이탈 경고가 이 값 하나에 걸린다. **필드 전수 케이스가 요점이다**: 비교 목록에서 필드 하나를 빼면 그 필드만 바꾼 편집에 버튼이 안 켜지는데, 1~10번 케이스만으로는 다섯 필드 누락이 통과했다(계획 검증 돌연변이 실측). 옛 저장값의 `marginV` 키 부재(undefined)를 null과 같게 봐 불러오자마자 뜨는 거짓 미저장도 막는다 |
 | `entities/user/model/upload-defaults.test.mjs` | 사용자 업로드 기본값의 해석·정규화. `resolveUploadDefaults`는 null·지원 목록 밖 저장값(목록이 줄어든 뒤의 옛 값)을 시스템 기본(`English`/`3`/`false`)으로 떨어뜨리고, `normalizeUploadDefaults`는 서버 액션 입력의 범위 밖·잘못된 타입·**필드 누락**을 null로 거부한다. **누락 필드 거부가 요점이다** — `!== null`을 `!= null`로 바꾼 구현은 `undefined`를 통과시켜 Prisma `update`가 그 컬럼을 조용히 건너뛰는 부분 갱신이 되는데, 나머지 케이스는 전부 통과한다(FEAT-39 계획 검증의 돌연변이 실측) |
 | `entities/uploaded-file/model/clip-generation-outcome.test.mjs` | 부분 클립 결과 판정과 폴링 조기 탈출 판정. **노트 코드 두 개는 `failureCode` 컬럼에 저장되는데 union 타입이 그 상수 자신에서 파생된다.** 값을 바꾸면 타입은 그대로 통과하고 이미 저장된 행만 조용히 인식되지 않는다. `clipsFound >= expectedClipCount → null` 경계도 타입이 못 잡는다 — 무너지면 완전 성공에도 "일부만 생성됨" 안내가 뜬다 |
 | `entities/clip/lib/clip-type-label.test.mjs` | `clipTypeLabel`의 라벨 매핑(`qa`→Q&A·`insight`→Insight·**모르는 값은 원본 그대로**·nullish/공백은 null). **백엔드가 `clipType`에 강제하는 enum이 없어**(`apps/backend/moment_prompt.py:69` `"type": <"qa" | "insight">,`는 프롬프트의 요청일 뿐) 라벨이 미지의 값을 빈 칸으로 삼키지 않는 것을 잡는다 |

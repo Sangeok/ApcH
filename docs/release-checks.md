@@ -44,6 +44,17 @@
 
 ---
 
+## BUG-18 — 설정 Video style 저장 버튼 하나로 합치기와 미저장 표시 (web, 구현 2026-10-15)
+
+원천: `docs/agents/web-dev/BUG-18.md`·`docs/plans/BUG-18.md` 「못 덮는 범위」 ①~④. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/web` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/web` **227/56/0**이다. 계획서 스케치를 HEAD에 기계로 적용한 결과와 구현을 비교하니, 다섯 파일 중 둘은 같고 셋은 줄바꿈·함수 위치·임포트 위치만 달랐다. 커밋할 테스트는 필드 제거 돌연변이 7종을 전부 잡았다. 이 배포로 FEAT-60 절 「저장 분리가 그대로인가」를 `대체`로 닫았고, FEAT-62 절 「스냅·프리셋·저장」과 FEAT-42 절 「설정 화면에 캡션 기본 스타일 카드가…」의 버튼 이름을 재앵커했다. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [ ] **한 번 저장으로 셋 다 들어가는가** — `/dashboard/settings` `Video style`에서 Framing 여백, English 캡션, Korean 캡션(자막 위치 포함)을 모두 바꾸고 `Save video style`을 한 번 누른다. 새로고침하면 셋 다 남아 있는지 본다. 이어 `/dashboard` 업로드 폼의 Video style 썸네일이 그 여백과 자막 위치를 그리는지도 본다. 이 경로가 소유자의 원래 보고 경로다. 여백이 들어갔는데도 자막 위치가 띠 기준으로 기대한 자리가 아니면 BUG-18 진단 (a)·(b)의 재현이므로 별도 항목으로 만든다
+- [ ] **미저장 표시** — 불러온 직후와 저장 직후에는 `Save video style`이 비활성이고 「Unsaved changes」가 없는지 본다. 여백이나 캡션 하나를 바꾸면 버튼이 켜지고 「Unsaved changes」가 보이는지, 값을 원래대로 돌리면 다시 꺼지는지도 본다. `marginV` 키가 없는 옛 저장값 계정에서 불러오자마자 미저장이 뜨지 않는지도 함께 본다
+- [ ] **이탈 경고** — 미저장 상태에서 새로고침하거나 탭을 닫으면 브라우저 확인 창이 뜨는지, 저장 뒤에는 뜨지 않는지 본다. 앱 안 `<Link>` 이동은 경고하지 않는다(계획 결정 2). 결함이 아니다
+- [ ] **리셋은 로컬만** — `Reset framing`·`Reset both languages`를 누르면 화면 값만 되돌아가고 버튼이 켜지는지 본다. 저장하지 않고 새로고침하면 리셋 전 값이 그대로인지(DB 불변)도 본다
+
+---
+
 ## BUG-12 — admin 분석 화면 시각 표시를 로케일 en·UTC로 고정 (admin, 구현 2026-10-15)
 
 원천: `docs/agents/admin-dev/BUG-12.md`·`docs/plans/BUG-12.md` 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/admin` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/admin` **337/76/0**, `verify:fsd:final` EXIT 0이다. 새 테스트 파일은 `TZ=UTC`와 `TZ=America/Los_Angeles`에서 각각 3/3으로 통과했다. 신규 두 파일은 계획서 스케치와 바이트가 같다. **`〔auto〕` 태그를 붙이지 않는다**: 시각 문자열은 데이터마다 달라 고정 문구로 판정할 수 없고, 표는 최근 실패 이벤트가 있어야 행이 생긴다.
@@ -58,7 +69,7 @@
 
 - [ ] **끌기 — 데스크톱·모바일** — `/dashboard/settings` 미리보기에서 자막을 마우스로 잡고 위아래로 끌면 따라오고(잡는 순간 튀지 않음 — 잡은 지점 보정), 폰에서 손가락으로 끌어도 페이지가 스크롤되지 않고 자막이 움직이는지(`touch-action: none`). 미리보기 가운데를 넘나들 때 위치가 튀지 않는지(기준 가장자리 전환)
 - [ ] **키보드·낭독기** — 자막에 Tab으로 포커스가 가고 ↑/↓로 움직이는지. 화면 낭독기가 「Caption vertical position」 슬라이더와 「N% from bottom」을 읽는지, Top·Bottom 프리셋 상태에서도 값이 있는지(top 프리셋 크기 122에서 86%)
-- [ ] **스냅·프리셋·저장** — Top/Middle/Bottom을 누르면 끌어 놓은 위치가 프리셋으로 돌아가고, 프리셋 칩(Bold Yellow 등)을 바꿔도 끌어 놓은 위치는 유지되는지. 끌어 놓고 `Save caption style` → 새로고침하면 같은 위치로 다시 그려지는지(저장값 패스스루). 업로드 폼 Video style 썸네일도 그 위치를 따르는지. Position 버튼 아래에 「Or drag the caption in the preview to set its height.」가 보이고, Framing 설명(「Captions keep their current position…」)은 그대로인지
+- [ ] **스냅·프리셋·저장** — Top/Middle/Bottom을 누르면 끌어 놓은 위치가 프리셋으로 돌아가고, 프리셋 칩(Bold Yellow 등)을 바꿔도 끌어 놓은 위치는 유지되는지. 끌어 놓고 `Save video style`(**[재앵커 2026-10-15]** BUG-18이 저장 버튼을 합쳤다 — 그 배포 전에는 `Save caption style`) → 새로고침하면 같은 위치로 다시 그려지는지(저장값 패스스루). 업로드 폼 Video style 썸네일도 그 위치를 따르는지. Position 버튼 아래에 「Or drag the caption in the preview to set its height.」가 보이고, Framing 설명(「Captions keep their current position…」)은 그대로인지
 - [ ] **옛 저장값이 그대로 저장되는가**(회귀) — 이 배포 전에 저장해 둔 캡션 스타일(키 `marginV` 없음)을 불러와 다른 필드만 바꿔 저장해도 「Invalid caption style」 없이 저장되는지(서버가 누락 키를 null로 흡수 — 계획 검증에서 zod 실측)
 - [ ] **미리보기와 실렌더 위치** — 자막을 검은 띠(Framing) 안 등 특정 높이에 끌어 놓고 저장 → 업로드 1건. 실렌더 자막 높이가 미리보기와 맞는지(계획 검증 실측 잔여 오차: 한 줄 −9 ASS px = 1920의 0.5%, 두 줄 아래끝 −16px. 여러 줄은 줄바꿈 위치가 다를 수 있다 — 가로 충실도는 후속 후보). FEAT-61 절 셋째 줄과 같은 영상으로 닫는다
 
@@ -84,7 +95,7 @@
 - [ ] **자막이 띠에 겹치는 지점이 실렌더와 같은가** — 자막 위치는 프레임 전체 기준 그대로라(INV-FRAMING-004) Top 자막은 약 10.4%(200/1920), Bottom은 약 13.5%(260/1920)를 넘으면 띠 위로 올라간다. FEAT-58 절 10% 실렌더처럼 자막이 잘리지 않고 겹쳐 보이는지
 - [ ] **대비·다크 모드** — 흰 자막이 실루엣과 검은 띠 양쪽에서 읽히고, 다크 모드에서도 미리보기가 같은 모습인지(장면 색이 리터럴이라 같아야 한다)
 - [ ] **배치 — 모바일·데스크톱** — 폰 폭(약 390px)에서 미리보기가 컨트롤 **위**, Framing 슬라이더가 그 바로 아래. 데스크톱에서 왼쪽 칸이 Framing → `Captions` 제목 → 편집 언어 토글 → Preset 순서(Framing이 언어 토글 아래로 내려가지 않음)이고 오른쪽이 미리보기. 편집 언어를 바꿔도 슬라이더 값이 그대로인지
-- [ ] **저장 분리가 그대로인가**(회귀) — 여백을 저장한 뒤 `Save caption style`·자막 초기화를 눌러도 새로고침한 여백이 안 바뀌고, `Save framing`·`Reset framing`은 전처럼 저장·초기화하는지(FEAT-58 절 「설정 화면 Framing이 저장·재진입·초기화되는가」에서 실측된 불변 — 이번에 Framing 블록이 편집기 슬롯으로 옮겨졌다)
+- [x] **저장 분리가 그대로인가**(회귀) — 대체(BUG-18, 2026-10-15 — 소유자 결정으로 저장 분리를 폐기하고 `Save video style` 하나로 합쳤다. 이 줄이 지키던 불변이 의도적으로 사라졌고, 합친 저장은 BUG-18 절 첫째 줄이 다시 선언한다) — 여백을 저장한 뒤 `Save caption style`·자막 초기화를 눌러도 새로고침한 여백이 안 바뀌고, `Save framing`·`Reset framing`은 전처럼 저장·초기화하는지(FEAT-58 절 「설정 화면 Framing이 저장·재진입·초기화되는가」에서 실측된 불변 — 이번에 Framing 블록이 편집기 슬롯으로 옮겨졌다)
 
 ---
 
@@ -330,7 +341,7 @@
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 145→154 — 신규 `caption-style-request.test.mjs` 3·`sample-captions.test.mjs` 6). auto 렌더가 요청 스냅샷으로 나오는지와 render에서 스타일 없는 클립이 언어 기본값인지는 아래 FEAT-41 절 「(FEAT-42 배포 후)」 두 줄이 맡고, 이 절은 설정 화면·스냅샷·검토 시드를 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면과 실제 업로드·Modal 처리에서만 판정된다.
 
-- [ ] **설정 화면에 캡션 기본 스타일 카드가 보이고 샘플 미리보기가 첫 페인트부터 그려지는가** — **[재앵커 2026-10-13]** 카드 이름과 초기화 버튼이 바뀌었다 — FEAT-52가 카드를 `Video style`로 바꿨고, 초기화는 `Reset both languages`다(FEAT-54 절). `/dashboard/settings`의 「Upload defaults」 아래 `Video style` 카드에 프리셋·위치·크기·색·외곽선·줄당 단어·Uppercase 컨트롤, 9:16 미리보기에 샘플 첫 줄(English `Style your captions the way`), 밑 안내 `This is a sample. …`, `Save caption style`·`Reset both languages`가 보이는지. 컨트롤을 바꾸면 미리보기의 크기·색·위치·줄당 단어·대문자가 즉시 바뀌는지
+- [ ] **설정 화면에 캡션 기본 스타일 카드가 보이고 샘플 미리보기가 첫 페인트부터 그려지는가** — **[재앵커 2026-10-13]** 카드 이름과 초기화 버튼이 바뀌었다 — FEAT-52가 카드를 `Video style`로 바꿨고, 초기화는 `Reset both languages`다(FEAT-54 절). `/dashboard/settings`의 「Upload defaults」 아래 `Video style` 카드에 프리셋·위치·크기·색·외곽선·줄당 단어·Uppercase 컨트롤, 9:16 미리보기에 샘플 첫 줄(English `Style your captions the way`), 밑 안내 `This is a sample. …`, `Save video style`(**[재앵커 2026-10-15]** BUG-18이 저장 버튼을 합쳤다 — 그 배포 전에는 `Save caption style`)·`Reset both languages`가 보이는지. 컨트롤을 바꾸면 미리보기의 크기·색·위치·줄당 단어·대문자가 즉시 바뀌는지
 - [x] **페이지 언어를 Korean으로 바꾸면 미리보기가 함께 바뀌는가** — 대체(FEAT-52 — 미리보기 언어를 `Subtitle language`에서 떼어 별도 토글로 옮겼다(지금 `Editing`, `editLanguage`). 같은 확인은 FEAT-52 절 「미리보기 언어 토글이 미리보기만 바꾼다」가 새 동작으로 다시 선언한다) — `Subtitle language`를 `한국어`로 고르면(저장 전에도) 미리보기 문장이 `지금 자막 스타일을`, 폰트가 Noto Sans KR, 크기 표시가 130으로 바뀌는지
 - [x] **저장한 캡션 기본값이 새 업로드의 검토 드래프트에 시드되는가** — 캡션 스타일 저장(토스트 `Caption style saved`) → `Review first`로 새 업로드 → 검토 화면 한 클립의 `Caption style` 다이얼로그가 저장한 스타일(해당 프리셋 칩 활성 포함)로 열리는지. 저장 전에 올린 업로드는 그대로여야 한다(업로드 시점 스냅샷)  
   → **대체(FEAT-52·FEAT-53)**: 클립별 캡션 스타일 자체가 사라졌다 — FEAT-52가 검토 화면 편집을 없애고 FEAT-53이 `ClipDraft.captionStyle` 컬럼을 drop했다(2026-09-19 적용, 6행 소멸). 「검토 드래프트에 시드된다」는 동작이 존재하지 않으므로 판정 대상이 없다. 기본값이 렌더까지 닿는지는 업로드 시점 스냅샷(`UploadedFile.captionStyle`) 경로로 바뀌었고 FEAT-52·FEAT-55 절이 그것을 확인한다.

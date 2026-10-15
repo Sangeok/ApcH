@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  saveDefaultCaptionStyle,
-  saveDefaultVideoPaddingPercent,
   saveUploadDefaults,
+  saveVideoStyle,
 } from "~/fsd/features/settings/api";
 import {
   CaptionStyleEditor,
@@ -30,6 +29,7 @@ import {
   DEFAULT_REVIEW_BEFORE_GENERATE,
   type ResolvedUploadDefaults,
 } from "~/fsd/entities/user";
+import { hasUnsavedVideoStyle } from "~/fsd/pages/settings/model/video-style-dirty";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   Card,
@@ -73,22 +73,14 @@ export default function SettingsView({
     initialVideoPaddingPercent,
   );
   const framing = getVideoFrameLayout(videoPaddingPercent);
-
-  const persistVideoPadding = (percent: number) =>
-    startSaving(async () => {
-      try {
-        const result = await saveDefaultVideoPaddingPercent(percent);
-        if (!result.success) {
-          toast.error(result.error);
-          return;
-        }
-        setVideoPaddingPercent(percent);
-        toast.success("Video framing saved");
-        router.refresh();
-      } catch {
-        toast.error("Could not save video framing. Try again.");
-      }
-    });
+  const [savedVideoStyle, setSavedVideoStyle] = useState({
+    paddingPercent: initialVideoPaddingPercent,
+    captionStyles: initialCaptionStyles,
+  });
+  const videoStyleDirty = hasUnsavedVideoStyle(savedVideoStyle, {
+    paddingPercent: videoPaddingPercent,
+    captionStyles,
+  });
 
   const persist = (payload: {
     defaultLanguage: string | null;
@@ -128,40 +120,43 @@ export default function SettingsView({
     });
   };
 
-  const handleSaveCaption = () =>
+  const handleSaveVideoStyle = () =>
     startSaving(async () => {
-      const result = await saveDefaultCaptionStyle(captionStyles);
-      if (!result.success) {
-        toast.error(result.error);
-        return;
-      }
-      // 계측은 fire-and-forget(저장은 이미 성공). preset = matchPresetId 결과.
-      void trackAnalyticsEvent("settings_defaults_saved", {
-        source: "settings_page",
-        preset: matchPresetId(captionStyles[editKey]),
-      });
-      toast.success("Caption style saved");
-      router.refresh();
-    });
-
-  const handleResetCaption = () => {
-    setCaptionStyles({ english: null, korean: null });
-    startSaving(async () => {
-      const result = await saveDefaultCaptionStyle({
-        english: null,
-        korean: null,
-      });
-      if (!result.success) toast.error(result.error);
-      else {
+      try {
+        const result = await saveVideoStyle({
+          paddingPercent: videoPaddingPercent,
+          captionStyles,
+        });
+        if (!result.success) {
+          toast.error(result.error);
+          return; // 편집값 유지·성공 토스트 없음 (REQ-FRAMING-008 확장)
+        }
+        setSavedVideoStyle({ paddingPercent: videoPaddingPercent, captionStyles });
+        // 계측은 fire-and-forget. preset = 지금 편집 중인 언어의 매칭 결과.
         void trackAnalyticsEvent("settings_defaults_saved", {
           source: "settings_page",
-          preset: matchPresetId(null), // "default"
+          preset: matchPresetId(captionStyles[editKey]),
         });
-        toast.success("Caption style saved");
+        toast.success("Video style saved");
         router.refresh();
+      } catch {
+        toast.error("Could not save video style. Try again.");
       }
     });
-  };
+
+  const handleResetFraming = () => setVideoPaddingPercent(0); // 로컬만
+  const handleResetCaptions = () =>
+    setCaptionStyles({ english: null, korean: null }); // 로컬만
+
+  useEffect(() => {
+    if (!videoStyleDirty) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [videoStyleDirty]);
 
   return (
     <div className="space-y-6">
@@ -290,10 +285,7 @@ export default function SettingsView({
                     Captions keep their current position. Applies to both languages.
                   </p>
                   <div className="flex gap-x-2">
-                    <Button onClick={() => persistVideoPadding(videoPaddingPercent)} disabled={isSaving}>
-                      Save framing
-                    </Button>
-                    <Button variant="outline" onClick={() => persistVideoPadding(0)} disabled={isSaving}>
+                    <Button variant="outline" onClick={handleResetFraming} disabled={isSaving}>
                       Reset framing
                     </Button>
                   </div>
@@ -301,7 +293,7 @@ export default function SettingsView({
                 <div>
                   <p className="text-sm font-medium">Captions</p>
                   <p className="text-muted-foreground text-xs">
-                    Caption styles are saved separately for each language.
+                    Each language has its own caption style.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -334,17 +326,16 @@ export default function SettingsView({
               setCaptionStyles((prev) => ({ ...prev, [editKey]: style }))
             }
           />
-          <div className="flex gap-x-2">
-            <Button onClick={handleSaveCaption} disabled={isSaving}>
-              Save caption style
+          <div className="flex items-center gap-x-2">
+            <Button onClick={handleSaveVideoStyle} disabled={isSaving || !videoStyleDirty}>
+              {isSaving ? "Saving..." : "Save video style"}
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleResetCaption}
-              disabled={isSaving}
-            >
+            <Button variant="outline" onClick={handleResetCaptions} disabled={isSaving}>
               Reset both languages
             </Button>
+            {videoStyleDirty && (
+              <p className="text-muted-foreground text-xs">Unsaved changes</p>
+            )}
           </div>
         </CardContent>
       </Card>
