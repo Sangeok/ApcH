@@ -316,3 +316,8 @@ framing 도움말의 "Captions keep their current position. Applies to both lang
 - **두 액션을 남기고 dirty 표시만 추가**: 요구 ①이 "반쪽 저장 없음(한 번의 DB 갱신)"을 요구하므로 불가. 두 액션을 순차 호출하면 두 번째 실패 시 첫 번째가 이미 커밋돼 반쪽 저장이 난다 — 그래서 `updateUserVideoStyle` 한 번으로 합친다.
 - **dirty 비교를 `JSON.stringify`로**: 키 순서와 undefined 처리에 민감하다. 옛 저장값은 `marginV` 키가 없어(undefined→생략) current(`marginV: null`→포함)와 문자열이 달라져 거짓 미저장이 난다. 그래서 필드별로 null/undefined를 합쳐 비교한다.
 - **revalidate 대상에 `/dashboard` 추가**: 하지 않는다. 폐기되는 두 액션 모두 `/dashboard/settings`만 revalidate했고, 메인 루프가 `/dashboard` 폼의 낡은 값은 revalidate 문제가 아니라고 판단했다(Next 15.5.7 동적 페이지 staleTime 0 + 설정 화면 `router.refresh()`). 대상을 바꿀 근거가 없어 `/dashboard/settings`만 유지한다.
+
+## 비고
+
+- `features/caption-style/ui/CaptionStyleEditor.tsx:33` `// 상태·저장 로직은 끼우는 쪽이 소유한다(요구 ⑤).` — 꼬리표 「(요구 ⑤)」는 FEAT-60 요구 ⑤를 가리킨다. 그 요구에는 「자막 저장이 여백을 건드리지 않는다」 보존이 들어 있어, 이 항목 뒤에는 낡은 참조가 된다. 주석 본문(슬롯의 상태·저장 로직은 끼우는 페이지가 소유한다)은 여전히 참이므로 이 항목에서는 고치지 않는다(「문제」 절).
+- `apps/web/CLAUDE.md` 테스트 목록 표에 `pages/settings/model/video-style-dirty.test.mjs` 행이 새로 필요하다. 그 파일은 web-dev에게 읽기 전용이라 구현 보고에 적고, 메인 루프가 인수 때 반영한다.
