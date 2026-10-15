@@ -82,3 +82,22 @@ BUG-10(같은 성격)과 같은 목록이다.
 메인 루프가 권고(둘 다 승인, 병렬 진행)와 함께 표기 변화를 알렸다. 「Last seen」에서 초가 빠지고 월이 약칭이 된다. 초를 남기려면
 계획을 다시 검증해야 해 권하지 않았다. 소유자가 「구현 승인」으로 게이트②를 열었다. BUG-18도 함께 열었다. 계획서는 클린
 패스본(`9c6e774` 시점) 그대로다. BUG-18과 워크스페이스·파일이 겹치지 않아 병렬로 구현한다. `apps/` 트리는 청결하다.
+
+## 인수 (2026-10-15)
+
+admin-dev가 `완료`로 보고했다. 인수 조건 다섯은 메인 루프가 직접 봤다.
+
+1. **변경 파일 ↔ 「고칠 파일」**: `apps/admin`에서 바뀐 파일은 `pages/analytics/ui/index.tsx`(수정)와 `shared/lib/format-date.ts`·`format-date.test.mjs`(신규) 셋이다. 계획서 표 3행과 정확히 같고 넘치는 파일은 없다. 트리에 함께 있는 `apps/web/*` 변경은 병행 중인 BUG-18 몫이다.
+2. **diff ↔ 스케치**: 신규 두 파일을 계획서의 ```ts```·```js``` 블록과 기계로 비교했고 바이트가 같다(LF). `index.tsx` diff는 임포트 한 줄(`shared/ui/atoms/table` 블록 바로 뒤)과 `:236`→`:237` 치환 한 줄이다. 스케치의 after 문자열과 같다.
+3. **검증 명령 재실행**:
+   - `npm run check -w apps/admin` EXIT 0. 경계 fixture, `verify:fsd`, `next lint` 경고 0, `tsc --noEmit`이 여기 들어 있다.
+   - `npm test -w apps/admin`는 tests 337, suites 76, fail 0이다.
+   - `verify:fsd:final` EXIT 0.
+   - 새 테스트 단독 실행은 `TZ=UTC`와 `TZ=America/Los_Angeles` 각각 3/3이다. 단독으로 돌릴 때는 tsx 로더가 필요하다. `--import tsx` 없이 돌리면 `.ts`를 동적 임포트하지 못해 실패하는데, 하니스 사정이다.
+4. **백로그 제거**: `TASK_BACKLOG.md`에서 `BUG-12` 매치가 0이다. diff는 그 항목 3줄 삭제뿐이다.
+5. **상세 기록 실재**: `docs/agents/admin-dev/BUG-12.md`가 있고(53줄), 「구현 1회차」 절에 B-3 대조, 고친 파일, 검증, 못 덮는 범위, 비고가 들어 있다.
+
+후속 처리:
+- **CLAUDE.md**: `apps/admin/CLAUDE.md` 테스트 인벤토리를 29/75/334에서 30/76/337로 고치고 `src/fsd/shared/lib/format-date.test.mjs` 행을 추가했다. 실제 `src/**/*.test.mjs` 30개와 표의 30행이 집합으로 같다.
+- **범위 밖 의존**: 없음. 백로그 후보도 없다.
+- **원장**: `docs/release-checks.md`에 「Last seen 표기 전환」 1줄을 등재했다. 호출 연결 확인과 형식 확인은 같은 관측으로 닫히므로 한 줄로 합쳤다. `〔auto〕`는 붙이지 않았다(시각 문자열이 데이터마다 다르다).

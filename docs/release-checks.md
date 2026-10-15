@@ -44,6 +44,14 @@
 
 ---
 
+## BUG-12 — admin 분석 화면 시각 표시를 로케일 en·UTC로 고정 (admin, 구현 2026-10-15)
+
+원천: `docs/agents/admin-dev/BUG-12.md`·`docs/plans/BUG-12.md` 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/admin` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/admin` **337/76/0**, `verify:fsd:final` EXIT 0이다. 새 테스트 파일은 `TZ=UTC`와 `TZ=America/Los_Angeles`에서 각각 3/3으로 통과했다. 신규 두 파일은 계획서 스케치와 바이트가 같다. **`〔auto〕` 태그를 붙이지 않는다**: 시각 문자열은 데이터마다 달라 고정 문구로 판정할 수 없고, 표는 최근 실패 이벤트가 있어야 행이 생긴다.
+
+- [ ] **「Last seen」 표기 전환** — `admin.a-pch.com/analytics` 「Recent Upload Failures」 표의 Last seen 칸이 `Jul 30, 2026, 10:55 PM` 형식(월 약칭, 초 없음)으로 보이는지 확인한다. 이 형식이 보이면 `formatDateTime` 호출 연결도 함께 확인된 것이다. 배포 전 형식은 런타임 기본 로케일이라 초까지 나왔다. 시각 값은 전과 같은 UTC다. 표가 비어 있으면(최근 실패 이벤트 0건) 판정을 미룬다
+
+---
+
 ## FEAT-62 — 설정 미리보기에서 자막을 끌어 세로 위치 지정 (web, 구현 2026-10-14)
 
 원천: `docs/agents/web-dev/FEAT-62.md`·`docs/plans/FEAT-62.md` 「못 덮는 범위」. **배포됨(2026-10-14 13:48 KST, PR #132 합류 `7e0c57b`)** — Vercel `Production – apc-h` success(배포 id 7057145601), 소유자가 합류·배포를 직접 확인. 합류 직전 메인 루프가 `475b0c5` 깨끗한 사본에서 web `build` EXIT 0(정적 페이지 41/41, 경고 0)을 확인했다. 전제 FEAT-61은 2026-10-14 09:49 KST 배포됨. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면·포인터 조작·실렌더다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
