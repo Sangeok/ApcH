@@ -9,7 +9,7 @@ agent: admin-dev
 - 이 화면은 서버 컴포넌트다. `index.tsx:1-28`에 `"use client"` 지시자가 없고, 라우트 `src/app/(protected)/analytics/page.tsx:46` `AdminAnalyticsRoute`(async server component)가 `:11`에서 임포트한 `AdminAnalyticsPage`를 `:65`에서 server-side로 렌더한다. 클라이언트 컴포넌트로 전달되는 경계가 없어 `lastSeenAt`은 직렬화되지 않고 Date로 남는다. 따라서 하이드레이션 불일치(React #418)는 발생하지 않고, Vercel 런타임이 UTC라 현재 화면도 UTC로 보인다 — 코드가 아니라 배포 환경이 그렇게 만들 뿐이다.
 - 같은 파일의 다른 `toLocaleString()` 일곱은 모두 **숫자** 포매팅이라 시간이 아니다: `:59,60,61`(overview `uniqueVisitors`/`loggedInUsers`/`totalEvents`), `:154`(`row.visitors`), `:161`(`row.dropOffFromPrevious`), `:198`(`row.sessions`), `:235`(`row.count`).
 - admin에는 재사용할 날짜 포매터가 없다. `src/fsd/shared/lib/`에는 `utils.ts`(`cn` 클래스 유틸)만 있고, `apps/admin/src` 전체(테스트 제외)에 `Intl.DateTimeFormat`은 한 건도 없다.
-- **여집합 열거** — `apps/admin/src`(테스트 제외)의 `toLocaleString|toLocaleDateString|toLocaleTimeString|Intl.DateTimeFormat|toISOString|new Date(` 전수:
+- **여집합 열거** — `apps/admin/src`(테스트 제외)에서 `toLocaleString|toLocaleDateString|toLocaleTimeString|Intl.DateTimeFormat|toISOString|new Date(`와 명시적 UTC 계산 `getUTC|Date.UTC`를 함께 찾은 전수(앞 패턴이 숫자 일곱 포함 14줄, 뒤 패턴이 아래 `briefing.ts:62·79`·`briefing.ts:233`·`transitions.ts:281` 세 항목을 더한다 — 본문의 실제 매치 줄은 `briefing.ts:69-73`·`:233`, `transitions.ts:282`):
   - `src/fsd/pages/analytics/ui/index.tsx:236` — **유일한 암묵적 TZ/로케일 시각 표시(이 항목의 대상).**
   - `src/fsd/pages/pipeline/model/briefing.ts:233` `formatToday` = `${today.getUTCMonth()+1}월 ${today.getUTCDate()}일` — 화면 표시지만 **명시적 `getUTC*`**라 암묵 의존 없음.
   - `src/fsd/pages/pipeline/model/briefing.ts:62,79` `daysOnBoard`/`nthDay` — `Date.UTC(...)` + `getUTC*`로 **명시적 UTC** 날짜 차 계산. 표시 아님.
@@ -115,6 +115,6 @@ describe("format-date", () => {
 
 ## 대안
 
-- **`packages/` 공용 날짜 포매터로 web·admin이 공유** — 택하지 않음. (1) admin과 web은 `@repo/db`만 공유하고 UI·유틸은 앱별로 소유하기로 한 결정이다(`apps/admin/CLAUDE.md:3`, `apps/web/CLAUDE.md` monorepo-admin-split 결정 2). 날짜 포매터는 DB 계약이 아니라 표시 유틸이다. (2) 새 `packages/` 패키지는 내 쓰기 범위(`apps/admin/src/**`) 밖이라 범위 밖 의존이 된다. (3) 중복은 약 10줄의 `Intl` 설정뿐이고, 패키지 신설의 빌드 배선·버전 결합 비용이 이를 넘는다. 백로그도 "워크스페이스가 달라 코드 공유는 하지 않는다"고 명시한다.
+- **`packages/` 공용 날짜 포매터로 web·admin이 공유** — 택하지 않음. (1) admin과 web은 `@repo/db`만 공유하고 UI와 인증 설정은 앱별로 소유하기로 한 결정이다(`apps/admin/CLAUDE.md:3`, `apps/web/CLAUDE.md:23` monorepo-admin-split 결정 2). 그 결정은 유틸을 따로 말하지 않는다. 다만 공유하는 것은 DB 계약(`@repo/db`)뿐이고, 날짜 포매터는 DB 계약이 아니라 표시 유틸이다. (2) 새 `packages/` 패키지는 내 쓰기 범위(`apps/admin/src/**`) 밖이라 범위 밖 의존이 된다. (3) 중복은 약 10줄의 `Intl` 설정뿐이고, 패키지 신설의 빌드 배선·버전 결합 비용이 이를 넘는다. 백로그도 "워크스페이스가 달라 코드 공유는 하지 않는다"고 명시한다.
 - **web `format-date.ts`를 통째로 복사(date-only `formatDate`/`DATE_FORMATTER` 포함)** — 택하지 않음. admin에는 date-only 소비자가 없고(여집합 열거에서 확인), 이 저장소는 죽은 코드를 두지 않는다(FEAT-56·57 선례). 베끼는 "모양"의 본질은 로케일·타임존 고정 + 테스트용 상수 수출이며, date-time만으로 그 본질을 지킨다. admin이 date-only가 필요해지면 그때 추가한다(YAGNI). 이 분기점은 구현 스케치가 명시한다.
 - **타임존을 `Asia/Seoul`로 고정하거나 클라이언트 전용 렌더로 사용자 로컬 표시** — 택하지 않음. web BUG-10이 같은 선택지를 검토하고 UTC 고정을 택한 것과 동일 결론이다. 운영자 대시보드이고 현재 표시가 이미 UTC(Vercel)라 UTC 고정이 최소 변경·무회귀다. 사용자 위치를 가정하지 않는 중립값이기도 하다.
