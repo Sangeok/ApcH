@@ -46,7 +46,7 @@
 
 ## BUG-18 — 설정 Video style 저장 버튼 하나로 합치기와 미저장 표시 (web, 구현 2026-10-15)
 
-원천: `docs/agents/web-dev/BUG-18.md`·`docs/plans/BUG-18.md` 「못 덮는 범위」 ①~④. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/web` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/web` **227/56/0**이다. 계획서 스케치를 HEAD에 기계로 적용한 결과와 구현을 비교하니, 다섯 파일 중 둘은 같고 셋은 줄바꿈·함수 위치·임포트 위치만 달랐다. 커밋할 테스트는 필드 제거 돌연변이 7종을 전부 잡았다. 이 배포로 FEAT-60 절 「저장 분리가 그대로인가」를 `대체`로 닫았고, FEAT-62 절 「스냅·프리셋·저장」과 FEAT-42 절 「설정 화면에 캡션 기본 스타일 카드가…」의 버튼 이름을 재앵커했다. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+원천: `docs/agents/web-dev/BUG-18.md`·`docs/plans/BUG-18.md` 「못 덮는 범위」 ①~④. **배포됨(2026-10-15 14:18 KST, PR #133 합류 `67e9a13`)** — Vercel `Production – apc-h` success(배포 id 7084537371), 소유자가 합류했다. 합류 직전 메인 루프가 `365478d` 깨끗한 사본에서 web `build` EXIT 0(정적 페이지 41/41, 경고 0)을 확인했다. 아래 넷은 지금 판정 가능하다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/web` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/web` **227/56/0**이다. 계획서 스케치를 HEAD에 기계로 적용한 결과와 구현을 비교하니, 다섯 파일 중 둘은 같고 셋은 줄바꿈·함수 위치·임포트 위치만 달랐다. 커밋할 테스트는 필드 제거 돌연변이 7종을 전부 잡았다. 이 배포로 FEAT-60 절 「저장 분리가 그대로인가」를 `대체`로 닫았고, FEAT-62 절 「스냅·프리셋·저장」과 FEAT-42 절 「설정 화면에 캡션 기본 스타일 카드가…」의 버튼 이름을 재앵커했다. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
 
 - [ ] **한 번 저장으로 셋 다 들어가는가** — `/dashboard/settings` `Video style`에서 Framing 여백, English 캡션, Korean 캡션(자막 위치 포함)을 모두 바꾸고 `Save video style`을 한 번 누른다. 새로고침하면 셋 다 남아 있는지 본다. 이어 `/dashboard` 업로드 폼의 Video style 썸네일이 그 여백과 자막 위치를 그리는지도 본다. 이 경로가 소유자의 원래 보고 경로다. 여백이 들어갔는데도 자막 위치가 띠 기준으로 기대한 자리가 아니면 BUG-18 진단 (a)·(b)의 재현이므로 별도 항목으로 만든다
 - [ ] **미저장 표시** — 불러온 직후와 저장 직후에는 `Save video style`이 비활성이고 「Unsaved changes」가 없는지 본다. 여백이나 캡션 하나를 바꾸면 버튼이 켜지고 「Unsaved changes」가 보이는지, 값을 원래대로 돌리면 다시 꺼지는지도 본다. `marginV` 키가 없는 옛 저장값 계정에서 불러오자마자 미저장이 뜨지 않는지도 함께 본다
@@ -57,7 +57,7 @@
 
 ## BUG-12 — admin 분석 화면 시각 표시를 로케일 en·UTC로 고정 (admin, 구현 2026-10-15)
 
-원천: `docs/agents/admin-dev/BUG-12.md`·`docs/plans/BUG-12.md` 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/admin` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/admin` **337/76/0**, `verify:fsd:final` EXIT 0이다. 새 테스트 파일은 `TZ=UTC`와 `TZ=America/Los_Angeles`에서 각각 3/3으로 통과했다. 신규 두 파일은 계획서 스케치와 바이트가 같다. **`〔auto〕` 태그를 붙이지 않는다**: 시각 문자열은 데이터마다 달라 고정 문구로 판정할 수 없고, 표는 최근 실패 이벤트가 있어야 행이 생긴다.
+원천: `docs/agents/admin-dev/BUG-12.md`·`docs/plans/BUG-12.md` 「못 덮는 범위」. **배포됨(2026-10-15 14:18 KST, PR #133 합류 `67e9a13`)** — Vercel `Production – apch-admin` success(배포 id 7084531244), 소유자가 합류했다. 합류 직전 메인 루프가 `365478d` 깨끗한 사본에서 admin `build` EXIT 0(정적 페이지 8/8)을 확인했다. 아래 줄은 지금 판정 가능하다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/admin` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/admin` **337/76/0**, `verify:fsd:final` EXIT 0이다. 새 테스트 파일은 `TZ=UTC`와 `TZ=America/Los_Angeles`에서 각각 3/3으로 통과했다. 신규 두 파일은 계획서 스케치와 바이트가 같다. **`〔auto〕` 태그를 붙이지 않는다**: 시각 문자열은 데이터마다 달라 고정 문구로 판정할 수 없고, 표는 최근 실패 이벤트가 있어야 행이 생긴다.
 
 - [ ] **「Last seen」 표기 전환** — `admin.a-pch.com/analytics` 「Recent Upload Failures」 표의 Last seen 칸이 `Jul 30, 2026, 10:55 PM` 형식(월 약칭, 초 없음)으로 보이는지 확인한다. 이 형식이 보이면 `formatDateTime` 호출 연결도 함께 확인된 것이다. 배포 전 형식은 런타임 기본 로케일이라 초까지 나왔다. 시각 값은 전과 같은 UTC다. 표가 비어 있으면(최근 실패 이벤트 0건) 판정을 미룬다
 
