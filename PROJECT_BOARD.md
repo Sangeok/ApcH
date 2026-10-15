@@ -45,6 +45,7 @@
   area: apps/web/src/fsd/pages/settings/ui/index.tsx + apps/web/src/fsd/features/settings/api/index.ts
   status: 검토대기
   근거: 소유자 직접 발주(2026-10-14 세션) — 설정에서 여백과 자막 위치를 함께 바꿨는데 `Save framing`을 누르지 않아 여백이 저장되지 않은 실사례
+  검증: 클린 패스 (2026-10-15, 독립 무편집 1라운드 — 메인 루프 라운드 구현 영향 1(필드 전수 비교)·위생 3 반영, 독립 1회차 위생 1 반영 뒤 2회차 결함 0, 필수 8경로 전수)
 - [ ] BUG-12: admin 분석 화면의 시각 표시가 서버 런타임 타임존에 암묵적으로 의존한다
   agent: admin-dev
   area: apps/admin/src/fsd/pages/analytics/ui/index.tsx
