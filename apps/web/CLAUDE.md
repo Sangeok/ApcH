@@ -132,7 +132,7 @@ npm test -w apps/web
 features/billing/api/index.ts            결제·체크아웃
 features/clip/api/index.ts               클립 조회·삭제·URL 생성
 features/clip-review/api/index.ts        생성 전 클립 검토
-features/settings/api/index.ts           사용자 업로드 기본값 저장
+features/settings/api/index.ts           사용자 업로드 기본값·Video style(여백 + 두 언어 캡션) 저장
 features/upload/api/index.ts             업로드 준비·확정·처리 스케줄링
 ```
 
