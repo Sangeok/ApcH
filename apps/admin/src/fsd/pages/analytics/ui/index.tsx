@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/fsd/shared/ui/atoms/table";
+import { formatDateTime } from "~/fsd/shared/lib/format-date";
 
 import { formatRate } from "../lib/format-ratio-as-percent";
 import type { AdminAnalyticsPageProps } from "../model/report-view";
@@ -233,7 +234,7 @@ export function AdminAnalyticsPage({
                   <TableRow key={`${row.eventName}:${row.path}`}>
                     <TableCell className="font-medium">{row.eventName}</TableCell>
                     <TableCell>{row.count.toLocaleString()}</TableCell>
-                    <TableCell>{row.lastSeenAt.toLocaleString()}</TableCell>
+                    <TableCell>{formatDateTime(row.lastSeenAt)}</TableCell>
                     <TableCell>{row.path}</TableCell>
                   </TableRow>
                 ))

@@ -14,8 +14,7 @@ export {
   incrementUserCredits,
   incrementUserCreditsAndSetPolarCustomerId,
   resolvePolarCustomerUserId,
-  updateUserDefaultCaptionStyle,
-  updateUserDefaultVideoPaddingPercent,
   updateUserPolarCustomerId,
   updateUserUploadDefaults,
+  updateUserVideoStyle,
 } from "./api";
