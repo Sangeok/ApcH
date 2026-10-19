@@ -799,7 +799,7 @@ import { canUserAccessCardNews } from "./access";
     enabled: canUserAccessCardNews(userId),
 ```
 
-(`env`·`canAcceptCardNews`의 이 파일 안 다른 사용은 0건 — `:22`·`:310-317`뿐.)
+(`env`·`canAcceptCardNews`의 이 파일 안 등장은 임포트 `:21`·`:22`와 `:310-317`뿐 — 그 밖의 사용 0건.)
 
 ```ts
 // before (:330-338)
@@ -1246,6 +1246,50 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
   `QueryClient` 캐시에 `creditBalanceKeys.user(id)` 쿼리를 data + `status: "error"`로 넣어 `QueryClientProvider` 안에서 렌더한다. 기대: 헤더
   `showCardNews=false` → `href="/dashboard/card-news"` 0개, `true` → 1개(드롭다운 메뉴는 닫힌 상태라 SSR 마크업에 없다 — 그 분기는 tsc·코드로만),
   잔액 배지 「갱신 실패 + 이전 data」 → 보정 전 코드 `Balance unavailable`, 보정 후 `3 available · 2 reserved`(owned 5·reserved 2)
+  실행은 사본의 `apps/web`에서 `TSX_TSCONFIG_PATH=./<덮는 tsconfig> SKIP_ENV_VALIDATION=1 DATABASE_URL=postgresql://x:x@localhost/x NODE_ENV=production
+  node --import tsx --import ./<register.mjs> ./<하니스>.tsx`. `server-only`는 tsconfig `paths`가 아니라 Node 로더 훅으로 푼다 — `register.mjs`는
+  `import { register } from "node:module"; register("./<loader>.mjs", import.meta.url);`, 로더는
+  `export async function resolve(s, c, next) { return s === "server-only" ? { url: "data:text/javascript,", shortCircuit: true } : next(s, c); }`.
+  잔액 배지 쿼리는 `client.getQueryCache().build(client, { queryKey: creditBalanceKeys.user("u1") })`로 만든 뒤 `setState`로 data(`{ owned: 5, reserved: 2,
+  available: 3 }`)와 `status: "error"`·`error`를 차례로 넣는다(`creditBalanceKeys`는 `~/fsd/entities/user`).
+- **실물 재생 재현**(「현재 동작」 V1·B4의 근거, 계획 검증·인수 공통 — 네트워크는 PyPI 다운로드뿐, 운영 무관):
+  - V1: `apps/backend/CLAUDE.md`의 venv 파이썬(boto3 1.43.62)으로 아래를 돌리면 `Content-Type: None`이 나와야 한다.
+  - B4: `python -m pip download --no-deps --only-binary=:all: google-genai==1.49.0 -d <스크래치패드 새 디렉터리>` → wheel 안
+    `google/genai/errors.py`의 `code: int`·`self.code = code if code else self._get_code(response_json)`. 웹 쪽은 `apps/web`에서 tsx로
+    `parseCardNewsCallback({ schemaVersion: 1, jobId: "job_1", executionEpoch: 1, revision: 1, invocationId: "3f0c1f2e-8b1a-4c3d-9e5f-0a1b2c3d4e5f",
+    outcome: "failed", modalCallId: "fc-abc", sequence: 2, stage: "failed", manifestKey: null, failureCode: 503 })`가 `invalid_type`으로 던지고,
+    `failureCode: "cpu_job_failed"`면 통과해야 한다.
+
+```python
+import http.server, tempfile, threading
+import boto3
+from botocore.config import Config
+
+seen = []
+
+
+class Capture(http.server.BaseHTTPRequestHandler):
+    def do_PUT(self):
+        self.rfile.read(int(self.headers.get("Content-Length", 0) or 0))
+        seen.append(dict(self.headers.items()))
+        self.send_response(200)
+        self.send_header("ETag", '"x"')
+        self.end_headers()
+
+    def log_message(self, *args):
+        pass
+
+
+server = http.server.HTTPServer(("127.0.0.1", 0), Capture)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+s3 = boto3.client("s3", endpoint_url=f"http://127.0.0.1:{server.server_port}", region_name="us-east-1",
+                  aws_access_key_id="x", aws_secret_access_key="x", config=Config(s3={"addressing_style": "path"}))
+with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as handle:
+    handle.write(b"\0" * 2048)
+s3.upload_file(handle.name, "ai-podcast-clipper-hamsoo", "u/attempt-1/clip_0.mp4")  # D/apps/backend/main.py:879과 같은 호출 모양
+server.shutdown()
+print("Content-Type:", seen[0].get("Content-Type"))
+```
 - 영상 삭제 정리 완결(CPU `/status` + legacy drain receipt 전제)
 
 ## 범위 밖 의존
