@@ -56,3 +56,64 @@ junction 449개, `@repo/db`만 worktree 자기 `packages/db`로). 결과는 계�
 판정 원칙: 기존 영상 기능을 깨거나 CPU 앱 배포·기동을 막는 것은 전부 고친다(V1·V3·V4·B1~B4). 플래그가 꺼진 기본 상태에서 사용자 화면이 D/보다
 나빠지는 것도 고친다(C1·A2·B3'·문구). 나머지는 과금·데이터 정확성에 닿지 않아 후속 후보로 넘긴다. 범위가 커서 쪼갤 수 있었지만, 고친 자리 대부분이
 몇 줄짜리고 모두 「이 병합이 만든 퇴행」이라 이 항목 안에서 닫는다.
+
+## 필수 경로 확정 (2026-10-19)
+
+| # | 경로 | 판정 | 이유 |
+| --- | --- | --- | --- |
+| 1 | 인용 전수 대조 | 필수 | 모든 항목 |
+| 2 | 스케치 추출·실행 | 필수 | 코드 블록 50여 개(py·ts·tsx·md·gitattributes) |
+| 3 | before/after 기계 적용 | 필수 | 기존 파일 수정 30곳 |
+| 4 | 전칭 여집합 | 필수 | 「진입점 3곳」·「호출처 하나뿐」·「다른 사용 0건」·「같은 부류 없음」·「문구는 전부 단서」·「dev와 겹치지 않음」 |
+| 5 | 돌연변이 | 필수 | 순수 함수 신설 셋(`isStoredClipObject`·`canRecoverySettleVideoAttempt`/`producerEndObservedAt`·`callback_failure_code`) |
+| 6 | 실제 사건 재생 | 부분 | 외부 신호(S3 HEAD·Modal status·Gemini 오류)를 해석한다. 실측 재생은 운영 읽기라 거부됨 → 신호의 **모양**은 설치된 SDK 소스(Modal 1.2.1 `image.py`, google-genai `errors.py`, s3transfer·boto3)로 확인, 실물은 배포 원장으로 |
+| 7 | 음성 시험 | 필수 | 새 backend 테스트 둘, 실 DB 검사가 V1·V3을 지키는가 |
+| 8 | 실물 렌더 | 필수 | 헤더·잔액 배지 변경 |
+| 9 | 구조적 아티팩트 | 필수 | `.gitattributes`(체크아웃 바이트까지) |
+
+## 라운드 1 — 메인 루프 편집 라운드 (2026-10-19, 구현 영향 3 + 위생 4)
+
+하니스는 스크래치패드 `h63/`(블록 추출 `blocks.py`, 적용 `apply63.py`, 돌연변이 `mutate63.py`, 음성 `negative63.py`, 인용 `cite63.py`), 대상은
+`wt63`의 병합 커밋 `d63d8e7`(로컬 전용) 위.
+
+- **경로 3**: 블록 50 + 산문 지시 3을 적용 — **전부 정확히 1회 일치**, 손 개입 0. 줄 끝은 대상 파일 것(CRLF)을 따르고 `write_bytes`.
+- **경로 2·구현 영향 R1-1**: backend `unittest`가 `NameError: name 'callback_failure_code' is not defined`(`free-overflow`·`media-failure`) —
+  기존 오케스트레이션 테스트가 함수 본문을 import 없이 `namespace` dict로 실행한다(`test_card_news_wiring.py:166-178`). 계획에 dict 한 줄 블록 추가.
+  반영 후 **164 OK**(161+3).
+- **경로 2·구현 영향 R1-2**: 실 DB 검사 `verify-card-news-video-compatibility.mts:544` `0 !== 1` — 검사 자체가 V3의 옛 동작(첫 `ended` 틱에 즉시 정산)을
+  단언했다. 계획 「고칠 파일」에 그 스크립트가 없었다 → 35행 신설(유예 단언 + 5분 경과 뒤 정산). 같은 행에서 가짜 S3 클립 기본 타입이 `video/mp4`라
+  V1이 실 DB 검사에 한 번도 걸리지 않았음을 발견 → 기본값을 `binary/octet-stream`으로. 반영 후 **3종 EXIT 0**.
+- **경로 5·구현 영향 R1-3**: 돌연변이 22 중 생존 2 — `trim` 제거(세미콜론 앞 공백 케이스 없음), **「마감 null = 경과」**(마감 null + 종료 없음
+  케이스 없음). 후자는 마이그레이션 전 dispatch가 전부 `deadlineAt` null이라 옛 analyze 행을 즉시 실패시키는 돌연변이다. 명세에 케이스 3개 추가 →
+  **22/22 사멸**, 원본 3파일 해시 복원 확인.
+- **경로 4·위생 R1-4**: 「보정 delta 파일은 전부 dev와 안 겹친다」 — 여집합에 `apps/backend/CLAUDE.md`(FEAT-61). 코드 파일로 한정하고 문서 둘은 dev 최신본
+  위라고 고쳐 적음. 진입점은 `/dashboard/card-news` href 전수 12건 — 무조건 노출은 3곳뿐(`ClipActions.tsx:167`은 `derivedSets.length > 0` 조건).
+  `markProcessingSpawnUnknown` 호출 전수: `functions.ts` 둘 + DB CLI 둘(시그니처 불변). 다른 `AbortSignal.timeout`은 영상 POST 30s 둘(가드가 앞 단계라 중복 POST 없음).
+- **경로 4·위생 R1-5**: 「나머지 카드뉴스 문구는 전부 단서」 — `card[- ]news|carousel` 전수 열거에서 `pricing/page.tsx:16` openGraph 설명이 단서 없음 → 30b행 추가,
+  주장은 「같은 목록·문단의 단서 또는 처리·보관 고지」로 정확히 고침.
+- **경로 8·위생 R1-6**: 헤더 `showCardNews` false → 링크 0, true → 1(드롭다운은 닫힌 상태라 정적 렌더에 없음 — 그 분기는 tsc·코드로만). 잔액 배지:
+  **보정 전 코드로 대조 렌더하면 「갱신 실패 + 이전 data」가 `Balance unavailable`, 보정 후 `3 available · 2 reserved`** — 하니스가 결함을 구별함. 그 과정에서
+  계획의 주석 「Unauthorized면 data가 사라진다」가 사실이 아님(TanStack이 다음 렌더에 `initialData`로 재생성 — 보정 전후 동일)을 확인 → 주석 교체.
+- **경로 1·위생 R1-7**: 산문 인용 49건 중 불일치 2(여러 줄 식의 한 줄 인용, 동명 파일 3개라 모호한 짧은 경로) → 고친 뒤 **49/49**. 블록 머리 줄 번호 44곳 병합 트리와 **불일치 0**.
+- **경로 7**: 되돌리면 실패하는가 — env 층 순서·`parents[1]` 무가드 → 새 backend 테스트 실패, `binary/octet-stream` 제거·유예 0 → **실 DB 검사 실패**. 4/4.
+- **경로 9**: `git check-attr` `text: set`·`eol: lf`, 재체크아웃 OFL sha256 `1c05c68c…` = manifest, 인덱스 변경 없음.
+- 그 밖: web `check` EXIT 0 · `test` **361/0**(테스트 케이스 추가 전) · `next build` EXIT 0 · admin check·337/0·fsd:final EXIT 0.
+
+라운드 소득이 있었으므로(구현 영향 3) 같은 경로로 다시 돈다.
+
+## 라운드 2 — 메인 루프 재적용 라운드 (2026-10-19, 무소득)
+
+라운드 1 반영본 계획서를 **새 worktree `wt63b`**(같은 병합 커밋 `d63d8e7`)에 처음부터 다시 적용했다.
+
+- 경로 3: 블록 53 + 산문 3 전부 1회 일치. 결과 트리가 라운드 1에서 검증한 `wt63`과 **34파일 바이트 동일**(`cmp`).
+- 경로 2: 동일 트리의 최종 게이트 — web `check` EXIT 0 · `test` **362/0**(56 suite, 테스트 파일 43) · `next build` EXIT 0, backend **164 OK**, admin check·**337/0**·fsd:final EXIT 0,
+  실 PostgreSQL 3종 EXIT 0.
+- 경로 1: 인용 49/49, 블록 머리 줄 번호 불일치 0(라운드 1 말미에 최종본으로 실행).
+- 경로 5: 22/22 사멸(최종 명세). 경로 7: 4/4. 경로 8·9: 라운드 1 결과 유지(이후 바뀐 것은 주석 한 줄과 테스트 케이스뿐 — 렌더·속성 무관).
+- **경로 6 — 로컬 실물 재생으로 실행**: ① GPU와 같은 boto3 1.43.62로 `upload_file`(main.py:879 모양)을 로컬 가짜 S3에 보내 요청을 잡음 — PUT 헤더에
+  **`Content-Type` 없음**(`h63/replay/boto_put.py`). ② 카드뉴스 이미지 고정본 google-genai **1.49.0** wheel을 받아(`dl-genai-1.49.0/`) `APIError.code: int`·
+  `self.code = code if code else …`(`errors.py:31`·`:52`) 확인, 실제 `ServerError(503)`·`ClientError(429)` 객체 → `callback_failure_code` = `cpu_job_failed`.
+  ③ 웹 `parseCardNewsCallback`에 `failureCode: 503` → `invalid_type … expected string, received number`로 거부, `"cpu_job_failed"` → 수락.
+  운영 S3·Modal 실측은 여전히 배포 원장 몫.
+
+필수 경로 소진 + 자기 라운드 무소득 → `plan-verifier` 디스패치 자격.

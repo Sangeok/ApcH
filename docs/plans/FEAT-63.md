@@ -12,8 +12,9 @@ agent: main-loop
 > `72bde11`의 diff를 그대로 싣는가」와 「보정 커밋이 아래 블록과 같은가」 두 번의 기계 대조가 된다.
 >
 > **줄 번호 기준**: `D/`는 현재 dev(`9b8c022`), 표시가 없는 경로는 **병합 후 트리**(= `72bde11`의 내용에
-> dev 변경 2파일이 합쳐진 것 — 아래 「현재 동작」 표 3행)다. 보정 delta가 닿는 파일은 전부 dev와 겹치지 않으므로
-> 병합 후 내용 = `72bde11`의 내용이다.
+> dev 변경 2파일이 합쳐진 것 — 아래 「현재 동작」 표 3행)다. 보정 delta가 닿는 **코드** 파일은 dev의 `b2b5504` 이후 변경과 겹치지
+> 않으므로 병합 후 내용 = `72bde11`의 내용이다. 문서 둘(32 `apps/web/CLAUDE.md`·33 `apps/backend/CLAUDE.md`)은 `72bde11`이 건드리지
+> 않았고 dev에서 바뀌었으므로(FEAT-61·62) 병합 후 내용 = dev 최신본이며, 그 위에 덧붙인다.
 
 ## 현재 동작
 
@@ -104,7 +105,7 @@ agent: main-loop
   전)이라 실패 콜백도 가지 않는다. 같은 부류는 다른 파일에 없다(TTF는 바이너리, JSON들은 파싱만 함 — 리뷰 3 전수).
 - **B4 — Gemini API 오류가 실패 콜백을 잃는다.** `card_news_app.py:187` `failure = getattr(error, "code", "cpu_job_failed")`.
   google-genai `APIError`는 `self.code`가 정수(HTTP 상태, venv `google/genai/errors.py:64`)라 콜백 `failureCode`가 숫자가 되고,
-  웹 계약 `apps/web/src/fsd/entities/card-news/model/contract.ts:13-17` `const id = z.string().min(1).max(160).regex(/^[A-Za-z0-9_-]+$/)`
+  웹 계약 `apps/web/src/fsd/entities/card-news/model/contract.ts:13-17` `const id = z` … `.regex(/^[A-Za-z0-9_-]+$/);`
   (`:297` `failureCode: id.nullable()`)이 거부 → `:194-195` `except Exception: pass`가 삼킴 → 웹은 15분 마감까지 기다린다.
 
 **카드뉴스 쪽**
@@ -131,12 +132,14 @@ agent: main-loop
   카드뉴스 캐시를 무효화하지 않는다.
 - **B3' — 헤더 잔액이 일시 오류에 사라진다.** `apps/web/src/fsd/features/credit-balance/ui/index.tsx:37`
   `if (query.isError || !query.data) {` — TanStack Query는 refetch 실패 뒤에도 이전 `data`를 유지하는데, 그 위에 「Balance unavailable」을
-  덮는다(10초 polling, `model/query-options.ts:20-24`). D/는 서버 렌더 숫자라 없던 일.
+  덮는다(10초 polling, `apps/web/src/fsd/features/credit-balance/model/query-options.ts:20-24`). D/는 서버 렌더 숫자라 없던 일.
 
 **공개 문구** — 카드뉴스는 처음엔 allowlist(소유자)만 켠다. `apps/web/src/fsd/pages/pricing/config/index.ts:13`
 `value: "1 credit per clip or card-news set",`·`:19` `value: "Video or carousel files",`·`:21` 설명, `apps/web/src/app/(public-marketing)/terms/page.tsx:89`
-`Card-news generation costs one credit per set, settled only when`은 「when enabled」 단서 없이 아직 못 쓰는 기능을 약속한다
-(다른 카드뉴스 문구는 전부 단서가 있다 — 리뷰 4 C 분류표).
+`Card-news generation costs one credit per set, settled only when`, 그리고 `apps/web/src/app/(public-marketing)/pricing/page.tsx:16`의
+openGraph 설명 `"3-credit trial with shared available and reserved balances for video clips and complete card-news sets."`은 「when enabled」
+단서 없이 아직 못 쓰는 기능을 약속한다. 나머지 카드뉴스 문구는 같은 목록·문단에 단서가 있거나(how-it-works·product-tour·product-copy·
+pricing 목록 — 리뷰 4 C 분류표) 처리·보관을 설명하는 고지(privacy·terms)다(계획 검증 라운드 1에서 `card[- ]news|carousel` 전수 열거).
 
 ## 문제
 
@@ -192,10 +195,12 @@ agent: main-loop
 | 28 | `apps/web/src/app/dashboard/page.tsx` | `showCardNews` 전달(C1) |
 | 29 | `apps/web/src/fsd/features/credit-balance/ui/index.tsx` | data가 있으면 오류여도 잔액 표시(B3') |
 | 30 | `apps/web/src/fsd/pages/pricing/config/index.ts` | 헤드라인 2개 dev 문구로, 설명 1개에 「When enabled for your account」 |
+| 30b | `apps/web/src/app/(public-marketing)/pricing/page.tsx` | openGraph 설명에 같은 단서 |
 | 31 | `apps/web/src/app/(public-marketing)/terms/page.tsx` | §3 카드뉴스 가격 불릿에 같은 단서 |
 | 32 | `apps/web/CLAUDE.md` | 테스트 표 — 수치, 새 테스트 파일 11개 행 |
 | 33 | `apps/backend/CLAUDE.md` | 카드뉴스 CPU 앱 절(배포 명령·secret 키·이미지 층 순서·CRLF) |
 | 34 | `docs/proposals/active/instagram-card-news-generation.md` | 2026-10-14 대조본으로 교체(다른 세션의 미커밋 편집, 사본 sha256 `1072b776…`) |
+| 35 | `apps/web/scripts/verify-card-news-video-compatibility.mts` | 가짜 클립 객체의 기본 Content-Type을 실제 S3 기본값으로(V1을 실 DB 검사가 덮게), `ended` 즉시 정산 단언을 유예 단언으로(V3) |
 
 ## 구현 스케치
 
@@ -292,6 +297,18 @@ def callback_failure_code(error):
 
 임포트: `from card_news.policy import Deadline, model_timeout_ms, timestamp` → `from card_news.policy import Deadline, callback_failure_code, model_timeout_ms, timestamp`,
 그리고 `from pathlib import Path` 다음 줄에 `from pathlib import PurePosixPath`.
+
+기존 `test_actual_orchestration_stages_repair_budget_and_free_render`는 `process_card_news` 본문을 AST로 떼어 함수 안 import 없이
+`namespace` dict로 이름을 주입해 실행한다(`:166-178`). 새 이름도 거기 넣지 않으면 실패 분기 시나리오(`free-overflow`·`media-failure`)가
+`NameError: name 'callback_failure_code' is not defined`로 죽는다(계획 검증 라운드 1 실측):
+
+```python
+# before (:168)
+                    "Deadline": Deadline, "timestamp": timestamp, "model_timeout_ms": model_timeout_ms,
+# after
+                    "Deadline": Deadline, "timestamp": timestamp, "model_timeout_ms": model_timeout_ms,
+                    "callback_failure_code": callback_failure_code,
+```
 
 ```python
     def test_image_env_precedes_local_mounts(self):
@@ -1058,7 +1075,7 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
 // before (:37)
   if (query.isError || !query.data) {
 // after
-  // A failed refetch keeps the last balance; Unauthorized clears the cache above, so data is gone then.
+  // TanStack keeps the last data when a refetch fails; show it instead of hiding a valid balance.
   if (!query.data) {
 ```
 
@@ -1083,6 +1100,13 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
       "Video ships as a 1080x1920 mp4. A separate card-news generation creates 1080x1350 JPGs, ZIP and Instagram copy from one completed clip.",
 // after
       "Video ships as a 1080x1920 mp4. When enabled for your account, a separate card-news generation creates 1080x1350 JPGs, ZIP and Instagram copy from one completed clip.",
+```
+
+```tsx
+// before (pricing/page.tsx:16)
+      "3-credit trial with shared available and reserved balances for video clips and complete card-news sets.",
+// after
+      "3-credit trial with shared available and reserved balances for video clips and, when enabled, complete card-news sets.",
 ```
 
 ```tsx
@@ -1127,6 +1151,59 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
 `…/scratchpad/preserve63/proposal-reconciled-20261014.md`(974줄, sha256 `1072b7767f607500…`, 원본은 다른 세션의 임시 worktree
 `apch-card-news-reconciliation-20261014`의 미커밋 편집, 마지막 수정 2026-10-14 21:33)로 바이트 그대로 교체한다. 내용 수정 없음.
 
+### 35) `apps/web/scripts/verify-card-news-video-compatibility.mts`
+
+이 검사는 「`ended`를 처음 본 틱에 곧바로 정산」을 단언한다 — V3이 고치는 바로 그 동작이라, 보정만 적용하면 `:544`에서
+`0 !== 1`로 실패한다(계획 검증 라운드 1 실측). 또 가짜 S3의 클립 기본 타입이 `video/mp4`라 V1의 S3 기본값을 한 번도 거치지 않았다.
+
+```ts
+// before (:143)
+  function object(key: string, contentLength = 100, contentType = "video/mp4") {
+// after
+  // GPU upload_file sends no ContentType, so real clip objects carry S3's
+  // default; the settlement must accept it (FEAT-63).
+  function object(
+    key: string,
+    contentLength = 100,
+    contentType = "binary/octet-stream",
+  ) {
+```
+
+```ts
+// before (:543-553)
+  producerStatus = "ended";
+  assert.equal((await video.reconcileVideoReservations()).settled, 1);
+  await balance(confirmed.userId, 1, 0);
+  assert.equal(
+    (
+      await runtime.db.processingDispatch.findUniqueOrThrow({
+        where: { id: confirmed.dispatch.id },
+      })
+    ).modalSpawnState,
+    "ended",
+  );
+// after
+  producerStatus = "ended";
+  // The first observation only records the end; the webhook's own settlement
+  // gets PRODUCER_END_SETTLE_GRACE_MS before recovery takes over (FEAT-63).
+  assert.equal((await video.reconcileVideoReservations()).settled, 0);
+  await balance(confirmed.userId, 1, 1);
+  assert.equal(
+    (
+      await runtime.db.processingDispatch.findUniqueOrThrow({
+        where: { id: confirmed.dispatch.id },
+      })
+    ).modalSpawnState,
+    "ended",
+  );
+  now = new Date(now.getTime() + 5 * 60_000);
+  assert.equal((await video.reconcileVideoReservations()).settled, 1);
+  await balance(confirmed.userId, 1, 0);
+```
+
+(`reconcileVideoReservations`를 부르는 곳은 이 파일의 `:519`·`:544` 둘이고 `:519`는 마감 경과(66분)라 유예와 무관하다 — `apps/web/scripts`
+전수 grep. 타입을 넘기는 `object(...)` 호출은 `:194` `"text/plain"`(거부 시험) 하나뿐이고, 원본 영상은 `:95-98`에서 `runtime.objects.set`으로 `video/mp4`를 직접 넣는다.)
+
 ## 테스트
 
 **덮는 것** (구현 후 전부 실행, EXIT 0·실패 0이어야 한다)
@@ -1137,9 +1214,11 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
   CRLF 정리로 통과로 바뀌는 것이 B3의 음성 대조) · `py_compile` `main.py`·`card_news_app.py`
 - 실 PostgreSQL 통합 CLI 3종(`apps/web/scripts/verify-card-news-local-db.mts`) — 보정 뒤 재실행
 - `stored-clip-object.test.mjs`: `video/mp4` · **`binary/octet-stream`** · `application/octet-stream` 참, `video/mp4; codecs=avc1` 매개변수 ·
-  `Video/MP4` 대소문자 참, `text/html` · 빈 문자열 거짓, `contentLength` 0 거짓
+  `video/mp4 ; codecs=avc1`(세미콜론 앞 공백 — 없으면 `trim` 제거가 생존, 계획 검증 돌연변이 실측) · `Video/MP4` 대소문자 참,
+  `text/html` · 빈 문자열 거짓, `contentLength` 0 거짓
 - `recovery-settle-policy.test.mjs`: 마감 경과(`deadlineAt <= now`, 같은 시각 포함) 참 · 마감 전 + 종료 없음 거짓 · 방금 종료(0ms) 거짓 ·
-  4:59.999 거짓 · **정확히 5:00 참** · 마감 null + 오래된 종료 참. `producerEndObservedAt`: `observedAt` · `confirmedAt` · 둘 다면 `observedAt` ·
+  4:59.999 거짓 · **정확히 5:00 참** · 마감 null + 오래된 종료 참 · **마감 null + 종료 없음 거짓 · 마감 null + 방금 종료 거짓**(마이그레이션 전
+  dispatch는 `deadlineAt`이 null이다 — 이 둘이 없으면 「null = 마감 경과」 돌연변이가 생존한다, 계획 검증 실측). `producerEndObservedAt`: `observedAt` · `confirmedAt` · 둘 다면 `observedAt` ·
   잘못된 날짜 문자열 · `null` · 비객체 → epoch
 - backend 신규 3건: 이미지 층 순서, 컨테이너 경로(`/root`) 평가, 실패 코드(정수 429·빈 문자열·공백·161자·코드 없음 → `cpu_job_failed`)
 
