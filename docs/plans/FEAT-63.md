@@ -206,7 +206,7 @@ pricing 목록 — 리뷰 4 C 분류표) 처리·보관을 설명하는 고지(p
 | 31 | `apps/web/src/app/(public-marketing)/terms/page.tsx` | §3 카드뉴스 가격 불릿에 같은 단서 |
 | 32 | `apps/web/CLAUDE.md` | 테스트 표 — 수치, 새 테스트 파일 11개 행 |
 | 33 | `apps/backend/CLAUDE.md` | 카드뉴스 CPU 앱 절(배포 명령·secret 키·이미지 층 순서·CRLF) |
-| 34 | `docs/proposals/active/instagram-card-news-generation.md` | 2026-10-14 대조본으로 교체(다른 세션의 미커밋 편집, 사본 sha256 `1072b776…`) |
+| 34 | `docs/proposals/active/instagram-card-news-generation.md` | 2026-10-14 대조본으로 교체(다른 세션의 미커밋 편집, 사본 sha256 `aa53bb66…`) |
 | 35 | `apps/web/scripts/verify-card-news-video-compatibility.mts` | 가짜 클립 객체의 기본 Content-Type을 실제 S3 기본값으로(V1을 실 DB 검사가 덮게), `ended` 즉시 정산 단언을 유예 단언으로(V3) |
 
 ## 구현 스케치
@@ -1155,7 +1155,7 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
 ### 34) 제안서
 
 `docs/proposals/active/instagram-card-news-generation.md`를 스크래치패드 사본
-`…/scratchpad/preserve63/proposal-reconciled-20261014.md`(974줄, sha256 `1072b7767f607500…`, 원본은 다른 세션의 임시 worktree
+`C:/Users/hamso/AppData/Local/Temp/claude/C--Users-hamso-OneDrive-Desktop-git-ApcH/fae0c321-b2ae-454d-9d44-8b77abf79b42/scratchpad/preserve63/proposal-reconciled-20261014.md`(974줄, sha256 `aa53bb66d8c163cdc1230c3f3c7e4889f283d15a8f4850c0672afbb54bd2f371` — 원본 파일과 동일, 원본은 다른 세션의 임시 worktree
 `apch-card-news-reconciliation-20261014`의 미커밋 편집, 마지막 수정 2026-10-14 21:33)로 바이트 그대로 교체한다. 내용 수정 없음.
 
 ### 35) `apps/web/scripts/verify-card-news-video-compatibility.mts`
@@ -1238,7 +1238,10 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
   경로를 부르지 않는다 — 함수 본문은 `markProcessingSpawnUnknown`과 같은 잠금·조건이고 목표 상태만 다르다)
 - 화면(C1·A2·B3'·문구): 러너에 DOM이 없다 — 계획 검증의 실물 렌더(카탈로그 경로 8)와 배포 뒤 화면 확인. 렌더 확인 방법(계획 검증·인수 공통):
   `renderToStaticMarkup`. 저장소 `apps/web/tsconfig.json`이 `"jsx": "preserve"`라 `{ "extends": "./tsconfig.json", "compilerOptions": { "jsx": "react-jsx" } }`를
-  `TSX_TSCONFIG_PATH`로 준다(하니스 파일은 `apps/web` 바로 아래 점 없는 경로 — 점 디렉터리 안 파일은 그 tsconfig가 걸리지 않아 `React is not defined`).
+  `TSX_TSCONFIG_PATH`로 준다. 렌더는 **병합 후 트리의 사본**에서 한다 — 스크래치패드 worktree(`git worktree add --detach <스크래치패드>/… dev` 후
+  `git merge --no-commit --no-ff 72bde11`, 그 위에 보정 블록 적용)나 `git archive` 추출본. 사본의 `node_modules`는 메인 트리 `node_modules`의 항목을
+  하나씩 junction하고 `@repo/db`만 사본 자신의 `packages/db`로 잇는다(통째로 잇으면 `@repo/db`가 메인 트리 스키마로 풀린다 — FEAT-62 기록).
+  하니스 파일과 덮는 tsconfig는 사본의 `apps/web` 바로 아래 점 없는 경로에 둔다(점 디렉터리 안 파일은 그 tsconfig가 걸리지 않아 `React is not defined`).
   `server-only`는 `node:module`의 `register`로 빈 모듈로 푸는 로더를 `--import`로 넣고, `SKIP_ENV_VALIDATION=1`·임의 `DATABASE_URL`. 잔액 배지는
   `QueryClient` 캐시에 `creditBalanceKeys.user(id)` 쿼리를 data + `status: "error"`로 넣어 `QueryClientProvider` 안에서 렌더한다. 기대: 헤더
   `showCardNews=false` → `href="/dashboard/card-news"` 0개, `true` → 1개(드롭다운 메뉴는 닫힌 상태라 SSR 마크업에 없다 — 그 분기는 tsc·코드로만),
