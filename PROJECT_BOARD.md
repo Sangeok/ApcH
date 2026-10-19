@@ -43,7 +43,7 @@
 - [ ] FEAT-63: Instagram 카드뉴스 생성 — `feat/card-news`(`72bde11`)에 보존된 미검토 구현을 계획 검증·인수에 태워 dev에 합류시킨다. 공통 크레딧 예약으로 기존 영상 과금도 바뀐다
   agent: main-loop
   area: apps/backend/card_news + apps/backend/card_news_app.py + apps/web/src/fsd/features/card-news + apps/web/src/fsd/entities/card-news + apps/web/src/fsd/widgets/card-news-editor + apps/web/src/app/dashboard/card-news + apps/web/src/fsd/features/upload/api + apps/web/src/inngest + packages/db/prisma + .env.example
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(2026-10-19 게이트① 세션 지시 「진행해」). packages/db를 포함해 pm 선정 밖 — 쪼개지 않고 main-loop 하나. 이미 쓰인 브랜치 코드를 dev로 옮기는 통합 계획
 
 ## 2026-10-14
