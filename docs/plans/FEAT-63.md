@@ -1212,7 +1212,7 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
 - admin: `npm run check -w apps/admin` · `npm test -w apps/admin` · `npm run verify:fsd:final -w apps/admin`
 - backend: `python -m unittest discover -s apps/backend -p "test_*.py"`(161 + 3, **실패 0** — `test_font_hashes_license_and_pins_are_exact`가
   CRLF 정리로 통과로 바뀌는 것이 B3의 음성 대조) · `py_compile` `main.py`·`card_news_app.py`
-- 실 PostgreSQL 통합 CLI 3종(`apps/web/scripts/verify-card-news-local-db.mts`) — 보정 뒤 재실행
+- 실 PostgreSQL 통합 CLI 3종(`apps/web/scripts/verify-card-news-local-db.mts`) — 보정 뒤 재실행. `apps/web`에서 `CARD_NEWS_TEST_POSTGRES_BIN=C:/Users/hamso/AppData/Local/Temp/apch-card-news-postgres-20261011/pgsql/bin` (2026-10-11 런북 실행 때 받은 16.15 바이너리, 이 PC에 남아 있음), `DATABASE_URL`·`DATABASE_URL_UNPOOLED` 없이 `node --conditions=react-server --import tsx scripts/verify-card-news-local-db.mts`. backend는 `apps/backend/CLAUDE.md`의 venv 파이썬으로
 - `stored-clip-object.test.mjs`: `video/mp4` · **`binary/octet-stream`** · `application/octet-stream` 참, `video/mp4; codecs=avc1` 매개변수 ·
   `video/mp4 ; codecs=avc1`(세미콜론 앞 공백 — 없으면 `trim` 제거가 생존, 계획 검증 돌연변이 실측) · `Video/MP4` 대소문자 참,
   `text/html` · 빈 문자열 거짓, `contentLength` 0 거짓
