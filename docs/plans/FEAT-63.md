@@ -74,7 +74,11 @@ agent: main-loop
   `lambda: s3_client.upload_file(str(english_output_path), "ai-podcast-clipper-hamsoo", english_s3_key),`(`:894` Korean 동일)로
   ContentType 없이 올리고, s3transfer는 Content-Type을 추측하지 않는다(venv `s3transfer`·`boto3/s3/transfer.py`에 `mimetypes` 0건).
   S3의 기본값은 `binary/octet-stream`이라 허용 목록에 없다 → 모든 키가 `null` → `clipsFound === 0` → 실패·해제, 그리고 같은
-  트랜잭션의 orphan 정리가 24시간 뒤 그 클립들을 지운다. 통합 CLI는 가짜 S3가 주석의 값을 돌려줘 통과했다.
+  트랜잭션의 orphan 정리가 24시간 뒤 그 클립들을 지운다. 통합 CLI는 가짜 S3의 클립 기본 타입이 `video/mp4`라
+  (`apps/web/scripts/verify-card-news-video-compatibility.mts:143` `function object(key: string, contentLength = 100, contentType = "video/mp4") {`)
+  이 분기를 거치지 않고 통과했다. **실물 재생**: GPU와 같은 boto3 1.43.62로 `upload_file`을 로컬 가짜 S3 서버에 보내 요청을 잡으면 PUT 헤더는
+  `Accept-Encoding`·`Authorization`·`Content-Length`·`Expect`·`Host`·`User-Agent`·`X-Amz-*`·`amz-sdk-*`·`x-amz-checksum-crc32`·`x-amz-sdk-checksum-algorithm`뿐이고
+  **`Content-Type`이 없다**(2026-10-19 실측).
 - **V3 — 전역 복구 cron이 정상 정산을 가로챈다.** `reconcile-video-reservations.ts:43-75`는 producer `ended`를 처음 본 틱에 곧바로
   `failureCode: "worker_timeout"`으로 `settleProcessingAttempt`를 부른다. GPU 함수는 콜백을 보낸 직후 끝나므로 `ended` 관측이
   웹훅 → Inngest 정산보다 앞선다. 그 틈에 cron이 돌면 analyze는 **성공했는데 failed**(`settle-processing-attempt.ts:111-120` 분기),
@@ -83,8 +87,8 @@ agent: main-loop
   `modalCallId`가 기록되면 매 작업에 걸린다.
 - **V4 — Modal이 HTTP 오류로 거절하면 재시도 없이 약 1시간 대기.** `apps/web/src/inngest/functions.ts:294-300`(analyze `:699-705`)이
   catch에서 `markProcessingSpawnUnknown`(`sending` → `unknown`) 뒤 다시 던지고, Inngest 재시도 때 `beginProcessingSpawn`이
-  `modalSpawnState !== "not_sent"`라 `false`(`claim-processing-attempt.ts:183-186`) → `:244-250`
-  `return { status: "accepted", call_id: existing?.modalCallId ?? null }`로 **POST 없이** 콜백을 기다린다. dev는 같은 step 재시도가
+  `modalSpawnState !== "not_sent"`라 `false`(`claim-processing-attempt.ts:183-186`) → `functions.ts:244-251`
+  (`return {` · `status: "accepted",` · `call_id: existing?.modalCallId ?? null,`)로 **POST 없이** 콜백을 기다린다. dev는 같은 step 재시도가
   다시 POST했다.
 
 **카드뉴스 CPU 앱이 배포·기동하지 못하는 것** (이 앱의 `/status`가 영상 삭제·복구에도 쓰이므로 기존 기능에도 걸린다)
@@ -106,7 +110,10 @@ agent: main-loop
 - **B4 — Gemini API 오류가 실패 콜백을 잃는다.** `card_news_app.py:187` `failure = getattr(error, "code", "cpu_job_failed")`.
   google-genai `APIError`는 `self.code`가 정수(HTTP 상태, venv `google/genai/errors.py:64`)라 콜백 `failureCode`가 숫자가 되고,
   웹 계약 `apps/web/src/fsd/entities/card-news/model/contract.ts:13-17` `const id = z` … `.regex(/^[A-Za-z0-9_-]+$/);`
-  (`:297` `failureCode: id.nullable()`)이 거부 → `:194-195` `except Exception: pass`가 삼킴 → 웹은 15분 마감까지 기다린다.
+  (`:297` `failureCode: id.nullable()`)이 거부 → `card_news_app.py:194-195`(`except Exception:` · `pass`)가 삼킴 → 웹은 15분 마감까지 기다린다.
+  **실물 재생**: 이미지 고정본 google-genai 1.49.0 wheel의 `errors.py`도 `code: int`·`self.code = code if code else self._get_code(response_json)`이고,
+  실제 `errors.ServerError(503, …)`의 `code`를 실은 콜백을 웹 `parseCardNewsCallback`에 넣으면 `invalid_type` · `expected string, received number`로
+  거부된다(같은 콜백에 `"cpu_job_failed"`는 수락, 2026-10-19 실측).
 
 **카드뉴스 쪽**
 
@@ -118,7 +125,7 @@ agent: main-loop
   `apps/web/src/fsd/features/card-news/api/runtime-dependencies.ts:49` `signal: AbortSignal.timeout(15_000),`. 10초에 Vercel이 step을
   죽이면 `call-generation-cpu` step이 재시도되며 다시 POST한다(가드는 앞 step인 `prepareCardNewsCpuSpawn`에만 있음,
   `apps/web/src/inngest/card-news-functions.ts:30-37`). 자체 abort면 `callCardNewsCpu`가 잡아 `{ modalCallId: null }`을 돌려주고
-  (`job-lifecycle.ts:455-476`) `recordCardNewsCpuSpawn`이 `unknown`으로 기록한다(`:478-`) — 그게 설계 의도다. `/status` 조회도 `:65`·`video-runtime-dependencies.ts:27`
+  (`job-lifecycle.ts:455-476`) `recordCardNewsCpuSpawn`이 `unknown`으로 기록한다(`:478-`) — 그게 설계 의도다. `/status` 조회도 `runtime-dependencies.ts:65`·`video-runtime-dependencies.ts:27`
   `signal: AbortSignal.timeout(10_000),`로 한도와 같다.
 
 **삭제 화면**
@@ -1229,7 +1236,13 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
 - V3 유예의 실효(웹훅이 정산한 영상에 제목·설명이 붙는지, analyze가 review_pending으로 가는지)
 - V4: Modal 거절 응답 뒤 step 재시도가 실제로 다시 POST하는지는 Inngest 실행 기록으로만 보인다(DB CLI는 `resetRejectedProcessingSpawn`
   경로를 부르지 않는다 — 함수 본문은 `markProcessingSpawnUnknown`과 같은 잠금·조건이고 목표 상태만 다르다)
-- 화면(C1·A2·B3'·문구): 러너에 DOM이 없다 — 계획 검증의 실물 렌더(카탈로그 경로 8)와 배포 뒤 화면 확인
+- 화면(C1·A2·B3'·문구): 러너에 DOM이 없다 — 계획 검증의 실물 렌더(카탈로그 경로 8)와 배포 뒤 화면 확인. 렌더 확인 방법(계획 검증·인수 공통):
+  `renderToStaticMarkup`. 저장소 `apps/web/tsconfig.json`이 `"jsx": "preserve"`라 `{ "extends": "./tsconfig.json", "compilerOptions": { "jsx": "react-jsx" } }`를
+  `TSX_TSCONFIG_PATH`로 준다(하니스 파일은 `apps/web` 바로 아래 점 없는 경로 — 점 디렉터리 안 파일은 그 tsconfig가 걸리지 않아 `React is not defined`).
+  `server-only`는 `node:module`의 `register`로 빈 모듈로 푸는 로더를 `--import`로 넣고, `SKIP_ENV_VALIDATION=1`·임의 `DATABASE_URL`. 잔액 배지는
+  `QueryClient` 캐시에 `creditBalanceKeys.user(id)` 쿼리를 data + `status: "error"`로 넣어 `QueryClientProvider` 안에서 렌더한다. 기대: 헤더
+  `showCardNews=false` → `href="/dashboard/card-news"` 0개, `true` → 1개(드롭다운 메뉴는 닫힌 상태라 SSR 마크업에 없다 — 그 분기는 tsc·코드로만),
+  잔액 배지 「갱신 실패 + 이전 data」 → 보정 전 코드 `Balance unavailable`, 보정 후 `3 available · 2 reserved`(owned 5·reserved 2)
 - 영상 삭제 정리 완결(CPU `/status` + legacy drain receipt 전제)
 
 ## 범위 밖 의존
