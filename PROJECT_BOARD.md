@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-10-19
+- [ ] FEAT-63: Instagram 카드뉴스 생성 — `feat/card-news`(`72bde11`)에 보존된 미검토 구현을 계획 검증·인수에 태워 dev에 합류시킨다. 공통 크레딧 예약으로 기존 영상 과금도 바뀐다
+  agent: main-loop
+  area: apps/backend/card_news + apps/backend/card_news_app.py + apps/web/src/fsd/features/card-news + apps/web/src/fsd/entities/card-news + apps/web/src/fsd/widgets/card-news-editor + apps/web/src/app/dashboard/card-news + apps/web/src/fsd/features/upload/api + apps/web/src/inngest + packages/db/prisma + .env.example
+  status: 계획지시
+  근거: 소유자 직접 발주(2026-10-19 게이트① 세션 지시 「진행해」). packages/db를 포함해 pm 선정 밖 — 쪼개지 않고 main-loop 하나. 이미 쓰인 브랜치 코드를 dev로 옮기는 통합 계획
+
 ## 2026-10-14
 - [x] BUG-18: 설정 `Video style` 카드의 저장 버튼이 둘(`Save framing`·`Save caption style`)이라, 여백과 자막 위치를 함께 편집해도 한쪽만 저장되고 나머지는 경고 없이 사라진다 — 저장을 하나로 합치고 미저장 변경을 표시한다
   agent: web-dev
