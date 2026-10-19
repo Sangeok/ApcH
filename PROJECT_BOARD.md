@@ -45,6 +45,7 @@
   area: apps/backend/card_news + apps/backend/card_news_app.py + apps/web/src/fsd/features/card-news + apps/web/src/fsd/entities/card-news + apps/web/src/fsd/widgets/card-news-editor + apps/web/src/app/dashboard/card-news + apps/web/src/fsd/features/upload/api + apps/web/src/inngest + packages/db/prisma + .env.example
   status: 검토대기
   근거: 소유자 직접 발주(2026-10-19 게이트① 세션 지시 「진행해」). packages/db를 포함해 pm 선정 밖 — 쪼개지 않고 main-loop 하나. 이미 쓰인 브랜치 코드를 dev로 옮기는 통합 계획
+  검증: 클린 패스 (2026-10-19, 독립 무편집 1라운드 — 메인 루프 라운드 구현 영향 3·위생 4 반영, 독립 1~3회차 위생 4·재현 방법 보완 뒤 4회차 결함 0, 필수 9경로 전수)
 
 ## 2026-10-14
 - [x] BUG-18: 설정 `Video style` 카드의 저장 버튼이 둘(`Save framing`·`Save caption style`)이라, 여백과 자막 위치를 함께 편집해도 한쪽만 저장되고 나머지는 경고 없이 사라진다 — 저장을 하나로 합치고 미저장 변경을 표시한다

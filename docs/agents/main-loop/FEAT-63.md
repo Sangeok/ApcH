@@ -170,3 +170,24 @@ junction 449개, `@repo/db`만 worktree 자기 `packages/db`로). 결과는 계�
 시험 트리 두 벌의 변경 파일 제어 바이트(0)를 확인했다. **앞으로 백슬래시가 든 텍스트는 heredoc 파이썬이 아니라 Write/Edit 도구로 넣는다.**
 
 세 패스 모두 구현 영향 0. 기존 코드 블록 54개 본문 불변(새 블록 1개 추가). 인용 53/53 · 짧은 인용 9/9.
+
+## 독립 패스 4 — `plan-verifier` (2026-10-19, 결함 0 · 미실행 0) → 클린 패스
+
+브리핑 계약 준수. 필수 9경로 전부 실행, 결함 0, 「실행하지 못한 경로: 없음」. 요지:
+- 경로 1: 「현재 동작」·결함 절·보정 before 블록 전 인용 바이트 일치. 경로 3: 이미지 블록·헤더 3블록·잔액 블록을 사본에 기계 적용(손 개입 0).
+- 경로 2: 신규 TS 둘을 `apps/web/tsconfig.json` 그대로 `tsc --noEmit` EXIT 0, B2 식 eval(`/root` 무예외), backend 미보정 트리 161/1(=B3).
+- 경로 5: `callback_failure_code` 4 · `isStoredClipObject` 3 · `recovery-settle-policy` 5 변이 전부 사멸, 각 케이스가 계획이 지목한 변이를 죽임.
+- 경로 6: 계획서의 캡처 스크립트를 boto3 1.43.62로 실행 → PUT에 `Content-Type` 없음. google-genai 1.49.0 wheel `errors.py:31`·`:52`·`:178`. 웹 계약이
+  `failureCode: 503` 거부·`"cpu_job_failed"` 수락.
+- 경로 7: OFL CRLF/LF 해시 대조, `test_image_env_precedes_local_mounts` 미보정 FAIL·보정 PASS. 경로 8: 사본 트리에서 잔액 배지 보정 전
+  `Balance unavailable` → 보정 후 `3 available · 2 reserved`, 헤더 0/1. 경로 9: CHECK·zod `id`·query key·manifest·Prisma `AssetCleanupJobWhereInput`.
+- 검증자의 시험 병합 재현에서 web 348 중 1 실패 — 검증자가 직접 추적: node_modules를 통째로 junction해 `@repo/db`가 메인 dev 트리로 풀린 하니스 아티팩트
+  (`event-catalog.test.mjs`의 `card_news_requested`는 병합 트리 `packages/db/src/analytics-contract.ts:33`에만 있음). 계획서가 경고한 FEAT-62 함정과 같다.
+  메인 루프 라운드(항목별 junction + `@repo/db` 재연결)는 348/0. → 계획 결함 아님.
+- 돌리지 않은 것으로 밝힌 둘(실 DB CLI 보정 후 재실행, admin 게이트)은 카탈로그 경로가 아니라 구현 단계 명령 — 메인 루프 라운드 1·2에서 실행됨(3종 EXIT 0, admin 337/0).
+
+트리 검산(직접): `git status --porcelain` 0줄, HEAD `218bb44` 불변.
+
+**판정: 클린 패스** — 독립 무편집 1라운드(4회차). 사이클 계수: 독립 1·3회차는 위생만, 2회차는 결함 0이나 미실행(재현 방법 부재)으로 판정 불가.
+구현 영향 결함을 낸 독립 사이클 0 → 정지 규칙 무관. 「위생만 2사이클 연속」 신호(1·3회차, 2회차가 사이에 끼어 엄밀히는 비연속)의 교훈: 이 항목의 소득은
+경로 선정이 아니라 **재현 방법이 계획서에 없던 것**에서 나왔다 — 외부 신호 재생·복합 렌더가 필요한 항목은 계획서에 재현 명령을 처음부터 싣는다.
