@@ -3,16 +3,31 @@ import "server-only";
 import { db } from "@repo/db";
 import type { Prisma, RecordAnalyticsEventInput } from "@repo/db";
 
-export async function recordAnalyticsEvent(input: RecordAnalyticsEventInput) {
-  await db.analyticsEvent.create({
+export async function recordAnalyticsEvent(
+  input: RecordAnalyticsEventInput,
+  options?: { tx?: Prisma.TransactionClient; id?: string },
+): Promise<void> {
+  const client = options?.tx ?? db;
+  const data = {
+    ...(options?.id ? { id: options.id } : {}),
+    name: input.name,
+    anonymousId: input.anonymousId,
+    sessionId: input.sessionId,
+    path: input.path,
+    referrer: input.referrer ?? null,
+    metadata: input.metadata as Prisma.InputJsonValue | undefined,
+    userId: input.userId ?? null,
+  };
+  if (options?.id) {
+    await client.analyticsEvent.createMany({
+      data: [data],
+      skipDuplicates: true,
+    });
+    return;
+  }
+  await client.analyticsEvent.create({
     data: {
-      name: input.name,
-      anonymousId: input.anonymousId,
-      sessionId: input.sessionId,
-      path: input.path,
-      referrer: input.referrer ?? null,
-      metadata: input.metadata as Prisma.InputJsonValue | undefined,
-      userId: input.userId ?? null,
+      ...data,
     },
   });
 }

@@ -22,14 +22,6 @@ export const env = createEnv({
     S3_BUCKET_NAME: z.string(),
     PROCESS_VIDEO_ENDPOINT: z.string(),
     PROCESS_VIDEO_ENDPOINT_AUTH: z.string(),
-    VIDEO_GENERATION_ADMISSION_ENABLED: z
-      .string()
-      .transform((value) => value === "true")
-      .default("true"),
-    VIDEO_WORKER_START_ENABLED: z
-      .string()
-      .transform((value) => value === "true")
-      .default("true"),
     AUTH_GOOGLE_ID: z.string(),
     AUTH_GOOGLE_SECRET: z.string(),
     POLAR_ACCESS_TOKEN: z.string(),
@@ -45,6 +37,26 @@ export const env = createEnv({
     CLOUDFRONT_PRIVATE_KEY: z.string().optional(),
     // Modal webhook callback 인증용 시크릿
     MODAL_WEBHOOK_SECRET: z.string(),
+    CARD_NEWS_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+    CARD_NEWS_ALLOWED_USER_IDS: z.string().default(""),
+    CARD_NEWS_ENDPOINT: z
+      .string()
+      .url()
+      .refine((value) => value.startsWith("https://"), "HTTPS required")
+      .optional(),
+    CARD_NEWS_ENDPOINT_AUTH: z.string().min(1).optional(),
+    CARD_NEWS_WEBHOOK_SECRET: z.string().min(1).optional(),
+    VIDEO_GENERATION_ADMISSION_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+    VIDEO_WORKER_START_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     // NextAuth Production URL
     AUTH_URL: z.string().url().optional(),
     // Sentry (Vercel Production 스코프에만 주입. 없으면 Sentry.init이 no-op)
@@ -82,9 +94,6 @@ export const env = createEnv({
     S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
     PROCESS_VIDEO_ENDPOINT: process.env.PROCESS_VIDEO_ENDPOINT,
     PROCESS_VIDEO_ENDPOINT_AUTH: process.env.PROCESS_VIDEO_ENDPOINT_AUTH,
-    VIDEO_GENERATION_ADMISSION_ENABLED:
-      process.env.VIDEO_GENERATION_ADMISSION_ENABLED,
-    VIDEO_WORKER_START_ENABLED: process.env.VIDEO_WORKER_START_ENABLED,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
@@ -97,6 +106,14 @@ export const env = createEnv({
     CLOUDFRONT_KEY_PAIR_ID: process.env.CLOUDFRONT_KEY_PAIR_ID,
     CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,
     MODAL_WEBHOOK_SECRET: process.env.MODAL_WEBHOOK_SECRET,
+    CARD_NEWS_ENABLED: process.env.CARD_NEWS_ENABLED,
+    CARD_NEWS_ALLOWED_USER_IDS: process.env.CARD_NEWS_ALLOWED_USER_IDS,
+    CARD_NEWS_ENDPOINT: process.env.CARD_NEWS_ENDPOINT,
+    CARD_NEWS_ENDPOINT_AUTH: process.env.CARD_NEWS_ENDPOINT_AUTH,
+    CARD_NEWS_WEBHOOK_SECRET: process.env.CARD_NEWS_WEBHOOK_SECRET,
+    VIDEO_GENERATION_ADMISSION_ENABLED:
+      process.env.VIDEO_GENERATION_ADMISSION_ENABLED,
+    VIDEO_WORKER_START_ENABLED: process.env.VIDEO_WORKER_START_ENABLED,
     AUTH_URL: process.env.AUTH_URL,
     SENTRY_DSN: process.env.SENTRY_DSN,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,

@@ -16,7 +16,7 @@ export default function TermsPage() {
             Terms of Service
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Effective date: April 3, 2026
+            Effective date: October 11, 2026
           </p>
         </div>
 
@@ -28,8 +28,8 @@ export default function TermsPage() {
             AI Podcast Clipper (the &quot;Service&quot;) is a cloud-based SaaS
             product that analyzes podcast videos uploaded by users and
             automatically generates short-form clips, typically between 30 and
-            90 seconds. The Service may use AI and media-processing
-            technologies including:
+            90 seconds. The Service may use AI and media-processing technologies
+            including:
           </p>
           <ul className="text-muted-foreground list-disc space-y-1 pl-6">
             <li>
@@ -46,6 +46,13 @@ export default function TermsPage() {
             Depending on your selected plan and settings, the Service may
             generate multiple clips per upload and may provide captions, script
             text, titles, descriptions, hashtags, and other metadata.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            When enabled for your account, a completed clip can also be used to
+            generate a standalone Instagram card-news set with text cards, an
+            original-video cover, JPG images, ZIP, caption and hashtags. You
+            review the output and publish it yourself; account connection or
+            automatic Instagram publishing is not provided.
           </p>
         </section>
 
@@ -73,8 +80,20 @@ export default function TermsPage() {
           <ul className="text-muted-foreground list-disc space-y-1 pl-6">
             <li>New accounts may receive free credits at signup.</li>
             <li>
-              Credits are deducted only for clips that are successfully
-              generated.
+              Accepted generation jobs reserve credits. The available balance is
+              the owned balance minus active reservations. Video generation
+              settles one credit per successfully stored clip, including partial
+              results; a run producing zero clips costs zero credits.
+            </li>
+            <li>
+              Card-news generation costs one credit per set, settled only when
+              the entire image set, ZIP and copy are ready. A final failure
+              releases the reservation. Technical retries do not add a charge.
+            </li>
+            <li>
+              Manual card-news edits, their rerender and downloads are free.
+              Every user-requested AI regeneration creates a separate one-credit
+              set and preserves previous sets.
             </li>
             <li>Subscriptions may replenish credits on a recurring basis.</li>
             <li>
@@ -98,8 +117,8 @@ export default function TermsPage() {
               content solely to provide and operate the Service.
             </li>
             <li>
-              Generated clips, transcripts, captions, and metadata are provided
-              to you as output from the Service.
+              Generated clips, card-news images and copy, transcripts, captions,
+              and metadata are provided to you as output from the Service.
             </li>
             <li>
               We do not claim ownership of your uploaded content or generated
@@ -148,8 +167,9 @@ export default function TermsPage() {
           </h2>
           <ul className="text-muted-foreground list-disc space-y-1 pl-6">
             <li>
-              Clip selection, transcription, captions, metadata generation, and
-              cropping may be performed automatically by AI systems.
+              Clip selection, card-news writing, transcription, captions,
+              metadata generation, and cropping may be performed automatically
+              by AI systems.
             </li>
             <li>
               We do not guarantee the accuracy, completeness, or suitability of
@@ -173,8 +193,8 @@ export default function TermsPage() {
           </h2>
           <ul className="text-muted-foreground list-disc space-y-1 pl-6">
             <li>
-              The Service is provided on an &quot;as is&quot; and
-              &quot;as available&quot; basis.
+              The Service is provided on an &quot;as is&quot; and &quot;as
+              available&quot; basis.
             </li>
             <li>
               The Service depends on third-party infrastructure and APIs,
@@ -189,8 +209,10 @@ export default function TermsPage() {
               or other usage to protect the Service.
             </li>
             <li>
-              Failed processing attempts may result in no credit deduction if no
-              clip is successfully generated.
+              Failed video processing with stored partial results still settles
+              those clips. A failed card-news generation does not charge for an
+              incomplete set; a failed free edit render preserves earlier
+              completed versions.
             </li>
           </ul>
         </section>
@@ -226,9 +248,9 @@ export default function TermsPage() {
               purpose.
             </li>
             <li>
-              We are not responsible for legal claims, copyright claims, platform
-              moderation actions, or monetization decisions arising from your
-              uploaded content or generated outputs.
+              We are not responsible for legal claims, copyright claims,
+              platform moderation actions, or monetization decisions arising
+              from your uploaded content or generated outputs.
             </li>
             <li>
               To the maximum extent permitted by law, our total liability is
@@ -244,6 +266,19 @@ export default function TermsPage() {
           </h2>
           <ul className="text-muted-foreground list-disc space-y-1 pl-6">
             <li>You may request account deletion at any time.</li>
+            <li>
+              Deleting an uploaded video includes its clips and all derived
+              card-news sets. Deleting a clip includes that clip&apos;s sets,
+              including AI regenerations, while preserving sibling clips.
+              Deleting only one card-news set preserves its source clip and
+              separate regenerated sets.
+            </li>
+            <li>
+              Active processing prevents deletion. After deletion is accepted,
+              new access is blocked while recoverable file cleanup completes.
+              Previously issued signed links may remain usable until expiry.
+              Monetary settlement records remain available for reconciliation.
+            </li>
             <li>
               We may suspend or terminate access if you violate these Terms,
               misuse the Service, or create legal or operational risk.

@@ -1,7 +1,6 @@
 import { env } from "~/env";
-import { updateClipMetadataFromBackendClips } from "~/fsd/entities/clip/server";
+import { reconcilePublishedVideoMetadata } from "~/fsd/features/upload/server";
 import { getProcessingMatchKey } from "~/fsd/entities/uploaded-file";
-import { isUploadedFileAttemptCurrent } from "~/fsd/entities/uploaded-file/server";
 import { inngest } from "~/inngest/client";
 // clip/moment의 형태와 정규화는 ~/inngest/modal-contract 한 곳이 소유한다.
 // 이 파일에는 HTTP 봉투(RawModalWebhookBody)만 남긴다.
@@ -85,7 +84,8 @@ function normalizeBody(
           .map(normalizeAnalyzedMoment)
           .filter((moment): moment is AnalyzedMoment => moment !== null)
       : undefined,
-    transcriptS3Key: rawBody.transcript_s3_key ?? rawBody.transcriptS3Key ?? null,
+    transcriptS3Key:
+      rawBody.transcript_s3_key ?? rawBody.transcriptS3Key ?? null,
     error: toWebhookErrorMessage(rawBody.error),
   };
 }
@@ -140,22 +140,12 @@ export async function POST(req: Request) {
     },
   });
 
-  const isCurrentAttempt = await isUploadedFileAttemptCurrent(
-    body.uploadedFileId,
-    body.attempt,
-  );
-
-  if (isCurrentAttempt && body.clips && body.clips.length > 0) {
-    try {
-      await updateClipMetadataFromBackendClips({
-        uploadedFileId: body.uploadedFileId,
-        processingAttempt: body.attempt,
-        clips: body.clips,
-      });
-    } catch (error) {
-      console.error("Failed to reconcile modal clip metadata", error);
-    }
-  }
+  if (body.clips?.length)
+    await reconcilePublishedVideoMetadata(
+      body.uploadedFileId,
+      body.attempt,
+      body.clips,
+    );
 
   return new Response("OK", { status: 200 });
 }

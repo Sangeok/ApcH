@@ -36,5 +36,7 @@ export {
   markUploadedFileAttemptReviewPending,
   reconcileUploadDraftsForUser,
   startUploadedFileProcessingAttempt,
+  lockUploadedFileForProcessing,
 } from "./api";
 export type { StaleProcessingCandidate } from "./api";
+export { markUploadedFileDeleting } from "./api";

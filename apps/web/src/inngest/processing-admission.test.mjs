@@ -22,24 +22,25 @@ function load(relativePath, imports) {
 }
 
 for (const name of ["processVideo", "analyzeVideo"]) {
-  test(`${name}: a closed gate prevents a new claim, while a cached claim can finish`, async () => {
+  test(`${name}: the shared claim controls starts and a cached claim can finish`, async () => {
     let enabled = false;
     let starts = 0;
     const started = new Error("reached the existing claim");
     const resumed = new Error("resumed after the cached claim");
     const functions = load("./functions.ts", {
       "./client": { inngest: { createFunction: (...args) => args.at(-1) } },
-      "~/fsd/shared/config/processing-admission": {
-        isVideoWorkerStartEnabled: () => enabled,
-      },
-      "~/fsd/entities/uploaded-file/server": {
-        findCurrentProcessingAttemptContext: async () => ({
+      "~/fsd/features/upload/server": {
+        loadVideoProcessingContext: async () => ({
           status: "queued",
+          mode: name === "processVideo" ? "auto" : "analyze",
+          clipCount: 1,
           s3Key: "source.mp4",
           userId: "user",
-          user: { credits: 10 },
+          user: { credits: 0 },
         }),
-        startUploadedFileProcessingAttempt: async () => {
+        claimProcessingAttempt: async (args) => {
+          assert.equal(args.workerRunId, "run");
+          if (!enabled) return { status: "not_claimable" };
           starts++;
           throw started;
         },
@@ -50,14 +51,12 @@ for (const name of ["processVideo", "analyzeVideo"]) {
       data: { uploadedFileId: "upload", attempt: 1, clipCount: 1 },
     };
     const step = { run: async (_id, fn) => fn() };
-    await assert.rejects(
-      functions[name]({ event, step }),
-      /worker starts are temporarily paused/,
-    );
+    const closed = await functions[name]({ event, step, runId: "run" });
+    assert.equal(closed.skipped, true);
     assert.equal(starts, 0);
     enabled = true;
     await assert.rejects(
-      functions[name]({ event, step }),
+      functions[name]({ event, step, runId: "run" }),
       (error) => error === started,
     );
     assert.equal(starts, 1);

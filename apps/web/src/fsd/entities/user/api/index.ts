@@ -4,6 +4,7 @@ import "server-only";
 import { Prisma } from "@repo/db";
 import { db } from "~/server/db";
 import type { CaptionStyleDefaults } from "~/fsd/shared/config/constants";
+import { toCreditBalance, type CreditBalance } from "../model/credit-balance";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 
@@ -12,14 +13,20 @@ function getClient(tx?: Prisma.TransactionClient): DbClient {
 }
 
 export async function getDashboardHeaderUser(userId: string) {
-  return db.user.findUniqueOrThrow({
+  const user = await db.user.findUniqueOrThrow({
     where: { id: userId },
     select: {
       email: true,
       credits: true,
+      reservedCredits: true,
       image: true,
     },
   });
+  return {
+    email: user.email,
+    image: user.image,
+    creditBalance: toCreditBalance(user.credits, user.reservedCredits),
+  };
 }
 
 export async function getHomeUserProfile(userId: string) {
@@ -71,10 +78,11 @@ export async function findUserIdByEmail(email: string) {
 }
 
 export async function getBillingUserSnapshot(userId: string) {
-  return db.user.findUnique({
+  const user = await db.user.findUnique({
     where: { id: userId },
     select: {
       credits: true,
+      reservedCredits: true,
       subscription: true,
       orders: {
         orderBy: { createdAt: "desc" },
@@ -82,6 +90,89 @@ export async function getBillingUserSnapshot(userId: string) {
       },
     },
   });
+  if (!user) return null;
+  return {
+    subscription: user.subscription,
+    orders: user.orders,
+    creditBalance: toCreditBalance(user.credits, user.reservedCredits),
+  };
+}
+
+export async function getUserCreditBalance(
+  userId: string,
+  options?: { tx?: Prisma.TransactionClient },
+): Promise<CreditBalance> {
+  const user = await getClient(options?.tx).user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { credits: true, reservedCredits: true },
+  });
+  return toCreditBalance(user.credits, user.reservedCredits);
+}
+
+export async function lockUserForCredits(
+  userId: string,
+  tx: Prisma.TransactionClient,
+): Promise<{ id: string; credits: number; reservedCredits: number } | null> {
+  const rows = await tx.$queryRaw<
+    Array<{ id: string; credits: number; reservedCredits: number }>
+  >`
+    SELECT "id", "credits", "reservedCredits" FROM "User" WHERE "id" = ${userId} FOR UPDATE
+  `;
+  return rows[0] ?? null;
+}
+
+function validateCreditAmount(amount: number): void {
+  if (!Number.isSafeInteger(amount) || amount < 0)
+    throw new Error("Invalid credit amount");
+}
+
+export async function reserveUserCredits(
+  userId: string,
+  amount: number,
+  tx: Prisma.TransactionClient,
+): Promise<boolean> {
+  validateCreditAmount(amount);
+  if (amount === 0)
+    throw new Error("A reservation must hold a positive amount");
+  const count = await tx.$executeRaw`
+    UPDATE "User" SET "reservedCredits" = "reservedCredits" + ${amount}
+    WHERE "id" = ${userId} AND "credits" - "reservedCredits" >= ${amount}
+  `;
+  return count === 1;
+}
+
+export async function settleUserCredits(
+  userId: string,
+  reservedAmount: number,
+  chargedAmount: number,
+  tx: Prisma.TransactionClient,
+): Promise<boolean> {
+  validateCreditAmount(reservedAmount);
+  validateCreditAmount(chargedAmount);
+  if (reservedAmount === 0 || chargedAmount > reservedAmount)
+    throw new Error("Invalid reservation settlement");
+  const count = await tx.$executeRaw`
+    UPDATE "User" SET "credits" = "credits" - ${chargedAmount},
+      "reservedCredits" = "reservedCredits" - ${reservedAmount}
+    WHERE "id" = ${userId} AND "reservedCredits" >= ${reservedAmount}
+      AND "credits" >= ${chargedAmount}
+  `;
+  return count === 1;
+}
+
+export async function releaseUserReservedCredits(
+  userId: string,
+  amount: number,
+  tx: Prisma.TransactionClient,
+): Promise<boolean> {
+  validateCreditAmount(amount);
+  if (amount === 0)
+    throw new Error("A reservation must release a positive amount");
+  const count = await tx.$executeRaw`
+    UPDATE "User" SET "reservedCredits" = "reservedCredits" - ${amount}
+    WHERE "id" = ${userId} AND "reservedCredits" >= ${amount}
+  `;
+  return count === 1;
 }
 
 export async function updateUserPolarCustomerId(

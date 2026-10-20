@@ -2,7 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { Loader2, RotateCcw, Trash2 } from "lucide-react";
-import { useDeleteUploadedFile, useResumeUploadDraft } from "~/fsd/features/upload";
+import {
+  useDeleteUploadedFile,
+  useResumeUploadDraft,
+} from "~/fsd/features/upload";
 import type { RecoverableUploadDraftSummary } from "~/fsd/entities/uploaded-file";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
@@ -16,17 +19,19 @@ import { formatDateTime } from "~/fsd/shared/lib/format-date";
 import { toast } from "sonner";
 
 interface RecoverableUploadDraftsProps {
+  userId: string;
   drafts: RecoverableUploadDraftSummary[];
 }
 
 export default function RecoverableUploadDrafts({
+  userId,
   drafts,
 }: RecoverableUploadDraftsProps) {
   const router = useRouter();
   // 무효화 정책은 features/upload가 소유한다. router.refresh()는 RSC가 그리는
   // 헤더 크레딧 배지까지 갱신해야 해서 여기 남는다(규약 §8 예외).
   const resumeMutation = useResumeUploadDraft();
-  const deleteMutation = useDeleteUploadedFile({
+  const deleteMutation = useDeleteUploadedFile(userId, {
     onDeleted: () => router.refresh(),
   });
   const isPending = resumeMutation.isPending || deleteMutation.isPending;
@@ -63,7 +68,8 @@ export default function RecoverableUploadDrafts({
       <CardHeader>
         <CardTitle>Recoverable Uploads</CardTitle>
         <CardDescription>
-          Confirmed source uploads that have not entered the processing queue yet.
+          Confirmed source uploads that have not entered the processing queue
+          yet.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

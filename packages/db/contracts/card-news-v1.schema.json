@@ -1,0 +1,927 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apch.example/contracts/card-news-v1.schema.json",
+  "title": "Card news v1",
+  "description": "Wire structure. Application validators additionally check finite numbers, source hash and evidence, role/order and identity uniqueness, output prefix binding, callback outcome consistency, and render snapshot immutability.",
+  "$defs": {
+    "source": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "clipId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "processingAttempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "uploadedFileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "s3Key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+[^/]$"
+        },
+        "clipS3Key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+[^/]$"
+        },
+        "startSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 31536000
+        },
+        "endSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 31536000
+        },
+        "scriptText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100000
+        },
+        "hook": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payoff": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "English",
+            "Korean"
+          ]
+        },
+        "subtitleStatus": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceSentenceCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "clipId",
+        "processingAttempt",
+        "uploadedFileId",
+        "s3Key",
+        "clipS3Key",
+        "startSeconds",
+        "endSeconds",
+        "scriptText",
+        "hook",
+        "payoff",
+        "language",
+        "subtitleStatus",
+        "sourceSentenceCount"
+      ],
+      "additionalProperties": false
+    },
+    "draft": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "English",
+            "Korean"
+          ]
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "cover",
+                  "body",
+                  "summary"
+                ]
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "body": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 500
+              },
+              "highlight": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 80
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sourceSentenceIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 0,
+                "maxItems": 10000
+              },
+              "provenance": {
+                "type": "string",
+                "enum": [
+                  "ai",
+                  "user-edited"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "role",
+              "title",
+              "body",
+              "highlight",
+              "sourceSentenceIds",
+              "provenance"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 3,
+          "maxItems": 7
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "light",
+            "dark"
+          ]
+        },
+        "accentColor": {
+          "type": "string",
+          "enum": [
+            "#2563EB",
+            "#7C3AED",
+            "#059669",
+            "#EA580C"
+          ]
+        },
+        "coverCandidateId": {
+          "type": "string",
+          "enum": [
+            "cover-25",
+            "cover-50",
+            "cover-75"
+          ]
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2200
+        },
+        "hashtags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "pattern": "^#[^\\s#]+$"
+          },
+          "minItems": 0,
+          "maxItems": 30
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "language",
+        "cards",
+        "theme",
+        "accentColor",
+        "coverCandidateId",
+        "caption",
+        "hashtags"
+      ],
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "generate",
+            "render"
+          ]
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "setId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "executionEpoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sourceHash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "draft": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/draft"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coverCandidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": [
+                  "cover-25",
+                  "cover-50",
+                  "cover-75"
+                ]
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024,
+                "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+[^/]$"
+              },
+              "sha256": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "contentType": {
+                "const": "image/jpeg",
+                "type": "string"
+              },
+              "sizeBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "width": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "height": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "sha256",
+              "contentType",
+              "sizeBytes",
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 3
+        },
+        "initialTheme": {
+          "type": "string",
+          "enum": [
+            "light",
+            "dark"
+          ]
+        },
+        "cardCount": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 7
+        },
+        "outputPrefix": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^card-news/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/e[1-9][0-9]*/$"
+        },
+        "callbackUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^https://"
+        },
+        "writeDeadlineAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "templateVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "fontVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "promptVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "modelVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "mode",
+        "jobId",
+        "setId",
+        "userId",
+        "executionEpoch",
+        "revision",
+        "sourceHash",
+        "source",
+        "draft",
+        "coverCandidates",
+        "initialTheme",
+        "cardCount",
+        "outputPrefix",
+        "callbackUrl",
+        "writeDeadlineAt",
+        "templateVersion",
+        "fontVersion",
+        "promptVersion",
+        "modelVersion"
+      ],
+      "additionalProperties": false
+    },
+    "callback": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "executionEpoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "invocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "started",
+            "progress",
+            "completed",
+            "failed"
+          ]
+        },
+        "modalCallId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "generating-text",
+            "extracting-cover",
+            "rendering",
+            "packaging",
+            "completed",
+            "failed"
+          ]
+        },
+        "manifestKey": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+[^/]$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failureCode": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "jobId",
+        "executionEpoch",
+        "revision",
+        "invocationId",
+        "outcome",
+        "modalCallId",
+        "sequence",
+        "stage",
+        "manifestKey",
+        "failureCode"
+      ],
+      "additionalProperties": false
+    },
+    "manifest": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "executionEpoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "invocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sourceHash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "templateVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "fontVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "promptVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "modelVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "draftDocument": {
+          "$ref": "#/$defs/draft"
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024,
+                "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+[^/]$"
+              },
+              "sha256": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "contentType": {
+                "const": "image/jpeg",
+                "type": "string"
+              },
+              "sizeBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "width": {
+                "type": "integer",
+                "const": 1080
+              },
+              "height": {
+                "type": "integer",
+                "const": 1350
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "sha256",
+              "contentType",
+              "sizeBytes",
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 3,
+          "maxItems": 7
+        },
+        "coverCandidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": [
+                  "cover-25",
+                  "cover-50",
+                  "cover-75"
+                ]
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024,
+                "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+[^/]$"
+              },
+              "sha256": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "contentType": {
+                "const": "image/jpeg",
+                "type": "string"
+              },
+              "sizeBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "width": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "height": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "sha256",
+              "contentType",
+              "sizeBytes",
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "zip": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+[^/]$"
+            },
+            "sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "contentType": {
+              "type": "string",
+              "const": "application/zip"
+            },
+            "sizeBytes": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "key",
+            "sha256",
+            "contentType",
+            "sizeBytes"
+          ],
+          "additionalProperties": false
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2200
+        },
+        "hashtags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "pattern": "^#[^\\s#]+$"
+          },
+          "minItems": 0,
+          "maxItems": 30
+        },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "imagesDecoded": {
+              "type": "boolean",
+              "const": true
+            },
+            "zipVerified": {
+              "type": "boolean",
+              "const": true
+            },
+            "textFits": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "imagesDecoded",
+            "zipVerified",
+            "textFits"
+          ],
+          "additionalProperties": false
+        },
+        "usageMetrics": {
+          "type": "object",
+          "properties": {
+            "modelInputTokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "modelOutputTokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cpuMilliseconds": {
+              "type": "number",
+              "minimum": 0
+            },
+            "storageBytes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "modelInputTokens",
+            "modelOutputTokens",
+            "cpuMilliseconds",
+            "storageBytes"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "jobId",
+        "executionEpoch",
+        "revision",
+        "invocationId",
+        "sourceHash",
+        "templateVersion",
+        "fontVersion",
+        "promptVersion",
+        "modelVersion",
+        "draftDocument",
+        "cards",
+        "coverCandidates",
+        "zip",
+        "caption",
+        "hashtags",
+        "validation",
+        "usageMetrics"
+      ],
+      "additionalProperties": false
+    },
+    "producerStatusRequest": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "card-news",
+            "video"
+          ]
+        },
+        "referenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "modalCallId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "referenceId",
+        "modalCallId"
+      ],
+      "additionalProperties": false
+    },
+    "producerStatusResponse": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "ended",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "status"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/source"
+    },
+    {
+      "$ref": "#/$defs/draft"
+    },
+    {
+      "$ref": "#/$defs/input"
+    },
+    {
+      "$ref": "#/$defs/callback"
+    },
+    {
+      "$ref": "#/$defs/manifest"
+    },
+    {
+      "$ref": "#/$defs/producerStatusRequest"
+    },
+    {
+      "$ref": "#/$defs/producerStatusResponse"
+    }
+  ]
+}

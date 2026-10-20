@@ -39,6 +39,13 @@ export const productTourSteps: TourStep[] = [
       "Open the dashboard, watch each clip, download what you want to keep, and delete the rest. No re-uploads.",
     icon: CheckCircle2,
   },
+  {
+    index: 5,
+    title: "Expand a clip into card news",
+    description:
+      "When enabled for your account, one completed clip becomes one independent card-news set for one credit. Edit wording, body-card order, theme, cover and Instagram copy for free, then download JPGs and ZIP. Each requested AI regeneration creates a separate one-credit set.",
+    icon: Sparkles,
+  },
 ];
 
 export const productTourOutcomes: TourOutcome[] = [
@@ -71,7 +78,7 @@ export const productTourFaq: FaqItem[] = [
   {
     question: "What does the free trial include?",
     answer:
-      "New accounts start with 3 free credits. Credits are deducted after a successful processing run, one credit per generated clip in that completed run, so a completed 3-clip result uses the full trial balance.",
+      "New accounts start with 3 free credits. Accepted jobs reserve the available balance. Video settles one credit per stored clip, including partial results. Card news, when enabled, settles a separate one credit only when its complete set is ready. Manual edits and downloads are free; requested AI regeneration costs another credit.",
   },
   {
     question: "How long does processing take?",

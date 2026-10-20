@@ -1,7 +1,5 @@
 import type { FaqItem } from "~/fsd/shared/lib/seo";
-import type {
-  ProcessStep,
-} from "~/fsd/shared/ui/atoms/resource-card-grid";
+import type { ProcessStep } from "~/fsd/shared/ui/atoms/resource-card-grid";
 
 export const howItWorksSteps: ProcessStep[] = [
   {
@@ -34,13 +32,28 @@ export const howItWorksSteps: ProcessStep[] = [
     description:
       "Generated clips appear in the dashboard so the creator can play, download, keep, delete, or rerun the result.",
   },
+  {
+    title: "Create card news from a completed clip",
+    description:
+      "When card news is enabled for your account, select one completed clip to generate a standalone carousel for one credit. The saved script guides the text, and a scene from the original video becomes the cover. Edit words, body-card order, theme and cover for free, then download JPG/ZIP and copy the Instagram caption and hashtags.",
+  },
 ];
 
 export const howItWorksFaq: FaqItem[] = [
   {
     question: "Does AI Podcast Clipper publish clips automatically?",
     answer:
-      "No. The app generates clips for review and download. Creators decide what to publish and where to publish it.",
+      "No. The app provides video clips and, when enabled, card-news images, ZIP and caption/hashtags for review and download. Creators decide what to publish and upload it themselves.",
+  },
+  {
+    question: "What happens when card-news generation fails?",
+    answer:
+      "The one-credit reservation is released if the full card-news result cannot be completed. Technical retries are free. A requested AI regeneration creates a separate paid set, while manual edits and their rerender are free. Previously completed versions remain usable during a new render or a failed regeneration.",
+  },
+  {
+    question: "What happens when I delete a source or card-news set?",
+    answer:
+      "Deleting an uploaded video also removes its clips and all derived card-news sets. Deleting one clip removes only that clip and its derived sets, including AI regenerations. Deleting one card-news set preserves the clip and separate regenerated sets. Active work must finish before deletion; accepted deletion blocks new access while file cleanup completes.",
   },
   {
     question: "What kind of source material works best?",

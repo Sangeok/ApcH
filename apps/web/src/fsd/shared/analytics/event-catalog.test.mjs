@@ -14,6 +14,19 @@ test("shim이 이벤트 이름을 그대로 내보낸다", () => {
   assert.ok(ANALYTICS_EVENT_NAMES.includes("landing_view"));
   // 숫자를 품은 이름이라 [a-z_]+ 류의 순진한 카운트가 조용히 놓친다.
   assert.ok(ANALYTICS_EVENT_NAMES.includes("upload_s3_completed"));
+  for (const name of [
+    "card_news_requested",
+    "card_news_completed",
+    "card_news_failed",
+    "card_news_edited",
+    "card_news_regenerated",
+    "card_news_downloaded",
+  ]) {
+    assert.ok(
+      ANALYTICS_EVENT_NAMES.includes(name),
+      `Missing canonical card-news milestone: ${name}`,
+    );
+  }
 });
 
 test("shim이 web 전용 metadata 재수출을 유지한다", () => {

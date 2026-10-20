@@ -16,7 +16,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Effective date: June 16, 2026
+            Effective date: October 11, 2026
           </p>
         </div>
 
@@ -116,14 +116,27 @@ export default function PrivacyPage() {
                   </tr>
                   <tr className="border-border border-b">
                     <td className="py-2 pr-4">Credit balance</td>
-                    <td className="py-2">Used to manage service usage</td>
+                    <td className="py-2">
+                      Owned and reserved credits, and settlement history used to
+                      manage service usage
+                    </td>
+                  </tr>
+                  <tr className="border-border border-b">
+                    <td className="py-2 pr-4">
+                      Card-news content and processing records
+                    </td>
+                    <td className="py-2">
+                      Source-script snapshots, edited drafts, original-video
+                      cover candidates, rendered JPG/ZIP, caption/hashtags and
+                      versioned job records
+                    </td>
                   </tr>
                   <tr className="border-border border-b">
                     <td className="py-2 pr-4">Product analytics events</td>
                     <td className="py-2">
                       Pseudonymous page and product milestone events used to
-                      understand onboarding, upload, processing, and billing
-                      drop-off.
+                      understand onboarding, upload, processing, card-news
+                      generation/editing/download, and billing drop-off.
                     </td>
                   </tr>
                 </tbody>
@@ -244,13 +257,16 @@ export default function PrivacyPage() {
                   <td className="py-2 pr-4">Google Gemini API</td>
                   <td className="py-2 pr-4">Transcript text</td>
                   <td className="py-2 pr-4">
-                    AI highlight detection and metadata generation
+                    AI highlight detection, metadata generation and card-news
+                    writing
                   </td>
                   <td className="py-2">United States</td>
                 </tr>
                 <tr className="border-border border-b">
                   <td className="py-2 pr-4">AWS S3</td>
-                  <td className="py-2 pr-4">Video files and clip files</td>
+                  <td className="py-2 pr-4">
+                    Video, clip, card-news image and ZIP files
+                  </td>
                   <td className="py-2 pr-4">File storage</td>
                   <td className="py-2">Asia Pacific (Sydney)</td>
                 </tr>
@@ -268,8 +284,12 @@ export default function PrivacyPage() {
                 </tr>
                 <tr className="border-border border-b">
                   <td className="py-2 pr-4">Modal.com</td>
-                  <td className="py-2 pr-4">Video files</td>
-                  <td className="py-2 pr-4">GPU video processing</td>
+                  <td className="py-2 pr-4">
+                    Video files and approved card-news source/draft snapshots
+                  </td>
+                  <td className="py-2 pr-4">
+                    GPU video processing and separate CPU card-news rendering
+                  </td>
                   <td className="py-2">United States</td>
                 </tr>
                 <tr className="border-border border-b">
@@ -328,6 +348,23 @@ export default function PrivacyPage() {
                   <td className="py-2">Until the related clip is deleted</td>
                 </tr>
                 <tr className="border-border border-b">
+                  <td className="py-2 pr-4">
+                    Card-news source and edit snapshots, cover candidates
+                  </td>
+                  <td className="py-2">
+                    Until the related card-news set is deleted
+                  </td>
+                </tr>
+                <tr className="border-border border-b">
+                  <td className="py-2 pr-4">Card-news rendered files</td>
+                  <td className="py-2">
+                    The latest two completed revisions are kept until set
+                    deletion. Unreferenced older outputs become eligible for
+                    cleanup after 24 hours; files still referenced by current
+                    output or active work are retained.
+                  </td>
+                </tr>
+                <tr className="border-border border-b">
                   <td className="py-2 pr-4">Payment records</td>
                   <td className="py-2">5 years, where required by law</td>
                 </tr>
@@ -353,6 +390,17 @@ export default function PrivacyPage() {
               </tbody>
             </table>
           </div>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Deleting an uploaded video removes its clips and all derived
+            card-news sets. Deleting one clip removes that clip&apos;s sets,
+            including regenerations, while preserving sibling clips. Deleting
+            only a set preserves its source clip and separate regenerated sets.
+            Active work must finish before deletion. Accepted deletion blocks
+            new access while file cleanup finishes; existing signed links can
+            remain usable until expiry. Credit settlement history is retained
+            separately for reconciliation and is not deleted with the source
+            clip.
+          </p>
         </section>
 
         <section className="space-y-3">
@@ -374,7 +422,8 @@ export default function PrivacyPage() {
             </li>
             <li>
               Product analytics events do not include uploaded file names, video
-              URLs, S3 keys, payment card details, or OAuth tokens.
+              URLs, S3 keys, scripts, card-news text, payment card details, or
+              OAuth tokens.
             </li>
           </ul>
         </section>
@@ -389,8 +438,10 @@ export default function PrivacyPage() {
               personal data.
             </li>
             <li>
-              When account deletion is requested, all related data, including
-              database records and stored files, will be deleted.
+              Account deletion requests are processed with related file cleanup
+              and applicable retention obligations. Records required for
+              payment, credit reconciliation or legal retention may be retained
+              separately.
             </li>
             <li>
               To submit a request, contact us at{" "}

@@ -1,9 +1,7 @@
 import { EventSchemas, Inngest } from "inngest";
+import type { CardNewsEvents } from "./card-news-contract";
 // wire 계약의 정본은 ./modal-contract 하나다. 여기서 다시 선언하지 않는다.
-import type {
-  AnalyzedMoment,
-  ProcessVideoBackendClip,
-} from "./modal-contract";
+import type { AnalyzedMoment, ProcessVideoBackendClip } from "./modal-contract";
 
 export type { AnalyzedMoment } from "./modal-contract";
 
@@ -16,7 +14,7 @@ type RenderMoment = {
   payoff?: string | null;
 };
 
-type Events = {
+type Events = CardNewsEvents & {
   "process-video-events": {
     data: {
       uploadedFileId: string;

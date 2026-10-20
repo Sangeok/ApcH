@@ -4,6 +4,61 @@ import { describe, it } from "node:test";
 import { sanitizeAnalyticsMetadata } from "./metadata.ts";
 
 describe("sanitizeAnalyticsMetadata", () => {
+  it("card-news events preserve safe milestone metadata while removing text and object keys", () => {
+    assert.deepEqual(
+      sanitizeAnalyticsMetadata("card_news_completed", {
+        setId: "set-1",
+        jobId: "job-1",
+        revision: 2,
+        cardCount: 5,
+        durationMs: 1050.5,
+        billingStatus: "settled",
+        scriptText: "private source",
+        caption: "private draft",
+        s3Key: "card-news/user/set/file.jpg",
+        presignedUrl: "https://private.invalid/?signature=secret",
+      }),
+      {
+        setId: "set-1",
+        jobId: "job-1",
+        revision: 2,
+        cardCount: 5,
+        durationMs: 1050.5,
+        billingStatus: "settled",
+      },
+    );
+  });
+  it("card-news enum, ID and numeric boundaries reject unsafe or impossible values", () => {
+    assert.equal(
+      sanitizeAnalyticsMetadata("card_news_failed", {
+        setId: "https://private.invalid",
+        jobId: "x".repeat(81),
+        revision: 0,
+        cardCount: 8,
+        durationMs: Infinity,
+        billingStatus: "refunded",
+        failureCode: "source text masquerading as a code",
+        editedFieldCount: -1,
+      }),
+      undefined,
+    );
+    assert.deepEqual(
+      sanitizeAnalyticsMetadata("card_news_failed", {
+        revision: 1,
+        failureCode: "job_timeout",
+        billingStatus: "released",
+      }),
+      { revision: 1, failureCode: "job_timeout", billingStatus: "released" },
+    );
+    for (const number of [NaN, Infinity, -1, 1.5]) {
+      assert.equal(
+        sanitizeAnalyticsMetadata("card_news_edited", {
+          editedFieldCount: number,
+        }),
+        undefined,
+      );
+    }
+  });
   it("keeps only allowlisted primitive values for the event", () => {
     assert.deepEqual(
       sanitizeAnalyticsMetadata("upload_started", {

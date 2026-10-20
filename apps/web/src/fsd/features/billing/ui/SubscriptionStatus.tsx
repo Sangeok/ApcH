@@ -30,18 +30,20 @@ import type { SubscriptionInfo } from "../model/types";
 
 function getStatusDisplay(sub: SubscriptionInfo | null) {
   if (!sub) return { label: "None", variant: "secondary" as const };
-  if (sub.cancelAtPeriodEnd) return { label: "Canceling", variant: "destructive" as const };
-  if (sub.status === "active") return { label: "Active", variant: "default" as const };
+  if (sub.cancelAtPeriodEnd)
+    return { label: "Canceling", variant: "destructive" as const };
+  if (sub.status === "active")
+    return { label: "Active", variant: "default" as const };
   return { label: sub.status, variant: "secondary" as const };
 }
 
 interface SubscriptionStatusProps {
-  credits: number;
+  creditBalanceSlot: React.ReactNode;
   subscription: SubscriptionInfo | null;
 }
 
 export function SubscriptionStatus({
-  credits,
+  creditBalanceSlot,
   subscription,
 }: SubscriptionStatusProps) {
   const [isPending, startTransition] = useTransition();
@@ -53,7 +55,9 @@ export function SubscriptionStatus({
     startTransition(async () => {
       const result = await cancelSubscription();
       if (result.success) {
-        toast.success("Subscription will be canceled at the end of the billing period.");
+        toast.success(
+          "Subscription will be canceled at the end of the billing period.",
+        );
         router.refresh();
       } else {
         toast.error(result.error);
@@ -62,10 +66,11 @@ export function SubscriptionStatus({
   }
 
   const planName = subscription
-    ? PLAN_TIERS[subscription.planTier]?.name ?? subscription.planTier
+    ? (PLAN_TIERS[subscription.planTier]?.name ?? subscription.planTier)
     : "Free";
 
-  const { label: statusLabel, variant: statusVariant } = getStatusDisplay(subscription);
+  const { label: statusLabel, variant: statusVariant } =
+    getStatusDisplay(subscription);
 
   return (
     <Card>
@@ -73,10 +78,7 @@ export function SubscriptionStatus({
         <CardTitle>Billing & Credits</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground text-sm">Credits</span>
-          <span className="text-2xl font-bold">{credits}</span>
-        </div>
+        {creditBalanceSlot}
         <Separator />
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground text-sm">Plan</span>
@@ -125,9 +127,8 @@ export function SubscriptionStatus({
                       </AlertDialogTitle>
                       <AlertDialogDescription>
                         Your plan stays active until{" "}
-                        {formatDate(subscription.currentPeriodEnd)}
-                        , then it will not renew. Credits you already have are
-                        kept.
+                        {formatDate(subscription.currentPeriodEnd)}, then it
+                        will not renew. Credits you already have are kept.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

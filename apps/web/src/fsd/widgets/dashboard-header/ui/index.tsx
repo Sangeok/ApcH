@@ -2,8 +2,11 @@
 
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "~/fsd/shared/ui/atoms/avatar";
-import { Badge } from "~/fsd/shared/ui/atoms/badge";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/fsd/shared/ui/atoms/avatar";
 import { Button } from "~/fsd/shared/ui/atoms/button";
 import {
   DropdownMenu,
@@ -16,13 +19,13 @@ import {
 import { env } from "~/env";
 
 interface DashboardHeaderProps {
-  credits: number;
+  creditBalanceSlot: React.ReactNode;
   email: string;
   image?: string | null;
 }
 
 export default function DashboardHeader({
-  credits,
+  creditBalanceSlot,
   email,
   image,
 }: DashboardHeaderProps) {
@@ -37,13 +40,14 @@ export default function DashboardHeader({
           </div>
         </Link>
         <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard/card-news"
+            className="hidden text-sm font-medium md:block"
+          >
+            Card news
+          </Link>
           <div className="flex items-center gap-2">
-            <Badge
-              variant="secondary"
-              className="h-8 px-3 py-1.5 text-xs font-medium"
-            >
-              {credits} Credits
-            </Badge>
+            {creditBalanceSlot}
             {env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED && (
               <Button
                 variant="outline"
@@ -72,6 +76,10 @@ export default function DashboardHeader({
               <DropdownMenuLabel>
                 <p className="text-muted-foreground text-xs">{email}</p>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/card-news">Card news</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/settings">Settings</Link>

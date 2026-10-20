@@ -7,7 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "~/fsd/shared/ui/atoms/card";
-import { SegmentedControl, SegmentedControlItem } from "~/fsd/shared/ui/atoms/segmented-control";
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from "~/fsd/shared/ui/atoms/segmented-control";
 
 import Dropzone, { type DropzoneState } from "react-dropzone";
 import Link from "next/link";
@@ -67,6 +70,7 @@ type UploadOptionsPayload = {
 };
 
 interface UploadPodcastProps {
+  userId: string;
   onOptimisticAdd: (file: UploadedFileSummary) => void;
   defaults: ResolvedUploadDefaults;
   defaultCaptionStyles: CaptionStyleDefaults;
@@ -74,6 +78,7 @@ interface UploadPodcastProps {
 }
 
 export default function UploadPodcast({
+  userId,
   onOptimisticAdd,
   defaults,
   defaultCaptionStyles,
@@ -90,6 +95,7 @@ export default function UploadPodcast({
     defaults.reviewBeforeGenerate,
   );
   const { upload, isUploading } = useUploadPodcast({
+    userId,
     onOptimisticAdd,
     onSuccess: () => setFiles([]),
   });
@@ -195,7 +201,7 @@ export default function UploadPodcast({
               <div
                 {...dropzone.getRootProps()}
                 className={cn(
-                  "flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed p-10 text-center transition hover:cursor-pointer hover:bg-muted",
+                  "hover:bg-muted flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed p-10 text-center transition hover:cursor-pointer",
                 )}
               >
                 <input {...dropzone.getInputProps()} />
@@ -204,24 +210,32 @@ export default function UploadPodcast({
                   Drag and drop your audio or video files here, or click to
                   browse.
                 </p>
-                <Button variant="default" size="sm" disabled={isUploading} className="cursor-pointer">
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={isUploading}
+                  className="cursor-pointer"
+                >
                   Select File
                 </Button>
               </div>
             ) : (
               <div
                 {...dropzone.getRootProps()}
-                className="flex items-center gap-3 rounded-lg border border-dashed p-3 transition hover:cursor-pointer hover:bg-muted"
+                className="hover:bg-muted flex items-center gap-3 rounded-lg border border-dashed p-3 transition hover:cursor-pointer"
               >
                 <input {...dropzone.getInputProps()} />
                 <div className="bg-muted text-muted-foreground grid size-10 shrink-0 place-items-center rounded-md">
                   <FileVideo className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{files[0]?.name}</p>
+                  <p className="truncate text-sm font-medium">
+                    {files[0]?.name}
+                  </p>
                   <p className="text-muted-foreground text-xs tabular-nums">
                     {files[0] ? toFileSizeMb(files[0]).toFixed(1) : "0.0"} MB
-                    {durationSeconds !== null && `, ${formatSecondsAsClock(durationSeconds)}`}
+                    {durationSeconds !== null &&
+                      `, ${formatSecondsAsClock(durationSeconds)}`}
                   </p>
                   {maxFeasibleClips === 0 && (
                     <p className="text-destructive text-xs">
@@ -239,9 +253,10 @@ export default function UploadPodcast({
 
         <div className="@container">
           {files.length > 0 && (
-            <div className="grid grid-cols-1 gap-y-2 @[600px]:grid-cols-[152px_minmax(0,1fr)] @[600px]:gap-x-6 @[600px]:gap-y-4 @[600px]:items-start">
+            <div className="grid grid-cols-1 gap-y-2 @[600px]:grid-cols-[152px_minmax(0,1fr)] @[600px]:items-start @[600px]:gap-x-6 @[600px]:gap-y-4">
               <p className="text-muted-foreground text-xs @[600px]:col-span-2">
-                Pre-filled from your settings. Changes here apply to this upload only.
+                Pre-filled from your settings. Changes here apply to this upload
+                only.
               </p>
 
               <p id="upload-lang-label" className="pt-1.5 text-sm font-medium">
@@ -256,7 +271,11 @@ export default function UploadPodcast({
                   className="w-full @[600px]:w-fit"
                 >
                   {SUPPORTED_LANGUAGES.map((lang) => (
-                    <SegmentedControlItem key={lang.value} value={lang.value} className="flex-1 @[600px]:flex-none">
+                    <SegmentedControlItem
+                      key={lang.value}
+                      value={lang.value}
+                      className="flex-1 @[600px]:flex-none"
+                    >
                       {lang.label}
                     </SegmentedControlItem>
                   ))}
@@ -290,7 +309,9 @@ export default function UploadPodcast({
                     );
                   })}
                 </SegmentedControl>
-                {clipHint && <p className="text-muted-foreground text-xs">{clipHint}</p>}
+                {clipHint && (
+                  <p className="text-muted-foreground text-xs">{clipHint}</p>
+                )}
               </div>
 
               <p id="upload-gen-label" className="pt-1.5 text-sm font-medium">
@@ -304,10 +325,16 @@ export default function UploadPodcast({
                   disabled={isUploading}
                   className="w-full @[600px]:w-fit"
                 >
-                  <SegmentedControlItem value="auto" className="flex-1 @[600px]:flex-none">
+                  <SegmentedControlItem
+                    value="auto"
+                    className="flex-1 @[600px]:flex-none"
+                  >
                     Auto
                   </SegmentedControlItem>
-                  <SegmentedControlItem value="review" className="flex-1 @[600px]:flex-none">
+                  <SegmentedControlItem
+                    value="review"
+                    className="flex-1 @[600px]:flex-none"
+                  >
                     Review first
                   </SegmentedControlItem>
                 </SegmentedControl>
@@ -316,11 +343,19 @@ export default function UploadPodcast({
                 </p>
               </div>
 
-              <div className="bg-border my-1 h-px @[600px]:col-span-2" role="presentation" />
+              <div
+                className="bg-border my-1 h-px @[600px]:col-span-2"
+                role="presentation"
+              />
 
-              <p id="upload-style-label" className="flex flex-col pt-1.5 text-sm font-medium">
+              <p
+                id="upload-style-label"
+                className="flex flex-col pt-1.5 text-sm font-medium"
+              >
                 Video style
-                <span className="text-muted-foreground text-xs font-normal">From settings</span>
+                <span className="text-muted-foreground text-xs font-normal">
+                  From settings
+                </span>
               </p>
               <div className="flex items-start gap-4">
                 <CaptionStyleThumbnail
@@ -331,7 +366,9 @@ export default function UploadPodcast({
                 <div className="min-w-0 space-y-2">
                   <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-sm">
                     <dt className="text-muted-foreground">Captions</dt>
-                    <dd className="font-medium">{captionStyleLabel(langStyle)}</dd>
+                    <dd className="font-medium">
+                      {captionStyleLabel(langStyle)}
+                    </dd>
                     <dt className="text-muted-foreground">Framing</dt>
                     <dd className="font-medium">{framingSummary ?? "None"}</dd>
                   </dl>
@@ -352,7 +389,9 @@ export default function UploadPodcast({
           {/* 파일 선택 전에도 비활성으로 보인다 — 현재 버튼이 files 가드 밖인 것과 같다(요구 (a)). */}
           <div className={cn("flex justify-end", files.length > 0 && "mt-6")}>
             <Button
-              disabled={files.length === 0 || isUploading || maxFeasibleClips === 0}
+              disabled={
+                files.length === 0 || isUploading || maxFeasibleClips === 0
+              }
               onClick={handleUpload}
               className="w-full @[600px]:w-auto"
             >
