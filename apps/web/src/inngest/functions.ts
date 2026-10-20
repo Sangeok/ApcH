@@ -33,6 +33,7 @@ import type { AnalyzedMoment } from "./client";
 import { requestCaptionStyle } from "./caption-style-request";
 import { requestVideoFraming } from "./video-framing-request";
 import type { CaptionStyle } from "~/fsd/shared/config/constants";
+import { isVideoWorkerStartEnabled } from "~/fsd/shared/config/processing-admission";
 import {
   normalizeBackendClips,
   toModalErrorMessage,
@@ -315,6 +316,9 @@ export const processVideo = inngest.createFunction(
     }
 
     const claimResult = await step.run("claim-processing-attempt", async () => {
+      if (!isVideoWorkerStartEnabled()) {
+        throw new Error("Video worker starts are temporarily paused");
+      }
       return startUploadedFileProcessingAttempt(
         uploadedFileId,
         context.userId,
@@ -772,6 +776,9 @@ export const analyzeVideo = inngest.createFunction(
     }
 
     const claimResult = await step.run("claim-processing-attempt", async () => {
+      if (!isVideoWorkerStartEnabled()) {
+        throw new Error("Video worker starts are temporarily paused");
+      }
       return startUploadedFileProcessingAttempt(
         uploadedFileId,
         context.userId,
@@ -807,34 +814,37 @@ export const analyzeVideo = inngest.createFunction(
         ? `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/modal`
         : undefined;
 
-      const modalResponse = await step.run("send-analyze-to-modal", async () => {
-        const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
-          method: "POST",
-          body: JSON.stringify({
-            uploaded_file_id: uploadedFileId,
-            s3_key: context.s3Key,
-            attempt,
-            language,
-            clip_count: clipCount,
-            mode: "analyze",
-            output_prefix: outputPrefix,
-            callback_url: callbackUrl,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
-          },
-        });
+      const modalResponse = await step.run(
+        "send-analyze-to-modal",
+        async () => {
+          const response = await fetch(env.PROCESS_VIDEO_ENDPOINT, {
+            method: "POST",
+            body: JSON.stringify({
+              uploaded_file_id: uploadedFileId,
+              s3_key: context.s3Key,
+              attempt,
+              language,
+              clip_count: clipCount,
+              mode: "analyze",
+              output_prefix: outputPrefix,
+              callback_url: callbackUrl,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${env.PROCESS_VIDEO_ENDPOINT_AUTH}`,
+            },
+          });
 
-        if (!response.ok) {
-          const text = await response.text().catch(() => "");
-          throw new Error(
-            `Modal analyze dispatch failed (${response.status}): ${text.slice(0, 500)}`,
-          );
-        }
+          if (!response.ok) {
+            const text = await response.text().catch(() => "");
+            throw new Error(
+              `Modal analyze dispatch failed (${response.status}): ${text.slice(0, 500)}`,
+            );
+          }
 
-        return (await response.json()) as Record<string, unknown>;
-      });
+          return (await response.json()) as Record<string, unknown>;
+        },
+      );
 
       const shouldWaitForCallback = modalResponse.status === "accepted";
 
@@ -901,7 +911,9 @@ export const analyzeVideo = inngest.createFunction(
       }
 
       const validMoments = analyzedMoments.filter(
-        (moment): moment is AnalyzedMomentPayload & {
+        (
+          moment,
+        ): moment is AnalyzedMomentPayload & {
           startSeconds: number;
           endSeconds: number;
         } =>

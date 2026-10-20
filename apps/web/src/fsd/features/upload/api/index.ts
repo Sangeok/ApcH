@@ -51,6 +51,7 @@ import {
 } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
+import { isVideoGenerationAdmissionEnabled } from "~/fsd/shared/config/processing-admission";
 import {
   CLIP_DURATION_LIMITS,
   isClipDurationWithinLimits,
@@ -88,6 +89,9 @@ async function scheduleProcessingAttempt(
   allowedStatuses: readonly ProcessingStatus[],
   kindOverride?: "render",
 ): Promise<ActionResult<void>> {
+  if (!isVideoGenerationAdmissionEnabled()) {
+    return failure("Video generation is temporarily unavailable");
+  }
   let dispatchId: string;
   let scheduledAttempt: number;
 
@@ -220,6 +224,9 @@ export async function prepareUpload(fileInfo: {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
+  if (!isVideoGenerationAdmissionEnabled()) {
+    return failure("Video generation is temporarily unavailable");
+  }
   const validated = prepareUploadSchema.safeParse(fileInfo);
 
   if (!validated.success) {
