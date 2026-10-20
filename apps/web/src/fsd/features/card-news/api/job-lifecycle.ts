@@ -33,7 +33,12 @@ import {
   CARD_NEWS_CONFIG,
   canAcceptCardNews,
 } from "~/fsd/shared/config/card-news";
-import { editorDraftSchema, markEditedCards } from "../model/editor-schema";
+import {
+  editorDraftSchema,
+  markEditedCards,
+  countEditedCardNewsFields,
+} from "../model/editor-schema";
+import { sanitizeCardNewsAnalyticsContext } from "../model/analytics-context";
 import { cardNewsRuntime } from "./runtime-dependencies";
 import {
   cardNewsTransaction,
@@ -122,9 +127,12 @@ export async function createPaidCardNews(
     requestId: string;
     theme: "light" | "dark";
     regeneratedFromId?: string;
+    analyticsContext?: unknown;
   },
 ): Promise<{ setId: string; jobId: string }> {
-  const requestHash = stableHash(payload);
+  const { analyticsContext: rawContext, ...productPayload } = payload;
+  const context = sanitizeCardNewsAnalyticsContext(rawContext);
+  const requestHash = stableHash(productPayload);
   const previousRequest = await findCardNewsJobByRequest(
     userId,
     payload.requestId,
@@ -292,6 +300,7 @@ export async function createPaidCardNews(
         templateVersion: CARD_NEWS_CONFIG.templateVersion,
         deadlineAt,
         nextDispatchAt: now,
+        analyticsContext: context ? jsonValue(context) : undefined,
         pendingAnalytics: jsonValue([
           queueAnalytics(
             payload.regeneratedFromId
@@ -997,6 +1006,7 @@ export async function enqueueNextRender(
       templateVersion: input.templateVersion,
       deadlineAt,
       nextDispatchAt: now,
+      analyticsContext: completed.analyticsContext ?? undefined,
     },
     tx,
   );
@@ -1006,7 +1016,12 @@ export async function enqueueNextRender(
 
 export async function saveCardNewsRevision(
   userId: string,
-  payload: { setId: string; expectedRevision: number; draft: unknown },
+  payload: {
+    setId: string;
+    expectedRevision: number;
+    draft: unknown;
+    analyticsContext?: unknown;
+  },
 ): Promise<{ revision: number }> {
   const requested = editorDraftSchema.parse(payload.draft);
   return cardNewsTransaction(async (tx) => {
@@ -1064,19 +1079,18 @@ export async function saveCardNewsRevision(
             ...(Array.isArray(analyticsJob?.pendingAnalytics)
               ? analyticsJob.pendingAnalytics
               : []),
-            queueAnalytics("card_news_edited", {
-              setId: set.id,
-              jobId,
-              revision,
-              cardCount: draft.cards.length,
-              billingStatus: "free",
-              editedFieldCount: previous.cards.reduce(
-                (sum, card, index) =>
-                  sum +
-                  Number(stableHash(card) !== stableHash(draft.cards[index])),
-                0,
-              ),
-            }),
+            queueAnalytics(
+              "card_news_edited",
+              {
+                setId: set.id,
+                jobId,
+                revision,
+                cardCount: draft.cards.length,
+                billingStatus: "free",
+                editedFieldCount: countEditedCardNewsFields(previous, draft),
+              },
+              payload.analyticsContext,
+            ),
           ]),
         },
         tx,

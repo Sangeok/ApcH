@@ -89,6 +89,37 @@ export const editorDraftSchema = z
 
 export type EditorDraft = z.infer<typeof editorDraftSchema>;
 
+export function countEditedCardNewsFields(
+  previous: EditorDraft,
+  next: EditorDraft,
+): number {
+  let count = 0;
+  for (const card of next.cards) {
+    const old = previous.cards.find((candidate) => candidate.id === card.id);
+    if (!old) continue;
+    count +=
+      Number(old.title !== card.title) +
+      Number(old.body !== card.body) +
+      Number(old.highlight !== card.highlight);
+  }
+  for (const key of [
+    "caption",
+    "theme",
+    "accentColor",
+    "coverCandidateId",
+  ] as const)
+    count += Number(previous[key] !== next[key]);
+  count += Number(
+    JSON.stringify(previous.hashtags) !== JSON.stringify(next.hashtags),
+  );
+  const bodyOrder = (draft: EditorDraft) =>
+    draft.cards
+      .filter((card) => card.role === "body")
+      .map((card) => card.id)
+      .join(",");
+  return count + Number(bodyOrder(previous) !== bodyOrder(next));
+}
+
 export function markEditedCards(
   previous: EditorDraft,
   next: EditorDraft,

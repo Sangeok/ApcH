@@ -18,7 +18,8 @@ def provider_schema():
         "outcome": {"type": "string", "enum": ["ready", "insufficient_content"]},
         "reason": {"type": "string"}, "language": {"type": "string", "enum": ["English", "Korean"]},
         "cards": {"type": "array", "items": card}, "caption": {"type": "string"},
-        "hashtags": {"type": "array", "items": {"type": "string"}},
+        "hashtags": {"type": "array", "items": {"type": "string",
+            "description": "One hashtag starting with #, without whitespace or another #."}},
     }, "required": ["outcome", "reason", "language", "cards", "caption", "hashtags"]}
 
 
@@ -36,16 +37,21 @@ def build_prompt(source, repair_reason=None):
         "all middle roles body. Each card has one message, a unique stable id, title <=80 characters, "
         "body <=500 characters, and sourceSentenceIds with one or more valid zero-based indices. "
         "Cover and caption must also be grounded; do not exaggerate the source. Use concise readable text "
+        "Use neutral instructional language. Do not add promises about productivity, efficiency, success, "
+        "or other benefits not explicitly stated in the source. Do not add motivational or promotional endings. "
+        "Never name a method, technique, brand, or topic absent from the source, including in hashtags. "
         "that fits an 80px title and a 56px body. "
         "highlight is null or an exact short phrase in the body. caption <=2200 characters, "
-        "<=30 hashtags without #Shorts or invented facts. No subscription or promotional CTA required. "
+        "<=30 hashtags without #Shorts or invented facts. Each hashtag must start with exactly one # "
+        "and contain no whitespace or additional #, for example #Focus or #집중. "
+        "No subscription or promotional CTA required. "
         "If there is not enough material for 3 distinct cards, return outcome insufficient_content, "
         "cards [], caption '', hashtags [], and a brief reason. Return only schema-conforming JSON.\n"
     )
     if source["language"] == "Korean":
-        instruction += "For readable Korean layout, prefer titles <=20 characters, cover body <=28 characters, other body <=85 characters.\n"
+        instruction += "Korean layout limits: titles must be <=20 characters, cover body <=28 characters, other body <=85 characters.\n"
     else:
-        instruction += "For readable English layout, prefer titles <=40 characters, cover body <=55 characters, other body <=160 characters.\n"
+        instruction += "English layout limits: titles must be <=40 characters, cover body <=55 characters, other body <=160 characters.\n"
     if repair_reason:
         instruction += "The previous attempt failed validation. Produce one corrected concise draft. " + repair_reason[:1000] + "\n"
     return instruction + "<SOURCE_JSON>\n" + payload + "\n</SOURCE_JSON>"

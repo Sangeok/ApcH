@@ -25,8 +25,18 @@ export default function CardNewsEditor({
   generationEnabled: boolean;
   initialCreditBalance: CreditBalance;
 }) {
-  const { detail, draft, setDraft, dirty, save, loadLatest, query, mutations } =
-    useCardNewsEditor(userId, initialDetail);
+  const {
+    detail,
+    draft,
+    setDraft,
+    hashtagText,
+    setHashtagText,
+    dirty,
+    save,
+    loadLatest,
+    query,
+    mutations,
+  } = useCardNewsEditor(userId, initialDetail);
   const router = useRouter();
   const balanceQuery = useQuery(
     creditBalanceQueryOptions(userId, initialCreditBalance),
@@ -182,7 +192,12 @@ export default function CardNewsEditor({
         <div role="alert" className="rounded border border-red-400 p-3">
           {error ?? query.error?.message}
           {error?.startsWith("revision_conflict") && (
-            <Button className="ml-3" variant="outline" onClick={loadLatest}>
+            <Button
+              className="ml-3"
+              variant="outline"
+              disabled={query.isFetching}
+              onClick={() => void run(loadLatest)}
+            >
               Load latest saved version
             </Button>
           )}
@@ -500,13 +515,8 @@ export default function CardNewsEditor({
               <input
                 disabled={!editable}
                 className="bg-background mt-1 block w-full rounded border p-2"
-                value={draft.hashtags.join(" ")}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    hashtags: event.target.value.split(/\s+/).filter(Boolean),
-                  })
-                }
+                value={hashtagText}
+                onChange={(event) => setHashtagText(event.target.value)}
               />
             </label>
             <Button

@@ -15,14 +15,25 @@ export function useCardNewsEditor(userId: string, initial: CardNewsDetail) {
   const [expectedRevision, setExpectedRevision] = useState(
     initial.draftRevision,
   );
+  const [hashtagText, setHashtagText] = useState(
+    initial.draftDocument?.hashtags.join(" ") ?? "",
+  );
   const baseline = useRef(JSON.stringify(initial.draftDocument));
-  const dirty = JSON.stringify(draft) !== baseline.current;
+  const baselineHashtags = useRef(hashtagText);
+  const latestInput = useRef({ draft, hashtagText });
+  latestInput.current = { draft, hashtagText };
+  const dirty =
+    JSON.stringify(draft) !== baseline.current ||
+    hashtagText !== baselineHashtags.current;
   const mutations = useCardNewsMutations(userId);
   useEffect(() => {
     if (!dirty && detail.draftRevision !== expectedRevision) {
       setDraft(detail.draftDocument);
       setExpectedRevision(detail.draftRevision);
       baseline.current = JSON.stringify(detail.draftDocument);
+      const savedHashtags = detail.draftDocument?.hashtags.join(" ") ?? "";
+      setHashtagText(savedHashtags);
+      baselineHashtags.current = savedHashtags;
     }
   }, [detail.draftDocument, detail.draftRevision, dirty, expectedRevision]);
   useEffect(() => {
@@ -54,24 +65,43 @@ export function useCardNewsEditor(userId: string, initial: CardNewsDetail) {
   }, [dirty]);
   const save = async () => {
     if (!draft) return;
+    const submitted = JSON.stringify({ draft, hashtagText });
     const result = await mutations.save.mutateAsync({
       setId: detail.id,
       expectedRevision,
-      draft,
+      draft: { ...draft, hashtags: hashtagText.split(/\s+/).filter(Boolean) },
     });
-    baseline.current = JSON.stringify(draft);
     setExpectedRevision(result.revision);
-    await query.refetch();
+    const refreshed = await query.refetch({ throwOnError: true });
+    if (!refreshed.data) throw new Error("Saved version could not be loaded");
+    const saved = refreshed.data;
+    const savedHashtags = saved.draftDocument?.hashtags.join(" ") ?? "";
+    baseline.current = JSON.stringify(saved.draftDocument);
+    baselineHashtags.current = savedHashtags;
+    setExpectedRevision(saved.draftRevision);
+    if (JSON.stringify(latestInput.current) === submitted) {
+      setDraft(saved.draftDocument);
+      setHashtagText(savedHashtags);
+    }
   };
-  const loadLatest = () => {
-    setDraft(detail.draftDocument);
-    setExpectedRevision(detail.draftRevision);
-    baseline.current = JSON.stringify(detail.draftDocument);
+  const loadLatest = async () => {
+    const refreshed = await query.refetch({ throwOnError: true });
+    if (!refreshed.data)
+      throw new Error("Latest saved version could not be loaded");
+    const latest = refreshed.data;
+    const savedHashtags = latest.draftDocument?.hashtags.join(" ") ?? "";
+    setDraft(latest.draftDocument);
+    setHashtagText(savedHashtags);
+    setExpectedRevision(latest.draftRevision);
+    baseline.current = JSON.stringify(latest.draftDocument);
+    baselineHashtags.current = savedHashtags;
   };
   return {
     detail,
     draft,
     setDraft,
+    hashtagText,
+    setHashtagText,
     expectedRevision,
     dirty,
     save,

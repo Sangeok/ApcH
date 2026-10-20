@@ -132,12 +132,13 @@ export default function DashboardView({
 
         <TabsContent value="upload" className="space-y-6">
           <UploadPodcast
+            userId={userId}
             onOptimisticAdd={addOptimisticFile}
             defaults={uploadDefaults}
             defaultCaptionStyles={defaultCaptionStyles}
             defaultVideoPaddingPercent={defaultVideoPaddingPercent}
           />
-          <RecoverableUploadDrafts drafts={recoverableDrafts} />
+          <RecoverableUploadDrafts userId={userId} drafts={recoverableDrafts} />
           <QueueStatus
             uploadedFiles={queueStatusFiles}
             isFetching={activeQueueQuery.isFetching}

@@ -27,6 +27,7 @@ import { creditBalanceQueryOptions } from "~/fsd/features/credit-balance";
 import { cardNewsListQueryOptions } from "~/fsd/features/card-news";
 
 interface UploadDetailPageProps {
+  userId: string;
   uploadedFileData: UploadedFileDetail;
   cardNewsContext?: {
     userId: string;
@@ -37,6 +38,7 @@ interface UploadDetailPageProps {
 }
 
 export default function UploadDetailPage({
+  userId,
   uploadedFileData,
   cardNewsContext,
 }: UploadDetailPageProps) {
@@ -114,6 +116,7 @@ export default function UploadDetailPage({
           </div>
         </div>
         <UploadedFileActions
+          userId={userId}
           uploadedFileId={uploadedFileId}
           status={status}
           availableCredits={liveCreditBalance.available}
@@ -208,7 +211,7 @@ export default function UploadDetailPage({
                   cardNewsContext
                     ? {
                         ...cardNewsContext,
-                        creditBalance: liveUploadedFileData.creditBalance,
+                        creditBalance: liveCreditBalance,
                         sets: cardNewsQuery.data ?? cardNewsContext.sets,
                       }
                     : undefined

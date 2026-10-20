@@ -58,7 +58,10 @@ export function ClipActions({
   onOptimisticRemove,
   cardNewsContext,
 }: ClipActionsProps) {
-  const deleteMutation = useDeleteClip(clip.uploadedFileId);
+  const deleteMutation = useDeleteClip({
+    uploadedFileId: clip.uploadedFileId,
+    userId: cardNewsContext?.userId ?? clip.userId,
+  });
   const [isDeleting, startDeleting] = useTransition();
   const [showCreation, setShowCreation] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");

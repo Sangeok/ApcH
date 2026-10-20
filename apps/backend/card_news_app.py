@@ -11,17 +11,19 @@ import modal
 from grpclib.exceptions import GRPCError
 
 ROOT = Path(__file__).resolve().parent
-CONTRACTS = ROOT.parents[1] / "packages/db/contracts"
+CONTRACTS = (ROOT.parents[1] / "packages/db/contracts" if modal.is_local()
+             else Path("/root/card-news-contracts"))
 image = (modal.Image.debian_slim(python_version="3.12")
          .apt_install("ffmpeg")
          .pip_install_from_requirements(str(ROOT / "requirements-card-news.txt"))
+         .env({"CARD_NEWS_ASSET_PATH": "/root/card-news-assets", "CARD_NEWS_FIXTURE_PATH": "/root/card-news-fixtures"})
          .add_local_python_source("card_news")
          .add_local_dir(str(ROOT / "card_news/assets"), "/root/card-news-assets")
          .add_local_dir(str(ROOT / "card_news/fixtures"), "/root/card-news-fixtures")
-         .add_local_dir(str(CONTRACTS), "/root/card-news-contracts")
-         .env({"CARD_NEWS_ASSET_PATH": "/root/card-news-assets", "CARD_NEWS_FIXTURE_PATH": "/root/card-news-fixtures"}))
+         .add_local_dir(str(CONTRACTS), "/root/card-news-contracts"))
 app = modal.App("apch-card-news", image=image)
-secrets = [modal.Secret.from_name("ai-podcast-clipper-secret")]
+secrets = [modal.Secret.from_name("ai-podcast-clipper-secret"),
+           modal.Secret.from_name("apch-card-news-auth")]
 
 
 def _callback(payload, invocation_id, call_id, outcome, sequence, stage, manifest_key=None, failure_code=None):
@@ -285,16 +287,18 @@ def verify_fixture_image():
     return result
 
 
-@app.function(cpu=2, memory=4096, timeout=300, secrets=secrets)
-def verify_model_projection():
+@app.function(cpu=2, memory=4096, timeout=2500, secrets=secrets)
+def verify_model_projection(all_cases: bool = False):
     from card_news.verify_render import verify_model_smoke
-    return verify_model_smoke()
+    return verify_model_smoke(all_cases=all_cases)
 
 
 @app.local_entrypoint()
-def main(verify_fixtures: bool = False, verify_model: bool = False):
+def main(verify_fixtures: bool = False, verify_model: bool = False, all_model_cases: bool = False):
     if verify_fixtures == verify_model:
         raise ValueError("Choose exactly one of --verify-fixtures or --verify-model")
+    if all_model_cases and not verify_model:
+        raise ValueError("--all-model-cases requires --verify-model")
     if verify_fixtures:
         result = verify_fixture_image.remote()
         output = Path(tempfile.mkdtemp(prefix="card-news-qualification-"))
@@ -304,4 +308,17 @@ def main(verify_fixtures: bool = False, verify_model: bool = False):
             target.write_bytes(content)
         print(json.dumps({**result, "artifactDirectory": str(output)}, ensure_ascii=False))
     else:
-        print(json.dumps(verify_model_projection.remote(), ensure_ascii=False))
+        result = verify_model_projection.remote(all_cases=all_model_cases)
+        output = Path(tempfile.mkdtemp(prefix="card-news-model-qualification-"))
+        for relative, content in result.pop("files").items():
+            target = output / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+        (output / "qualification.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"schemaVersion": 1, "modelVersion": result["modelVersion"],
+                          "modelCalls": result["modelCalls"], "semanticReview": "required",
+                          "schemaValid": result["schemaValid"],
+                          "renderValid": result["renderValid"],
+                          "artifactDirectory": str(output)}, ensure_ascii=False))
+        if not result["schemaValid"] or not result["renderValid"]:
+            raise RuntimeError("Model contract verification failed; inspect the synthetic qualification artifact")

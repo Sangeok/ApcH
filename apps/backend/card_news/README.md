@@ -6,7 +6,7 @@
 
 인증된 `POST /`는 검증 후 비동기 작업을 spawn하고 `{schemaVersion:1,status:"accepted",call_id}`를 반환한다. `POST /status`는 카드뉴스·기존 영상의 서버 검증 참조를 받고 `pending | ended | unknown`만 반환한다. Modal 결과 원문·로그를 응답에 싣지 않는다.
 
-Modal secret `ai-podcast-clipper-secret`에 다음 값이 필요하다. 실제 값은 저장소·로그에 기록하지 않는다.
+기존 `ai-podcast-clipper-secret`은 Gemini·AWS 값을 제공한다. 별도 `apch-card-news-auth`에 카드뉴스 인증 값과 선택적 버킷을 둔다. 기존 GPU secret을 덮어쓰지 않는다. 실제 값은 저장소·로그에 기록하지 않는다.
 
 - `CARD_NEWS_ENDPOINT_AUTH`: web → CPU Bearer 인증.
 - `CARD_NEWS_WEBHOOK_SECRET`: CPU → web callback Bearer 인증. web의 같은 설정과 일치해야 한다.
@@ -51,18 +51,20 @@ print(json.dumps({"artifactDirectory": str(output), "cases": result["fixtureCase
 '@ | python -
 ```
 
-## 승인 후 실제 Modal 검증
+## 실제 Modal 검증
 
-아래 명령은 외부 CPU 실행 비용이 발생한다. 로컬 구현 검증에서 실행하지 않았다. `card-news-test`는 기존 GPU call ID도 조회할 수 있는 같은 workspace/environment 안에서 운영해야 한다.
+아래 명령은 외부 CPU·모델 실행 비용이 발생한다. 기존 GPU call ID도 조회할 수 있는 같은 workspace/environment를 사용한다. 현재 운영 environment 이름은 `main`이다.
 
 ```powershell
-modal run --env card-news-test apps/backend/card_news_app.py --verify-fixtures
-modal run --env card-news-test apps/backend/card_news_app.py --verify-model
+modal run --env main apps/backend/card_news_app.py --verify-fixtures
+modal run --env main apps/backend/card_news_app.py --verify-model --all-model-cases
 ```
 
 `--verify-fixtures`는 CPU image의 실제 pinned package/font/FFmpeg 버전을 검사하고 합성 MP4 → 후보 → 실제 JPG·ZIP을 검증한다. 출력 이미지·393px preview·ZIP·`qualification.json`을 로컬 임시 폴더로 가져온다. 실제 설치된 전체 package versions도 qualification artifact에 기록한다.
 
-`--verify-model`은 합성 한국어·영어 원문 각각 1개의 provider projection/모델 가용성을 최대 2회 호출로 검사한다. 자동 schema 통과는 사실성 평가 통과가 아니다. `fixtures/render-cases.json`에는 각각 5개의 합성 대본, 유지할 사실과 금지할 과장이 있다. 전체 10개 대본의 실제 모델 결과를 원문과 사람이 대조해야 한다. 운영 대본을 무단 복제하지 않는다.
+`--verify-model`은 기본적으로 합성 한국어·영어 원문 각각 1개를 검사한다. `--all-model-cases`를 추가하면 각각 5개, 총 10개를 실제 Gemini → 계약 검증 → JPG·ZIP 렌더까지 검사한다. 각 원문은 최초 호출 후 최대 1회만 수정하므로 전체 호출 상한은 20회다. 원문·필수 사실·금지 주장·모델 원고·각 시도 결과와 실제 이미지가 임시 artifact에 저장된다. schema 또는 렌더 실패 시 CLI가 실패한다. 자동 schema 통과는 사실성 평가 통과가 아니며 원문과 사람이 대조해야 한다. 운영 대본을 무단 복제하지 않는다.
+
+2026-10-20 실제 Modal Python 3.12.10/Debian FFmpeg 5.1.9에서 fixture 10개와 거부 사례 3개를 통과했다. 실제 모델 10개는 총 11회 호출로 계약·렌더를 모두 통과했다(영어 회의 사례의 highlight 1회 수정). 고정 수치와 필수 사실은 확인했으나 일부 일반적인 효율·생산성 표현이 남아 있어 보편적 의미 품질을 보증하지 않는다. 배포 전환·인증 화면·실제 S3/callback/다운로드 검증은 별도다. 자세한 실행 근거는 [출시 검증 기록](../../../docs/card-news-release-verification-20261020.md)을 참고한다.
 
 ## 구현 시 로컬 결과와 남은 증거
 

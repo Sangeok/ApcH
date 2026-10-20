@@ -7,7 +7,9 @@ approved-by: "user"
 approved-at: "2026-10-11"
 approval-scope: "제품 코드 구현 및 분리된 로컬 검증; 운영 DB migration·배포·유료 외부 생성은 미수행"
 completed-at: null
-verification-summary: "로컬 web 319·admin 334·backend 146 테스트와 분리 PostgreSQL 통합 CLI 3종 통과; 운영 Modal/image/model/drain 검증은 미완료"
+verification-summary: "2026-10-20 삭제/계측 및 편집·잔액·정리 결함 보완, 로컬 DB·build·실제 Modal image와 KO/EN 모델 10개 검증 통과. 운영 전환·인증 다운로드/브라우저 증거는 진행 중"
+reconciled-at: "2026-10-14"
+reconciliation-head: "72bde11d04c32677f34e58d0d24a56cebdcc7cf7"
 closed-at: null
 closed-by: null
 closed-reason: null
@@ -26,7 +28,7 @@ related:
 
 기존 영상과 카드뉴스가 같은 잔액을 사용하므로 **공통 크레딧 예약·정산 기반을 먼저 구현**한다. 원고 생성과 이미지 렌더링은 기존 GPU 영상 파이프라인과 분리한 CPU 작업으로 수행한다. 첫 출시 결과물은 순서가 정해진 JPG, ZIP, Instagram 게시글·해시태그다.
 
-이 문서는 구현 근거와 검증 조건을 기록한다. 후속 사용자의 명시적 요청으로 제품 코드를 구현했고, 분리된 로컬 검증을 진행했다. 운영 DB migration·배포·유료 외부 생성은 수행하지 않았다. 실제 변경과 남은 출시 검증은 끝의 Implementation Results 및 [운영 실행 문서](../../card-news-runbook.md)에 기록한다.
+이 문서는 구현 근거와 검증 조건을 기록한다. 후속 사용자의 명시적 요청으로 제품 코드를 구현했고, 분리된 로컬 검증 기록이 있다. 2026-10-14 대조는 feat/card-news의 보존 커밋과 구현을 기준으로 문서만 수정했다. 삭제 캐시와 계측의 남은 구현 보완은 BLK-CN-03에, 운영 DB migration·배포·유료 외부 생성 및 실물 검증은 BLK-CN-01/02와 검증 목적지에 연결한다. 실제 변경과 과거 실행 기록은 끝의 Implementation Results, 운영 절차는 [운영 실행 문서](../../card-news-runbook.md)를 따른다. 하위 실행 문서는 절차 참고이며 단계 완료 판정은 이 문서의 남은 조건을 함께 적용한다.
 
 ## Goal
 
@@ -57,9 +59,9 @@ related:
 - 조사 시작 시 작업 트리: 추적 파일 변경 없음, 기존 미추적 `nul` 존재. 이 파일은 변경·삭제·스테이징하지 않는다.
 - 저장소와 상위 경로 조사에서 적용할 `AGENTS.md`는 발견하지 않았다. 루트·web·backend의 `CLAUDE.md`, proposal 템플릿, FSD 규약을 참고했다.
 - **Observed**는 직접 읽은 코드, **Contracted**는 사용자 결정 또는 명시된 저장소 규약, **Inferred**는 코드에서 도출한 결론, **Proposed**는 새 설계를 뜻한다.
-- 아래 Current State·코드 대조 표는 구현 전 commit의 조사 기록이다. 경로 표의 `신규`는 구현 당시 추가 대상이며, 구현 후 상태와 실행 증거는 끝의 Implementation Results를 기준으로 한다.
+- 아래 Current State와 2026-10-11 교정 표는 구현 전 commit의 조사 기록이다. 2026-10-14 현재 대조 기준은 카드뉴스를 보존한 `feat/card-news`, commit `72bde11d04c32677f34e58d0d24a56cebdcc7cf7`이다. 최초 검토의 미커밋 구현은 다른 세션에서 이 브랜치에 보존되고 dev의 사본은 사용자 승인으로 stash됐다. 원래 dev 경로에는 문서가 없으므로 임시 worktree의 동일 제안서를 수정한다. dev에 기능을 복원하거나 배포하지 않는다. `신규`는 최초 구현 당시의 추가 대상을 뜻한다. 현재 파일·남은 구현은 Affected Files와 BLK-CN-03, 과거 실행 증거는 Implementation Results를 기준으로 한다. 과거 테스트 수를 이번 감사에서 재실행한 결과로 취급하지 않는다.
 
-## Current State
+## Current State — 구현 전 관측 기록
 
 | 관심사 | 현재 코드에서 관측한 사실 | 구현 영향 |
 | --- | --- | --- |
@@ -266,7 +268,7 @@ Gemini에는 대본을 문장 단위로 번호를 붙여 전달한다. 구조화
 
 한글/영문 글꼴 파일을 image에 고정하고 배포 때마다 확인한다. 텍스트 폭·높이는 실제 폰트로 측정해 줄바꿈하고, 줄바꿈 정책 자체는 측정 함수를 주입할 수 있는 순수 모듈로 분리한다. 줄 수와 영역 검증, 1080×1350 이미지 수·모드·파일 디코드 검사, ZIP 순서 검사를 통과한 뒤 manifest를 마지막에 저장한다.
 
-Pillow의 TrueType 텍스트 경계 측정 API는 [공식 ImageDraw 문서](https://pillow.readthedocs.io/en/stable/reference/ImageDraw.html#PIL.ImageDraw.ImageDraw.textbbox)에 근거한다. JSON 구조화 출력을 사용하더라도 값과 의미는 별도 검사해야 한다는 원칙은 [Gemini 공식 문서](https://ai.google.dev/gemini-api/docs/structured-output)의 validation 지침을 따른다. 실제 한국어 렌더 품질이나 비용은 아직 검증하지 않았다.
+Pillow의 TrueType 텍스트 경계 측정 API는 [공식 ImageDraw 문서](https://pillow.readthedocs.io/en/stable/reference/ImageDraw.html#PIL.ImageDraw.ImageDraw.textbbox)에 근거한다. JSON 구조화 출력을 사용하더라도 값과 의미는 별도 검사해야 한다는 원칙은 [Gemini 공식 문서](https://ai.google.dev/gemini-api/docs/structured-output)의 validation 지침을 따른다. 2026-10-11 로컬 합성 한국어·영어 렌더 기록은 Implementation Results에 있다. 실제 Modal image, 사용자 다운로드 및 모델 비용·의미 품질은 아직 검증하지 않았다.
 
 ### 3. 데이터 모델
 
@@ -325,9 +327,9 @@ sourceSnapshot에는 Clip ID/processingAttempt, 원본 ID/S3 key, 구간, 대본
 
 **영상 경로도 함께 전환해야 한다.** `processVideo`의 사용자당 processing claim과 clipCount 예약은 `features/upload/api/`의 새 오케스트레이션에서 같은 트랜잭션으로 묶는다. 현재 `startUploadedFileProcessingAttempt`의 claim 쿼리가 주입한 transaction client를 사용할 수 있도록 분리하고 기존 사용자당 processing 인덱스는 보존한다. claim 실패 시 예약도 rollback되게 한다. 검토 확정/대시보드/worker의 사전 검사는 사용 가능 잔액을 읽고, 실제 claim에서 다시 조건 검사한다. `analyzeVideo`는 현재 최소 잔액 검사 의미만 유지하고 예약하지 않는다. 영상 완료는 `clipsFound`만 정산하며, 3개 예약 후 2개 생성이면 2개 사용·3개 예약 해제로 끝난다.
 
-현재의 `decrementUserCreditsFloorZero`를 예약된 작업의 정산에 재사용하지 않는다. completion, 0개 실패, backend catch, stale reconciliation, cancel/종료 복구의 모든 경로를 공용 정산 규칙에 연결한다. **이미 성공 클립이 저장된 영상은 stale 처리라고 전액 해제하지 않는다.** 먼저 현재 시도의 DB/S3 결과를 기존 부분 성공 규칙으로 대조하고, 발견한 성공분을 정산한 뒤 나머지 예약을 해제한다.
+예약된 작업의 정산에 `decrementUserCreditsFloorZero`를 재사용하지 않는다. completion, 0개 실패, backend catch, stale reconciliation, cancel/종료 복구의 모든 경로를 공용 정산 규칙에 연결한다. **이미 성공 클립이 저장된 영상은 stale 처리라고 전액 해제하지 않는다.** 먼저 현재 시도의 DB/S3 결과를 기존 부분 성공 규칙으로 대조하고, 발견한 성공분을 정산한 뒤 나머지 예약을 해제한다.
 
-현재 `inngest/functions.ts`의 `findAttemptGeneratedClipKeys`·`persistGeneratedClips`는 신규 `features/upload/api/settle-processing-attempt.ts`로 옮긴다. S3 발견/검증은 밖에서, 현재 시도 재검사·Clip create/metadata 갱신·실제 개수 산정·terminal 전이·예약 정산은 같은 트랜잭션 안에서 수행한다. Clip entity의 `createClipsBulk`·`updateClipMetadataFromBackendClips`·`countClipsForAttemptS3Keys`에 이미 있는 tx 옵션을 유지하고 정산 호출에서 빠짐없이 전달한다. stale 처리와 완료 처리의 경쟁에서 terminal CAS를 잃은 호출은 Clip 행도 추가하지 않는다. callback 수신 후 metadata 보완 역시 current 여부뿐 아니라 해당 결과가 공개 가능한 시도/Clip인지 확인한다.
+구현 전 `inngest/functions.ts`의 파일 발견·Clip 저장 책임은 `features/upload/api/settle-processing-attempt.ts`로 이동했다. 현재 `findAttemptGeneratedClipKeys`는 이 모듈과 `features/upload/server.ts`에서 export하고 worker/전역 복구가 소비한다. 옛 `persistGeneratedClips` 함수는 제거됐고 Clip 저장 책임은 `settleProcessingAttempt`의 트랜잭션에 통합됐다. 같은 이름의 helper를 다시 만들지 않는다. S3 발견/검증은 밖에서, 현재 시도 재검사·Clip create/metadata 갱신·실제 개수 산정·terminal 전이·예약 정산은 같은 트랜잭션 안에서 수행한다. Clip entity의 `createClipsBulk`·`updateClipMetadataFromBackendClips`·`countClipsForAttemptS3Keys`에 이미 있는 tx 옵션을 유지하고 정산 호출에서 빠짐없이 전달한다. stale 처리와 완료 처리의 경쟁에서 terminal CAS를 잃은 호출은 Clip 행도 추가하지 않는다. callback 수신 후 metadata 보완 역시 current 여부뿐 아니라 해당 결과가 공개 가능한 시도/Clip인지 확인한다.
 
 claim 후 재시작은 DB의 `workerRunId`와 현재 lease/예약을 확인한다. 같은 Inngest run의 step 재실행은 재개하고, 다른 run은 살아 있는 소유자를 탈취하지 않는다. 시작 전 실패·analyze 종료는 예약이 없음을 확인하고, 예약된 video의 callback timeout/0개/catch/stale/cancel은 `settleProcessingAttempt` 하나로 종결한다. 사용자 접속에만 의존하는 기존 stale 조회 외에 분 단위 전역 복구 worker를 등록한다. 복구는 producer 종료 또는 기존 시도 timeout 후 결과 대조를 거쳐 정산한다. 늦은 video 결과가 terminal 시도의 Clip을 추가하거나 과금 없이 공개되지 않는 회귀 검증을 포함한다.
 
@@ -341,7 +343,7 @@ call ID 없는 전환 이전 dispatch는 legacy-drain 근거로만 ended로 이�
 
 DTO는 `creditBalance: { owned, reserved, available }`로 통일하고 기존 `currentUserCredits`/단일 `credits` prop 소비자를 아래 inventory에서 모두 전환한다. 인증된 balance 응답과 BillingPageData에는 authUserId를 포함해 user entity의 동일 balance key를 사용한다. 새 `features/credit-balance/ui/index.tsx::CreditBalance`가 최초 서버 잔액을 initialData로 받고 현재 사용자의 잔액 query를 소비한다. Header와 billing의 잔액 표시가 이 live query를 공유하고, 예약이 남아 있을 때 polling 및 focus/reconnect 재조회를 수행한다. 예약/정산/해제 관측 뒤 실제 balance·uploadedFiles·cardNews key를 무효화한다. 결제 적립 함수의 기존 증가 동작은 유지하고 CHECK/동시 정산 검증으로 예약을 보존한다.
 
-현재 BillingPage는 RSC props만 소비하고 billing query는 없다. `/dashboard/billing` route가 하위 credit-balance feature의 CreditBalance를 만들어 `creditBalanceSlot`으로 BillingPage→SubscriptionStatus에 전달한다. billing feature가 peer credit-balance feature를 import하지 않는다. 구독/주문 RSC 데이터와 기존 checkout/portal 동작은 유지하고, checkout 활성화 확인 시 billing이 lower user entity의 balance key만 targeted invalidate한다. RSC refresh만으로 이미 존재하는 query cache의 initialData가 갱신된다고 가정하지 않는다.
+구현 전 BillingPage는 RSC props만 소비하고 billing query는 없었다. 현재 구현은 다음 slot/live query 구성을 사용한다. `/dashboard/billing` route가 하위 credit-balance feature의 CreditBalance를 만들어 `creditBalanceSlot`으로 BillingPage→SubscriptionStatus에 전달한다. billing feature가 peer credit-balance feature를 import하지 않는다. 구독/주문 RSC 데이터와 기존 checkout/portal 동작은 유지하고, checkout 활성화 확인 시 billing이 lower user entity의 balance key만 targeted invalidate한다. RSC refresh만으로 이미 존재하는 query cache의 initialData가 갱신된다고 가정하지 않는다.
 
 ### 5. 비동기 실행과 계약
 
@@ -411,7 +413,7 @@ sent 표시는 이벤트 처리 완료의 증명이 아니므로 claim/heartbeat
 - 저장은 `expectedRevision`으로 CAS하고 새 revision 무료 렌더를 요청한다. 렌더 중 새 저장은 다음 revision 한 건으로 합치고 무한 작업 큐를 만들지 않는다. 이미 실행한 구버전은 최신 publishedRevision을 뒤로 되돌릴 수 없다.
 - 수동 수정과 AI 재생성 버튼을 분리하고 후자에 `1 credit`을 표시한다. 사용 가능 잔액이 0이어도 기존 결과 수동 편집·다운로드는 가능하다.
 
-카드뉴스 query key는 userId와 setId/filter를 포함하고 기존 root QueryClientProvider를 재사용한다. polling은 active job/deleting일 때만 켜고 이탈 시 observer를 해제한다. 인증 오류에는 재시도를 멈추고 로그인 후 다시 조회한다. setId 변경 시 editor를 key로 remount하며 polling 결과로 저장 전 로컬 입력을 덮어쓰지 않는다. 저장 충돌은 최신 서버 버전과 충돌 안내를 보여 주고 입력을 자동 폐기하지 않는다. 신규 query/mutation은 `features/card-news/model/`에, key와 순수 상태 판정은 entity model에 둔다. 기존 삭제 hook도 cardNews 캐시를 무효화하고 삭제 접수(deleting)를 최종 삭제 완료 toast로 표현하지 않는다.
+카드뉴스 query key는 userId와 setId/filter를 포함하고 기존 root QueryClientProvider를 재사용한다. polling은 active job/deleting일 때만 켜고 이탈 시 observer를 해제한다. 인증 오류에는 재시도를 멈추고 로그인 후 다시 조회한다. setId 변경 시 editor를 key로 remount하며 polling 결과로 저장 전 로컬 입력을 덮어쓰지 않는다. 저장 충돌은 최신 서버 버전과 충돌 안내를 보여 주고 입력을 자동 폐기하지 않는다. 신규 query/mutation은 `features/card-news/model/`에, key와 순수 상태 판정은 entity model에 둔다. 기존 삭제 hook도 cardNews 캐시를 무효화하고 삭제 접수(deleting)를 최종 삭제 완료 toast로 표현하지 않는다. 현재 두 hook은 이 캐시 무효화와 cleanup ID 반환을 아직 구현하지 않았으므로 TASK-CN3-02/BLK-CN-03에서 보완한다. tombstone 접수 후 gallery에서 항목을 숨기는 것은 허용하되 파일 정리 완료와 구분하고 AssetCleanupStatus에서 진행·실패·재시도를 추적한다.
 
 ### 7. 삭제·보관과 출력 정리
 
@@ -467,32 +469,33 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 
 ## Affected Files
 
-아래는 구현 destination inventory다. `W/`는 `apps/web/src/`, `F/`는 `apps/web/src/fsd/`, `B/`는 `apps/backend/`의 경로 약어다. 모든 항목은 **Core**이며 최초 구현에 포함한다. 신규는 구현 당시의 추가 대상 표시다. 표의 묶음 ID를 TASK/검증에서 사용하며 최종 파일·검증 결과는 Implementation Results와 실행 문서에 기록한다.
+아래는 현재 구현과 남은 보완의 destination inventory다. `W/`는 `apps/web/src/`, `F/`는 `apps/web/src/fsd/`, `B/`는 `apps/backend/`의 경로 약어다. 모든 변경 항목은 **Core**이며 기존 요구사항을 유지한다. I-KEEP은 변경하지 않고 영향·보존을 확인할 목적지다. 현재 요청은 문서 수정만 허용하며 Core 분류 자체가 코드 수정·운영 실행 승인을 뜻하지 않는다. 신규는 구현 당시의 추가 대상 표시다. 표의 묶음 ID를 TASK/검증에서 사용하며 최종 파일·검증 결과는 Implementation Results와 실행 문서에 기록한다.
 
 | 묶음 | 정확한 파일 | 변경/책임 | 검증 |
 | --- | --- | --- | --- |
-| I-DB | `packages/db/prisma/schema.prisma`; 신규 `packages/db/prisma/migrations/20261011000000_card_news_credit_reservations/migration.sql` | 신규 모델 5개, 잔액/삭제 컬럼, 편집 draftSnapshots, dispatch 복구 필드, CHECK/FK/partial index | V-CN-CREDITS, V-CN-EDITOR, V-CN-DELETE |
+| I-DB | `packages/db/prisma/schema.prisma`; 신규 `packages/db/prisma/migrations/20261011000000_card_news_credit_reservations/migration.sql`; 생성 목적지 `packages/db/generated/prisma/schema.prisma`, `packages/db/generated/prisma/index.d.ts`, `packages/db/generated/prisma/index.js`, `packages/db/generated/prisma/index-browser.js`, `packages/db/generated/prisma/edge.js`, `packages/db/generated/prisma/wasm.js`, `packages/db/generated/prisma/package.json` | 신규 모델 5개, 잔액/삭제 컬럼, 편집 draftSnapshots, dispatch 복구 필드, CHECK/FK/partial index | V-CN-CREDITS, V-CN-EDITOR, V-CN-DELETE |
 | I-CONTRACT | 신규 `packages/db/contracts/card-news-v1.schema.json`, `packages/db/contracts/card-news-v1.fixtures.json` | canonical `$defs`(producer status 포함)와 유효/무효 fixture. 파일 조회는 package export가 아닌 명시적 저장소 경로 | V-CN-CONTENT |
 | I-USER | `F/entities/user/api/index.ts`, `F/entities/user/server.ts`, `F/entities/user/index.ts`; 신규 `F/entities/user/model/credit-balance.ts`, `F/entities/user/model/credit-balance.test.mjs` | `getDashboardHeaderUser`/`getBillingUserSnapshot`의 balance; tx-aware reserve/settle/release/lock; 순수 balance/query key | V-CN-CREDITS, V-CN-EDITOR |
 | I-RESERVATION | 신규 `F/entities/credit-reservation/api/index.ts`, `F/entities/credit-reservation/server.ts`, `F/entities/credit-reservation/index.ts`, `F/entities/credit-reservation/model/reservation-policy.ts`, `F/entities/credit-reservation/model/reservation-policy.test.mjs` | 예약 단일 도메인 CAS/조회 및 공통 순수 정책 | V-CN-CREDITS |
-| I-CARD | 신규 `F/entities/card-news/api/index.ts`, `F/entities/card-news/server.ts`, `F/entities/card-news/index.ts`, `F/entities/card-news/model/types.ts`, `F/entities/card-news/model/query-keys.ts`, `F/entities/card-news/model/contract.ts`, `F/entities/card-news/model/contract.test.mjs`, `F/entities/card-news/model/revision-policy.ts`, `F/entities/card-news/model/revision-policy.test.mjs` | Set/Job/Invocation/Cleanup 도메인 쿼리, 잠금, 공개 DTO, 불변 draftSnapshots/inputSnapshot/manifest, 공통 parser/버전 판정 | V-CN-CONTENT, V-CN-CREDITS, V-CN-EDITOR, V-CN-DELETE |
-| I-UPLOAD | `F/entities/uploaded-file/api/index.ts`, `F/entities/uploaded-file/server.ts`, `F/entities/uploaded-file/model/types.ts`; `F/entities/processing-dispatch/api/index.ts`, `F/entities/processing-dispatch/server.ts`; `F/features/upload/api/index.ts`, `F/features/upload/api/dispatch-processing.ts`, `F/features/upload/api/complete-processing-attempt.ts`, `F/features/upload/api/reconcile-stale-processing.ts`; 신규 `F/features/upload/api/claim-processing-attempt.ts`, `F/features/upload/api/settle-processing-attempt.ts`, `F/features/upload/api/record-legacy-producer-drain.ts`, `F/features/upload/server.ts` | admission/deletedAt 검사, 실제 claim+예약, terminal+Clip+부분 정산, dispatch 입력/실행 소유권·spawn 상태/call ID/legacy 종료 근거 저장, 전역 복구 진입점 | V-CN-CREDITS, V-CN-DELETE |
-| I-CLIP | `F/entities/clip/api/index.ts`, `F/entities/clip/server.ts`, `F/features/clip/api/index.ts`, `F/features/clip/model/use-delete-clip.ts`, `F/features/upload/model/use-delete-uploaded-file.ts`, `F/pages/dashboard/ui/_component/RecoverableUploadDrafts.tsx`, `F/pages/dashboard/model/useUploadPodcast.ts` | 새 `findCardNewsSourceClip` query; 기존 Clip 쓰기의 tx 옵션; 부모 삭제 접수/파생 범위; cache 갱신과 기존 삭제 반환값 소비자 | V-CN-CONTENT, V-CN-CREDITS, V-CN-DELETE |
-| I-ACTIONS | 신규 `F/features/card-news/api/index.ts`, `F/features/card-news/api/reservation-tx.ts`, `F/features/card-news/api/job-lifecycle.ts`, `F/features/card-news/api/cleanup.ts`, `F/features/card-news/api/runtime-dependencies.ts`, `F/features/card-news/server.ts`, `F/features/card-news/index.ts`, `F/features/card-news/model/query-options.ts`, `F/features/card-news/model/use-card-news.ts`, `F/features/card-news/model/editor-schema.ts`, `F/features/card-news/model/editor-schema.test.mjs` | 인증된 create/regenerate/list/detail/save/retry/export/delete Actions; server-only DB 정산·inbox·cleanup 및 private 테스트 의존성 경계; query/mutation; 문구/순서/테마 검증 | V-CN-CONTENT, V-CN-EDITOR, V-CN-DELETE |
+| I-CARD | 신규 `F/entities/card-news/api/index.ts`, `F/entities/card-news/server.ts`, `F/entities/card-news/index.ts`, `F/entities/card-news/model/types.ts`, `F/entities/card-news/model/query-keys.ts`, `F/entities/card-news/model/contract.ts`, `F/entities/card-news/model/contract.test.mjs`, `F/entities/card-news/model/revision-policy.ts`, `F/entities/card-news/model/revision-policy.test.mjs`, `F/entities/card-news/model/text-length.ts`, `F/entities/card-news/model/text-length.test.mjs` | Set/Job/Invocation/Cleanup 도메인 쿼리, 잠금, 공개 DTO, 불변 draftSnapshots/inputSnapshot/manifest, 공통 parser/버전 판정 | V-CN-CONTENT, V-CN-CREDITS, V-CN-EDITOR, V-CN-DELETE |
+| I-UPLOAD | `F/entities/uploaded-file/api/index.ts`, `F/entities/uploaded-file/server.ts`, `F/entities/uploaded-file/model/types.ts`; `F/entities/processing-dispatch/api/index.ts`, `F/entities/processing-dispatch/server.ts`; `F/features/upload/api/index.ts`, `F/features/upload/api/dispatch-processing.ts`, `F/features/upload/api/complete-processing-attempt.ts`, `F/features/upload/api/reconcile-stale-processing.ts`; 신규 `F/features/upload/api/claim-processing-attempt.ts`, `F/features/upload/api/settle-processing-attempt.ts`, `F/features/upload/api/record-legacy-producer-drain.ts`, `F/features/upload/api/reconcile-video-reservations.ts`, `F/features/upload/api/reconcile-published-metadata.ts`, `F/features/upload/api/video-runtime-dependencies.ts`, `F/features/upload/api/delete-upload-assets.ts`, `F/features/upload/server.ts` | admission/deletedAt 검사, 실제 claim+예약, terminal+Clip+부분 정산, dispatch 입력/실행 소유권·spawn 상태/call ID/legacy 종료 근거 저장, 전역 복구 진입점 | V-CN-CREDITS, V-CN-DELETE |
+| I-CLIP | `F/entities/clip/api/index.ts`, `F/entities/clip/server.ts`, `F/features/clip/api/index.ts`, `F/features/clip/api/delete-clip-assets.ts`, `F/features/clip/model/use-delete-clip.ts`, `F/features/upload/model/use-delete-uploaded-file.ts`, `F/pages/dashboard/ui/_component/RecoverableUploadDrafts.tsx`, `F/pages/dashboard/model/useUploadPodcast.ts` | 새 `findCardNewsSourceClip` query; 기존 Clip 쓰기의 tx 옵션; 부모 삭제 접수/파생 범위; cache 갱신과 기존 삭제 반환값 소비자 | V-CN-CONTENT, V-CN-CREDITS, V-CN-DELETE |
+| I-ACTIONS | 신규 `F/features/card-news/api/index.ts`, `F/features/card-news/api/reservation-tx.ts`, `F/features/card-news/api/job-lifecycle.ts`, `F/features/card-news/api/cleanup.ts`, `F/features/card-news/api/runtime-dependencies.ts`, `F/features/card-news/server.ts`, `F/features/card-news/index.ts`, `F/features/card-news/model/query-options.ts`, `F/features/card-news/model/use-card-news.ts`, `F/features/card-news/model/editor-schema.ts`, `F/features/card-news/model/editor-schema.test.mjs`, `F/features/card-news/ui/asset-cleanup-status.tsx` | 인증된 create/regenerate/list/detail/save/retry/export/delete Actions; server-only DB 정산·inbox·cleanup 및 private 테스트 의존성 경계; query/mutation; 문구/순서/테마 검증 | V-CN-CONTENT, V-CN-EDITOR, V-CN-DELETE |
 | I-BALANCE | 신규 `F/features/credit-balance/api/index.ts`, `F/features/credit-balance/model/query-options.ts`, `F/features/credit-balance/ui/index.tsx`, `F/features/credit-balance/index.ts`; `W/app/dashboard/layout.tsx`, `W/app/dashboard/billing/page.tsx`, `F/widgets/dashboard-header/ui/index.tsx`; `F/features/billing/api/index.ts`, `F/features/billing/model/types.ts`, `F/features/billing/ui/BillingPage.tsx`, `F/features/billing/ui/SubscriptionStatus.tsx`; `F/pages/upload-detail/ui/index.tsx`, `F/features/upload/ui/index.tsx`, `F/widgets/clip-draft-review/ui/index.tsx` | 단일 credits/currentUserCredits consumer를 balance로 전환. Header/billing 공용 live 잔액과 route가 조합하는 slot, 예약 표시, 재시도/검토 선택은 available 기준 | V-CN-CREDITS, V-CN-EDITOR, V-CN-RELEASE |
 | I-WORKER | `W/inngest/functions.ts`, `W/inngest/client.ts`, `W/app/api/inngest/route.ts`, `W/app/api/webhooks/modal/route.ts`; 신규 `W/inngest/card-news-functions.ts`, `W/inngest/card-news-contract.ts`, `W/inngest/card-news-contract.test.mjs`, `W/inngest/video-reservation-functions.ts`, `W/app/api/webhooks/card-news/route.ts` | generate/render/dispatch/reconcile/cleanup, video 전역 예약 복구를 serve 등록; callback durable inbox; video terminal metadata fencing | V-CN-CREDITS, V-CN-CONTENT, V-CN-DELETE |
 | I-S3 | `F/shared/api/s3.ts`; 신규 `F/shared/api/s3-policy.ts`, `F/shared/api/s3-policy.test.mjs` | 기존 `generatePresignedGetUrl`의 호환 가능한 filename 옵션; paginated 목록/HEAD metadata; chunk delete/Errors 판정 순수 정책 | V-CN-CONTENT, V-CN-RENDER, V-CN-DELETE |
-| I-CPU | 신규 `B/card_news_app.py`, `B/requirements-card-news.txt`, `B/card_news/__init__.py`, `B/card_news/contract.py`, `B/card_news/prompt.py`, `B/card_news/layout.py`, `B/card_news/render.py`, `B/card_news/io.py`, `B/card_news/verify_render.py` | CPU image/endpoint/spawn 및 공통 producer status; 순수 contract/prompt/layout과 PIL/FFmpeg/boto3 I/O 분리; 실제 image 평가 entrypoint | V-CN-CONTENT, V-CN-RENDER |
+| I-CPU | 신규 `B/card_news_app.py`, `B/requirements-card-news.txt`, `B/card_news/__init__.py`, `B/card_news/contract.py`, `B/card_news/prompt.py`, `B/card_news/layout.py`, `B/card_news/policy.py`, `B/card_news/render.py`, `B/card_news/io.py`, `B/card_news/verify_render.py`, `B/card_news/README.md` | CPU image/endpoint/spawn 및 공통 producer status; 순수 contract/prompt/layout과 PIL/FFmpeg/boto3 I/O 분리; 실제 image 평가 entrypoint | V-CN-CONTENT, V-CN-RENDER |
 | I-CPU-ASSET | 신규 `B/card_news/assets/NotoSansKR-Regular.ttf`, `B/card_news/assets/NotoSansKR-Bold.ttf`, `B/card_news/assets/OFL.txt`, `B/card_news/assets/dependency-manifest.json`, `B/card_news/fixtures/render-cases.json` | 정본 폰트 바이너리·라이선스·SHA/SDK/model/template version; 합성 영상+문구 fixture | V-CN-RENDER |
 | I-CPU-TEST | 신규 `B/test_card_news_contract.py`, `B/test_card_news_prompt.py`, `B/test_card_news_layout.py`, `B/test_card_news_wiring.py` | stdlib-only 테스트, AST로 CPU app의 local source/schema/font 포함·GPU import 부재 검사 | V-CN-CONTENT, V-CN-RENDER |
-| I-SCREEN | 신규 `W/app/dashboard/card-news/page.tsx`, `W/app/dashboard/card-news/[cardNewsId]/page.tsx`, `W/app/dashboard/card-news/[cardNewsId]/error.tsx`, `F/pages/card-news-list/ui/index.tsx`, `F/pages/card-news-detail/ui/index.tsx`, `F/widgets/card-news-editor/index.ts`, `F/widgets/card-news-editor/ui/index.tsx`, `F/widgets/card-news-editor/model/use-card-news-editor.ts` | list/detail route의 서버 인증/초기 조회, widget 편집/실제 JPG/실패/충돌/접수된 삭제 표시 | V-CN-EDITOR, V-CN-DELETE |
+| I-SCREEN | 신규 `W/app/dashboard/card-news/page.tsx`, `W/app/dashboard/card-news/[cardNewsId]/page.tsx`, `W/app/dashboard/card-news/[cardNewsId]/error.tsx`, `F/pages/card-news-list/index.ts`, `F/pages/card-news-list/ui/index.tsx`, `F/pages/card-news-detail/index.ts`, `F/pages/card-news-detail/ui/index.tsx`, `F/widgets/card-news-editor/index.ts`, `F/widgets/card-news-editor/ui/index.tsx`, `F/widgets/card-news-editor/model/use-card-news-editor.ts` | list/detail route의 서버 인증/초기 조회, widget 편집/실제 JPG/실패/충돌/접수된 삭제 표시 | V-CN-EDITOR, V-CN-DELETE |
 | I-ENTRY | `F/widgets/clip-display/ui/index.tsx`, `F/widgets/clip-display/ui/_component/ClipCard.tsx`, `F/widgets/clip-display/ui/_component/ClipActions.tsx`; `F/pages/dashboard/ui/index.tsx`, `F/pages/upload-detail/ui/index.tsx`, `F/widgets/dashboard-header/ui/index.tsx` | create 버튼/파생 개수/삭제 범위, Header의 카드뉴스 목록 링크. 부모에서 카드뉴스 DTO를 조합해 Clip widget에 전달 | V-CN-EDITOR, V-CN-DELETE |
-| I-ANALYTICS | `packages/db/src/analytics-contract.ts`, `F/entities/analytics-event/api/index.ts`, `F/shared/analytics/lib/metadata.ts`, `F/shared/analytics/lib/metadata.test.mjs`, `F/shared/analytics/event-catalog.test.mjs`; 신규 `F/features/card-news/api/analytics.ts` | event registry, 허용 metadata, server milestone/idempotent 기록. `event-catalog.ts`/`packages/db/src/index.ts`는 기존 re-export 유지 | V-CN-RELEASE |
+| I-ANALYTICS | `packages/db/src/analytics-contract.ts`, `F/entities/analytics-event/api/index.ts`, `F/shared/analytics/lib/metadata.ts`, `F/shared/analytics/lib/metadata.test.mjs`, `F/shared/analytics/event-catalog.test.mjs`, `F/shared/analytics/index.ts`, `F/shared/analytics/lib/anonymous-id.ts`, `F/shared/analytics/lib/normalize-path.ts`; 기존 검증 계약 `W/app/api/analytics/events/route.ts`; 신규 `F/features/card-news/api/analytics.ts` | event registry, 허용 metadata, server milestone/idempotent 기록. `event-catalog.ts`/`packages/db/src/index.ts`는 기존 re-export 유지 | V-CN-RELEASE |
 | I-CONFIG | `W/env.js`, `.env.example`; 신규 `F/shared/config/card-news.ts`, `F/shared/config/card-news.test.mjs`, `F/shared/config/processing-admission.ts` | 별도 endpoint/secret, server flag/allowlist, video cutover gate, 시간/템플릿 기본값 | V-CN-CREDITS, V-CN-RELEASE |
 | I-COPY | `F/pages/pricing/config/index.ts`, `F/pages/pricing/ui/index.tsx`, `W/app/(public-marketing)/pricing/page.tsx`, `F/pages/how-it-works/config/index.ts`, `F/pages/how-it-works/ui/index.tsx`, `W/app/(public-marketing)/how-it-works/page.tsx`, `F/pages/product-tour/config/index.ts`, `F/shared/config/product-copy.ts`, `W/app/(public-marketing)/terms/page.tsx`, `W/app/(public-marketing)/privacy/page.tsx` | 1세트/AI 재생성 1크레딧·예약·무료 수정/다운로드·파생 삭제/보관을 실제 body/FAQ/metadata에 반영 | V-CN-RELEASE |
-| I-VERIFY | 신규 `apps/web/scripts/verify-card-news-credit-concurrency.mts`, `apps/web/scripts/verify-card-news-lifecycle.mts`, `apps/web/scripts/verify-card-news-surfaces.mts`, `apps/web/scripts/record-card-news-legacy-drain.mts`; 신규 `B/card_news/fixtures/content-evaluation.json` | 별도 DB의 money/lifecycle fault injection; 구조/공개 export/금지 import; KO/EN 근거 평가 입력; legacy-drain 운영 script는 기본 dry-run/명시 apply | verifier 전체 |
+| I-VERIFY | `apps/web/scripts/verify-card-news-credit-concurrency.mts`, `apps/web/scripts/verify-card-news-lifecycle.mts`, `apps/web/scripts/verify-card-news-video-compatibility.mts`, `apps/web/scripts/verify-card-news-surfaces.mts`, `apps/web/scripts/verify-card-news-local-db.mts`, `apps/web/scripts/card-news-verification-runtime.mts`, `apps/web/scripts/card-news-verification-runtime.test.mjs`, `apps/web/scripts/record-card-news-legacy-drain.mts`; `apps/web/scripts/verify-fsd-boundaries.mjs`, `apps/web/scripts/verify-fsd-boundaries.test.mjs`; KO/EN 평가 정본은 I-CPU-ASSET의 `B/card_news/fixtures/render-cases.json`; 절차 `docs/card-news-runbook.md` | 실제 DB 경쟁/생명주기/영상 호환성, 임시 DB 및 env/네트워크 격리, 한정된 surface 검사와 FSD 보강, 기존 10개 합성 원문의 의미 평가. 없는 별도 content-evaluation 파일을 요구하지 않음 | verifier 전체 |
+| I-KEEP | `W/app/(public-marketing)/product-tour/page.tsx`, `F/pages/product-tour/ui/index.tsx`, `W/app/(public-marketing)/about/page.tsx`, `F/pages/about/ui/index.tsx`, `F/shared/lib/seo.ts`, `W/app/page.tsx`, `F/pages/home/ui/_component/HeroSection.tsx`, `W/app/(public-marketing)/guides/page.tsx`, `W/app/(public-marketing)/guides/[slug]/page.tsx`, `F/widgets/site-header/ui/public-header.tsx` | 소스는 유지. /product-tour와 /about body는 수정된 공유 config를 소비하므로 출력 검증. 홈 hero·guides·public nav·기존 WebApplication JSON-LD의 보존 확인 | V-CN-RELEASE |
 
-신규 migration 이름은 검증 시 충돌이 없었다. 구현 시작 시 다른 migration이 생겨 선후 관계가 바뀌면 순서만 갱신하고 Prisma가 만드는 timestamp 디렉터리를 사용한다. 신규 directories는 각 TASK 시작 시 생성하며 부모 `apps/web/src/fsd/{entities,features,pages,widgets,shared}`, `apps/web/src/{app,inngest}`, `apps/backend`, `packages/db/prisma/migrations`는 존재한다. 신규 contracts/card_news/assets/fixtures 및 route 디렉터리도 먼저 생성한다. 기존 파일을 덮어쓰거나 자동 이동하지 않는다. 폰트는 라이선스·정확한 바이너리 SHA를 dependency-manifest에 기록한 뒤 CPU image에 포함하며 시스템 폰트를 조용히 대신 쓰지 않는다.
+migration 및 inventory의 신규 경로는 현재 구현에 존재한다. 적용된 migration을 자동 rename하거나 다시 만들지 않는다. 후속 보완은 해당 파일을 수정하며 새 파일 추가·이동이 필요하면 먼저 소스 존재·부모 디렉터리·충돌·public export·소비자·검증 목적지를 재확인한다. inventory의 contracts/card_news/assets/fixtures/route와 상위 디렉터리는 존재한다. 후속 보완에서 없는 디렉터리만 명시적으로 생성하며 기존 파일을 초기 구현 템플릿으로 덮어쓰거나 자동 이동하지 않는다. 폰트는 라이선스·정확한 바이너리 SHA를 dependency-manifest에 기록한 뒤 CPU image에 포함하며 시스템 폰트를 조용히 대신 쓰지 않는다.
 
 ### Import/export provenance와 유지 범위
 
@@ -500,12 +503,13 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 | --- | --- | --- | --- |
 | User 잔액 query/새 reserve·settle·release | `entities/user/api/index.ts` → `entities/user/server.ts`; 순수 balance는 `entities/user/index.ts` | upload/card-news feature의 tx; Header/credit-balance/billing은 각 feature 또는 server export | FSD/check 및 V-CN-CREDITS |
 | 영상 claim/terminal/spawn query | `entities/uploaded-file/api/index.ts`, `entities/processing-dispatch/api/index.ts` → 각 `server.ts` | worker의 paid video claim/terminal을 `features/upload/server.ts`의 `claimProcessingAttempt`/`settleProcessingAttempt`로 전환; `recordProcessingSpawnResult`가 기존 call_id를 기록. `recordLegacyProducerDrain`은 새 upload 내부 helper→upload server.ts→운영 script만 소비하며 Action/client export 금지. analyze 및 예약 전 실패는 entity 사용 가능 | paid 정산 우회 부재, 두 worker의 ID 저장/unknown 회귀 |
-| `findAttemptGeneratedClipKeys`, `persistGeneratedClips` | 현재 `inngest/functions.ts` private, 공개 export 없음 | `features/upload/api/settle-processing-attempt.ts` 내부; server export의 정산 진입점에서 호출 | worker에 옛 helper 정의 없음, 새 helper 및 tx Clip 쓰기 존재 |
+| 파일 발견·Clip 저장 책임 | 구현 전 두 helper는 `inngest/functions.ts` private | 현재 `findAttemptGeneratedClipKeys`: `features/upload/api/settle-processing-attempt.ts` → upload `server.ts` → worker/복구. `persistGeneratedClips`는 제거, `settleProcessingAttempt`가 Clip 쓰기를 직접 소유 | worker의 두 옛 정의와 저장 우회 부재, 발견 helper export와 tx-aware Clip 쓰기 존재 |
 | Clip create/metadata/count 및 새 source query | `entities/clip/api/index.ts` → `entities/clip/server.ts` | upload 정산 feature/card-news 입력 feature. modal webhook은 공개 가능한 terminal Clip만 metadata 보완 | V-CN-CREDITS/CONTENT의 terminal 경쟁 |
 | Reservation/Set/Job/Invocation/Cleanup 쿼리 | 신규 각 entity `api/index.ts` → `server.ts` | 상위 feature에서 multi-entity tx. 다른 entity/feature에서 peer import 금지 | verify:fsd 및 surfaces |
 | 사용자 Actions/query | 신규 card-news/credit-balance `api/index.ts`, credit-balance `ui/index.tsx` → 각 feature `index.ts` | widgets/pages/app에서 소비; Header와 billing route가 CreditBalance를 조합. billing feature에는 ReactNode slot만 전달; mutation은 lower user entity key로 잔액 invalidation | check/build, browser, billing peer import 금지 |
 | worker lifecycle/inbox/cleanup | 신규 card-news `api/job-lifecycle.ts`/`cleanup.ts` → `features/card-news/server.ts` | Inngest/route handler. `"use server"` 지시어를 붙이지 않아 무인증 RPC 생성 금지 | surfaces 및 위조 HTTP/Action 검사 |
 | Canonical 계약 | JSON schema/fixture → web `entities/card-news/model/contract.ts` → `entities/card-news/server.ts`; Python `card_news/contract.py` | card-news feature/worker/route는 entity server의 parser 사용. video status 요청은 upload가 검증한 typed reference를 Inngest adapter에서 공통 wire parser로 검사해 전송. `inngest/card-news-contract.ts`는 event 타입/adapter이며 parser 정본을 복제하지 않음. client index에는 공개 DTO/editor 타입만 export | V-CN-CONTENT |
+| 기존 browser analytics context | `shared/analytics/lib/anonymous-id.ts::getOrCreateAnalyticsIds` → `shared/analytics/index.ts`; path 정규화는 `shared/analytics/lib/normalize-path.ts` | card-news client mutation에서 기존 ID만 전달; create/regenerate/save/export Action은 authenticated user를 별도로 확정하고 context를 검증·저장, 서버 event/flush에서 사용. context는 operation/requestHash·예약·소유권 판단에서 제외한다. 서버가 client-only ID getter를 import하지 않음 | TASK-CN4-01, V-CN-RELEASE의 context 유효/무효/누락·서버 fallback 검사; 현재 미구현 |
 | Analytics registry | `packages/db/src/analytics-contract.ts` → `packages/db/src/index.ts` → web shim/admin query | existing export 그대로. web 허용 metadata map은 별도 실제 수정 | web/admin check/test/build |
 
 `apps/admin` 코드/새 대시보드, GPU `B/main.py`/`B/asd/`/`B/requirements.txt`, 기존 결제 webhook/상품 ID/월 크레딧/초기 3크레딧, 기존 MP4 포맷은 **유지**한다. admin의 registry 소비는 string/grouping 기반이며 신규 event가 exhaustive label 변경을 요구하지 않는다. 해당 영향은 admin check/test/build로 다시 확인한다. dashboard upload form의 옵션/Clip 수 정책과 review 순수 선택 상한 정책은 잔액 금액 DTO를 소비하지 않아 유지한다. `useUploadPodcast` 변경은 기존 업로드 실패 정리의 삭제 반환 계약 대응만이다.
@@ -514,7 +518,7 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 
 ## Execution Plan
 
-단계는 반드시 **CN1 → CN2 → CN3 → CN4** 순서로 진행한다. 아래 작업은 제안이며 아직 실행하지 않았다. 담당은 DB/공통 과금, backend, web의 범위로 나누되 실제 배정과 보드 등재는 별도 작업으로 한다.
+의존성과 단계 완료 판정은 **CN1 → CN2 → CN3 → CN4** 순서를 따른다. 아래 TASK는 최초 구현 기준과 남은 보완·검증을 함께 정의한다. 제품 코드와 2026-10-11 로컬 검증 기록이 있어도 실제 CPU image·브라우저·운영 exit evidence까지 실행됐다는 뜻은 아니다. 후속 구현은 BLK-CN-03의 대상에 한정해 기존 파일을 보완하고, 이미 존재하는 모듈·migration을 다시 생성하지 않는다. 담당은 DB/공통 과금, backend, web의 범위로 나누되 실제 배정과 보드 등재는 별도 작업으로 한다.
 
 구현 파일/검증의 정본은 위 I-* inventory와 아래 verifier다. TASK의 영역 설명은 범위를 확장하지 않는다.
 
@@ -526,8 +530,8 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 | TASK-CN2-02 | I-CPU, I-CPU-ASSET, I-CPU-TEST, I-S3의 출력 검사 | 실제 image/폰트/후보/다운로드 JPG/ZIP 증거 |
 | TASK-CN2-03 | I-ACTIONS의 job-lifecycle, I-CARD, I-WORKER, I-CONFIG의 CPU 계약 | inbox 선도착/유실·lease·중복 producer·terminal 정산/복구 |
 | TASK-CN3-01 | I-ACTIONS의 사용자 Actions/query/editor, I-SCREEN, I-ENTRY | V-CN-EDITOR 전체와 실제 반환 body의 버전 일치 |
-| TASK-CN3-02 | I-CLIP/I-UPLOAD의 삭제, I-ACTIONS의 cleanup, I-CARD, I-WORKER의 cleanup, I-S3 | 부모 삭제 경쟁/producer 종료/늦은 파일/cover 참조/전체 페이지 정리 |
-| TASK-CN4-01 | I-ANALYTICS, I-CONFIG, I-COPY, I-UPLOAD/I-VERIFY의 legacy-drain writer; 이 문서의 운영 전환/복구 절차 | 이벤트/실제 카피/설정 gate, 구버전 실행 0 증거 |
+| TASK-CN3-02 | I-CLIP/I-UPLOAD의 삭제, I-ACTIONS의 cleanup, I-CARD, I-WORKER의 cleanup, I-S3, I-ENTRY의 삭제 소비자 | 부모 삭제 경쟁/producer 종료/늦은 파일/cover 참조/전체 페이지 정리와 accepted 응답·cardNews/cleanup 캐시 갱신 |
+| TASK-CN4-01 | I-ANALYTICS, I-CONFIG, I-COPY, I-UPLOAD/I-VERIFY의 legacy-drain writer, I-ACTIONS의 Action/lifecycle/client mutation; 이 문서의 운영 전환/복구 절차 | 수정 필드 수/context/event 복구, 실제 카피/설정 gate, 구버전 실행 0 증거 |
 | TASK-CN4-02 | I-VERIFY 및 모든 verifier | 요구사항별 결과·실물 이미지·Instagram 수동 업로드·release blocker 해소 |
 
 ### Phase CN1: 공통 크레딧과 데이터 기반
@@ -614,7 +618,8 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 - preserves: INV-CN-002, INV-CN-005, INV-CN-006.
 - governed-by: CON-CN-001, CON-CN-005.
 - 구현 목적지: 기존 clip/upload 삭제 오케스트레이션, 신규 cleanup 기록/worker, 필요한 S3 API.
-- 검증 목적지: 생성↔삭제 경쟁 통합 검증, 페이지네이션/부분 delete 오류 fixture, 수동 삭제 시나리오.
+- 남은 구현: I-CLIP의 `use-delete-clip.ts`/`use-delete-uploaded-file.ts`가 서버의 `{status: "deleting", cleanupId}`를 버리지 않고 호출자에 전달하도록 보완한다. 인증된 userId를 호출자에서 명시적으로 전달받아 `cardNewsKeys.user(userId)`와 `["asset-cleanup", userId]`를 무효화한다. upload/detail 기존 key 무효화는 유지하고 삭제 접수를 완료로 안내하지 않는다. gallery에서 tombstone을 숨긴 뒤에도 cleanup ID/status를 추적할 수 있어야 한다. ClipActions, 기존 useUploadPodcast/RecoverableUploadDrafts 반환값 소비자와 I-ENTRY를 함께 점검한다.
+- 검증 목적지: 생성↔삭제 경쟁 통합 검증, 페이지네이션/부분 delete 오류 fixture, 수동 삭제 시나리오. 완료된 세트 목록을 다른 탭에 캐시한 뒤 부모 삭제를 접수하고 재접속해 파생 목록과 cleanup 상태가 갱신되는지 V-CN-DELETE에서 확인한다.
 - 중단 조건: held 예약의 cascade 삭제, GPU/CPU unknown producer의 정리 완료, Clip 삭제의 원본/형제 범위 확장, manifest 밖 고아 파일 방치, S3 일부 실패를 성공으로 처리하는 경우.
 
 ### Phase CN4: 운영 적용·문구·품질 검증
@@ -622,7 +627,7 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 - satisfies: REQ-CN-014, REQ-CN-006, REQ-CN-009, REQ-CN-013.
 - preserves: INV-CN-001, INV-CN-002, INV-CN-004.
 - governed-by: CON-CN-002, CON-CN-006.
-- 진입: CN1~CN3 검증 증거와 BLK-CN-01 해소, BLK-CN-02의 drain/복구를 실행할 준비와 배포 범위 별도 승인. BLK-CN-02는 이 단계의 운영 전환 검증으로 해소하며 CN4 진입 전에 이미 완료됐다고 요구하지 않는다.
+- 진입: CN1~CN3 검증 증거, BLK-CN-03의 TASK-CN3-02 보완 완료와 BLK-CN-01 해소, BLK-CN-02의 drain/복구를 실행할 준비와 배포 범위 별도 승인. BLK-CN-02는 이 단계의 운영 전환 검증으로 해소하며 CN4 진입 전에 이미 완료됐다고 요구하지 않는다.
 - 종료: 제한된 출시에서 실제 다운로드 결과·정산·실패 복구 확인, 카드뉴스 기능 활성화 판단.
 
 #### TASK-CN4-01: 설정·카피·계측과 안전한 전환
@@ -631,7 +636,9 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 - preserves: INV-CN-001, INV-CN-002, INV-CN-004.
 - governed-by: CON-CN-002, CON-CN-006.
 - 구현 목적지: env/.env.example, 공유 analytics 계약과 web 이벤트, 가격/기능/사용법/약관/개인정보 카피, 배포·복구 절차.
-- 검증 목적지: analytics 계약 tests, web/admin check/build, 테스트 사용자 정산·예약 대조.
+- 남은 구현: `api/index.ts`의 create/regenerate/save/export payload에 optional analyticsContext를 추가하고 `model/use-card-news.ts`가 기존 shared 공개 API의 ID를 전달한다. context는 anonymousId/sessionId만 trim 후 8~80자로 허용하고, 기존 ID 생성기의 anon_/session_ 접두사와 UUID 또는 timestamp-base36 suffix 형식을 검사한다. 추가 키·원문·URL·userId를 받지 않는다. 값이 부적합하면 context만 폐기해 생성·과금 결과에 영향을 주지 않는다. `createPaidCardNews`는 product payload(clipId/requestId/theme/regeneratedFromId)만 requestHash로 계산하고 첫 수락 context를 Job에 저장한다. 동일 requestId의 재전송은 다른 context 때문에 충돌하거나 최초 context를 바꾸지 않는다. 무료 Job은 최초 결과 Job의 context를 fallback으로 계승한다. 수정 pending event에는 해당 저장 요청의 검증된 context를 event별로 보존해 병합된 여러 revision의 기록을 구분하고, `flushCardNewsAnalytics`는 event context → Job context → 서버 가명 ID 순으로 사용한다. export의 다운로드 event는 해당 요청의 검증된 context → Job context → 서버 가명 ID 순으로 기록하며 기존 best-effort 실패 처리와 파일 발급 의미를 유지한다. 서버 userId/가격/소유권을 context에서 읽지 않는다.
+- `editedFieldCount`는 카드 ID로 대응시킨 title/body/highlight 각각의 변경, caption/hashtags/theme/accentColor/coverCandidateId 각각의 변경, body 순서 변경 1건을 합한다. derived origin/sourceSentenceIds나 단순 위치 이동에 따른 다른 카드 비교는 세지 않는다. 모든 입력이 동일하면 0이다. 수동 원문 자체는 event에 보내지 않는다. `job-lifecycle.ts`의 저장 트랜잭션에서 이 정수만 pendingAnalytics에 보존한다.
+- 검증 목적지: analytics 계약 tests와 lifecycle DB CLI의 context·실제 수정 필드 카운트·event 중복/CAS·flush 실패 복구 검사, web/admin check/build, 테스트 사용자 정산·예약 대조. 현재 sanitizer tests만으로 이 구현 보완을 통과시키지 않는다.
 - 중단 조건: 예약을 표시하지 않는 소비자, 실제 범위와 다른 과금 문구, 카드뉴스 feature flag 밖 과금 진입 발견.
 
 #### TASK-CN4-02: 최종 경쟁·렌더·다운로드 평가
@@ -645,13 +652,13 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 
 ## Verification Plan
 
-모든 구현 검증은 **Planned**다. 현재 설치된 npm/tsx·stdlib unittest·Prisma·FSD 검사 체계를 사용한다. 테스트 전용 프레임워크나 GPU 의존성을 추가하지 않는다.
+아래는 요구사항별 필수 검증 계약이다. 2026-10-11 실행된 항목은 Implementation Results의 과거 기록이며, 나머지와 BLK-CN-03 보완 후 재검증은 **Planned/Not executed**다. 이번 문서 감사는 코드/계약·검증 목적지를 대조하고 surface·SDD 검사를 실행했으며 제품 빌드/DB 경쟁/유료 외부 실행을 다시 수행하지 않았다. 현재 설치된 npm/tsx·stdlib unittest·Prisma·FSD 검사 체계를 사용한다. 테스트 전용 프레임워크나 GPU 의존성을 추가하지 않는다.
 
 ### 최종 결과물의 정본과 검증 목적지
 
 | 결과물 | winning source / 우선순위 | 본문·의존성 | 실제 확인 목적지 |
 | --- | --- | --- | --- |
-| JPG/표지 후보 | 선택된 Job manifest + immutable input + pinned renderer | 1080×1350 RGB JPEG, 원본의 3개 후보, font SHA/템플릿 버전. 웹 편집 텍스트가 파일을 대체하지 않음 | V-CN-RENDER에서 인증 후 받은 각 JPG 디코드, 모바일 표시, glyph/bounds |
+| JPG/표지 후보 | 선택된 Job manifest + immutable input + pinned renderer | 카드 JPG는 1080×1350 RGB JPEG. 표지 후보는 원본 비율을 유지해 1920×1080 안에 맞춘 별도 JPEG 3개이며 카드 규격을 강제하지 않음. font SHA/템플릿 버전 고정; 웹 편집 텍스트가 파일을 대체하지 않음 | V-CN-RENDER에서 인증 후 받은 각 JPG 디코드, 모바일 표시, glyph/bounds |
 | ZIP | 동일 manifest의 카드 entry 순서 | 카드 ID→`01-cover.jpg`… 이름, 동일 이미지 hash/장수. timestamp/압축 metadata의 차이는 카드 내용 판정과 분리 | V-CN-RENDER에서 다운로드 ZIP의 중앙 디렉터리 순서·파일명·이미지 hash |
 | caption/hashtags/근거 | 선택된 manifest의 draftDocument | 해당 파일 revision의 문구; sourceSentenceIds는 AI 문구 근거, 수동 문구는 user-edited | V-CN-CONTENT/EDITOR의 실제 복사 텍스트·근거 표시·원문 대조 |
 | 목록/편집/삭제 진행 화면 | 인증된 서버 DTO/DB Job·Set·Cleanup | 사용자별 query, 저장 전 로컬 초안 별도, 이전 완성본 버전 label. arbitrary key와 원본 server snapshot 비공개 | V-CN-EDITOR/DELETE의 두 사용자 직접 URL·새로고침·저장 충돌·cleanup 완료 화면 |
@@ -700,7 +707,7 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 
 - verifies: REQ-CN-008, REQ-CN-009, REQ-CN-011, REQ-CN-012.
 - 위치: `apps/web/scripts/verify-card-news-lifecycle.mts`, `F/shared/api/s3-policy.test.mjs`, I-SCREEN 및 기존 Clip/upload 삭제의 수동 프로토콜.
-- 관측: 활성 job 삭제 거부, 생성/삭제 동시 요청에서 둘 다 진행하지 않음, deleting 결과 접근 차단, cleanup crash 후 재개, 1,000개 초과 목록 전 페이지와 부분 업로드 정리, bulk delete 개별 오류 재시도, 예약 이력 보존.
+- 관측: 활성 job 삭제 거부, 생성/삭제 동시 요청에서 둘 다 진행하지 않음, deleting 결과 접근 차단, cleanup crash 후 재개, 1,000개 초과 목록 전 페이지와 부분 업로드 정리, bulk delete 개별 오류 재시도, 예약 이력 보존. 두 기존 삭제 hook의 accepted 상태/cleanup ID 전달 및 cardNews/asset-cleanup key 무효화를 확인하고, 다른 탭의 캐시된 파생 목록·실패 재시도 UI를 검사한다. tombstone 숨김과 최종 파일 삭제 성공을 구분한다.
 - Clip A/Clip B가 같은 attempt prefix를 쓰는 fixture에서 A 삭제는 A의 유료 재생성 세트도 제거하고 원본·B·B의 세트 bytes/DB 행을 유지해야 한다. Set A만 삭제하면 원본 Clip과 별도 재생성 세트를 보존하고, UploadedFile 삭제는 해당 원본의 파생 세트 전체를 제거해야 한다. final scan은 exact key와 전용 prefix만 검사하며 공유 prefix의 retained 객체를 지우지 않는다.
 - terminal job 뒤에도 CPU/GPU auto/render/analyze producer가 쓰는 경우, HTTP spawn 응답 유실, Modal scheduling 지연, 완료 통지 없이 crash, call 조회 unknown을 주입한다. 종료 확인 전 cleanup 완료/DB cascade가 없어야 하고 종료 뒤 늦게 쓴 객체까지 final scan으로 제거돼야 한다. call ID 없는 기존 성공/실패 Clip의 cleanup은 binding이 맞는 durable legacy-drain 근거가 있을 때만 완료 가능하며 receipt 없는 terminal 상태만으로 ended를 추정하지 않는다. 최신 두 revision과 공용 cover 후보 참조는 retention cleanup 뒤에도 다운로드 가능해야 한다. 임의 parent/다른 사용자의 prefix 삭제는 거부한다. 원본/Clip/video 새 시도와 삭제 intent도 같은 부모 잠금으로 경쟁시킨다.
 
@@ -709,7 +716,7 @@ epoch/CAS는 DB 공개를 막을 뿐 CPU/GPU의 늦은 S3 쓰기를 취소하지
 - verifies: REQ-CN-006, REQ-CN-009, REQ-CN-013, REQ-CN-014.
 - 위치: 공유 analytics tests, 기존 check/test/build, 제한된 테스트 사용자 실행 기록.
 - 관측: 허용 메타데이터만 기록, 노출 화면과 실제 정산 일치, 문구와 보관 정책 일치, 기존 영상 정상·부분 성공·실패 검증, 기능 비활성 상태에서 새 카드뉴스 요청 거부.
-- 기존 실패와 신규 실패는 구현 시작 시 baseline 결과를 기록해 구분한다. 실제 Instagram 저장/공유 성과를 다운로드 이벤트에서 추정하지 않는다.
+- 후속 보완의 기존 실패와 신규 실패는 feat/card-news의 보존 구현을 baseline으로 기록해 구분한다. `editedFieldCount`의 caption만 변경, theme/cover만 변경, body reorder, 복수 필드 변경, no-op과 conflict/rollback을 검증한다. valid context 보존·URL/원문/잘못된 ID 형식/invalid/누락 context의 fallback·같은 requestId/다른 context 재전송의 작업/예약 1개와 최초 context 불변·서로 다른 context의 병합 revision·export event·다른 사용자 context가 권한/가격에 영향을 주지 않음·중복 flush의 1개 event를 실제 event 행으로 검사한다. 실제 Instagram 저장/공유 성과를 다운로드 이벤트에서 추정하지 않는다.
 - canonical event는 `card_news_requested`, `card_news_completed`, `card_news_failed`, `card_news_edited`, `card_news_regenerated`, `card_news_downloaded`다. 허용 키는 `setId`, `jobId`, `revision`, `cardCount`, `durationMs`, `failureCode`, `billingStatus`, `editedFieldCount`이며 값은 enum/유한 수/짧은 ID로 검증한다. 금전 판단에는 analytics를 사용하지 않는다. 요청/정산/수정 기록은 서버에서 CAS와 결합한 결정적 event ID로 중복을 막고, 유효한 anonymous/session context가 있으면 보존한다. browser context가 없으면 서버의 사용자별 가명 ID를 쓰며 원문/secret/presigned URL을 넣지 않는다. analytics entity는 optional tx/id를 받아 기존 호출을 유지하고 기록 실패/재시도는 durable job pending 기록으로 복구한다. 다운로드 이벤트는 URL 발급/다운로드 행동을 의미하며 수신 완료나 Instagram 게시를 주장하지 않는다.
 - I-COPY의 `/pricing`, `/how-it-works`, `/product-tour`, `/about`, `/terms`, `/privacy` visible body와 metadata/FAQ JSON-LD를 검사한다. 영상의 부분 성공 과금 문구를 유지하면서 카드뉴스의 전체 완성 정산을 명시한다. 계정 연동/자동 게시/무료 AI 재생성을 약속하는 새 문구가 없어야 한다. 기존 analytics funnel/plan 상품/초기 credits/GPU 파일은 baseline과 동일해야 한다.
 
@@ -727,11 +734,17 @@ python -m py_compile apps/backend/main.py
 npm.cmd run db:generate:client -w @repo/db
 ```
 
-신규 목적지의 실행 명령(Python은 저장소 루트, Node는 `apps/web`에서 실행):
+CPU 목적지의 실행 명령(저장소 루트):
 
 ```powershell
 python -m compileall -q apps/backend/card_news_app.py apps/backend/card_news
 python -m unittest discover -s apps/backend -p "test_card_news_*.py" -v
+```
+
+Node 목적지의 실행 명령(`apps/web` 디렉터리):
+
+```powershell
+node --import tsx --test scripts/card-news-verification-runtime.test.mjs
 node --conditions=react-server --import tsx scripts/verify-card-news-credit-concurrency.mts
 node --conditions=react-server --import tsx scripts/verify-card-news-lifecycle.mts
 node --conditions=react-server --import tsx scripts/verify-card-news-video-compatibility.mts
@@ -742,7 +755,18 @@ DB 세 스크립트는 `CARD_NEWS_TEST_DATABASE_URL`과 `CARD_NEWS_TEST_DATABASE
 
 CLI bootstrap은 검증한 DB URL을 설정한 뒤, 첫 앱 import 전에 `NODE_ENV=test`와 env.js의 필수 AWS/S3·video/Modal·Google auth·Polar 값 및 신규 card-news 설정을 합성 fixture 값으로 초기화한다. 외부 URL은 `.invalid` 도메인, secret은 테스트 상수이며 optional Sentry/실제 event key는 비운다. 상속된 운영 외부 자격 증명을 그대로 쓰지 않고 원래 env는 종료 시 복원한다. `.env` load나 env 검증 우회는 하지 않는다. `features/card-news/api/runtime-dependencies.ts`의 server-only private 경계가 auth guard·clock·S3·event/status I/O 기본 구현을 제공하고 테스트는 그 경계에만 fake를 주입한다. Action payload/공개 index/HTTP route에 테스트 설정 API를 노출하지 않는다. CLI에서는 실제 wrapper의 인증/소유권 분기를 검사하고 실제 cookie/session 처리는 브라우저 프로토콜에서 확인한다. 선언한 테스트 DB connector 이외 네트워크 호출은 테스트 실패로 처리하고 각 case와 finally에서 의존성·env·mock을 원복한다.
 
-`verify-card-news-surfaces.mts`는 TypeScript AST/JSON parser와 inventory를 사용한다. 기대 outcome은 다음과 같다: 새 server exports/Actions/query key/등록 route/schema `$defs` **존재**; worker의 이전 `findAttemptGeneratedClipKeys`/`persistGeneratedClips` 정의와 예약 video의 직접 `decrementUserCreditsFloorZero`/terminal 우회 **부재**; CPU의 GPU main/torch/whisperx/asd import, pure contract/prompt/layout의 modal/boto3/PIL import, entity/feature peer import, client-safe barrel의 DB/secret/snapshot export **금지**. 기존 upload DTO의 `currentUserCredits`와 balance 소비 UI의 단일 `credits` prop는 전환 후 없어야 한다. 순수 Clip/예약 정책 및 font/schema를 image에 포함하는 wiring은 존재해야 한다. video의 call_id parser/recordProcessingSpawnResult, 공통 status handler와 두 producer-status `$defs`, billing route의 CreditBalance slot 조합은 존재해야 한다. billing→credit-balance peer import와 client barrel의 runtime-dependencies export는 금지한다. dispatch migration의 unknown 기본값/새 create의 not_sent, upload server-only recordLegacyProducerDrain와 운영 script는 존재해야 하며 이 helper의 Action/client export는 금지한다. 모든 기능 worker의 serve 등록과 cron을 확인하고 I-COPY/보관/과금 body의 실제 검증은 browser/HTTP 프로토콜로 별도 수행한다.
+`verify-card-news-surfaces.mts`의 현재 자동 검사 범위는 고정 경로의 server/Action symbol 문자열, serve symbol, JSON의 7개 $defs, 옛 helper의 FunctionDeclaration AST 부재, worker의 floor-zero 호출 문자열 부재, billing peer import·일부 CPU import·legacy default·slot·옛 DTO 문자열이다. public export의 실제 해석, 모든 금지 import, trigger/cron 구조, image 자산 포함, 상세 회귀까지 자동 증명하는 스크립트는 아니다. 다음 전체 기대 outcome은 이 스크립트에 FSD/check/build, wiring tests, 실제 DB CLI와 아래 보완 감사를 합쳐 검증한다: 새 server exports/Actions/query key/등록 route/schema `$defs` **존재**; worker의 이전 `findAttemptGeneratedClipKeys`/`persistGeneratedClips` 정의와 예약 video의 직접 `decrementUserCreditsFloorZero`/terminal 우회 **부재**; CPU의 GPU main/torch/whisperx/asd import, pure contract/prompt/layout의 modal/boto3/PIL import, entity/feature peer import, client-safe barrel의 DB/secret/snapshot export **금지**. 기존 upload DTO의 `currentUserCredits`와 balance 소비 UI의 단일 `credits` prop는 전환 후 없어야 한다. 순수 Clip/예약 정책 및 font/schema를 image에 포함하는 wiring은 존재해야 한다. video의 call_id parser/recordProcessingSpawnResult, 공통 status handler와 두 producer-status `$defs`, billing route의 CreditBalance slot 조합은 존재해야 한다. billing→credit-balance peer import와 client barrel의 runtime-dependencies export는 금지한다. dispatch migration의 unknown 기본값/새 create의 not_sent, upload server-only recordLegacyProducerDrain와 운영 script는 존재해야 하며 이 helper의 Action/client export는 금지한다. 모든 기능 worker의 serve 등록과 cron을 확인하고 I-COPY/보관/과금 body의 실제 검증은 browser/HTTP 프로토콜로 별도 수행한다.
+
+자동 검사만으로 남는 목적지는 다음 절차로 닫고 결과를 verifier별로 기록한다. 문자열/정상 HTTP status만으로 통과시키지 않는다.
+
+| 경계 | 정확한 목적지와 기대 결과 | 검증 방법·시점 |
+| --- | --- | --- |
+| public API·옛 책임 부재 | I-USER/I-RESERVATION/I-CARD/I-ACTIONS/I-UPLOAD server/client exports → 실제 소비자; 옛 두 worker helper 정의와 paid terminal/floor-zero 우회 없음 | `npm.cmd run check -w apps/web`의 FSD 및 타입 검사, build의 server-only 검사 + export/import AST 직접 대조. findAttemptGeneratedClipKeys의 새 server export는 허용, persistGeneratedClips 정의는 양쪽에서 부재 |
+| cron·callback·서버 인증 | I-WORKER의 10개 serve 함수; generate/render 이벤트 2개와 minute cron 4개; callback Bearer와 durable inbox | functions/client/serve의 trigger 및 호출 체인 직접 대조 + V-CN-CONTENT/DELETE의 실제 handler/복구 fault injection |
+| CPU 순수성·배포 의존 | I-CPU의 policy/contract/prompt/layout은 stdlib-only; app은 GPU import 없음; assets/schema/fixtures 포함 | test_card_news_wiring.py의 AST + dependency-manifest/requirements JSON·버전/font SHA 대조 + BLK-CN-01의 실제 image qualification |
+| DB·생성 client | I-DB의 모델 5개, 잔액·예약·종결·cascade 제약; generated schema/런타임 모델/타입 | schema 구조와 generated Prisma.dmmf 필드/관계 대조. 포맷·index 선언 순서 차이는 데이터 구조 drift와 구분. DB CHECK/FK/partial index/delete trigger는 실제 별도 DB introspection과 거부 case |
+| 테스트 실행 격리 | I-VERIFY의 runtime과 unit test, I-ACTIONS/I-UPLOAD의 private runtime | script unit test는 별도 명령으로 실행(기존 npm test의 src glob에 포함되지 않음). DB CLI의 import 전 env/fetch 초기화·모든 finally 복원과 fixture 정리 확인 |
+| body/카피·보존·실제 export | I-COPY/I-KEEP, JPG/ZIP/manifest/font, editor/cleanup UI | V-CN-RELEASE의 HTML body와 parsed FAQ JSON-LD, V-CN-RENDER의 인증 다운로드 bytes·ZIP 순서, V-CN-EDITOR/DELETE의 브라우저 프로토콜. 운영 실행 전에는 미실행으로 기록 |
 
 CPU 환경의 실제 실행(소유자 승인 후, external/cost-bearing; 이 감사에서는 실행하지 않음):
 
@@ -751,18 +775,18 @@ modal run --env card-news-test apps/backend/card_news_app.py --verify-fixtures
 modal run --env card-news-test apps/backend/card_news_app.py --verify-model
 ```
 
-CPU 앱은 이 두 CLI bool 옵션을 갖는 local_entrypoint를 구현한다. verify-fixtures는 CPU image에서 schema/font/version/FFmpeg·Pillow/ZIP을 확인하고 합성 이미지 artifact를 로컬 임시 경로에 내보낸다. Gemini/GPU/사용자 원본 호출은 하지 않는다. verify-model은 승인된 합성 대본의 provider projection/가용성/timeout 계약을 한정된 호출로 확인한다. 라이브 S3·callback/producer 종료 확인 및 실제 Instagram 업로드는 V-CN-CREDITS/RENDER/DELETE/RELEASE 수동 프로토콜의 별도 증거다. 이미지나 의미 평가는 아직 없는 구현 결과이므로 이 문서의 감사 통과로 대체할 수 없다.
+CPU 앱은 이 두 CLI bool 옵션을 갖는 local_entrypoint를 구현한다. verify-fixtures는 CPU image에서 schema/font/version/FFmpeg·Pillow/ZIP을 확인하고 합성 이미지 artifact를 로컬 임시 경로에 내보낸다. Gemini/GPU/사용자 원본 호출은 하지 않는다. verify-model은 승인된 합성 대본의 provider projection/가용성/timeout 계약을 한정된 호출로 확인한다. 라이브 S3·callback/producer 종료 확인 및 실제 Instagram 업로드는 V-CN-CREDITS/RENDER/DELETE/RELEASE 수동 프로토콜의 별도 증거다. 로컬 합성 이미지 기록이 있어도 실제 image qualification·10개 모델 결과의 사람 원문 대조·인증 다운로드 검증은 이 문서의 감사 통과로 대체할 수 없다. --verify-model은 2개 합성 원문의 provider smoke이며 10개 대본 의미 평가 전체를 실행하지 않는다.
 
 stdlib 테스트 실행 개수가 0이면 통과가 아니다. migration·생성 client·npm 제품 검사·외부 CPU/Gemini/S3 명령은 이 문서 감사에서 실행하지 않는다. 실제 구현 승인 후 기준 결과와 비교한다.
 
 ### Definition of Done / 경계 확인
 
-- 14개 REQ마다 연결 TASK/verifier의 실행 결과와 실제 post-change destination을 기록한다. 구현되지 않은 예정 파일/명령을 실행 성공으로 쓰지 않는다.
+- 14개 REQ마다 연결 TASK/verifier의 실행 결과와 실제 post-change destination을 기록한다. BLK-CN-03의 삭제 캐시/cleanup 반환·수정 필드 계측·analytics context 보완과 보완 감사의 전체 목적지를 닫기 전 구현 완결을 주장하지 않는다. 구현되지 않은 예정 파일/명령을 실행 성공으로 쓰지 않는다.
 - 예약 합계/CAS/부분 성공/전역 복구/late 결과/삭제 경쟁·GPU/CPU producer 종료의 money/data 경계는 실제 DB와 fault injection 증거로 닫는다. unknown spawn의 기록 유실이나 원본/형제 객체 삭제를 성공으로 처리하지 않는다. 기존 dispatch의 보수적 unknown 기본값과 승인된 legacy-drain 근거의 대상별 저장/복구를 검증한다.
 - 클라이언트 인증과 서버 worker 인증, cache identity/reset, callback 선도착/유실, mutable test state 정리를 모두 검증한다.
 - 다운로드한 실제 JPG/ZIP/복사 문구의 동일 revision·해시·순서·폰트/원문 근거를 확인한다.
 - source→public API→import→등록→검증 체인이 닫히고 옮긴 helper의 옛 위치에는 stale 구현이 없다. 유지 범위에 새 변경이 없어야 한다.
-- feature flag/gate를 통한 제한 출시와 구버전 drain 증거를 기록하고 새 worker 시작 전에 call ID 없는 legacy dispatch에 해당 종료 근거를 저장한다. BLK-CN-01/02가 열려 있으면 유료 일반 출시/단계 완료를 선언하지 않는다.
+- feature flag/gate를 통한 제한 출시와 구버전 drain 증거를 기록하고 새 worker 시작 전에 call ID 없는 legacy dispatch에 해당 종료 근거를 저장한다. BLK-CN-01/02/03이 열려 있으면 유료 일반 출시/단계 완료를 선언하지 않는다.
 
 ## Safety Analysis
 
@@ -777,13 +801,13 @@ stdlib 테스트 실행 개수가 0이면 통과가 아니다. migration·생성
 
 ## Blockers / 미검증 의존
 
-### BLK-CN-01: CPU 렌더와 폰트의 실물 증거가 없다
+### BLK-CN-01: 실제 Modal image·모델·다운로드 검증이 미완료다
 
 - classification: downstream; Phase CN2의 완료/배포를 차단한다.
-- evidence: 현재 전용 CPU 앱/requirements/실제 한국어 카드 출력이 없다.
-- affects: REQ-CN-003, REQ-CN-005, TASK-CN2-02.
+- evidence: 전용 CPU 앱/requirements/폰트와 2026-10-11 로컬 합성 48 JPG/10 ZIP 기록은 있다. dependency-manifest의 modalImage/modelAvailability는 not-executed이며 실제 Modal Python 3.12 image qualification, 모델 의미 평가와 인증 사용자 다운로드 실물 증거는 없다.
+- affects: REQ-CN-002, REQ-CN-003, REQ-CN-005, TASK-CN2-02, TASK-CN4-02.
 - impact: 코드·문법 검증만으로 글꼴 누락, 줄바꿈, 이미지 품질을 보장할 수 없다.
-- unblock requirement: pinned CPU 환경/폰트로 V-CN-RENDER 수행, 이미지와 검증 결과 기록.
+- unblock requirement: pinned Modal image에서 verify-fixtures qualification과 V-CN-RENDER 수행, 실제 모델 smoke 및 KO/EN 10개 원문의 의미 평가, 인증 다운로드 JPG/ZIP·복사 문구를 검증하고 환경·버전·artifact를 기록. 로컬 렌더나 2개 모델 smoke로 전체 통과를 대체하지 않는다.
 - owner: backend 구현 담당; 배정 전.
 - stop condition: 이 증거 없이 CN2를 완료 처리하거나 사용자 유료 생성 활성화 금지.
 
@@ -797,7 +821,17 @@ stdlib 테스트 실행 개수가 0이면 통과가 아니다. migration·생성
 - owner: 프로젝트 소유자/배포 담당.
 - stop condition: 구버전 과금 작업과 새 예약 작업이 같은 잔액을 동시에 사용하도록 출시 금지.
 
-분리 테스트 DB는 이번 구현에서 직접 구성했고 실제 통합 CLI 3종이 통과했다. CPU 배포 환경·실제 image·모델 호출/비용 증거는 아직 **unverified**다. CPU는 Python 3.12 + 별도 debian_slim image, FFmpeg, requirements-card-news의 직접 pinned modal/google-genai/Pillow/boto3/requests/fastapi를 사용한다. 정확한 패키지 해석 결과/font SHA는 dependency-manifest artifact에 기록했고 실제 image에서 qualify한 뒤에만 동작시키며 GPU requirements를 상속하지 않는다. 모델은 기존과 같은 `gemini-2.5-flash`이고 availability/projection smoke가 실패하면 신규 기능 flag를 유지한 채 후보 변경을 다시 검토한다. 로컬 렌더 및 DB 증거와 실제 운영 출시 검증을 구분한다.
+### BLK-CN-03: 삭제 캐시와 수정 계측 — 2026-10-20 코드 보완·자동 검증 완료
+
+- classification: resolved-code; 2026-10-20 사용자의 후속 구현 요청으로 기존 hook·Action·lifecycle·analytics를 보완했다. 아래 evidence는 2026-10-14의 발견 기록이며 현재 상태는 [출시 검증 기록](../../card-news-release-verification-20261020.md)으로 갱신한다. 인증 브라우저·운영 출시 검증은 BLK-CN-01/02와 CN4의 별도 exit 조건으로 유지한다.
+- evidence: 두 기존 삭제 hook은 cleanup 응답을 ID로 바꾸고 upload key만 갱신한다. cardNews/asset-cleanup key 무효화가 없다. saveCardNewsRevision의 editedFieldCount는 위치별 카드 객체 비교로 계산해 caption/theme/cover 수정은 0, reorder는 여러 카드 변경으로 기록한다. create/regenerate Action은 analyticsContext를 받지 않고 flush는 항상 서버 가명 ID를 사용한다.
+- affects: REQ-CN-012, REQ-CN-014, TASK-CN3-02, TASK-CN4-01, I-CLIP, I-ACTIONS, I-ANALYTICS, I-VERIFY.
+- impact: 삭제된 파생 목록이 캐시에 남고, 계획한 수정량/context 지표와 실제 event가 다를 수 있다. 과거 money/contract 테스트 통과로 이 경계를 닫을 수 없다.
+- unblock requirement: 해당 TASK의 정확한 hook·Action·lifecycle·analytics 목적지를 보완하고 V-CN-DELETE/RELEASE의 캐시·cleanup 응답·필드 카운트·context·flush 실패/중복/rollback 검증을 실행한다. 이벤트에 원문·URL·비밀값을 추가하지 않는다.
+- owner: web 구현 담당; 후속 구현 요청에서 수행.
+- stop condition: 보완 전 구현 전부 완료·REQ-CN-012/014 완전 충족·일반 출시를 선언하지 않는다. 문서 정합성 통과는 이 blocker의 코드 해결을 뜻하지 않는다.
+
+분리 테스트 DB는 2026-10-11 구현 검증에서 구성했고 실제 통합 CLI 3종 통과 기록이 있다. CPU 배포 환경·실제 image·모델 호출/비용 증거는 아직 **unverified**다. CPU는 Python 3.12 + 별도 debian_slim image, FFmpeg, requirements-card-news의 직접 pinned modal/google-genai/Pillow/boto3/requests/fastapi를 사용한다. 요구하는 pinned 패키지 버전/font SHA는 dependency-manifest에 고정했고 실제 image의 해석·설치 버전은 qualification artifact로 확인한 뒤에만 동작시키며 GPU requirements를 상속하지 않는다. 모델은 기존과 같은 `gemini-2.5-flash`이고 availability/projection smoke가 실패하면 신규 기능 flag를 유지한 채 후보 변경을 다시 검토한다. 로컬 렌더 및 DB 증거와 실제 운영 출시 검증을 구분한다.
 
 ## Risks and Rollback
 
@@ -810,7 +844,7 @@ stdlib 테스트 실행 개수가 0이면 통과가 아니다. migration·생성
 5. CPU endpoint·callback·복구·cleanup을 배포하고 카드뉴스는 제한된 검증 사용자에게만 연다.
 6. V-CN-CREDITS/RENDER/RELEASE 증거와 비용을 확인한 뒤 일반 사용자 flag를 활성화한다. 스키마 체크 성공만으로 유료 생성을 열지 않는다.
 
-운영 종료 근거 기록 명령은 운영 배포 범위 확인 뒤 `apps/web`에서 실행한다. receipt는 소유자가 위 절차로 독립 확인한 운영 입력이며 이번 로컬 검증의 합성 receipt를 운영 근거로 쓰지 않는다. 기본 명령은 변경 없는 dry-run이고 두 번째 명령의 --apply는 DB를 변경한다.
+운영 종료 근거 기록 명령은 운영 배포 범위 확인 뒤 `apps/web`에서 실행한다. 이 CLI는 .env를 로드하지 않으므로 승인된 배포 프로세스의 DATABASE_URL/DATABASE_URL_UNPOOLED 및 env.js 필수값을 먼저 공급해야 한다. 테스트 fixture env나 테스트 receipt를 운영 입력으로 사용하지 않는다. receipt는 소유자가 위 절차로 독립 확인한 운영 입력이며 이번 로컬 검증의 합성 receipt를 운영 근거로 쓰지 않는다. 기본 명령은 변경 없는 dry-run이고 두 번째 명령의 --apply는 DB를 변경한다.
 
 ```powershell
 $drainReceiptPath = (Resolve-Path -LiteralPath (Read-Host 'Path to the independently checked drain receipt JSON')).Path
@@ -855,7 +889,7 @@ CARD_NEWS_ENABLED는 새 유료 생성만 제어한다. disabled 상태에서도
 - additive 컬럼/테이블과 정산 이력은 즉시 삭제하지 않는다. 데이터 제거는 별도 migration 검토로 수행한다.
 - 롤백 확인: 중복 과금 0, 예약 합계 일치, 기존 영상/ready 카드뉴스 접근 가능, late callback 부활 없음.
 
-## Verification Results
+## Verification Results — 2026-10-11 작성·구현 전 감사 기록
 
 | 대상 | 상태 | 결과/제한 |
 | --- | --- | --- |
@@ -867,7 +901,7 @@ CARD_NEWS_ENABLED는 새 유료 생성만 제어한다. disabled 상태에서도
 | 로컬 링크·문서 형식 | Executed | Markdown 로컬 링크 2개 모두 존재, trailing whitespace 0. front matter의 related 경로도 존재 여부 확인 |
 | 최종 의미 점검 | Executed | 사용자 결정, 기존/신규 경로 구분, FSD peer import 회피, 공유 과금·부분 성공·버전·중복 출력·삭제 경쟁을 대조. 실제 구현 증거를 대신하지 않음 |
 
-### 이번 코드 대조에서 확인한 개선 사항
+### 2026-10-11 최초 코드 대조의 개선 사항
 
 처음부터 개선점이 없었던 문서는 아니다. 2026-10-11 편집 패스에서 다음 결함을 근거와 함께 교정했다. 아래는 구현 결과가 아닌 제안서 교정 기록이며 최종 무편집 재검증 결과는 응답에 별도로 남긴다.
 
@@ -880,7 +914,7 @@ CARD_NEWS_ENABLED는 새 유료 생성만 제어한다. disabled 상태에서도
 | 최초 원고와 렌더 revision·최종 body 검증 불명확 | 생성 전 draft/manifest 본문/과거 파일 caption·대기 병합된 편집 이력의 저장 위치 미지정; 신규 CPU/DB 명령 미지정 | revision 0→1과 불변 draftSnapshots, 최종 artifact map, 실제 다운로드 bytes/ZIP 검증, V-CN-EDITOR/DoD |
 | cutover 순서와 설정 이름 미확정 | ingress와 worker 시작을 동시에 막으면 queued drain 불가; env 이름은 구현 때 결정하도록 남음 | 분리 gate/drain 순서, 설정 계약, BLK-CN-02 |
 
-### 이번 재검증에서 추가로 교정한 사항
+### 2026-10-11 재검증의 추가 교정
 
 | 결함 | 현재 코드 근거 | 해소 위치 |
 | --- | --- | --- |
@@ -893,15 +927,15 @@ CARD_NEWS_ENABLED는 새 유료 생성만 제어한다. disabled 상태에서도
 
 ## Approval / 구현 준비도
 
-후속 사용자가 이 문서를 바탕으로 실제 코드 수정을 명시적으로 요청했다. front matter에 코드 구현·분리된 로컬 검증 범위의 승인을 기록했다. 운영 DB migration·배포·일반 유료 출시와 커밋·푸시는 수행하지 않았다.
+후속 사용자가 이 문서를 바탕으로 실제 코드 수정을 명시적으로 요청했다. front matter에 코드 구현·분리된 로컬 검증 범위의 과거 승인을 기록했다. 2026-10-11 구현은 커밋되지 않았지만 다른 세션이 2026-10-13 feat/card-news의 72bde11에 보존했다. 이번 감사에서는 커밋·푸시·운영 DB migration·배포·일반 유료 출시를 수행하지 않았다.
 
-구현 코드의 로컬 검증과 제품의 운영 출시를 구분한다. BLK-CN-01의 실제 Modal image·모델 의미 평가와 BLK-CN-02의 운영 legacy drain/전환 증거는 남아 있다. 일반 유료 생성 flag는 비활성 기본값을 유지하며, 이 증거를 확보하기 전 제안서를 완료 경로로 이동하지 않는다. 보드 상태는 이번 변경으로 전이하지 않았다.
+구현 코드의 로컬 검증과 제품의 운영 출시를 구분한다. BLK-CN-01의 실제 Modal image·모델 의미 평가와 BLK-CN-02의 운영 legacy drain/전환 증거는 남아 있다. BLK-CN-03의 현재 구현 보완과 BLK-CN-01/02의 운영 증거를 모두 확보하기 전 일반 유료 생성 flag의 비활성 기본값과 active 경로를 유지한다. 이번 요청은 문서 검증·편집이며 과거 승인 기록을 새 코드 수정·운영 실행 권한으로 확대하지 않는다. 보드 상태는 이번 변경으로 전이하지 않았다.
 
 ## Completion or Closure Notes
 
-제품 코드 구현과 로컬 검증 기록을 추가했다. 운영 출시 검증이 남아 `status: pending`, `stage: approved` 및 active 경로를 유지한다. 배포 전 단계별 실행은 [운영 실행 문서](../../card-news-runbook.md), CPU image·실물 렌더 검증은 [CPU 문서](../../../apps/backend/card_news/README.md)를 따른다.
+제품 코드 구현과 과거 로컬 검증 기록을 보존했다. 2026-10-14 발견한 구현 보완과 운영 출시 검증이 남아 `status: pending`, `stage: approved` 및 active 경로를 유지한다. 배포 전 단계별 실행은 [운영 실행 문서](../../card-news-runbook.md), CPU image·실물 렌더 검증은 [CPU 문서](../../../apps/backend/card_news/README.md)를 따른다.
 
-## Implementation Results (2026-10-11)
+## Implementation Results (2026-10-11, 과거 실행 기록)
 
 | 요구사항 | 구현 결과 | 로컬 검증 및 남은 증거 |
 | --- | --- | --- |
@@ -909,8 +943,8 @@ CARD_NEWS_ENABLED는 새 유료 생성만 제어한다. disabled 상태에서도
 | REQ-CN-003/005 | 독립 CPU 앱, pinned 폰트·template, 원본 3개 표지 후보, 1080×1350 RGB JPG 및 순서 있는 ZIP·caption | 합성 한국어/영어 각 5개, 총 48 JPG·10 ZIP 실제 decode/hash/order 통과. Modal image와 인증 사용자 다운로드 실물은 남음 |
 | REQ-CN-004/007/010 | 목록·편집기·수동 revision 저장·무료 render·과거 revision export·1크레딧 새 Set AI 재생성 | 편집·인증·revision·coalescing·export DB CLI 및 브라우저 실물 검증을 분리함 |
 | REQ-CN-006/008/009/013 | 공통 held 예약·terminal CAS, 실제 영상 결과 수 정산, 구매 잔액 보존, durable dispatch/inbox/재시도/전역 복구, live balance | 실제 별도 PostgreSQL의 크레딧·lifecycle·영상 호환성 CLI 3종 통과. CHECK/예약 aggregate 및 실제 Action 검증 포함 |
-| REQ-CN-012 | User→Upload→Clip→Set→Job 잠금, tombstone, 범위가 고정된 durable cleanup, unknown producer 보류, 상태·재시도 UI | 삭제·producer fencing·cleanup 공정성은 DB CLI, live S3/Modal 종료 조회는 배포 검증 |
-| REQ-CN-014 | 환경변수·feature flag·분리 worker 등록, 과금/다운로드/수동 게시 카피, 제한된 analytics metadata | 정적 surface 검증 및 web/admin check. 운영 body/로그·비용 검증은 남음 |
+| REQ-CN-012 | User→Upload→Clip→Set→Job 잠금, tombstone, durable cleanup, unknown producer 보류, 상태·재시도 UI가 존재 | 기존 삭제 hook의 cardNews/cleanup 캐시·응답 보완은 BLK-CN-03. 과거 DB CLI는 이 브라우저 경계를 입증하지 않으며 live S3/Modal 종료 조회도 남음 |
+| REQ-CN-014 | flag·worker·카피·metadata와 서버 가명 event가 존재 | 수정 필드 수/context 보완은 BLK-CN-03. surface 검사 범위는 Verification Plan에 한정됨. 운영 body/로그·비용 검증은 남음 |
 
 실행 기록:
 
@@ -922,3 +956,25 @@ CARD_NEWS_ENABLED는 새 유료 생성만 제어한다. disabled 상태에서도
 - 마지막 Unicode/editor/orphan 및 private runtime 수정까지 포함한 **웹 production build EXIT 0**, 카드뉴스 목록·상세·webhook route 생성 확인. 운영 DB는 변경하지 않았다.
 
 설계 대비 구체화: 영상 ingress/worker gate 기본값을 모두 false로 정해 검증 전 새 과금 worker 시작을 막았다. 공유 예약·복구 코드가 배포되면 기존 영상도 전환 검증 후 gate를 명시적으로 열어야 한다. 테스트 DB는 사용자가 준비할 필요 없이 `verify-card-news-local-db.mts`로 새 임시 클러스터와 loopback WebSocket proxy를 구성한다. API의 모의 S3/CPU 의존성은 test 전용 private seam이며 서비스 DB 어댑터·액션·정산·이번 additive migration은 실제 구현을 사용한다. 최종 감사에서는 canonical/free-editor Unicode 제한 차이와 만료된 활성 작업의 premature orphan cleanup을 찾아 수정했으며 각각 단위/실제 DB 회귀 검증을 추가했다.
+
+## 2026-10-20 후속 구현과 실제 검증
+
+이전 문서 감사 이후 사용자가 남은 코드 수정·검증·main 반영을 요청했다. 삭제 hook의 cleanup receipt·사용자별 cache, revision별 edited field count와 analytics context/outbox를 보완하고 실제 DB rollback/중복/재시도 검증을 통과했다. 별도 5개 lens 검토에서 수용한 편집 충돌·해시태그·canonical 저장·live 잔액·parentless Clip 정리 결함도 수정했다. BLK-CN-03의 코드 보완은 완료했다.
+
+실제 Modal pinned image의 fixture 10개·거부 사례 3개, 실제 모델 원문 10개/11회 호출의 계약·이미지·ZIP 검증을 통과했다. 모델의 일반적 효율·생산성 표현에 대한 한계와 실행 artifact는 [출시 검증 기록](../../card-news-release-verification-20261020.md)에 남긴다. BLK-CN-01의 인증 다운로드 및 BLK-CN-02의 운영 drain·전환 후 호환성 증거는 아직 남아 있으므로 일반 기능 flag와 단계 완료 상태는 유지한다. 아래 2026-10-14 항목은 감사 당시의 기록이며 현재 코드 보완 상태는 이 단락이 우선한다.
+
+## 2026-10-14 코드 대조 결과와 후속 범위
+
+이번 요청 시작 시 개선점이 있었다. 기존 제품 코드는 수정하지 않고 다음 불일치를 제안서에 반영했다. 2026-10-11 실행 수치는 재실행하지 않은 과거 기록이다.
+
+| 발견한 불일치 | 근거 | 저장된 해소·검증 목적지 |
+| --- | --- | --- |
+| 구현 후 본문에 미구현·미실행 설명 잔존 | Execution/Verification Plan, BLK-CN-01과 Implementation Results 상충 | 과거 관측/실행과 현재 보완을 구분, 실제 image/model/export 차단 조건 유지 |
+| inventory 누락·존재하지 않는 fixture | 새 policy/text-length/cleanup UI/page barrels, 영상 복구/삭제 모듈·검증 runner 존재; content-evaluation.json 없음 | I-DB~I-KEEP와 provenance/TASK/verifier 보완. 실제 render-cases 10개가 평가 정본 |
+| 이동 helper 책임 설명 불일치 | findAttemptGeneratedClipKeys 새 server export, persistGeneratedClips 제거와 tx 저장 통합 | 공통 정산/provenance, 옛 정의 부재와 새 책임 존재 검사 |
+| 검증 스크립트 범위 과장·실행 디렉터리 혼합 | surfaces는 부분 문자열/AST 검사, npm test는 src glob만 실행 | root/Node 명령 분리, runtime script test 명시, 전체 기대 outcome의 추가 감사 목적지 |
+| 삭제 캐시·수정 계측·browser context 미완료를 구현 완료로 읽을 위험 | 기존 hooks, saveCardNewsRevision, Actions/flush의 실제 코드 | BLK-CN-03, TASK-CN3-02 및 TASK-CN4-01, V-CN-DELETE/RELEASE와 DoD로 전파 |
+
+이번 감사에서 실행한 검사: SDD strict 요구사항 14/14 TASK·verifier 연결(errors 0), 현재 surface script(EXIT 0), 명시 경로/로컬 링크 존재, canonical JSON $defs·fixtures 파싱, font SHA와 generated Prisma 6.19.1 모델 구조 대조. 생성 schema의 포맷·index 선언 순서 차이는 실제 모델 drift로 분류하지 않는다. 문서 수정 후 같은 source bundle을 무편집으로 다시 검토한 최종 판정과 bounded 코드 identity는 응답의 검증 증거를 따른다.
+
+요구사항/가격/보관·삭제 정책은 유지한다. 후속 코드 보완은 기존 TASK/BLK-CN-03 범위, actual Modal/Gemini/S3·운영 DB/legacy drain·브라우저/Instagram 검증은 각 명시한 gate에서 수행한다. 제품 코드 완결·일반 출시·문서 completed 이동은 아직 승인 가능한 완료 상태로 보고하지 않는다.

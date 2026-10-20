@@ -36,12 +36,14 @@ import { useDeleteUploadedFile } from "../model/use-delete-uploaded-file";
 import { useReprocessUploadedFile } from "../model/use-reprocess-uploaded-file";
 
 interface UploadedFileActionsProps {
+  userId: string;
   uploadedFileId: string;
   status: ProcessingStatus;
   availableCredits: number;
 }
 
 export default function UploadedFileActions({
+  userId,
   uploadedFileId,
   status,
   availableCredits,
@@ -53,7 +55,7 @@ export default function UploadedFileActions({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const reprocessMutation = useReprocessUploadedFile(uploadedFileId);
   // 캐시 정책은 feature model 훅이 소유한다. 여기서는 사용자 상호작용만 다룬다.
-  const deleteMutation = useDeleteUploadedFile({
+  const deleteMutation = useDeleteUploadedFile(userId, {
     onDeleted: () => router.push("/dashboard"),
   });
   const isActive = isActiveProcessingStatus(status);

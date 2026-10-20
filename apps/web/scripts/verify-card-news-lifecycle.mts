@@ -189,12 +189,22 @@ try {
     false,
   );
   runtime.authenticate(fixture.userId);
+  const requestId = randomUUID();
+  const requestContext = { anonymousId: `anon_${randomUUID()}`, sessionId: `session_${randomUUID()}` };
+  const editedContext = { anonymousId: `anon_${randomUUID()}`, sessionId: `session_${randomUUID()}` };
   const created = await runtime.actions.createCardNews({
     clipId: fixture.clip.id,
-    requestId: randomUUID(),
+    requestId,
     theme: "light",
+    analyticsContext: requestContext,
   });
   assert.ok(created.success);
+  const replay = await runtime.actions.createCardNews({
+    clipId: fixture.clip.id, requestId, theme: "light", analyticsContext: editedContext,
+  });
+  assert.ok(replay.success);
+  assert.equal(replay.data.jobId, created.data.jobId);
+  assert.deepEqual((await runtime.db.cardNewsJob.findUniqueOrThrow({ where: { id: created.data.jobId } })).analyticsContext, requestContext);
   assert.equal(
     (await runtime.actions.deleteCardNews({ setId: created.data.setId }))
       .success,
@@ -213,6 +223,7 @@ try {
     setId: created.data.setId,
     expectedRevision: 1,
     draft: edited,
+    analyticsContext: editedContext,
   });
   assert.ok(first.success);
   assert.equal(first.data.revision, 2);
@@ -230,6 +241,7 @@ try {
         setId: created.data.setId,
         expectedRevision: 2,
         draft: third,
+        analyticsContext: requestContext,
       })
     ).success,
   );
@@ -241,6 +253,7 @@ try {
         setId: created.data.setId,
         expectedRevision: 3,
         draft: fourth,
+        analyticsContext: { ...requestContext, userId: "untrusted" },
       })
     ).success,
   );
@@ -253,6 +266,31 @@ try {
   const render2 = set.jobs.find(
     (job) => job.kind === "render" && job.inputRevision === 2,
   )!;
+  assert.deepEqual(render2.analyticsContext, requestContext);
+  const pending = render2.pendingAnalytics as { metadata: { revision: number; editedFieldCount: number }; analyticsContext?: unknown }[];
+  assert.deepEqual(pending.map((entry) => entry.metadata.editedFieldCount), [1, 1, 1]);
+  assert.deepEqual(pending[0]!.analyticsContext, editedContext);
+  assert.deepEqual(pending[1]!.analyticsContext, requestContext);
+  assert.equal(pending[2]!.analyticsContext, undefined);
+  const { flushCardNewsAnalytics } = await import("../src/fsd/features/card-news/api/analytics.ts");
+  await runtime.db.$executeRawUnsafe('CREATE FUNCTION "cn_test_reject_analytics"() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."name" = \'card_news_edited\' THEN RAISE EXCEPTION \'synthetic analytics outage\'; END IF; RETURN NEW; END $$');
+  await runtime.db.$executeRawUnsafe('CREATE TRIGGER "cn_test_reject_analytics" BEFORE INSERT ON "AnalyticsEvent" FOR EACH ROW EXECUTE FUNCTION "cn_test_reject_analytics"()');
+  try {
+    await flushCardNewsAnalytics(render2.id);
+    assert.equal(await runtime.db.analyticsEvent.count({ where: { userId: fixture.userId, name: "card_news_edited" } }), 0);
+    assert.equal(((await runtime.db.cardNewsJob.findUniqueOrThrow({ where: { id: render2.id } })).pendingAnalytics as unknown[]).length, 3);
+  } finally {
+    await runtime.db.$executeRawUnsafe('DROP TRIGGER "cn_test_reject_analytics" ON "AnalyticsEvent"');
+    await runtime.db.$executeRawUnsafe('DROP FUNCTION "cn_test_reject_analytics"()');
+  }
+  await flushCardNewsAnalytics(render2.id);
+  await flushCardNewsAnalytics(render2.id);
+  const editEvents = await runtime.db.analyticsEvent.findMany({ where: { userId: fixture.userId, name: "card_news_edited" }, orderBy: { id: "asc" } });
+  assert.equal(editEvents.length, 3);
+  const eventForRevision = (revision: number) => editEvents.find((event) => (event.metadata as { revision: number }).revision === revision)!;
+  assert.equal(eventForRevision(2).anonymousId, editedContext.anonymousId);
+  assert.equal(eventForRevision(3).sessionId, requestContext.sessionId);
+  assert.equal(eventForRevision(4).anonymousId, requestContext.anonymousId);
   await runtime.complete(render2.id);
   const active = await runtime.db.cardNewsJob.findFirstOrThrow({
     where: { setId: set.id, kind: "render", status: "pending" },
@@ -270,9 +308,12 @@ try {
   const previous = await runtime.actions.exportCardNews({
     setId: set.id,
     revision: 2,
+    analyticsContext: editedContext,
   });
   assert.ok(previous.success);
   assert.equal(previous.data.caption, edited.caption);
+  const download = await runtime.db.analyticsEvent.findFirstOrThrow({ where: { userId: fixture.userId, name: "card_news_downloaded" }, orderBy: { createdAt: "desc" } });
+  assert.equal(download.anonymousId, editedContext.anonymousId);
   runtime.authenticate(other.userId);
   assert.equal(
     (await runtime.actions.getCardNewsDetail({ setId: set.id })).success,
@@ -325,6 +366,15 @@ try {
     1,
   );
   assert.ok(runtime.objects.has(fixture.upload.s3Key));
+  const standalone = await runtime.createFixture(1);
+  await runtime.db.clip.update({ where: { id: standalone.clip.id }, data: { uploadedFileId: null } });
+  const { acceptClipAssetDeletion } = await import("../src/fsd/features/clip/api/delete-clip-assets.ts");
+  const standaloneDeletion = await acceptClipAssetDeletion(standalone.userId, standalone.clip.id);
+  await runtime.cleanup.runCardNewsCleanup(standaloneDeletion.cleanupId);
+  assert.equal(await runtime.db.clip.count({ where: { id: standalone.clip.id } }), 0);
+  assert.equal(runtime.objects.has(standalone.clip.s3Key), false);
+  assert.equal((await runtime.db.assetCleanupJob.findUniqueOrThrow({ where: { id: standaloneDeletion.cleanupId } })).status, "completed");
+  assert.ok(runtime.objects.has(standalone.upload.s3Key));
   console.log(
     "Card news lifecycle: authentication, immutable/coalesced revisions, export, tombstones and producer-fenced cleanup passed",
   );

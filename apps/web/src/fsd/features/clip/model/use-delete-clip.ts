@@ -6,6 +6,7 @@ import {
   type UploadedFileDetail,
 } from "~/fsd/entities/uploaded-file";
 import { deleteClip } from "../api";
+import { cardNewsKeys } from "~/fsd/entities/card-news";
 
 /**
  * 클립 삭제 mutation과 그 캐시 정책의 소유자.
@@ -16,7 +17,13 @@ import { deleteClip } from "../api";
  * @param uploadedFileId 상세 캐시를 함께 손볼 대상. 클립이 업로드에 묶여 있지
  *   않으면 null이며, 그 경우 목록만 무효화한다.
  */
-export function useDeleteClip(uploadedFileId: string | null) {
+export function useDeleteClip({
+  uploadedFileId,
+  userId,
+}: {
+  uploadedFileId: string | null;
+  userId: string;
+}) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -27,9 +34,9 @@ export function useDeleteClip(uploadedFileId: string | null) {
         throw new Error(result.error);
       }
 
-      return clipId;
+      return { clipId, ...result.data };
     },
-    onSuccess: async (clipId) => {
+    onSuccess: async ({ clipId }) => {
       if (uploadedFileId) {
         queryClient.setQueryData<UploadedFileDetail>(
           uploadedFileKeys.detail(uploadedFileId),
@@ -50,6 +57,8 @@ export function useDeleteClip(uploadedFileId: string | null) {
             })
           : Promise.resolve(),
         queryClient.invalidateQueries({ queryKey: uploadedFileKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: cardNewsKeys.user(userId) }),
+        queryClient.invalidateQueries({ queryKey: ["asset-cleanup", userId] }),
       ]);
     },
   });

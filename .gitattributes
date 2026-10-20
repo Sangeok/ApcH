@@ -21,3 +21,6 @@ packages/db/generated/**/*.prisma text eol=lf
 # 위 규칙을 `**` 로 뭉뚱그렸다가 실제로 이 두 파일이 변경으로 뜬 적이 있다.
 packages/db/generated/**/*.node  binary
 packages/db/generated/**/*.wasm  binary
+
+# The card-news renderer verifies these exact upstream license bytes.
+apps/backend/card_news/assets/OFL.txt text eol=lf

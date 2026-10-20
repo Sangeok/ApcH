@@ -45,6 +45,26 @@ class CardNewsWiringTests(unittest.TestCase):
             if isinstance(node, ast.Import):
                 self.assertFalse(any(item.name.split(".")[0] in {"main", "asd", "whisperx", "torch"} for item in node.names))
         self.assertNotIn("gpu=", source)
+        image = next(node.value for node in tree.body if isinstance(node, ast.Assign)
+                     and any(isinstance(target, ast.Name) and target.id == "image" for target in node.targets))
+        chain = []
+        while isinstance(image, ast.Call) and isinstance(image.func, ast.Attribute):
+            chain.append(image.func.attr)
+            image = image.func.value
+        chain.reverse()
+        first_mount = next(index for index, method in enumerate(chain) if method.startswith("add_local_"))
+        self.assertTrue(all(method.startswith("add_local_") for method in chain[first_mount:]),
+                        "Modal disallows image build steps after local mounts")
+
+    def test_container_contract_path_does_not_assume_repository_layout(self):
+        tree = ast.parse((ROOT / "card_news_app.py").read_text(encoding="utf-8"))
+        assignments = [node for node in tree.body if isinstance(node, ast.Assign)
+                       and any(isinstance(target, ast.Name) and target.id in {"ROOT", "CONTRACTS"}
+                               for target in node.targets)]
+        namespace = {"Path": Path, "__file__": "/root/card_news_app.py",
+                     "modal": SimpleNamespace(is_local=lambda: False)}
+        exec(compile(ast.Module(body=assignments, type_ignores=[]), "container-paths", "exec"), namespace)
+        self.assertEqual(namespace["CONTRACTS"], Path("/root/card-news-contracts"))
 
     def test_font_hashes_license_and_pins_are_exact(self):
         assets = ROOT / "card_news/assets"

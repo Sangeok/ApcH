@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { editorDraftSchema, markEditedCards } from "./editor-schema.ts";
+import {
+  editorDraftSchema,
+  markEditedCards,
+  countEditedCardNewsFields,
+} from "./editor-schema.ts";
 import { parseCardNewsDraft } from "../../../entities/card-news/model/contract.ts";
 
 const draft = () => ({
@@ -20,6 +24,39 @@ const draft = () => ({
   coverCandidateId: "cover-50",
   caption: "Caption",
   hashtags: ["#Save"],
+});
+
+test("edited fields count text and document fields, excluding derived provenance", () => {
+  const previous = draft();
+  const next = draft();
+  next.cards[1].title = "Changed title";
+  next.cards[1].body = "Changed body";
+  next.cards[1].highlight = "body";
+  next.caption = "Changed caption";
+  next.hashtags = ["#Changed"];
+  next.theme = "dark";
+  next.accentColor = "#059669";
+  next.coverCandidateId = "cover-75";
+  assert.equal(countEditedCardNewsFields(previous, next), 8);
+  const derivedOnly = draft();
+  derivedOnly.cards[1].provenance = "user-edited";
+  derivedOnly.cards[1].sourceSentenceIds = [];
+  assert.equal(countEditedCardNewsFields(previous, derivedOnly), 0);
+  assert.equal(countEditedCardNewsFields(previous, previous), 0);
+});
+
+test("reordering body cards counts once without counting moved cards as text edits", () => {
+  const previous = draft();
+  previous.cards.splice(2, 0, {
+    ...previous.cards[1],
+    id: "extra",
+    title: "Other title",
+  });
+  const next = structuredClone(previous);
+  [next.cards[1], next.cards[2]] = [next.cards[2], next.cards[1]];
+  assert.equal(countEditedCardNewsFields(previous, next), 1);
+  next.cards[1].title = "Changed too";
+  assert.equal(countEditedCardNewsFields(previous, next), 2);
 });
 test("editor keeps immutable card roles and rejects duplicate IDs and unknown fields", () => {
   assert.equal(editorDraftSchema.safeParse(draft()).success, true);

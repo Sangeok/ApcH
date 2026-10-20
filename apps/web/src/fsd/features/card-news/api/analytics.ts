@@ -5,6 +5,10 @@ import type { AnalyticsEventName } from "@repo/db";
 import { recordAnalyticsEvent } from "~/fsd/entities/analytics-event/server";
 import { sanitizeAnalyticsMetadata } from "~/fsd/shared/analytics/lib/metadata";
 import {
+  sanitizeCardNewsAnalyticsContext,
+  type CardNewsAnalyticsContext,
+} from "../model/analytics-context";
+import {
   findCardNewsJob,
   updateCardNewsJob,
 } from "~/fsd/entities/card-news/server";
@@ -15,11 +19,30 @@ import {
 } from "./reservation-tx";
 
 type Metadata = Record<string, string | number | boolean>;
-type PendingEvent = { name: AnalyticsEventName; metadata: Metadata };
+type PendingEvent = {
+  name: AnalyticsEventName;
+  metadata: Metadata;
+  analyticsContext?: CardNewsAnalyticsContext;
+};
+
+function analyticsIdentity(
+  userId: string,
+  ...contexts: unknown[]
+): CardNewsAnalyticsContext {
+  for (const value of contexts) {
+    const context = sanitizeCardNewsAnalyticsContext(value);
+    if (context) return context;
+  }
+  const anonymousId = createHash("sha256")
+    .update(`card-news:${userId}`)
+    .digest("hex");
+  return { anonymousId, sessionId: `server:${anonymousId.slice(0, 48)}` };
+}
 
 export function queueAnalytics(
   name: AnalyticsEventName,
   metadata: Metadata,
+  analyticsContext?: unknown,
 ): PendingEvent {
   if (typeof metadata.failureCode === "string") {
     if (
@@ -39,7 +62,12 @@ export function queueAnalytics(
     )
       metadata = { ...metadata, failureCode: "render_failed" };
   }
-  return { name, metadata: sanitizeAnalyticsMetadata(name, metadata) ?? {} };
+  const context = sanitizeCardNewsAnalyticsContext(analyticsContext);
+  return {
+    name,
+    metadata: sanitizeAnalyticsMetadata(name, metadata) ?? {},
+    ...(context ? { analyticsContext: context } : {}),
+  };
 }
 
 export async function flushCardNewsAnalytics(jobId: string): Promise<void> {
@@ -69,9 +97,11 @@ export async function flushCardNewsAnalytics(jobId: string): Promise<void> {
           Array.isArray(entry.metadata)
         )
           continue;
-        const anonymousId = createHash("sha256")
-          .update(`card-news:${job.userId}`)
-          .digest("hex");
+        const identity = analyticsIdentity(
+          job.userId,
+          "analyticsContext" in entry ? entry.analyticsContext : null,
+          job.analyticsContext,
+        );
         const metadata =
           sanitizeAnalyticsMetadata(
             entry.name as AnalyticsEventName,
@@ -80,8 +110,7 @@ export async function flushCardNewsAnalytics(jobId: string): Promise<void> {
         await recordAnalyticsEvent(
           {
             name: entry.name as AnalyticsEventName,
-            anonymousId,
-            sessionId: `server:${anonymousId.slice(0, 48)}`,
+            ...identity,
             userId: job.userId,
             path: "/dashboard/card-news/[cardNewsId]",
             metadata,
@@ -102,21 +131,32 @@ export async function flushCardNewsAnalytics(jobId: string): Promise<void> {
   }
 }
 
-export async function recordCardNewsDownload(
-  userId: string,
-  setId: string,
-  jobId: string,
-  revision: number,
-  cardCount: number,
-): Promise<void> {
-  const anonymousId = createHash("sha256")
-    .update(`card-news:${userId}`)
-    .digest("hex");
+export async function recordCardNewsDownload({
+  userId,
+  setId,
+  jobId,
+  revision,
+  cardCount,
+  analyticsContext,
+  jobAnalyticsContext,
+}: {
+  userId: string;
+  setId: string;
+  jobId: string;
+  revision: number;
+  cardCount: number;
+  analyticsContext?: unknown;
+  jobAnalyticsContext?: unknown;
+}): Promise<void> {
+  const identity = analyticsIdentity(
+    userId,
+    analyticsContext,
+    jobAnalyticsContext,
+  );
   try {
     await recordAnalyticsEvent({
       name: "card_news_downloaded",
-      anonymousId,
-      sessionId: `server:${anonymousId.slice(0, 48)}`,
+      ...identity,
       userId,
       path: "/dashboard/card-news/[cardNewsId]",
       metadata: sanitizeAnalyticsMetadata("card_news_downloaded", {

@@ -403,7 +403,8 @@ export async function runCardNewsCleanup(cleanupId: string): Promise<void> {
           !scope ||
           typeof scope !== "object" ||
           Array.isArray(scope) ||
-          typeof scope.uploadedFileId !== "string"
+          (typeof scope.uploadedFileId !== "string" &&
+            !(job.kind === "clip" && scope.uploadedFileId === null))
         )
           throw new Error("Invalid cleanup scope");
         const clipIds = strings(scope.clipIds).sort();
@@ -411,15 +412,21 @@ export async function runCardNewsCleanup(cleanupId: string): Promise<void> {
         const firstSet = setIds.length
           ? await findCardNewsSet(setIds[0]!, tx)
           : null;
-        await lockCardNewsScope(
-          {
-            userId: job.userId,
-            uploadedFileId: scope.uploadedFileId,
-            clipId: clipIds[0] ?? firstSet?.clipId ?? "",
-          },
-          tx,
-        );
-        for (const clipId of clipIds.slice(1))
+        if (typeof scope.uploadedFileId === "string") {
+          await lockCardNewsScope(
+            {
+              userId: job.userId,
+              uploadedFileId: scope.uploadedFileId,
+              clipId: clipIds[0] ?? firstSet?.clipId ?? "",
+            },
+            tx,
+          );
+        } else {
+          await lockUserForCredits(job.userId, tx);
+        }
+        const remainingClipIds =
+          typeof scope.uploadedFileId === "string" ? clipIds.slice(1) : clipIds;
+        for (const clipId of remainingClipIds)
           await lockClipForCardNews(clipId, tx);
         for (const setId of setIds) {
           const set = await lockCardNewsSet(setId, tx);

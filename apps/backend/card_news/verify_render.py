@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 
 from PIL import Image
 
-from card_news.contract import source_hash, validate_contract
+from card_news.contract import ContractError, source_hash, validate_contract
 from card_news.io import Deadline, extract_candidates, run_process
 from card_news.layout import LayoutError
 from card_news.render import ASSETS, font_coverage, render_cards, verify_dependencies
@@ -103,23 +103,55 @@ def verify_fixture_suite(strict_runtime=True):
     return {**report, "files": files}
 
 
-def verify_model_smoke():
-    """Two bounded synthetic provider calls; no S3/GPU/source data access."""
+def verify_model_smoke(all_cases=False):
+    """Qualify model and real render, with at most one repair per synthetic case."""
     from google import genai
     from google.genai import types
     from card_news.prompt import build_prompt, normalize_model_output, provider_schema
     manifest = verify_dependencies()
     cases = fixture_cases()["cases"]
-    selected = [next(case for case in cases if case["language"] == language) for language in ("Korean", "English")]
-    results = []
-    for case in selected:
-        source = fixture_source(case)
-        with genai.Client(api_key=os.environ["GEMINI_API_KEY"],
-             http_options=types.HttpOptions(timeout=120000, retry_options=types.HttpRetryOptions(attempts=1))) as client:
-            response = client.models.generate_content(model=manifest["modelVersion"], contents=build_prompt(source),
-                config=types.GenerateContentConfig(response_mime_type="application/json", response_json_schema=provider_schema()))
-        draft = normalize_model_output(response.text, source)
-        results.append({"case": case["id"], "source": source, "draft": draft,
-                        "requiredFacts": case["requiredFacts"], "forbiddenClaims": case["forbiddenClaims"],
-                        "semanticReview": "required"})
-    return {"schemaVersion": 1, "modelVersion": manifest["modelVersion"], "modelCalls": 2, "cases": results}
+    selected = (cases if all_cases else
+                [next(case for case in cases if case["language"] == language) for language in ("Korean", "English")])
+    results, files = [], {}
+    calls = 0
+    with tempfile.TemporaryDirectory(prefix="card-news-model-") as temporary:
+        directory = Path(temporary)
+        candidates = {}
+        for identifier in ("cover-25", "cover-50", "cover-75"):
+            target = directory / (identifier + ".jpg")
+            Image.new("RGB", (1280, 720), "#D0D0D0").save(target, "JPEG")
+            candidates[identifier] = target
+        for case in selected:
+            source = fixture_source(case)
+            result = {"case": case["id"], "source": source,
+                      "requiredFacts": case["requiredFacts"], "forbiddenClaims": case["forbiddenClaims"],
+                      "semanticReview": "required", "attempts": [], "schemaValid": False, "renderValid": False}
+            repair = None
+            for attempt in range(2):
+                calls += 1
+                prompt = build_prompt(source, repair) + "\nTarget card count: 5; fewer is allowed only when evidence requires it."
+                with genai.Client(api_key=os.environ["GEMINI_API_KEY"],
+                     http_options=types.HttpOptions(timeout=120000, retry_options=types.HttpRetryOptions(attempts=1))) as client:
+                    response = client.models.generate_content(model=manifest["modelVersion"], contents=prompt,
+                        config=types.GenerateContentConfig(response_mime_type="application/json",
+                            response_json_schema=provider_schema(), temperature=0.2))
+                try:
+                    draft = normalize_model_output(response.text, source)
+                    result.update({"draft": draft, "schemaValid": True, "renderValid": False})
+                    paths, zip_path = render_cards(draft, candidates, directory / case["id"])
+                    for artifact in paths + [zip_path]:
+                        files[case["id"] + "/" + artifact.name] = artifact.read_bytes()
+                    result["renderValid"] = True
+                    result["attempts"].append({"attempt": attempt + 1, "passed": True})
+                    break
+                except (ContractError, LayoutError) as error:
+                    result["attempts"].append({"attempt": attempt + 1, "passed": False,
+                        "failureCode": error.code, "failureField": error.field})
+                    result["providerOutput"] = response.text
+                    if error.code == "insufficient_content":
+                        break
+                    repair = str(error)
+            results.append(result)
+    return {"schemaVersion": 1, "modelVersion": manifest["modelVersion"], "modelCalls": calls,
+            "schemaValid": all(result["schemaValid"] for result in results),
+            "renderValid": all(result["renderValid"] for result in results), "cases": results, "files": files}

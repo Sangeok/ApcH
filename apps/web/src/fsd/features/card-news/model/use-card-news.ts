@@ -14,6 +14,12 @@ import {
   saveCardNews,
 } from "../api";
 import type { ActionResult } from "~/fsd/shared/api/result";
+import { getOrCreateAnalyticsIds } from "~/fsd/shared/analytics";
+
+function withAnalyticsContext(input: unknown): unknown {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return input;
+  return { ...input, analyticsContext: getOrCreateAnalyticsIds() };
+}
 
 export function unwrapCardNewsResult<T>(result: ActionResult<T>): T {
   if (!result.success) throw new Error(result.error);
@@ -56,17 +62,19 @@ export function useCardNewsMutations(userId: string) {
   return {
     create: useMutation({
       mutationFn: async (input: Parameters<typeof createCardNews>[0]) =>
-        unwrapCardNewsResult(await createCardNews(input)),
+        unwrapCardNewsResult(await createCardNews(withAnalyticsContext(input))),
       onSuccess: invalidate,
     }),
     regenerate: useMutation({
       mutationFn: async (input: Parameters<typeof regenerateCardNews>[0]) =>
-        unwrapCardNewsResult(await regenerateCardNews(input)),
+        unwrapCardNewsResult(
+          await regenerateCardNews(withAnalyticsContext(input)),
+        ),
       onSuccess: invalidate,
     }),
     save: useMutation({
       mutationFn: async (input: Parameters<typeof saveCardNews>[0]) =>
-        unwrapCardNewsResult(await saveCardNews(input)),
+        unwrapCardNewsResult(await saveCardNews(withAnalyticsContext(input))),
       onSuccess: invalidate,
     }),
     retry: useMutation({
@@ -81,7 +89,7 @@ export function useCardNewsMutations(userId: string) {
     }),
     export: useMutation({
       mutationFn: async (input: Parameters<typeof exportCardNews>[0]) =>
-        unwrapCardNewsResult(await exportCardNews(input)),
+        unwrapCardNewsResult(await exportCardNews(withAnalyticsContext(input))),
     }),
   };
 }

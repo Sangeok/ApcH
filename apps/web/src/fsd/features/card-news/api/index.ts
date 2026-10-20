@@ -49,6 +49,7 @@ const createSchema = z
     clipId: id,
     requestId: z.string().uuid(),
     theme: z.enum(["light", "dark"]).default("light"),
+    analyticsContext: z.unknown().optional(),
   })
   .strict();
 const regenerateSchema = createSchema.extend({ regeneratedFromId: id });
@@ -191,6 +192,7 @@ export async function saveCardNews(
         setId: id,
         expectedRevision: z.number().int().positive(),
         draft: z.unknown(),
+        analyticsContext: z.unknown().optional(),
       })
       .strict()
       .parse(raw);
@@ -212,8 +214,12 @@ export async function exportCardNews(
   raw: unknown,
 ): Promise<ActionResult<CardNewsExport>> {
   return authenticatedAction(async (userId) => {
-    const { setId, revision } = z
-      .object({ setId: id, revision: z.number().int().positive() })
+    const { setId, revision, analyticsContext } = z
+      .object({
+        setId: id,
+        revision: z.number().int().positive(),
+        analyticsContext: z.unknown().optional(),
+      })
       .strict()
       .parse(raw);
     const set = await findCardNewsSet(setId);
@@ -268,13 +274,15 @@ export async function exportCardNews(
       )
         throw new Error("This version is no longer available");
     });
-    await recordCardNewsDownload(
+    await recordCardNewsDownload({
       userId,
       setId,
-      selected.id,
+      jobId: selected.id,
       revision,
-      images.length,
-    );
+      cardCount: images.length,
+      analyticsContext,
+      jobAnalyticsContext: selected.analyticsContext,
+    });
     return {
       revision,
       images,
