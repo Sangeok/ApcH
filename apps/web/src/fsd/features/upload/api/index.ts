@@ -55,7 +55,6 @@ import {
   isClipDurationWithinLimits,
 } from "~/fsd/shared/config/constants";
 import { v4 as uuidv4 } from "uuid";
-import { isVideoGenerationAdmissionEnabled } from "~/fsd/shared/config/processing-admission";
 import {
   isSupportedClipCount,
   prepareUploadSchema,

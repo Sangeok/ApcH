@@ -22,14 +22,6 @@ export const env = createEnv({
     S3_BUCKET_NAME: z.string(),
     PROCESS_VIDEO_ENDPOINT: z.string(),
     PROCESS_VIDEO_ENDPOINT_AUTH: z.string(),
-    VIDEO_GENERATION_ADMISSION_ENABLED: z
-      .string()
-      .transform((value) => value === "true")
-      .default("true"),
-    VIDEO_WORKER_START_ENABLED: z
-      .string()
-      .transform((value) => value === "true")
-      .default("true"),
     AUTH_GOOGLE_ID: z.string(),
     AUTH_GOOGLE_SECRET: z.string(),
     POLAR_ACCESS_TOKEN: z.string(),
@@ -102,9 +94,6 @@ export const env = createEnv({
     S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
     PROCESS_VIDEO_ENDPOINT: process.env.PROCESS_VIDEO_ENDPOINT,
     PROCESS_VIDEO_ENDPOINT_AUTH: process.env.PROCESS_VIDEO_ENDPOINT_AUTH,
-    VIDEO_GENERATION_ADMISSION_ENABLED:
-      process.env.VIDEO_GENERATION_ADMISSION_ENABLED,
-    VIDEO_WORKER_START_ENABLED: process.env.VIDEO_WORKER_START_ENABLED,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
