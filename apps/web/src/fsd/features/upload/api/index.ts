@@ -49,6 +49,7 @@ import {
 } from "~/fsd/shared/api/s3";
 import { requireAuth } from "~/fsd/shared/api/auth-guard";
 import { type ActionResult, failure, success } from "~/fsd/shared/api/result";
+import { isVideoGenerationAdmissionEnabled } from "~/fsd/shared/config/processing-admission";
 import {
   CLIP_DURATION_LIMITS,
   isClipDurationWithinLimits,
