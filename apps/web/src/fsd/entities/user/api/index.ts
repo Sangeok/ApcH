@@ -265,23 +265,6 @@ export async function getUserDefaultCaptionStyle(userId: string) {
   });
 }
 
-export async function updateUserDefaultCaptionStyle(
-  userId: string,
-  styles: CaptionStyleDefaults,
-) {
-  return db.user.update({
-    where: { id: userId },
-    // null = 비우기(언어 기본값). Prisma는 JSON 컬럼에 명시적 null을 JsonNull로 쓴다
-    // (updateClipDraftEdit와 같은 관용).
-    // 둘 다 쓴다 — 화면이 두 값을 함께 들고 있어 부분 갱신이면 "한쪽을 저장했더니
-    // 다른 쪽은?"을 호출부마다 따져야 한다.
-    data: {
-      defaultCaptionStyleEnglish: styles.english ?? Prisma.JsonNull,
-      defaultCaptionStyleKorean: styles.korean ?? Prisma.JsonNull,
-    },
-  });
-}
-
 export async function getUserDefaultVideoPaddingPercent(userId: string) {
   return db.user.findUniqueOrThrow({
     where: { id: userId },
@@ -289,12 +272,18 @@ export async function getUserDefaultVideoPaddingPercent(userId: string) {
   });
 }
 
-export async function updateUserDefaultVideoPaddingPercent(
+export async function updateUserVideoStyle(
   userId: string,
-  percent: number,
+  input: { paddingPercent: number } & CaptionStyleDefaults,
 ) {
+  // 세 컬럼을 한 update로 쓴다 — 반쪽 저장이 생기지 않게(BUG-18).
+  // null = 비우기(언어 기본값): Prisma는 JSON 컬럼에 명시적 null을 JsonNull로 쓴다.
   return db.user.update({
     where: { id: userId },
-    data: { defaultVideoPaddingPercent: percent },
+    data: {
+      defaultVideoPaddingPercent: input.paddingPercent,
+      defaultCaptionStyleEnglish: input.english ?? Prisma.JsonNull,
+      defaultCaptionStyleKorean: input.korean ?? Prisma.JsonNull,
+    },
   });
 }

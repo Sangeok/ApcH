@@ -39,6 +39,36 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-10-14
+- [x] BUG-18: 설정 `Video style` 카드의 저장 버튼이 둘(`Save framing`·`Save caption style`)이라, 여백과 자막 위치를 함께 편집해도 한쪽만 저장되고 나머지는 경고 없이 사라진다 — 저장을 하나로 합치고 미저장 변경을 표시한다
+  agent: web-dev
+  area: apps/web/src/fsd/pages/settings/ui/index.tsx + apps/web/src/fsd/features/settings/api/index.ts
+  status: 완료
+  근거: 소유자 직접 발주(2026-10-14 세션) — 설정에서 여백과 자막 위치를 함께 바꿨는데 `Save framing`을 누르지 않아 여백이 저장되지 않은 실사례
+  결과: 계획대로 6파일 — saveVideoStyle 합친 액션·updateUserVideoStyle 한 update·순수모듈+테스트11·UI 단일 저장+미저장표시. 스케치 동일. check0·test227/0(216→227). 상세 web-dev/BUG-18
+  검증: 클린 패스 (2026-10-15, 독립 무편집 1라운드 — 메인 루프 라운드 구현 영향 1(필드 전수 비교)·위생 3 반영, 독립 1회차 위생 1 반영 뒤 2회차 결함 0, 필수 8경로 전수)
+- [x] BUG-12: admin 분석 화면의 시각 표시가 서버 런타임 타임존에 암묵적으로 의존한다
+  agent: admin-dev
+  area: apps/admin/src/fsd/pages/analytics/ui/index.tsx
+  status: 완료
+  근거: 미결 0건, 선행 BUG-10 충족된 한 줄 수정. 암묵적 UTC 의존 제거이며 BUG-18과 워크스페이스·파일이 겹치지 않는다.
+  결과: 계획대로 3파일(format-date.ts·test 신규·index.tsx:236 치환). 스케치 동일. check0·test337/0(334→337)·fsd:final0. 상세 admin-dev/BUG-12
+  검증: 클린 패스 (2026-10-15, 독립 무편집 1라운드 — 메인 루프 라운드 위생 2·독립 2회차 위생 2 반영 뒤 3회차 결함 0, 필수 7경로 전수. 1회차는 브리핑 위반으로 판정 불가)
+- [x] FEAT-61: 캡션 세로 위치를 프리셋 셋이 아니라 사용자가 정한 값으로 렌더한다 — 받는 쪽 먼저(FEAT-62 웹 드래그의 선행)
+  agent: backend-dev
+  area: apps/backend/main.py
+  status: 완료
+  근거: 소유자 직접 지정(2026-10-13 대화 — 미리보기에서 자막을 끌어 위치 조정, 세로만). FEAT-62가 보내는 값을 받는 쪽이라 먼저 배포해야 한다.
+  결과: 계획대로 caption_position.py(순수모듈)+test15·main.py 5편집(상수이관·resolve_position 위임). 스케치 동일. unittest 161/0(146→161)·py_compile0. 상세 backend-dev/FEAT-61
+  검증: 클린 패스 (2026-10-14, 독립 무편집 2사이클 — 1사이클 문서 위생 1 반영 뒤 2사이클 결함 0, 필수 7경로 전수(6·8은 트리거 불일치로 정정, 메인 루프 대체 실행). 메인 루프 라운드 결함 1(명세 구멍) 반영 뒤)
+- [x] FEAT-62: 설정 화면 캡션 미리보기에서 자막을 위아래로 끌어 위치를 정한다(세로만)
+  agent: web-dev
+  area: apps/web/src/fsd/features/caption-style
+  status: 완료
+  근거: 소유자 직접 지정(FEAT-61과 같은 대화). 저장 필드·범위가 FEAT-61과 묶인 계약이라 계획은 병행 가능, 구현·배포는 FEAT-61 배포 뒤.
+  결과: 계획대로 13파일(수정11·신규2) — marginV 필드·스키마·드래그 순수모듈+테스트·미리보기 포인터/키보드·줄상자 line-height·스냅버튼. 스케치 동일. check EXIT0·test 216/0(198→216,+18). 상세 web-dev/FEAT-62
+  검증: 클린 패스 (2026-10-14, 독립 무편집 2사이클 — 1사이클 문서 위생 1 반영 뒤 2사이클 결함 0, 필수 8경로 전수. 메인 루프 라운드 결함 6(구현 영향 6: 컴파일 2·명세 구멍·줄 상자 오차·슬라이더 값·문구 자리) 반영 뒤)
+
 ## 2026-10-13
 - [x] FEAT-60: 설정 화면 미리보기에 Framing(상하 검은 여백)이 보이지 않는다 — 미리보기에 여백과 임시 장면을 그리고, 슬라이더를 미리보기 옆으로
   agent: web-dev

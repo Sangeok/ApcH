@@ -44,6 +44,47 @@
 
 ---
 
+## BUG-18 — 설정 Video style 저장 버튼 하나로 합치기와 미저장 표시 (web, 구현 2026-10-15)
+
+원천: `docs/agents/web-dev/BUG-18.md`·`docs/plans/BUG-18.md` 「못 덮는 범위」 ①~④. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/web` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/web` **227/56/0**이다. 계획서 스케치를 HEAD에 기계로 적용한 결과와 구현을 비교하니, 다섯 파일 중 둘은 같고 셋은 줄바꿈·함수 위치·임포트 위치만 달랐다. 커밋할 테스트는 필드 제거 돌연변이 7종을 전부 잡았다. 이 배포로 FEAT-60 절 「저장 분리가 그대로인가」를 `대체`로 닫았고, FEAT-62 절 「스냅·프리셋·저장」과 FEAT-42 절 「설정 화면에 캡션 기본 스타일 카드가…」의 버튼 이름을 재앵커했다. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [ ] **한 번 저장으로 셋 다 들어가는가** — `/dashboard/settings` `Video style`에서 Framing 여백, English 캡션, Korean 캡션(자막 위치 포함)을 모두 바꾸고 `Save video style`을 한 번 누른다. 새로고침하면 셋 다 남아 있는지 본다. 이어 `/dashboard` 업로드 폼의 Video style 썸네일이 그 여백과 자막 위치를 그리는지도 본다. 이 경로가 소유자의 원래 보고 경로다. 여백이 들어갔는데도 자막 위치가 띠 기준으로 기대한 자리가 아니면 BUG-18 진단 (a)·(b)의 재현이므로 별도 항목으로 만든다
+- [ ] **미저장 표시** — 불러온 직후와 저장 직후에는 `Save video style`이 비활성이고 「Unsaved changes」가 없는지 본다. 여백이나 캡션 하나를 바꾸면 버튼이 켜지고 「Unsaved changes」가 보이는지, 값을 원래대로 돌리면 다시 꺼지는지도 본다. `marginV` 키가 없는 옛 저장값 계정에서 불러오자마자 미저장이 뜨지 않는지도 함께 본다
+- [ ] **이탈 경고** — 미저장 상태에서 새로고침하거나 탭을 닫으면 브라우저 확인 창이 뜨는지, 저장 뒤에는 뜨지 않는지 본다. 앱 안 `<Link>` 이동은 경고하지 않는다(계획 결정 2). 결함이 아니다
+- [ ] **리셋은 로컬만** — `Reset framing`·`Reset both languages`를 누르면 화면 값만 되돌아가고 버튼이 켜지는지 본다. 저장하지 않고 새로고침하면 리셋 전 값이 그대로인지(DB 불변)도 본다
+
+---
+
+## BUG-12 — admin 분석 화면 시각 표시를 로케일 en·UTC로 고정 (admin, 구현 2026-10-15)
+
+원천: `docs/agents/admin-dev/BUG-12.md`·`docs/plans/BUG-12.md` 「못 덮는 범위」. **미배포** — 인수 시점 기준 `dev`에만 있다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/admin` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/admin` **337/76/0**, `verify:fsd:final` EXIT 0이다. 새 테스트 파일은 `TZ=UTC`와 `TZ=America/Los_Angeles`에서 각각 3/3으로 통과했다. 신규 두 파일은 계획서 스케치와 바이트가 같다. **`〔auto〕` 태그를 붙이지 않는다**: 시각 문자열은 데이터마다 달라 고정 문구로 판정할 수 없고, 표는 최근 실패 이벤트가 있어야 행이 생긴다.
+
+- [ ] **「Last seen」 표기 전환** — `admin.a-pch.com/analytics` 「Recent Upload Failures」 표의 Last seen 칸이 `Jul 30, 2026, 10:55 PM` 형식(월 약칭, 초 없음)으로 보이는지 확인한다. 이 형식이 보이면 `formatDateTime` 호출 연결도 함께 확인된 것이다. 배포 전 형식은 런타임 기본 로케일이라 초까지 나왔다. 시각 값은 전과 같은 UTC다. 표가 비어 있으면(최근 실패 이벤트 0건) 판정을 미룬다
+
+---
+
+## FEAT-62 — 설정 미리보기에서 자막을 끌어 세로 위치 지정 (web, 구현 2026-10-14)
+
+원천: `docs/agents/web-dev/FEAT-62.md`·`docs/plans/FEAT-62.md` 「못 덮는 범위」. **배포됨(2026-10-14 13:48 KST, PR #132 합류 `7e0c57b`)** — Vercel `Production – apc-h` success(배포 id 7057145601), 소유자가 합류·배포를 직접 확인. 합류 직전 메인 루프가 `475b0c5` 깨끗한 사본에서 web `build` EXIT 0(정적 페이지 41/41, 경고 0)을 확인했다. 전제 FEAT-61은 2026-10-14 09:49 KST 배포됨. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면·포인터 조작·실렌더다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
+
+- [ ] **끌기 — 데스크톱·모바일** — `/dashboard/settings` 미리보기에서 자막을 마우스로 잡고 위아래로 끌면 따라오고(잡는 순간 튀지 않음 — 잡은 지점 보정), 폰에서 손가락으로 끌어도 페이지가 스크롤되지 않고 자막이 움직이는지(`touch-action: none`). 미리보기 가운데를 넘나들 때 위치가 튀지 않는지(기준 가장자리 전환)
+- [ ] **키보드·낭독기** — 자막에 Tab으로 포커스가 가고 ↑/↓로 움직이는지. 화면 낭독기가 「Caption vertical position」 슬라이더와 「N% from bottom」을 읽는지, Top·Bottom 프리셋 상태에서도 값이 있는지(top 프리셋 크기 122에서 86%)
+- [ ] **스냅·프리셋·저장** — Top/Middle/Bottom을 누르면 끌어 놓은 위치가 프리셋으로 돌아가고, 프리셋 칩(Bold Yellow 등)을 바꿔도 끌어 놓은 위치는 유지되는지. 끌어 놓고 `Save video style`(**[재앵커 2026-10-15]** BUG-18이 저장 버튼을 합쳤다 — 그 배포 전에는 `Save caption style`) → 새로고침하면 같은 위치로 다시 그려지는지(저장값 패스스루). 업로드 폼 Video style 썸네일도 그 위치를 따르는지. Position 버튼 아래에 「Or drag the caption in the preview to set its height.」가 보이고, Framing 설명(「Captions keep their current position…」)은 그대로인지
+- [ ] **옛 저장값이 그대로 저장되는가**(회귀) — 이 배포 전에 저장해 둔 캡션 스타일(키 `marginV` 없음)을 불러와 다른 필드만 바꿔 저장해도 「Invalid caption style」 없이 저장되는지(서버가 누락 키를 null로 흡수 — 계획 검증에서 zod 실측)
+- [ ] **미리보기와 실렌더 위치** — 자막을 검은 띠(Framing) 안 등 특정 높이에 끌어 놓고 저장 → 업로드 1건. 실렌더 자막 높이가 미리보기와 맞는지(계획 검증 실측 잔여 오차: 한 줄 −9 ASS px = 1920의 0.5%, 두 줄 아래끝 −16px. 여러 줄은 줄바꿈 위치가 다를 수 있다 — 가로 충실도는 후속 후보). FEAT-61 절 셋째 줄과 같은 영상으로 닫는다
+
+---
+
+## FEAT-61 — 캡션 세로 위치를 사용자 marginV로 렌더 (backend, 구현 2026-10-14)
+
+원천: `docs/agents/backend-dev/FEAT-61.md`·`docs/plans/FEAT-61.md` 「못 덮는 범위」. **배포됨(2026-10-14 09:49 KST, `modal deploy main.py` — `ad1afe1` 기준, 소유자 지시 「배포해」)** — 마운트에 `PythonPackage:caption_position` 포함. 웹(FEAT-62)이 2026-10-14 13:48 KST 배포됐다(PR #132 `7e0c57b`) — 이제 웹이 `marginV`를 보내므로 아래 사용자 여백 렌더 줄도 판정 가능하다. **`〔auto〕` 태그를 붙이지 않는다**: Modal 컨테이너·실렌더 관측이다.
+
+- [x] **새 이미지로 컨테이너가 기동하는가** — 배포 직후 `modal container list`로 활성 컨테이너가 전부 배포 시각 이후 시작인지 보고, 첫 처리 1건이 시작 단계에서 죽지 않는지(새 순수 모듈 `caption_position`이 이미지에 없으면 **모든 모드가 시작 시 `ModuleNotFoundError`**로 죽는다 — `test_modal_image_sources.py`가 막지만 실컨테이너가 유일한 증거다) — 확인(2026-10-14, `modal container list` 실측: 배포 09:48:14~09:49:03 KST. 직후엔 옛 컨테이너 `ta-01M4V08H…`(01:07:10 KST 시작)와 새 컨테이너 `Pending`이 공존 → 09:49:49 KST에 옛 컨테이너 소멸, 새 컨테이너 `ta-01M4VY4MV4…` 09:49:22 KST 시작·같은 ID로 40초 이상 생존. `main.py` 최상위가 `caption_position`을 import하므로 생존이 곧 import 성공이다. 첫 처리 실행은 다음 줄의 업로드로 함께 본다)
+- [ ] **기존 프리셋 위치가 그대로인가**(회귀) — 배포 뒤 업로드 1건(Top 또는 Bottom 버튼만 누르고 끌지 않은 상태 — FEAT-62 배포 뒤 웹은 이때 `marginV: null`을 보내고, 배포 전 저장값에는 키가 없다. 백엔드는 둘 다 상수로 폴백한다)에서 자막이 배포 전과 같은 높이(Top 줄 상자 위끝 200 · Bottom 줄 상자 아래끝 아래에서 260, 1920 기준)에 나오는지. 옛·새 해석은 계획 검증에서 504입력 전수 등가였다
+- [ ] **사용자 marginV가 그 높이에 렌더되는가** — FEAT-62 배포 뒤 설정에서 자막을 끌어 저장 → 업로드 1건. top 기준이면 줄 상자 위끝이 위에서 `marginV`, bottom 기준이면 아래끝이 아래에서 `marginV`(로컬 libass 실측: 크기 122에서 글자 잉크는 줄 상자보다 위 34px·아래 14px 안쪽). 컨테이너 ffmpeg·libass는 로컬 측정과 빌드가 다르다 — FEAT-62 절의 「미리보기와 실렌더 위치」 확인과 같은 영상으로 닫는다
+
+---
+
 ## FEAT-60 — 설정 미리보기 Framing 여백 띠·임시 장면 (web, 구현 2026-10-13)
 
 원천: `docs/agents/web-dev/FEAT-60.md`·`docs/plans/FEAT-60.md` 「못 덮는 범위」 ①~⑥. **배포됨(2026-10-13, PR #130 합류 `43c17c3`)** — Vercel `Production – apc-h` success(배포 id 7027887443). 합류 직전 메인 루프가 `ea2e312` 깨끗한 사본에서 web `build` EXIT 0(정적 페이지 41/41)을 확인했다. 게이트는 인수 시 메인 루프가 직접 재실행했다: 깨끗한 HEAD 사본 + 세 파일 web `check` EXIT 0(lint 경고 0) · `test` **198/49/0**, 메인 트리(다른 세션 card-news 변경 포함) `check` EXIT 0 · `test` 319/49/0. 구현 세 파일은 계획서 스케치를 HEAD에 기계 적용한 결과와 줄바꿈 외 바이트 동일했고, 인수 때 구현본을 SSR 렌더해 0·10·25% 모두 장면이 상자 안 `top/bottom: N%`에 있고 자막 레이어가 그 위, 왼쪽 칸 슬롯이 Preset 앞, 비-`sample` 경로에는 장면이 없음을 확인했다. 계획 검증 때 같은 코드를 headless 크롬으로 띄워 화자 축소(×0.80 / ×0.72 / ×0.50 — 10 / 14 / 25%)와 데스크톱·모바일 순서를 봤다 — 아래 줄은 **실서버·실 Tailwind·실서체**로만 닫힌다.
@@ -54,7 +95,7 @@
 - [ ] **자막이 띠에 겹치는 지점이 실렌더와 같은가** — 자막 위치는 프레임 전체 기준 그대로라(INV-FRAMING-004) Top 자막은 약 10.4%(200/1920), Bottom은 약 13.5%(260/1920)를 넘으면 띠 위로 올라간다. FEAT-58 절 10% 실렌더처럼 자막이 잘리지 않고 겹쳐 보이는지
 - [ ] **대비·다크 모드** — 흰 자막이 실루엣과 검은 띠 양쪽에서 읽히고, 다크 모드에서도 미리보기가 같은 모습인지(장면 색이 리터럴이라 같아야 한다)
 - [ ] **배치 — 모바일·데스크톱** — 폰 폭(약 390px)에서 미리보기가 컨트롤 **위**, Framing 슬라이더가 그 바로 아래. 데스크톱에서 왼쪽 칸이 Framing → `Captions` 제목 → 편집 언어 토글 → Preset 순서(Framing이 언어 토글 아래로 내려가지 않음)이고 오른쪽이 미리보기. 편집 언어를 바꿔도 슬라이더 값이 그대로인지
-- [ ] **저장 분리가 그대로인가**(회귀) — 여백을 저장한 뒤 `Save caption style`·자막 초기화를 눌러도 새로고침한 여백이 안 바뀌고, `Save framing`·`Reset framing`은 전처럼 저장·초기화하는지(FEAT-58 절 「설정 화면 Framing이 저장·재진입·초기화되는가」에서 실측된 불변 — 이번에 Framing 블록이 편집기 슬롯으로 옮겨졌다)
+- [x] **저장 분리가 그대로인가**(회귀) — 대체(BUG-18, 2026-10-15 — 소유자 결정으로 저장 분리를 폐기하고 `Save video style` 하나로 합쳤다. 이 줄이 지키던 불변이 의도적으로 사라졌고, 합친 저장은 BUG-18 절 첫째 줄이 다시 선언한다) — 여백을 저장한 뒤 `Save caption style`·자막 초기화를 눌러도 새로고침한 여백이 안 바뀌고, `Save framing`·`Reset framing`은 전처럼 저장·초기화하는지(FEAT-58 절 「설정 화면 Framing이 저장·재진입·초기화되는가」에서 실측된 불변 — 이번에 Framing 블록이 편집기 슬롯으로 옮겨졌다)
 
 ---
 
@@ -66,7 +107,7 @@
 - [x] **배치가 폭에 따라 바뀌고 가로로 넘치지 않는가** — 확인(2026-10-01, 실측 — 배포 뒤 프로덕션 `/dashboard`, 파일 선택 상태. 1280px: 옵션이 카드 안 2열 `152px 766px`, 문서 폭 1265/1280(스크롤바). 390px: 1열 `293px`, 세그먼트·업로드 버튼 전폭 293px, 문서 폭 375/390 — 배포 전 같은 폭에서 옵션 줄이 약 880px까지 넘쳤다) — `/dashboard`에서 파일을 고르면 옵션이 업로드 카드 **안**에 라벨|컨트롤 2열로 나오고, 폰 폭(약 390px)에서는 라벨이 위로 가는 1열이 되며 페이지가 가로로 스크롤되지 않는지(2026-09-30 관측: 옵션 줄이 약 880px까지 넘쳤다)
 - [ ] **파일 선택 전후 화면** — 고르기 전에는 큰 드롭존 + 비활성 `Upload and generate clips`, 고른 뒤에는 파일 한 줄(이름·MB·길이·`Replace`)로 접히고 그 줄을 눌러도·끌어다 놓아도 파일이 바뀌는지
 - [ ] **세그먼트 조작** — 언어·클립 수·생성 방식을 마우스와 방향키로 바꿀 수 있고, `Review first`를 고르면 버튼이 `Upload and review clips`가 되는지
-- [ ] **Video style 썸네일이 설정을 그리는가** — 9:16 썸네일의 상하 검은 띠가 설정 여백과 같은 비율이고, 캡션 견본이 실제 서체(영어 Anton · 한국어 Noto Sans KR)·색·외곽선·대문자·위치로 그려지며, 자막 언어를 바꾸면 그 언어의 스타일로 바뀌는지. `Captions`·`Framing` 값과 `Change in settings` 링크
+- [ ] **Video style 썸네일이 설정을 그리는가** — 9:16 썸네일의 상하 검은 띠가 설정 여백과 같은 비율이고, 캡션 견본이 실제 서체(영어 Anton · 한국어 Noto Sans KR)·색·외곽선·대문자·위치로 그려지며, 자막 언어를 바꾸면 그 언어의 스타일로 바뀌는지. `Captions`·`Framing` 값(저장 스타일이 없으면 `Captions`는 `Default`)과 `Change in settings` 링크
   - 부분 관측(2026-10-12, FEAT-58 확인 중): `Framing` 값이 10% → `10% top & bottom`, 25% → `25% top & bottom`, 0% → `None`으로 따라갔고 10%에서 썸네일 상하에 검은 띠가 그려졌다. 자막 언어를 바꾸자 견본 문구가 `진짜 이유는` ↔ `the real reason`으로 바뀌고 `Framing`은 그대로. 서체·색·외곽선 판정은 하지 않았다(줄은 열어 둔다)
 - [x] **클립 수 상한이 보이는가**(BUG-17 배포 뒤) — 확인(2026-10-01, 실측 — 87.6초 파일: `3`·`4` 비활성 + 취소선, 저장값 4가 2로 보정, `This video fits up to 2 clips. The AI may return fewer.` 2초 파일: 파일 줄 destructive 안내, 클립 안내 없음, 버튼 비활성. 1:45 대신 87.6초 파일로 같은 분기(상한<4)를 밟았다) — 1:45 파일이면 `4`가 취소선으로 막히고 저장값 4가 3으로 옮겨지며 `This video fits up to 3 clips. The AI may return fewer.`, 30초 미만 파일이면 파일 줄에 빨간 안내 + 버튼 비활성
 - [x] **설정 화면 캡션 미리보기가 그대로인가**(회귀) — 확인(2026-10-01, 실측 — 배포 뒤 `/dashboard/settings`, 저장 스타일 없음(Default). 편집 언어 한국어 `Font size: 130`·`Words per line: 3`·`Outline width: 1.3`, English로 바꾸면 `122`·`5`·`1.1` — 이전 기본값과 같다) — 유효 스타일 계산을 `model/effective-caption-style.ts`로 옮겼다. 설정 화면 `Video style`의 Font size·Words per line·Outline width 기본값(영어 122/5/1.1 · 한국어 130/3/1.3)과 샘플 미리보기가 이전과 같은지(계획 검증에서 옛 계산과 116,645 조합 값 동일을 확인했다)
@@ -129,7 +170,7 @@
 
 - [x] **마이그레이션이 프로덕션 Neon에 적용됐는가** — 확인(2026-09-23, 실측 — 소유자 승인 후 `migrate deploy` `All migrations have been successfully applied.` · 이어 `migrate status` **`Database schema is up to date!`** · `db pull --print`의 `model User`에 `defaultCaptionStyle`·`defaultCaptionStyleEnglish`·`defaultCaptionStyleKorean` **셋 다** 존재 · 행 계수 `total 7 / en 0 / kr 0 / old 0`으로 **이동 0행**이 예측대로 · 새 클라이언트로 두 새 컬럼 실 조회 성공. 대상 `neondb`@`ep-wild-pine-a4avujag.us-east-1.aws.neon.tech`)
 - [ ] **`Editing` 토글이 편집 대상을 바꾸는가** — 이 항목의 존재 이유다. 설정 화면에서 한국어로 넘겨 크기·줄당 단어를 바꾸고 영어로 돌아왔을 때 **영어 값이 그대로**인지. 저장 뒤 새로고침해도 두 값이 각각 남는지
-- [ ] **업로드 폼에서 언어를 바꾸면 `Video style:` 라벨이 따라 바뀌는가** — 두 언어에 다른 프리셋을 저장해 두고 대시보드 업로드 폼의 언어 드롭다운을 오가며 본다
+- [x] **업로드 폼에서 언어를 바꾸면 `Video style:` 라벨이 따라 바뀌는가** — 대체(FEAT-59 — 라벨 한 줄과 언어 드롭다운이 9:16 썸네일·`Captions` 행과 언어 세그먼트로 바뀌었다. 같은 확인은 FEAT-59 절 「Video style 썸네일이 설정을 그리는가」가 「자막 언어를 바꾸면 그 언어의 스타일로 바뀌는지」로 다시 선언한다. 18차 감사, 2026-10-14) — 두 언어에 다른 프리셋을 저장해 두고 대시보드 업로드 폼의 언어 드롭다운을 오가며 본다
 - [ ] **업로드가 그 언어의 스냅샷을 고정하는가** — 렌더까지 가야 보인다(크레딧). 한국어 업로드가 한국어 쪽 스타일로, 영어 업로드가 영어 쪽으로 나오는지
 - [ ] **저장·초기화가 둘 다에 걸리는가** — `Reset both languages`를 누르면 두 언어 모두 언어 기본값으로 돌아가는지(버튼 라벨이 그렇게 말한다)
 
@@ -201,7 +242,7 @@
 - [ ] 설정 화면 카드가 **`Video style`** 제목으로 뜨고, 설명이 "업로드 시점에 고정된다"를 말하며, 안에 **`Captions` 섹션 헤더**가 보인다
 - [ ] **`Default` 칩이 프리셋 칩 맨 앞에 뜬다** — 기본값을 한 번도 안 정한 계정에서 그 칩이 켜져 있고, 누르면 언어 기본값으로 돌아가며(컨트롤·미리보기가 EN 122/5단어·KR 130/3단어를 그린다), 프리셋을 고르면 `Default`가 꺼지고 그 프리셋이 켜진다
 - [ ] **미리보기 언어 토글이 미리보기만 바꾼다** — `한국어`로 넘기면 샘플·숫자가 한국어 기준으로 바뀌고, 그 상태에서 업로드 기본값 카드의 `Save`를 눌러도 **다음 업로드 언어가 안 바뀐다**(관측 4의 사고 경로가 닫혔는지)
-- [ ] 업로드 폼(언어·클립 수·Generation 옆)에 **`Video style: <라벨>` 읽기 전용 한 줄**과 설정 링크가 뜨고, 라벨이 실제 기본값을 따라간다(미설정 → `Default`)
+- [x] 대체(FEAT-59 — 읽기 전용 한 줄이 `Video style` 블록(9:16 썸네일 + `Captions`·`Framing` 행 + `Change in settings` 링크)으로 바뀌었다. 같은 확인은 FEAT-59 절 「Video style 썸네일이 설정을 그리는가」가 다시 선언하고, 「미설정 → `Default`」는 그 줄로 옮겼다. 18차 감사, 2026-10-14) — 업로드 폼(언어·클립 수·Generation 옆)에 **`Video style: <라벨>` 읽기 전용 한 줄**과 설정 링크가 뜨고, 라벨이 실제 기본값을 따라간다(미설정 → `Default`)
 - [ ] **검토 화면에서 캡션 스타일 UI가 사라졌다** — 카드에 `Caption style` 버튼이 없고 다이얼로그가 열리지 않는다. 구간·선택 편집은 그대로 동작한다
 - [ ] **render 실렌더가 업로드 스냅샷 스타일로 나온다** — 검토를 켠 업로드에서 스타일을 설정해 두고 확정하면, 만들어진 `.mp4` 자막이 그 스타일이다. **FEAT-51 + FEAT-52 둘 다 배포된 뒤에만 판정된다**(FEAT-51 절의 「render 폴백의 실효」와 같은 확인이다 — 둘 중 하나로 닫으면 나머지는 대체 처리)
 
@@ -300,7 +341,7 @@
 게이트는 `npm run check -w apps/web` EXIT 0 · `npm test -w apps/web` **154/154**(인수 시 메인 루프 재실행, 145→154 — 신규 `caption-style-request.test.mjs` 3·`sample-captions.test.mjs` 6). auto 렌더가 요청 스냅샷으로 나오는지와 render에서 스타일 없는 클립이 언어 기본값인지는 아래 FEAT-41 절 「(FEAT-42 배포 후)」 두 줄이 맡고, 이 절은 설정 화면·스냅샷·검토 시드를 맡는다.
 **`〔auto〕` 태그를 붙이지 않는다**: 로그인 뒤 화면과 실제 업로드·Modal 처리에서만 판정된다.
 
-- [ ] **설정 화면에 캡션 기본 스타일 카드가 보이고 샘플 미리보기가 첫 페인트부터 그려지는가** — **[재앵커 2026-10-13]** 카드 이름과 초기화 버튼이 바뀌었다 — FEAT-52가 카드를 `Video style`로 바꿨고, 초기화는 `Reset both languages`다(FEAT-54 절). `/dashboard/settings`의 「Upload defaults」 아래 `Video style` 카드에 프리셋·위치·크기·색·외곽선·줄당 단어·Uppercase 컨트롤, 9:16 미리보기에 샘플 첫 줄(English `Style your captions the way`), 밑 안내 `This is a sample. …`, `Save caption style`·`Reset both languages`가 보이는지. 컨트롤을 바꾸면 미리보기의 크기·색·위치·줄당 단어·대문자가 즉시 바뀌는지
+- [ ] **설정 화면에 캡션 기본 스타일 카드가 보이고 샘플 미리보기가 첫 페인트부터 그려지는가** — **[재앵커 2026-10-13]** 카드 이름과 초기화 버튼이 바뀌었다 — FEAT-52가 카드를 `Video style`로 바꿨고, 초기화는 `Reset both languages`다(FEAT-54 절). `/dashboard/settings`의 「Upload defaults」 아래 `Video style` 카드에 프리셋·위치·크기·색·외곽선·줄당 단어·Uppercase 컨트롤, 9:16 미리보기에 샘플 첫 줄(English `Style your captions the way`), 밑 안내 `This is a sample. …`, `Save video style`(**[재앵커 2026-10-15]** BUG-18이 저장 버튼을 합쳤다 — 그 배포 전에는 `Save caption style`)·`Reset both languages`가 보이는지. 컨트롤을 바꾸면 미리보기의 크기·색·위치·줄당 단어·대문자가 즉시 바뀌는지
 - [x] **페이지 언어를 Korean으로 바꾸면 미리보기가 함께 바뀌는가** — 대체(FEAT-52 — 미리보기 언어를 `Subtitle language`에서 떼어 별도 토글로 옮겼다(지금 `Editing`, `editLanguage`). 같은 확인은 FEAT-52 절 「미리보기 언어 토글이 미리보기만 바꾼다」가 새 동작으로 다시 선언한다) — `Subtitle language`를 `한국어`로 고르면(저장 전에도) 미리보기 문장이 `지금 자막 스타일을`, 폰트가 Noto Sans KR, 크기 표시가 130으로 바뀌는지
 - [x] **저장한 캡션 기본값이 새 업로드의 검토 드래프트에 시드되는가** — 캡션 스타일 저장(토스트 `Caption style saved`) → `Review first`로 새 업로드 → 검토 화면 한 클립의 `Caption style` 다이얼로그가 저장한 스타일(해당 프리셋 칩 활성 포함)로 열리는지. 저장 전에 올린 업로드는 그대로여야 한다(업로드 시점 스냅샷)  
   → **대체(FEAT-52·FEAT-53)**: 클립별 캡션 스타일 자체가 사라졌다 — FEAT-52가 검토 화면 편집을 없애고 FEAT-53이 `ClipDraft.captionStyle` 컬럼을 drop했다(2026-09-19 적용, 6행 소멸). 「검토 드래프트에 시드된다」는 동작이 존재하지 않으므로 판정 대상이 없다. 기본값이 렌더까지 닿는지는 업로드 시점 스냅샷(`UploadedFile.captionStyle`) 경로로 바뀌었고 FEAT-52·FEAT-55 절이 그것을 확인한다.

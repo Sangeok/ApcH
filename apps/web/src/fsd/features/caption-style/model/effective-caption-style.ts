@@ -11,6 +11,7 @@ export interface EffectiveCaptionStyle {
   outlineColor: string;
   outlineWidth: number;
   uppercase: boolean;
+  marginV: number | null;
 }
 
 // 저장값(null 포함) 위에 언어별 기본값을 얹은 "유효 스타일".
@@ -41,5 +42,7 @@ export function resolveEffectiveCaptionStyle(
         ? CAPTION_STYLE_OPTIONS.DEFAULT_OUTLINE_WIDTH.Korean
         : CAPTION_STYLE_OPTIONS.DEFAULT_OUTLINE_WIDTH.English),
     uppercase: style?.uppercase ?? false,
+    // marginV는 언어 기본값이 없다(position처럼). 프리셋 폴백은 getPreviewVerticalInset이 소유하므로 null 패스스루.
+    marginV: style?.marginV ?? null,
   };
 }

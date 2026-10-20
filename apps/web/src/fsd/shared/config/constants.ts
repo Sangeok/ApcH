@@ -65,6 +65,9 @@ export const CAPTION_STYLE_OPTIONS = {
   // outlineWidth는 null로 저장되고 백엔드가 같은 기본값으로 해석한다.
   // 저장되는 값은 captionStyleSchema의 .int()가 정수로 강제한다.
   DEFAULT_OUTLINE_WIDTH: { English: 1.1, Korean: 1.3 },
+  // 자막 세로 여백(ASS PlayResY 1920 기준) 허용 범위. 백엔드 apps/backend/caption_position.py MARGINV_MIN·MARGINV_MAX와 동기.
+  // 상한 960 = PLAY_RES_Y/2: 블록 중심이 미리보기 중앙일 때의 기준 가장자리 거리 상한이라 드래그가 이를 넘지 않는다.
+  MARGIN_V_RANGE: { MIN: 0, MAX: 960 },
 } as const;
 
 /**
@@ -74,7 +77,7 @@ export const CAPTION_STYLE_OPTIONS = {
 export const CAPTION_RENDER = {
   PLAY_RES_Y: 1920, // main.py create_subtitles_with_ffmpeg의 subs.info["PlayResY"]
   // top/bottom 세로 마진(PLAY_RES_Y 기준). middle은 중앙 정렬이라 마진 미사용.
-  MARGINV: { top: 200, bottom: 260 }, // main.py CAPTION_POSITION_MARGINV
+  MARGINV: { top: 200, bottom: 260 }, // apps/backend/caption_position.py CAPTION_POSITION_MARGINV
   SHADOW: 6.5, // main.py new_style.shadow / korean_style.shadow
   // ⚠️ libass는 face.ascender/descender를 OS/2 usWinAscent/usWinDescent로 덮어쓴 뒤
   // (ass_font.c set_font_metrics — 0.15.2 :98-104, master :356-366; Ubuntu 22.04 ffmpeg가
@@ -124,6 +127,10 @@ export type CaptionStyle = {
   // 표시에만 쓰이고 null로 남아 직렬화되지 않는다.
   outlineWidth: number | null;
   uppercase: boolean | null;
+  // position이 가리키는 가장자리에서의 세로 여백(ASS PlayResY 1920 기준, 정수 0~960).
+  // null = 프리셋 여백(CAPTION_RENDER.MARGINV, top 200 / bottom 260). middle은 무시.
+  // position처럼 프리셋 소속이 아니다 — 프리셋을 바꿔도 사용자 위치는 유지된다.
+  marginV: number | null;
 };
 
 /**
@@ -194,7 +201,7 @@ export const CAPTION_STYLE_PRESETS = [
 ] as const satisfies readonly {
   id: string;
   label: string;
-  style: Omit<CaptionStyle, "position">;
+  style: Omit<CaptionStyle, "position" | "marginV">;
 }[];
 
 export type CaptionStylePresetId = (typeof CAPTION_STYLE_PRESETS)[number]["id"];

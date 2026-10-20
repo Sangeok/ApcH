@@ -7,15 +7,22 @@ import { cn } from "~/fsd/shared/lib/utils";
 import {
   buildCaptionCues,
   getPreviewFontPx,
+  getPreviewLineHeightPx,
   getPreviewShadowPx,
   getPreviewStrokePx,
   getPreviewVerticalInset,
   pickActiveCue,
 } from "../model/caption-preview";
+import {
+  captionHeightPercent,
+  resolveVerticalDrop,
+  verticalDropToCenterPx,
+} from "../model/caption-vertical-drag";
 import { firstCueText } from "../model/sample-captions";
 
 const PREVIEW_HEIGHT_PX = 320;
 const PREVIEW_WIDTH_PX = 180; // 9:16
+const KEYBOARD_STEP_PX = 4; // 방향키 한 번의 미리보기 px 이동(≈24 ASS px)
 
 interface CaptionPreviewPlayerProps {
   playUrl: string | null;
@@ -31,6 +38,9 @@ interface CaptionPreviewPlayerProps {
   maxWords: number;
   uppercase: boolean;
   position: CaptionStyle["position"];
+  marginV: number | null; // 저장 여백(null = 프리셋). 미리보기 세로 위치에 반영.
+  // 설정 에디터만 넘긴다. 있으면 자막 블록이 드래그·방향키로 세로 위치를 바꾼다.
+  onVerticalChange?: (next: { position: "top" | "bottom"; marginV: number }) => void;
   // 저장 전 슬라이더 값(0~25). 상하 검은 띠를 상자 높이의 N%로 그린다.
   paddingPercent: number;
   // 설정 화면의 정지 샘플 미리보기. true면 영상 없이 첫 큐를 고정으로 그린다.
@@ -135,8 +145,56 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
     };
   }, [playUrl, clipStart, clipEnd]);
 
-  const inset = getPreviewVerticalInset(props.position, PREVIEW_HEIGHT_PX);
+  const captionRef = useRef<HTMLParagraphElement>(null);
+  const grabOffsetRef = useRef(0); // 잡은 지점 − 블록 중심(px). 잡자마자 중심이 포인터로 튀지 않게 한다.
+  const containerRef = useRef<HTMLDivElement>(null); // 미리보기 상자
+  const draggable = props.onVerticalChange !== undefined;
+  const inset = getPreviewVerticalInset(props.position, props.marginV, PREVIEW_HEIGHT_PX);
+
+  const commitFromCenter = (centerPx: number) => {
+    const blockH = captionRef.current?.getBoundingClientRect().height ?? 0;
+    const clamped = Math.min(PREVIEW_HEIGHT_PX, Math.max(0, centerPx));
+    props.onVerticalChange?.(resolveVerticalDrop(clamped, blockH, PREVIEW_HEIGHT_PX));
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!draggable) return;
+    e.preventDefault();
+    const cap = e.currentTarget.getBoundingClientRect();
+    grabOffsetRef.current = e.clientY - (cap.top + cap.height / 2);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!draggable || !e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    commitFromCenter(e.clientY - rect.top - grabOffsetRef.current);
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId))
+      e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!draggable || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    e.preventDefault();
+    const blockH = captionRef.current?.getBoundingClientRect().height ?? 0;
+    const center = verticalDropToCenterPx(
+      props.position,
+      props.marginV,
+      blockH,
+      PREVIEW_HEIGHT_PX,
+    );
+    const delta = e.key === "ArrowUp" ? -KEYBOARD_STEP_PX : KEYBOARD_STEP_PX;
+    commitFromCenter(center + delta);
+  };
+
   const fontPx = getPreviewFontPx(props.fontSize, language, PREVIEW_HEIGHT_PX);
+  const lineHeightPx = getPreviewLineHeightPx(props.fontSize, PREVIEW_HEIGHT_PX);
+  const heightPercent = captionHeightPercent(
+    props.position,
+    props.marginV,
+    props.fontSize,
+  );
   const strokePx = getPreviewStrokePx(props.outlineWidth, PREVIEW_HEIGHT_PX);
   const shadowPx = getPreviewShadowPx(PREVIEW_HEIGHT_PX);
   const fontFamily =
@@ -148,6 +206,7 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
 
   return (
     <div
+      ref={containerRef}
       className="relative mx-auto overflow-hidden rounded-lg bg-black"
       style={{ width: PREVIEW_WIDTH_PX, height: PREVIEW_HEIGHT_PX }}
     >
@@ -191,10 +250,27 @@ export default function CaptionPreviewPlayer(props: CaptionPreviewPlayerProps) {
       >
         {displayText !== "" && (
           <p
-            className="text-center leading-tight"
+            ref={captionRef}
+            className={cn(
+              "text-center",
+              draggable && "pointer-events-auto cursor-ns-resize touch-none",
+            )}
+            tabIndex={draggable ? 0 : undefined}
+            role={draggable ? "slider" : undefined}
+            aria-label={draggable ? "Caption vertical position" : undefined}
+            aria-orientation={draggable ? "vertical" : undefined}
+            aria-valuemin={draggable ? 0 : undefined}
+            aria-valuemax={draggable ? 100 : undefined}
+            aria-valuenow={draggable ? heightPercent : undefined}
+            aria-valuetext={draggable ? `${heightPercent}% from bottom` : undefined}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onKeyDown={onKeyDown}
             style={{
               fontFamily,
               fontSize: fontPx,
+              lineHeight: `${lineHeightPx}px`,
               color: props.color,
               textTransform: props.uppercase ? "uppercase" : "none",
               WebkitTextStroke: `${strokePx}px ${props.outlineColor}`,

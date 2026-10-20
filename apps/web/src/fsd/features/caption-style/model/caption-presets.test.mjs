@@ -11,9 +11,9 @@ import {
 } from "~/fsd/shared/config/constants";
 import { captionStyleLabel, matchPresetId } from "./caption-presets.ts";
 
-// 프리셋은 position이 없는 부분 스타일이다. 저장 경로가 받는 완전한 형태로 만든다.
+// 프리셋은 position·marginV가 없는 부분 스타일이다. 저장 경로가 받는 완전한 8필드 형태로 만든다.
 function withPosition(presetStyle, position = "middle") {
-  return { position, ...presetStyle };
+  return { position, marginV: null, ...presetStyle };
 }
 
 describe("caption style presets", () => {

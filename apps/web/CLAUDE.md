@@ -20,7 +20,7 @@ ApcH/
 
 어드민 화면은 2026-08-02에 `apps/admin`으로 분리됐다. **web에는 `/admin` 라우트가 없다.** 어드민 관련 코드(`app/admin/`, `pages/admin-*`, `features/observability-test`, `shared/api/admin-guard.ts`, `env.ADMIN_EMAILS`, analytics 리포팅 집계)는 전부 제거됐으니 web에서 찾지 말 것.
 
-두 앱은 `@repo/db`만 공유한다. UI 컴포넌트와 인증 설정은 각자 자기 것을 가진다 — 공유하지 않기로 한 결정이다(`docs/proposals/completed/2026-08-02-monorepo-admin-split.md` 결정 2).
+두 앱은 `@repo/db`만 공유한다. UI 컴포넌트와 인증 설정은 각자 자기 것을 가진다 — 공유하지 않기로 한 결정이다(저장소 루트 `docs/proposals/completed/2026-08-02-monorepo-admin-split.md` 결정 2).
 
 ## Project Overview
 
@@ -66,7 +66,7 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 30개 파일, 49 suite, 198개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 32개 파일, 56 suite, 227개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -74,10 +74,11 @@ npm test -w apps/web
 | `shared/analytics/lib/metadata.test.mjs` | 이벤트별 허용 메타데이터 키. `ANALYTICS_METADATA_KEYS_BY_EVENT`는 `as const satisfies Record<AnalyticsEventName, readonly string[]>`로 계약에 묶여 있어, 이벤트 이름 변경은 이제 컴파일 오류다. 이 테스트는 각 이벤트가 **어떤 키를 허용하는지**(값)를 지킨다 |
 | `shared/analytics/lib/normalize-path.test.mjs` | 경로 정규화 |
 | `widgets/clip-draft-review/model/selection-budget.test.mjs` | 클립 선택 예산 |
-| `features/caption-style/model/caption-preview.test.mjs` | 캡션 스타일 미리보기의 큐 묶기(`apps/backend/main.py` `create_subtitles_with_ffmpeg` 이식)·활성 큐 선택·px 환산. **묶기 규칙·범위 필터(`end === clipEnd` 포함)·`EM_SCALE` 분모는 백엔드 자막과 묶인 계약이다** — 어긋나면 미리보기가 실렌더와 다른 것을 보여주고, 사용자는 크레딧을 쓴 뒤에야 안다. 분모가 `usWinAscent+usWinDescent`인 이유는 libass가 FreeType 메트릭을 OS/2 win 값으로 덮어쓰기 때문이다(`set_font_metrics`) |
+| `features/caption-style/model/caption-preview.test.mjs` | 캡션 스타일 미리보기의 큐 묶기(`apps/backend/main.py` `create_subtitles_with_ffmpeg` 이식)·활성 큐 선택·px 환산. **묶기 규칙·범위 필터(`end === clipEnd` 포함)·`EM_SCALE` 분모는 백엔드 자막과 묶인 계약이다** — 어긋나면 미리보기가 실렌더와 다른 것을 보여주고, 사용자는 크레딧을 쓴 뒤에야 안다. 분모가 `usWinAscent+usWinDescent`인 이유는 libass가 FreeType 메트릭을 OS/2 win 값으로 덮어쓰기 때문이다(`set_font_metrics`). **줄 높이(`getPreviewLineHeightPx`)는 libass 줄 상자 = ASS fontsize × scale이다**(FEAT-62) — `leading-tight`(1.25em)이던 시절 위 기준 자막이 실렌더보다 26 ASS px 위에, 두 줄 블록 아래끝이 67px 어긋났다(Chrome 6배 렌더 ↔ 로컬 libass 실측). 바꾼 뒤 한 줄 위·아래 기준 모두 −9px(Chrome hhea vs libass win 메트릭 차이). `getPreviewVerticalInset`의 `marginV` **0 보존 케이스**가 요점이다 — `??`→`||`는 가장자리에 붙인 자막을 프리셋으로 되돌린다 |
+| `features/caption-style/model/caption-vertical-drag.test.mjs` | 설정 미리보기 드래그·방향키의 지오메트리(FEAT-62) — `clampMarginV`(정수·0~960·비유한→0), `resolveVerticalDrop`(블록 중심이 위쪽 절반이면 top + 위에서의 여백, **정확히 가운데부터는 bottom**), 역함수 `verticalDropToCenterPx`(프리셋 폴백은 `getPreviewVerticalInset`에 위임 — 폴백이 한 곳에만 있다), 왕복 연속성, 슬라이더 값 `captionHeightPercent`(크기 122에서 top·null 86 · bottom·null 17 · bottom·0 3 · middle 50 골든값, 가운데를 지나 아래로 갈 때 **증가하지 않음**). `marginV`는 백엔드 `apps/backend/caption_position.py`의 `MARGINV_MIN`·`MARGINV_MAX`(0~960)와 묶인 wire 계약이고 기준 가장자리는 `position`이다 — 슬라이더 값을 `marginV` 그대로 두면 top·bottom에서 방향이 뒤집히고 프리셋(null)에서 값이 사라진다(계획 검증 렌더 실측) |
 | `features/caption-style/model/caption-presets.test.mjs` | 캡션 프리셋이 `captionStyleSchema` 안에 있는지와 `matchPresetId`·`captionStyleLabel`(FEAT-52). 라벨 함수는 `"default"`만 분기하고 나머지를 `find(...)?.label ?? "Custom"`으로 받는다 — `"custom"`을 따로 분기하면 그 `??`가 도달 불가가 되어 세 케이스가 함수를 고정하지 못한다(계획 검증에서 돌연변이 2마리 생존, 분기 제거 후 7/7 사멸). **프리셋은 리터럴 값 묶음이라 범위를 벗어나도 타입은 통과하고, Apply 할 때 zod가 런타임에 거부한다.** position을 무시하는 매칭도 여기서만 잡힌다 — 무너지면 위치를 바꾼 순간 프리셋 칩이 꺼진다 |
 | `features/caption-style/model/sample-captions.test.mjs` | 설정 화면 정지 샘플 미리보기가 그리는 첫 큐. `firstSampleCueText`는 플레이어의 `sample` 분기와 **같은 `firstCueText`**·`buildCaptionCues`를 거쳐 영/한 리터럴·대문자·줄당 단어(최대 8이 한 줄을 채움)를 못박는다. **플레이어가 자체 식을 쓰던 초안은 첫 큐 선택을 바꿔도 모든 테스트를 통과했다**(FEAT-42 계획 검증 돌연변이 실측). 플레이어가 이 함수를 실제로 부르는지는 러너 밖(렌더) 몫이다. KR 샘플 9단어 중 하나를 빼는 변이는 명세(≥8)상 의도된 생존이다. **FEAT-49의 Korean 라이브 미리보기 계약(`koreanSampleCues`·`previewCaptionCues`)은 FEAT-56이 제거했다** — 검토 화면 다이얼로그가 FEAT-52로 사라져 `sample=false` 소비자가 0이 됐고, 그 8케이스가 지키던 계약이 도달 불가가 됐다. 남은 것은 `firstSampleCueText` 6케이스뿐이다. **단어 타이밍(`start`/`end`)은 이 파일도 다른 파일도 덮지 않는다** — FEAT-56 검증에서 돌연변이 2종이 삭제 전후 모두 생존했다(원래 있던 구멍) |
-| `features/caption-style/model/effective-caption-style.test.mjs` | 저장값 위에 언어별 기본값을 얹은 유효 캡션 스타일(`resolveEffectiveCaptionStyle`, FEAT-59). 설정 미리보기(`CaptionStyleEditor`)와 업로드 폼 썸네일(`CaptionStyleThumbnail`)이 **같은 계산**을 쓰는 단일 원천이다 — 따로 계산하면 두 화면이 조용히 어긋난다. 필드별 언어 기본값 폴백(EN 122/5/1.1 · KR 130/3/1.3), `uppercase` 기본 `false`, 알 수 없는 언어는 영어 분기. **저장된 외곽선 `0` 보존 케이스가 요점이다** — `??`를 `||`로 바꾸면 0이 언어 기본값으로 바뀌는데 이 케이스 없이는 그 돌연변이가 생존한다(계획 검증 실측). `fontSize`·`maxWordsPerLine`의 `||`(0이 허용 범위 밖)와 `uppercase ?? false → || false`는 등가 변이라 테스트하지 않는다 |
+| `features/caption-style/model/effective-caption-style.test.mjs` | 저장값 위에 언어별 기본값을 얹은 유효 캡션 스타일(`resolveEffectiveCaptionStyle`, FEAT-59). 설정 미리보기(`CaptionStyleEditor`)와 업로드 폼 썸네일(`CaptionStyleThumbnail`)이 **같은 계산**을 쓰는 단일 원천이다 — 따로 계산하면 두 화면이 조용히 어긋난다. 필드별 언어 기본값 폴백(EN 122/5/1.1 · KR 130/3/1.3), `uppercase` 기본 `false`, 알 수 없는 언어는 영어 분기. **저장된 외곽선 `0` 보존 케이스가 요점이다** — `??`를 `||`로 바꾸면 0이 언어 기본값으로 바뀌는데 이 케이스 없이는 그 돌연변이가 생존한다(계획 검증 실측). `fontSize`·`maxWordsPerLine`의 `||`(0이 허용 범위 밖)와 `uppercase ?? false → || false`는 등가 변이라 테스트하지 않는다. `marginV`는 언어 기본값 없이 그대로 통과한다(FEAT-62) — **저장된 300·0 패스스루 케이스가 없으면 「항상 null」 구현이 생존한다**(저장한 위치가 새로고침 뒤 프리셋으로 돌아가는데도 전 케이스 통과 — 계획 검증 실측) |
 | `inngest/caption-style-request.test.mjs` | Modal 요청의 요청 단위 `caption_style` 결정 — **auto·render 공통**(FEAT-52). 스냅샷이 있으면 그대로, `null`이면 `undefined`(키 생략 → 백엔드 언어 기본값). **FEAT-41의 2026-09-14 결정(render는 요청 스냅샷을 안 쓴다)이 뒤집힌 자리다** — 그 결정의 전제가 "검토 화면이 클립별 스타일을 미리보기로 보여준다"였는데 FEAT-52가 그 미리보기와 클립별 스타일을 없앴다. 백엔드 `caption_style_source.py` `select_caption_style`과 묶인 계약이고(FEAT-51이 render 게이트를 제거해 받는 쪽을 먼저 열었다), 어긋나면 사용자가 설정한 스타일이 무시되고 언어 기본값으로 렌더된다 |
 | `shared/config/video-framing.test.mjs` | 여백 비율의 입력 검사·폴백·픽셀 계산·업로드 라벨 요약(FEAT-58). `parseVideoPaddingPercent`는 정수 0~25만 받고 문자열·bool·소수·`NaN`을 **강제 변환 없이** 거부한다 — 설정 저장 액션의 유일한 검증이다. 픽셀식 `floor((1920·p+50)/100)`은 백엔드 `video_framing.py` `frame_layout`과 **같은 골든값**(1%→19, 3%→58, 10%→192, 25%→480)으로 묶인 계약이라, 한쪽만 바꾸면 설정 화면이 보여 주는 px와 실렌더가 어긋난다. `Math.round`로 바꾸는 변이는 1920×정수%에 .5 동점이 없어 등가라 테스트하지 않는다. `videoFramingSummary`의 골든 문구(`10% top & bottom`, 0이면 `null`)는 업로드 폼 라벨에 그대로 나가는 카피다 |
 | `inngest/video-framing-request.test.mjs` | Modal 요청의 `video_padding_percent` 키와 값 — auto·render 공통(FEAT-58). **스냅샷이 `undefined`여도 키를 생략하지 않고 0을 보낸다**(배포 전에 시작된 Inngest run이 옛 컨텍스트를 재생하는 경우). 백엔드 `ProcessVideoRequest.video_padding_percent: StrictInt = 0`과 묶인 wire 계약이라, 키 이름이 어긋나면 pydantic이 모르는 키를 버려 **조용히 0으로 렌더된다** |
@@ -89,6 +90,7 @@ npm test -w apps/web
 | `pages/dashboard/model/clip-count-budget.test.mjs` | 소스 재생 길이 → 구조적 클립 상한. `floor(D/30)` 경계, 옵션 최댓값(4) 클램프, 길이 미상(`null`·비유한·0 이하) 시 가드 없음(=4), 30초 미만 시 0. **`600초 → 4`는 회귀 테스트다** — 백로그가 FEAT-02의 원인으로 지목한 "10분 소스에 4개는 무리한 요청"이 사실이 아니고, 그 경우의 미달 생성은 `apps/backend` 하이라이트 탐지 문제임을 못박는다 |
 | `pages/dashboard/model/clip-count-notice.test.mjs` | 업로드 폼 클립 수 세그먼트 옆 안내(`clipCountNotice`, FEAT-59). 길이를 알고 상한<4면 `This video fits up to N clip(s). The AI may return fewer.`(단수/복수), 그 외 `The AI may return fewer.`, 30초 미만은 `null`(그 안내는 파일 줄에 destructive로 뜬다). **「길이를 아는가」를 따로 판정하지 않고 `getMaxFeasibleClipCount`의 미상→4·30초 미만→0 규칙에 기댄다** — 별도 가드는 도달 불가 분기가 되어 테스트로 고정되지 않았다(계획 검증에서 돌연변이 셋 생존). 골든 문구는 사용자에게 보이는 카피다 |
 | `pages/dashboard/model/upload-options-copy.test.mjs` | 업로드 버튼(`Upload and generate clips` / `Upload and review clips`)과 생성 방식 설명(`Generates clips immediately.` / `Edit clips before generating.`)의 생성 방식별 골든 문구(FEAT-59) |
+| `pages/settings/model/video-style-dirty.test.mjs` | 설정 `Video style` 카드의 미저장 판정(`hasUnsavedVideoStyle`, BUG-18). 여백과 두 언어 캡션을 한 스냅샷으로 비교한다 — 저장 버튼 활성과 이탈 경고가 이 값 하나에 걸린다. **필드 전수 케이스가 요점이다**: 비교 목록에서 필드 하나를 빼면 그 필드만 바꾼 편집에 버튼이 안 켜지는데, 1~10번 케이스만으로는 다섯 필드 누락이 통과했다(계획 검증 돌연변이 실측). 옛 저장값의 `marginV` 키 부재(undefined)를 null과 같게 봐 불러오자마자 뜨는 거짓 미저장도 막는다 |
 | `entities/user/model/upload-defaults.test.mjs` | 사용자 업로드 기본값의 해석·정규화. `resolveUploadDefaults`는 null·지원 목록 밖 저장값(목록이 줄어든 뒤의 옛 값)을 시스템 기본(`English`/`3`/`false`)으로 떨어뜨리고, `normalizeUploadDefaults`는 서버 액션 입력의 범위 밖·잘못된 타입·**필드 누락**을 null로 거부한다. **누락 필드 거부가 요점이다** — `!== null`을 `!= null`로 바꾼 구현은 `undefined`를 통과시켜 Prisma `update`가 그 컬럼을 조용히 건너뛰는 부분 갱신이 되는데, 나머지 케이스는 전부 통과한다(FEAT-39 계획 검증의 돌연변이 실측) |
 | `entities/uploaded-file/model/clip-generation-outcome.test.mjs` | 부분 클립 결과 판정과 폴링 조기 탈출 판정. **노트 코드 두 개는 `failureCode` 컬럼에 저장되는데 union 타입이 그 상수 자신에서 파생된다.** 값을 바꾸면 타입은 그대로 통과하고 이미 저장된 행만 조용히 인식되지 않는다. `clipsFound >= expectedClipCount → null` 경계도 타입이 못 잡는다 — 무너지면 완전 성공에도 "일부만 생성됨" 안내가 뜬다 |
 | `entities/clip/lib/clip-type-label.test.mjs` | `clipTypeLabel`의 라벨 매핑(`qa`→Q&A·`insight`→Insight·**모르는 값은 원본 그대로**·nullish/공백은 null). **백엔드가 `clipType`에 강제하는 enum이 없어**(`apps/backend/moment_prompt.py:69` `"type": <"qa" | "insight">,`는 프롬프트의 요청일 뿐) 라벨이 미지의 값을 빈 칸으로 삼키지 않는 것을 잡는다 |
@@ -130,7 +132,7 @@ npm test -w apps/web
 features/billing/api/index.ts            결제·체크아웃
 features/clip/api/index.ts               클립 조회·삭제·URL 생성
 features/clip-review/api/index.ts        생성 전 클립 검토
-features/settings/api/index.ts           사용자 업로드 기본값 저장
+features/settings/api/index.ts           사용자 업로드 기본값·Video style(여백 + 두 언어 캡션) 저장
 features/upload/api/index.ts             업로드 준비·확정·처리 스케줄링
 ```
 

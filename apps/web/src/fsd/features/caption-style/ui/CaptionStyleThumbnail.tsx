@@ -22,7 +22,7 @@ export default function CaptionStyleThumbnail({
   const effective = resolveEffectiveCaptionStyle(style, language);
   const isKorean = language === "Korean";
   // 100px 기준 inset = % (MARGINV/PLAY_RES_Y × 100). top/bottom은 프레임 전체 기준.
-  const inset = getPreviewVerticalInset(effective.position, 100);
+  const inset = getPreviewVerticalInset(effective.position, effective.marginV, 100);
   const centered = inset.top === null && inset.bottom === null;
   // 견본이라 외곽선도 축척하지 않고 근사한다(0이면 0, 아니면 0.5 + w/2, 최대 3px).
   const strokePx =

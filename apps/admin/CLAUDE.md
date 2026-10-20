@@ -34,7 +34,7 @@ npm run build -w apps/admin
 
 ## 테스트 인벤토리
 
-현재 **29개 파일, 75개 suite, 334개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
+현재 **30개 파일, 76개 suite, 337개 test**다. 아래 첫 열은 `src/**/*.test.mjs` 전체 집합이며 파일마다 정확히 한 번만 적는다.
 
 | 파일 | 핵심 계약 |
 | --- | --- |
@@ -66,6 +66,7 @@ npm run build -w apps/admin
 | `src/fsd/pages/pipeline/model/journey.test.mjs` | status→여정 단계 결정적 매핑(검토대기 이분·완료/보류/미지 여정 밖·단계 카탈로그·대기 낱말 고정) |
 | `src/fsd/pages/pipeline/model/desk-commands.test.mjs` | desk→command key와 whitelist 연결, plan-verifier 무명령(null) 고정 |
 | `src/fsd/pages/pipeline/model/sprites.test.mjs` | pixel grid·appearance·tone 매핑 |
+| `src/fsd/shared/lib/format-date.test.mjs` | 로케일 `en`·타임존 UTC 고정 date-time 표기(프로세스 TZ 강제 후 동적 임포트), `resolvedOptions()` locale·timeZone 완전 일치 |
 | `src/fsd/shared/observability/report-error.test.mjs` | 예외 capture, user isolation, never-throw flush |
 
 Node module mock으로 DB/GitHub/Sentry 호출 계약을 실제 외부 I/O 없이 검증한다. DOM client interaction과 반응형 시각 상태만 수동 smoke 대상으로 남긴다.

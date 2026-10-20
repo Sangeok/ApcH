@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   buildCaptionCues,
   getPreviewFontPx,
+  getPreviewLineHeightPx,
   getPreviewShadowPx,
   getPreviewStrokePx,
   getPreviewVerticalInset,
@@ -178,26 +179,63 @@ describe("getPreviewShadowPx", () => {
 });
 
 describe("getPreviewVerticalInset", () => {
-  it("places top with marginv top and no bottom", () => {
+  it("places top with the preset marginv (marginV null) and no bottom", () => {
     // 200 × 320/1920 ≈ 33.33
-    assert.deepEqual(getPreviewVerticalInset("top", H), {
+    assert.deepEqual(getPreviewVerticalInset("top", null, H), {
       top: 200 * (320 / 1920),
       bottom: null,
     });
   });
 
-  it("places bottom with marginv bottom and no top", () => {
+  it("places bottom with the preset marginv (marginV null) and no top", () => {
     // 260 × 320/1920 ≈ 43.33
-    assert.deepEqual(getPreviewVerticalInset("bottom", H), {
+    assert.deepEqual(getPreviewVerticalInset("bottom", null, H), {
       top: null,
       bottom: 260 * (320 / 1920),
     });
   });
 
-  it("centers middle with neither inset", () => {
-    assert.deepEqual(getPreviewVerticalInset("middle", H), {
+  it("centers middle with neither inset (marginV ignored)", () => {
+    assert.deepEqual(getPreviewVerticalInset("middle", null, H), {
       top: null,
       bottom: null,
     });
+    // middle은 marginV를 무시한다 — 값이 있어도 중앙.
+    assert.deepEqual(getPreviewVerticalInset("middle", 400, H), {
+      top: null,
+      bottom: null,
+    });
+  });
+
+  it("uses a specified marginV instead of the preset for top and bottom", () => {
+    // 400 × 320/1920 — 프리셋(200/260)이 아니라 저장값을 축척한다.
+    assert.deepEqual(getPreviewVerticalInset("top", 400, H), {
+      top: 400 * (320 / 1920),
+      bottom: null,
+    });
+    assert.deepEqual(getPreviewVerticalInset("bottom", 400, H), {
+      top: null,
+      bottom: 400 * (320 / 1920),
+    });
+  });
+
+  it("keeps a saved marginV of 0 instead of the preset (?? not ||)", () => {
+    // 0 = 끌어서 가장자리에 붙인 값. `??`를 `||`로 바꾸면 0이 프리셋(200/260)으로 되돌아간다.
+    assert.deepEqual(getPreviewVerticalInset("top", 0, H), {
+      top: 0,
+      bottom: null,
+    });
+    assert.deepEqual(getPreviewVerticalInset("bottom", 0, H), {
+      top: null,
+      bottom: 0,
+    });
+  });
+});
+
+describe("getPreviewLineHeightPx", () => {
+  it("returns the libass line box height (assFontSize × previewScale), font-agnostic", () => {
+    // libass는 ASS fontsize를 줄 상자 높이(REAL_DIM)로 요청 → 폰트와 무관하게 fontsize × scale.
+    assert.equal(getPreviewLineHeightPx(122, H), 122 * (320 / 1920));
+    assert.equal(getPreviewLineHeightPx(130, H), 130 * (320 / 1920));
   });
 });
