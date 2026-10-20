@@ -68,78 +68,85 @@ export async function recordLegacyProducerDrain(
   const targetIds = receipt.targets.map((target) => target.dispatchId);
   if (new Set(targetIds).size !== targetIds.length)
     throw new Error("Duplicate drain target");
-  return db.$transaction(async (tx) => {
-    let state = await findLegacyProducerDrainState(cutoff, tx);
-    for (const userId of [
-      ...new Set(state.dispatches.map((entry) => entry.uploadedFile.userId)),
-    ].sort())
-      await lockUserForCredits(userId, tx);
-    for (const uploadId of [
-      ...new Set(state.dispatches.map((entry) => entry.uploadedFileId)),
-    ].sort())
-      await lockUploadedFileForProcessing(uploadId, tx);
-    for (const id of state.dispatches.map((entry) => entry.id).sort())
-      await lockProcessingDispatch(id, tx);
-    state = await findLegacyProducerDrainState(cutoff, tx);
-    if (state.activeUploads || state.pendingDispatches)
-      throw new Error("Database video drain is incomplete");
-    const actual = state.dispatches.map((entry) => ({
-      dispatchId: entry.id,
-      uploadedFileId: entry.uploadedFileId,
-      attempt: entry.attempt,
-      outputPrefix: getAttemptOutputPrefix(
-        entry.uploadedFile.s3Key,
-        entry.attempt,
-      ),
-    }));
-    const targets = [...receipt.targets].sort((left, right) =>
-      left.dispatchId.localeCompare(right.dispatchId),
-    );
-    if (JSON.stringify(actual) !== JSON.stringify(targets))
-      throw new Error(
-        "Frozen legacy target scope no longer matches the database",
+  return db.$transaction(
+    async (tx) => {
+      let state = await findLegacyProducerDrainState(cutoff, tx);
+      for (const userId of [
+        ...new Set(state.dispatches.map((entry) => entry.uploadedFile.userId)),
+      ].sort())
+        await lockUserForCredits(userId, tx);
+      for (const uploadId of [
+        ...new Set(state.dispatches.map((entry) => entry.uploadedFileId)),
+      ].sort())
+        await lockUploadedFileForProcessing(uploadId, tx);
+      for (const id of state.dispatches.map((entry) => entry.id).sort())
+        await lockProcessingDispatch(id, tx);
+      state = await findLegacyProducerDrainState(cutoff, tx);
+      if (state.activeUploads || state.pendingDispatches)
+        throw new Error("Database video drain is incomplete");
+      const actual = state.dispatches.map((entry) => ({
+        dispatchId: entry.id,
+        uploadedFileId: entry.uploadedFileId,
+        attempt: entry.attempt,
+        outputPrefix: getAttemptOutputPrefix(
+          entry.uploadedFile.s3Key,
+          entry.attempt,
+        ),
+      }));
+      const targets = [...receipt.targets].sort((left, right) =>
+        left.dispatchId.localeCompare(right.dispatchId),
       );
-    for (const entry of state.dispatches) {
-      if (
-        ["pending_enqueue", "queued", "processing"].includes(
-          entry.uploadedFile.status,
+      if (JSON.stringify(actual) !== JSON.stringify(targets))
+        throw new Error(
+          "Frozen legacy target scope no longer matches the database",
+        );
+      for (const entry of state.dispatches) {
+        if (
+          ["pending_enqueue", "queued", "processing"].includes(
+            entry.uploadedFile.status,
+          )
         )
-      )
-        throw new Error("Active legacy target cannot be marked ended");
-      if (
-        entry.modalSpawnState === "ended" &&
-        entry.producerEndEvidence !== null
-      ) {
-        const proof = entry.producerEndEvidence as { receiptSha256?: unknown };
-        if (proof.receiptSha256 !== receiptSha256)
-          throw new Error(
-            "Legacy target already has a different termination receipt",
+          throw new Error("Active legacy target cannot be marked ended");
+        if (
+          entry.modalSpawnState === "ended" &&
+          entry.producerEndEvidence !== null
+        ) {
+          const proof = entry.producerEndEvidence as {
+            receiptSha256?: unknown;
+          };
+          if (proof.receiptSha256 !== receiptSha256)
+            throw new Error(
+              "Legacy target already has a different termination receipt",
+            );
+        }
+        if (options.apply)
+          await updateProcessingDispatch(
+            entry.id,
+            {
+              modalSpawnState: "ended",
+              producerEndEvidence: {
+                kind: "legacy-drain",
+                receiptSha256,
+                cutoff: receipt.cutoff,
+                confirmedAt: receipt.confirmedAt,
+                workspaceId: receipt.workspaceId,
+                environmentId: receipt.environmentId,
+                deployments: receipt.deployments,
+                evidenceReference: receipt.evidence.reference,
+                binding: actual.find(
+                  (target) => target.dispatchId === entry.id,
+                )!,
+              },
+            },
+            tx,
           );
       }
-      if (options.apply)
-        await updateProcessingDispatch(
-          entry.id,
-          {
-            modalSpawnState: "ended",
-            producerEndEvidence: {
-              kind: "legacy-drain",
-              receiptSha256,
-              cutoff: receipt.cutoff,
-              confirmedAt: receipt.confirmedAt,
-              workspaceId: receipt.workspaceId,
-              environmentId: receipt.environmentId,
-              deployments: receipt.deployments,
-              evidenceReference: receipt.evidence.reference,
-              binding: actual.find((target) => target.dispatchId === entry.id)!,
-            },
-          },
-          tx,
-        );
-    }
-    return {
-      applied: Boolean(options.apply),
-      targetCount: actual.length,
-      receiptSha256,
-    };
-  });
+      return {
+        applied: Boolean(options.apply),
+        targetCount: actual.length,
+        receiptSha256,
+      };
+    },
+    { maxWait: 10_000, timeout: 120_000 },
+  );
 }

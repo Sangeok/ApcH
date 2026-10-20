@@ -18,7 +18,7 @@ Frontend Clean Code Orchestrator의 응집도·결합도·예측 가능성·가�
 
 ## 실행한 검증
 
-- web FSD/lint/TypeScript 검사 통과, web unit 352개 및 별도 client 회귀 검사 통과. 최종 web production build 통과.
+- web FSD/lint/TypeScript 검사 통과, web unit 356개 및 별도 client 회귀 6개 통과. 최종 web production build 통과. 사전 gate의 main 병합 후 설정 중복은 최종 TypeScript 검사로 발견해 제거했다.
 - admin FSD/lint/TypeScript 검사와 unit 337개 통과.
 - backend 전체 162개와 Python 문법 검사 통과.
 - 독립 PostgreSQL 16.15에서 새 migration SQL 및 credit concurrency/lifecycle/video compatibility의 3개 실제 PrismaNeon CLI 통과. 운영 DB를 테스트에 사용하지 않았다.
@@ -42,3 +42,9 @@ fixture 한국어 표지·영어 본문과 393px preview를 직접 열어 glyph�
 Vercel 로그인 갱신 후 `apc-h`와 `apch-admin` 접근을 확인했다. 운영 DB를 읽기 전용 transaction으로 조회한 시점에 활성 업로드는 0개, 기존 sent dispatch는 43개, 음수 잔액은 0개였다. 카드뉴스 additive migration은 아직 적용하지 않았다. Modal 기존 GPU method의 backlog와 runner는 모두 0이었다. Inngest 운영 앱의 최근 24시간 실행은 영상·watch·정기 정리 모두 완료 상태이며 RUNNING/QUEUED/PAUSED 조회는 0건이었다. API가 반환한 시간 범위가 최근 24시간이므로 이것만으로 과거 전체의 producer 종료를 증명하지 않는다.
 
 운영 전환은 [runbook](card-news-runbook.md)의 사전 gate 배포 → ingress 차단·기존 작업 drain → worker start 차단 → migration·frozen legacy receipt → CPU·web 배포 → 제한 사용자 검증 순서다. 아직 실제 S3/callback·presigned 다운로드 bytes·인증 화면·전환 후 영상 호환성·Instagram 수동 업로드·최종 비용 검증은 완료하지 않았다. 완료되지 않은 동안 일반 카드뉴스 활성화는 보류한다.
+
+사전 전환 PR #134를 사용자 승인에 따라 관리자 권한으로 main `75797b4`에 병합했다. ingress 차단 배포 `dpl_8kuZJEVUixjzhDRm27YPMJJ1TFpV`, worker 시작 차단 재배포 `dpl_J5NguD41UThiVf1uJBJo8nicr4Gj`가 READY인 것을 확인했다. 두 운영 설정을 개별 조회해 false를 대조한 뒤 DB/Inngest/Modal 활성 작업 0건을 재확인했다.
+
+운영에서 additive migration `20261011000000_card_news_credit_reservations`를 적용했다. 기존 8개 계정의 credits 값은 그대로이며 reservedCredits는 모두 0이었다. 기존 dispatch 43건의 frozen 목록과 잔액은 비공개 임시 artifact에 저장했다. receipt dry-run의 43건 잠금이 기본 5초 transaction 제한을 넘겨, 이 운영 명령만 maxWait 10초·timeout 120초로 제한했다. 같은 frozen scope의 dry-run은 통과했으며 receipt SHA는 `fd9307b8e704af885072a79420d9f9d04738d4faf73338fc75b8d899d84f14de`다.
+
+CPU 앱 `apch-card-news`를 `https://sangeok--apch-card-news-api.us-east.modal.run`에 배포했다. 기존 GPU secret을 유지하고 별도 `apch-card-news-auth`를 추가했다. 실제 HTTPS에서 무인증 401, 잘못된 input/status 422, 존재하지 않는 producer의 `unknown` 응답을 확인했다. 일반 flag는 false이고 합성 검증 계정만 allowlist에 두었다.
