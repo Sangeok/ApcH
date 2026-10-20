@@ -1,14 +1,19 @@
 import { inngest } from "./client";
 import {
   claimCardNewsJob,
-  cleanupPendingCardNewsAssets,
-  dispatchPendingCardNewsJobs,
+  runCardNewsCleanup,
+  dispatchCardNewsJob,
+  flushCardNewsAnalytics,
   reconcileCardNewsJob,
-  recoverCardNewsJobs,
   prepareCardNewsCpuSpawn,
   callCardNewsCpu,
   recordCardNewsCpuSpawn,
 } from "~/fsd/features/card-news/server";
+import {
+  listRecoverableCardNewsJobs,
+  listPendingCardNewsAnalyticsJobs,
+  listAssetCleanupJobs,
+} from "~/fsd/entities/card-news/server";
 
 export const generateCardNews = inngest.createFunction(
   {
@@ -106,29 +111,45 @@ export const dispatchPendingCardNews = inngest.createFunction(
   { id: "dispatch-pending-card-news", retries: 1, concurrency: 1 },
   { cron: "* * * * *" },
   async ({ step }) => {
-    await step.run(
-      "dispatch-durable-card-news-outbox",
-      dispatchPendingCardNewsJobs,
+    const jobIds = await step.run("list-durable-card-news-outbox", async () =>
+      (await listRecoverableCardNewsJobs(new Date(), 100)).map((job) => job.id),
     );
+    for (const id of jobIds)
+      await step.run(`dispatch-card-news-${id}`, () => dispatchCardNewsJob(id));
+    const analyticsIds = await step.run(
+      "list-card-news-analytics-outbox",
+      async () =>
+        (await listPendingCardNewsAnalyticsJobs(100)).map((job) => job.id),
+    );
+    for (const id of analyticsIds)
+      await step.run(`flush-card-news-analytics-${id}`, () =>
+        flushCardNewsAnalytics(id),
+      );
   },
 );
 export const reconcileCardNewsJobs = inngest.createFunction(
   { id: "reconcile-card-news-jobs", retries: 1, concurrency: 1 },
   { cron: "* * * * *" },
   async ({ step }) => {
-    await step.run(
-      "recover-card-news-inbox-and-manifests",
-      recoverCardNewsJobs,
+    const jobIds = await step.run("list-recoverable-card-news", async () =>
+      (await listRecoverableCardNewsJobs(new Date(), 100)).map((job) => job.id),
     );
+    for (const id of jobIds)
+      await step.run(`recover-card-news-${id}`, () => reconcileCardNewsJob(id));
   },
 );
 export const cleanupCardNewsAssets = inngest.createFunction(
   { id: "cleanup-card-news-assets", retries: 1, concurrency: 1 },
   { cron: "* * * * *" },
   async ({ step }) => {
-    await step.run(
-      "cleanup-card-news-producer-scopes",
-      cleanupPendingCardNewsAssets,
+    const cleanupIds = await step.run(
+      "list-card-news-cleanup-scopes",
+      async () =>
+        (await listAssetCleanupJobs(new Date(), 100)).map(
+          (cleanup) => cleanup.id,
+        ),
     );
+    for (const id of cleanupIds)
+      await step.run(`cleanup-card-news-${id}`, () => runCardNewsCleanup(id));
   },
 );

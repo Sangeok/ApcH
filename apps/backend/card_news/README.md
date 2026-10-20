@@ -16,6 +16,8 @@
 
 각 invocation은 새 UUID를 사용한다. `started` callback의 DB 등록 승인 및 `writeDeadlineAt` 수신 전에 S3 client 생성·다운로드·업로드를 하지 않는다. 요청과 승인 deadline 중 더 이른 시각을 사용하며 매 S3 쓰기를 재검사한다. 진행·완료 전송과 S3 일시 오류만 최대 3회 재시도한다. 원고 구조·glyph·영역 검사 실패의 AI 수정은 최초 호출 후 최대 1회다. `insufficient_content`는 수정으로 채우지 않는다. CPU 작업 상한은 600초, 모델 요청은 120초이며 SDK 자동 재시도는 1 attempt로 고정한다.
 
+`usageMetrics.modelOutputTokens`는 Gemini의 `candidates_token_count`와 `thoughts_token_count`를 합산한다. [Google의 Generate Content 비용 설명](https://ai.google.dev/gemini-api/docs/generate-content/thinking?hl=en)에 따라 thinking 토큰도 응답 과금에 포함된다. 무료 render는 두 모델 사용량을 모두 0으로 기록한다.
+
 진행 단계는 `accepted → generating-text → extracting-cover → rendering → packaging → completed` 순서다. 원고 검증 후 실제 후보를 추출하며 후보 추출은 한 번만 수행한다. 렌더 overflow 후 제한된 AI 축약은 rendering의 복구에 속하며 화면을 generating-text로 되돌리지 않는다. 원고 구조 오류만 생겼다면 generating-text에서 1회 수정하고 다음 단계로 이동한다. 원본·후보 다운로드/FFmpeg 실패는 AI 수정으로 재시도하지 않는다. 무료 render는 `accepted → rendering → packaging → completed`이고 AI를 호출하지 않는다.
 
 원본 최대 다운로드는 2GiB, 재사용 후보는 파일당 20MiB로 제한한다. FFprobe는 30초, 각 FFmpeg 추출은 90초 상한을 가지며 전체 deadline도 적용한다. 지원하지 않는 glyph와 실제 폰트 overflow는 실패시킨다. 수동 문구 오류는 `text_overflow_cards_1_body`처럼 카드와 필드를 담은 code로 전달한다.
