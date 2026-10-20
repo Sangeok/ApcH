@@ -140,7 +140,8 @@ class CardNewsWiringTests(unittest.TestCase):
                                 "caption": draft["caption"], "hashtags": draft["hashtags"]}
                     if scenario == "model-repair" and len(model_calls) == 1:
                         provider["cards"][0]["title"] = ""
-                    return SimpleNamespace(text=json.dumps(provider), usage_metadata=None)
+                    return SimpleNamespace(text=json.dumps(provider), usage_metadata=SimpleNamespace(
+                        prompt_token_count=11, candidates_token_count=7, thoughts_token_count=5))
                 class Client:
                     def __init__(self, **kwargs):
                         self.models = SimpleNamespace(generate_content=model_adapter)
@@ -183,13 +184,18 @@ class CardNewsWiringTests(unittest.TestCase):
                         record.update(id=identifier, width=1280 if identifier.startswith("cover-") else 1080,
                                       height=720 if identifier.startswith("cover-") else 1350)
                     return record
+                published = []
+                def upload_adapter(*args):
+                    events.append(("upload", args[2]))
+                    if args[2].endswith("/manifest.json"):
+                        published.append(json.loads(Path(args[3]).read_text(encoding="utf-8")))
                 namespace = {"os": os, "json": json, "Path": Path, "tempfile": tempfile, "time": time, "uuid": uuid,
                     "ContractError": ContractError, "LayoutError": LayoutError, "validate_contract": validate_contract,
                     "Deadline": Deadline, "timestamp": timestamp, "model_timeout_ms": model_timeout_ms,
                     "build_prompt": build_prompt, "normalize_model_output": normalize_model_output, "provider_schema": provider_schema,
                     "post_callback": callback_adapter, "create_s3_client": s3_adapter, "download_object": download_adapter,
                     "extract_candidates": extract_adapter, "render_cards": render_adapter, "asset_record": record_adapter,
-                    "upload_object": lambda *args: events.append(("upload", args[2])),
+                    "upload_object": upload_adapter,
                     "find_completed_manifest": lambda *args: "previous-manifest.json" if scenario == "completed-reuse" else None,
                     "verify_dependencies": lambda: {key: payload[key] for key in ("templateVersion", "fontVersion", "promptVersion", "modelVersion")},
                     "modal": SimpleNamespace(current_function_call_id=lambda: "fc-unit-fixture"), "genai": SimpleNamespace(Client=Client),
@@ -199,6 +205,9 @@ class CardNewsWiringTests(unittest.TestCase):
                 with patch.dict(os.environ, {"GEMINI_API_KEY": "unit-fixture-key"}):
                     outcome = namespace["process_card_news"](payload)
                 stages = [value for kind, value in events if kind == "callback"]
+                for output in published:
+                    self.assertEqual(output["usageMetrics"]["modelInputTokens"], 11 * len(model_calls))
+                    self.assertEqual(output["usageMetrics"]["modelOutputTokens"], 12 * len(model_calls))
                 if scenario == "completed-reuse":
                     self.assertEqual(stages, ["accepted"])
                     self.assertEqual(model_calls, [])

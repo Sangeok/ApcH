@@ -15,7 +15,8 @@ import {
   processVideo,
 } from "~/inngest/functions";
 
-export const maxDuration = 10;
+// Each durable step can perform bounded database, S3 and producer-status I/O.
+export const maxDuration = 300;
 
 export const { GET, POST, PUT } = serve({
   client: inngest,

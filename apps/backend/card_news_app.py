@@ -123,7 +123,8 @@ def process_card_news(payload):
                         usage = response.usage_metadata
                         if usage:
                             metrics["modelInputTokens"] += usage.prompt_token_count or 0
-                            metrics["modelOutputTokens"] += usage.candidates_token_count or 0
+                            metrics["modelOutputTokens"] += ((usage.candidates_token_count or 0)
+                                + (getattr(usage, "thoughts_token_count", 0) or 0))
                         validating_model = True
                         draft = normalize_model_output(response.text, payload["source"], theme=payload["initialTheme"])
                         validating_model = False

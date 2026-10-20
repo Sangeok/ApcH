@@ -6,9 +6,11 @@ export {
   recordCardNewsSpawnResult,
   reconcileCardNewsJob,
   dispatchPendingCardNewsJobs,
+  dispatchCardNewsJob,
   recoverCardNewsJobs,
   failCardNewsJob,
 } from "./api/job-lifecycle";
+export { flushCardNewsAnalytics } from "./api/analytics";
 export {
   prepareCardNewsCpuSpawn,
   callCardNewsCpu,

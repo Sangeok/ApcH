@@ -18,7 +18,7 @@ Frontend Clean Code Orchestrator의 응집도·결합도·예측 가능성·가�
 
 ## 실행한 검증
 
-- web FSD/lint/TypeScript 검사 통과, web unit 356개 및 별도 client 회귀 6개 통과. 최종 web production build 통과. 사전 gate의 main 병합 후 설정 중복은 최종 TypeScript 검사로 발견해 제거했다.
+- web FSD/lint/TypeScript 검사 통과, web unit 359개 및 별도 client 회귀 6개 통과. 최종 web production build 통과. 사전 gate의 main 병합 후 설정 중복은 최종 TypeScript 검사로 발견해 제거했다.
 - admin FSD/lint/TypeScript 검사와 unit 337개 통과.
 - backend 전체 162개와 Python 문법 검사 통과.
 - 독립 PostgreSQL 16.15에서 새 migration SQL 및 credit concurrency/lifecycle/video compatibility의 3개 실제 PrismaNeon CLI 통과. 운영 DB를 테스트에 사용하지 않았다.
@@ -48,3 +48,17 @@ Vercel 로그인 갱신 후 `apc-h`와 `apch-admin` 접근을 확인했다. 운�
 운영에서 additive migration `20261011000000_card_news_credit_reservations`를 적용했다. 기존 8개 계정의 credits 값은 그대로이며 reservedCredits는 모두 0이었다. 기존 dispatch 43건의 frozen 목록과 잔액은 비공개 임시 artifact에 저장했다. receipt dry-run의 43건 잠금이 기본 5초 transaction 제한을 넘겨, 이 운영 명령만 maxWait 10초·timeout 120초로 제한했다. 같은 frozen scope의 dry-run은 통과했으며 receipt SHA는 `fd9307b8e704af885072a79420d9f9d04738d4faf73338fc75b8d899d84f14de`다.
 
 CPU 앱 `apch-card-news`를 `https://sangeok--apch-card-news-api.us-east.modal.run`에 배포했다. 기존 GPU secret을 유지하고 별도 `apch-card-news-auth`를 추가했다. 실제 HTTPS에서 무인증 401, 잘못된 input/status 422, 존재하지 않는 producer의 `unknown` 응답을 확인했다. 일반 flag는 false이고 합성 검증 계정만 allowlist에 두었다.
+
+## 운영 생성·편집 검증과 후속 수정
+
+PR #135를 main `54d74df`에 병합하고 운영 배포 `dpl_FRXofw6wgoTHjfShLUyAmvwie3Er`의 READY 및 Inngest worker 10개 sync 성공을 확인했다. 검증 계정과 합성 MP4·클립을 별도로 만들었고 실제 사용자 데이터·잔액은 변경하지 않았다.
+
+- 최초 생성: 3 owned/0 reserved → 3 owned/1 reserved → 완료 후 2 owned/0 reserved. 실제 S3·CPU·Gemini·callback·manifest 검증·게시·정산 경로를 통과했다.
+- 브라우저 ZIP/JPG 다운로드: ZIP SHA 및 표지 SHA가 운영 완료 manifest와 일치했다. ZIP의 5개 entry 순서·전체 이미지 hash·1080×1350 RGB JPEG decode를 확인했다. 다운로드한 표지도 열어 glyph·clipping을 확인했다.
+- 복사 문구: 완료 v1의 caption/hashtags와 일치했다. Windows clipboard의 CRLF를 LF로 정규화해 비교했다.
+- 무료 저장: 제목·caption·두 hashtag를 수정했다. 입력 중 구분자를 보존했고 저장 완료 후 앞뒤 공백 제거·user-edited·빈 sourceSentenceIds를 UI/DB에서 확인했다. 잔액은 2/0을 유지했다.
+- 기존 버전: 무료 v2를 저장한 뒤 v1 ZIP을 다시 내려받았고 수정 전과 SHA가 같았다. 비로그인 직접 URL은 307 로그인 이동을 확인했다. 393px 생성 진행 화면의 수평 overflow는 없었다.
+
+무료 v2의 자동 렌더는 대기 상태에서 멈췄다. 운영 Inngest trace에서 배차·복구 실행의 HTTP 504 `FUNCTION_INVOCATION_TIMEOUT`과 개별 요청 약 10초 종료를 확인했다. 기존 `/api/inngest`의 `maxDuration=10`을 그대로 상속한 것이 원인이며, 최대 100개 작업을 한 step에서 순차 처리하는 구조도 있었다. 이 후속 수정은 해당 route를 300초로 설정하고 배차·분석 outbox·복구·cleanup을 작업별 durable step으로 나눠 배치 전체가 한 요청 예산을 공유하지 않도록 한다. 실제 handler를 가짜 플랫폼의 요청 예산·step memoization으로 실행하는 회귀 3개가 전 작업 도달을 검증한다. 수정 후 실제 재배포·만료 job 복구·무료 재시도 결과는 추가 기록한다.
+
+비용 검증 중 Gemini thinking 토큰 누락도 확인했다. 후속 CPU 코드는 출력 사용량에 candidate와 thought 토큰을 합산하고 실제 orchestration의 1회·수정 2회·무료 render 경로로 검증했다. 최초 생성의 과거 output token 기록은 thinking을 제외한 1294였으므로 그 숫자를 전체 과금 토큰이나 최종 비용 증거로 취급하지 않는다. 과거 불변 manifest는 추정값으로 덮어쓰지 않는다.
