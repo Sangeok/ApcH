@@ -39,6 +39,13 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-10-21
+- [ ] BUG-19: 프로덕션 Inngest의 매분 cron 4개가 사용자 0명에도 하루 12,960 execution을 쓰고 Neon compute를 상시 깨운다 — cron 없이, 일이 생길 때만 깨어나 DB의 다음 기한까지 자는 단일 정비 함수로 대체한다
+  agent: web-dev
+  area: apps/web/src/inngest + apps/web/src/app/api/inngest/route.ts + apps/web/src/fsd/features/card-news/api + apps/web/src/fsd/entities/card-news/api + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/processing-dispatch/api + apps/web/src/fsd/features/clip/api + apps/web/src/app/dashboard
+  status: 승인대기
+  근거: 소유자 직접 발주(2026-10-21 — Inngest·Neon 사용량 급증 원인이 PR #135의 매분 cron 4개로 확인, 대시보드 일시정지 완료, 「cron 아닌 방식」 지시). 선행 main 머지 완료(745439f)
+
 ## 2026-10-19
 - [ ] FEAT-63: Instagram 카드뉴스 생성 — `feat/card-news`(`72bde11`)에 보존된 미검토 구현을 계획 검증·인수에 태워 dev에 합류시킨다. 공통 크레딧 예약으로 기존 영상 과금도 바뀐다
   agent: main-loop
