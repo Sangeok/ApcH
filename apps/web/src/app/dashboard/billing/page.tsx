@@ -1,6 +1,7 @@
 import { getBillingData } from "~/fsd/features/billing/api";
 import { BillingPage, getProductIds } from "~/fsd/features/billing";
 import { env } from "~/env";
+import { CreditBalance } from "~/fsd/features/credit-balance";
 
 export default async function BillingRoute({
   searchParams,
@@ -21,6 +22,13 @@ export default async function BillingRoute({
   return (
     <BillingPage
       data={result.data}
+      creditBalanceSlot={
+        <CreditBalance
+          key={result.data.authUserId}
+          authUserId={result.data.authUserId}
+          initialBalance={result.data.creditBalance}
+        />
+      }
       productIds={getProductIds()}
       hasReturnedFromCheckout={params.success === "true"}
       hadPortalError={params.portal === "error"}

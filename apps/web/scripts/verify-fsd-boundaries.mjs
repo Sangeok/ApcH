@@ -15,6 +15,14 @@ const LAYER_LEVEL = new Map([
 
 // W8: `db` 클라이언트 값을 임포트해도 되는 파일. 실측 owner 전수.
 const DB_CLIENT_OWNERS = new Set([
+  "src/fsd/features/card-news/api/reservation-tx.ts",
+  "src/fsd/features/upload/api/claim-processing-attempt.ts",
+  "src/fsd/features/upload/api/settle-processing-attempt.ts",
+  "src/fsd/features/upload/api/reconcile-video-reservations.ts",
+  "src/fsd/features/upload/api/reconcile-published-metadata.ts",
+  "src/fsd/features/upload/api/record-legacy-producer-drain.ts",
+  "src/fsd/features/upload/api/delete-upload-assets.ts",
+  "src/fsd/features/clip/api/delete-clip-assets.ts",
   "src/server/db.ts",
   "src/server/auth/config.ts",
   "src/fsd/features/upload/api/complete-processing-attempt.ts",
@@ -34,7 +42,8 @@ function withoutQuery(value) {
 function scriptKind(filePath) {
   if (filePath.endsWith(".tsx")) return ts.ScriptKind.TSX;
   if (filePath.endsWith(".jsx")) return ts.ScriptKind.JSX;
-  if (filePath.endsWith(".js") || filePath.endsWith(".mjs")) return ts.ScriptKind.JS;
+  if (filePath.endsWith(".js") || filePath.endsWith(".mjs"))
+    return ts.ScriptKind.JS;
   return ts.ScriptKind.TS;
 }
 function fsdLocation(filePath) {
@@ -113,7 +122,9 @@ function importSpecifier(node) {
   return null;
 }
 function lineOf(sourceFile, node) {
-  return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+  return (
+    sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1
+  );
 }
 function addViolation(violations, sourceFile, node, rule, message) {
   violations.push({
@@ -133,7 +144,8 @@ function importsDbClient(node) {
   if (ts.isNamespaceImport(bindings)) return true;
   if (ts.isNamedImports(bindings)) {
     return bindings.elements.some(
-      (el) => !el.isTypeOnly && (el.propertyName?.text ?? el.name.text) === "db",
+      (el) =>
+        !el.isTypeOnly && (el.propertyName?.text ?? el.name.text) === "db",
     );
   }
   return false;
@@ -141,12 +153,21 @@ function importsDbClient(node) {
 
 export function analyzeFsdBoundaries({ files }) {
   const fileMap = new Map(
-    files.map(({ path: filePath, sourceText }) => [normalizePath(filePath), sourceText]),
+    files.map(({ path: filePath, sourceText }) => [
+      normalizePath(filePath),
+      sourceText,
+    ]),
   );
   const parsed = new Map(
     [...fileMap].map(([filePath, sourceText]) => [
       filePath,
-      ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, scriptKind(filePath)),
+      ts.createSourceFile(
+        filePath,
+        sourceText,
+        ts.ScriptTarget.Latest,
+        true,
+        scriptKind(filePath),
+      ),
     ]),
   );
   const violations = [];
@@ -161,7 +182,9 @@ export function analyzeFsdBoundaries({ files }) {
       if (specifier !== null) {
         const resolved = resolveInternal(filePath, specifier, fileMap);
         const tgtLoc =
-          resolved === undefined || resolved === null ? null : fsdLocation(resolved);
+          resolved === undefined || resolved === null
+            ? null
+            : fsdLocation(resolved);
 
         // W7: 내부 임포트 해석 불가
         if (
@@ -169,7 +192,13 @@ export function analyzeFsdBoundaries({ files }) {
           !specifier.endsWith(".css") &&
           resolved === undefined
         ) {
-          addViolation(violations, sourceFile, node, "W7", `internal import cannot be resolved: ${specifier}`);
+          addViolation(
+            violations,
+            sourceFile,
+            node,
+            "W7",
+            `internal import cannot be resolved: ${specifier}`,
+          );
         }
 
         // W5: 엔티티 클라이언트 배럴이 ./api(server-only) 재수출
@@ -196,25 +225,71 @@ export function analyzeFsdBoundaries({ files }) {
 
           // W1: 상향 임포트
           if (sL < tL) {
-            addViolation(violations, sourceFile, node, "W1", `${srcLoc.layer} cannot import upward from ${tgtLoc.layer}`);
+            addViolation(
+              violations,
+              sourceFile,
+              node,
+              "W1",
+              `${srcLoc.layer} cannot import upward from ${tgtLoc.layer}`,
+            );
           }
           // W2: peer 슬라이스
-          if (srcLoc.layer === tgtLoc.layer && srcLoc.layer !== "shared" && srcLoc.slice !== tgtLoc.slice) {
-            addViolation(violations, sourceFile, node, "W2", `peer slice import is forbidden: ${tgtLoc.slice}`);
+          if (
+            srcLoc.layer === tgtLoc.layer &&
+            srcLoc.layer !== "shared" &&
+            srcLoc.slice !== tgtLoc.slice
+          ) {
+            addViolation(
+              violations,
+              sourceFile,
+              node,
+              "W2",
+              `peer slice import is forbidden: ${tgtLoc.slice}`,
+            );
           }
           // W3: 자기 루트 배럴
-          if (sameSlice && filePath !== resolved && (isSliceRootIndex(resolved) || isSliceRootServer(resolved))) {
-            addViolation(violations, sourceFile, node, "W3", "a slice must not import its own root barrel");
+          if (
+            sameSlice &&
+            filePath !== resolved &&
+            (isSliceRootIndex(resolved) || isSliceRootServer(resolved))
+          ) {
+            addViolation(
+              violations,
+              sourceFile,
+              node,
+              "W3",
+              "a slice must not import its own root barrel",
+            );
           }
           // W6: 크로스 슬라이스 Public entry 경유
-          if (!sameSlice && tgtLoc.layer !== "shared" && !isPublicEntry(resolved, tgtLoc.layer)) {
-            addViolation(violations, sourceFile, node, "W6", `slice internals require a public entry: ${specifier}`);
+          if (
+            !sameSlice &&
+            tgtLoc.layer !== "shared" &&
+            !isPublicEntry(resolved, tgtLoc.layer)
+          ) {
+            addViolation(
+              violations,
+              sourceFile,
+              node,
+              "W6",
+              `slice internals require a public entry: ${specifier}`,
+            );
           }
         }
 
         // W4: 비-fsd 소스가 widgets 내부 직접 임포트
-        if (srcLoc === null && tgtLoc?.layer === "widgets" && !isSliceRootIndex(resolved)) {
-          addViolation(violations, sourceFile, node, "W4", `widget internals require the slice barrel: ${specifier}`);
+        if (
+          srcLoc === null &&
+          tgtLoc?.layer === "widgets" &&
+          !isSliceRootIndex(resolved)
+        ) {
+          addViolation(
+            violations,
+            sourceFile,
+            node,
+            "W4",
+            `widget internals require the slice barrel: ${specifier}`,
+          );
         }
 
         // W8: db 클라이언트 owner
@@ -225,7 +300,13 @@ export function analyzeFsdBoundaries({ files }) {
           importsDbClient(node) &&
           !isDbClientOwner(filePath)
         ) {
-          addViolation(violations, sourceFile, node, "W8", `db client import is outside approved owners: ${specifier}`);
+          addViolation(
+            violations,
+            sourceFile,
+            node,
+            "W8",
+            `db client import is outside approved owners: ${specifier}`,
+          );
         }
       }
 
@@ -237,9 +318,18 @@ export function analyzeFsdBoundaries({ files }) {
         ts.isStringLiteralLike(node.arguments[0])
       ) {
         const spec = node.arguments[0].text;
-        if ((spec.startsWith("~/") || spec.startsWith(".")) && !spec.endsWith(".css")) {
+        if (
+          (spec.startsWith("~/") || spec.startsWith(".")) &&
+          !spec.endsWith(".css")
+        ) {
           if (resolveInternal(filePath, spec, fileMap) === undefined) {
-            addViolation(violations, sourceFile, node, "W7", `internal import cannot be resolved: ${spec}`);
+            addViolation(
+              violations,
+              sourceFile,
+              node,
+              "W7",
+              `internal import cannot be resolved: ${spec}`,
+            );
           }
         }
       }
@@ -260,7 +350,10 @@ function readSourceFiles(root) {
       else if (SOURCE_EXTENSIONS.includes(path.extname(entry.name))) {
         const rel = normalizePath(path.relative(root, absolute));
         if (isTestFile(rel)) continue;
-        files.push({ path: rel, sourceText: fs.readFileSync(absolute, "utf8") });
+        files.push({
+          path: rel,
+          sourceText: fs.readFileSync(absolute, "utf8"),
+        });
       }
     }
   }
@@ -281,6 +374,9 @@ function runCli() {
   process.exitCode = 1;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
+) {
   runCli();
 }

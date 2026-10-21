@@ -9,8 +9,8 @@ function getClient(tx?: Prisma.TransactionClient): DbClient {
   return tx ?? db;
 }
 
-// Persists generated clip records for S3 objects created by the video processor.                          
-// Duplicate records for the same upload attempt and S3 key are ignored. 
+// Persists generated clip records for S3 objects created by the video processor.
+// Duplicate records for the same upload attempt and S3 key are ignored.
 export async function createClipsBulk(
   data: Prisma.ClipCreateManyInput[],
   options?: { tx?: Prisma.TransactionClient },
@@ -112,6 +112,8 @@ export async function updateClipMetadataFromBackendClips(
     const result = await getClient(options?.tx).clip.updateMany({
       where: {
         uploadedFileId: args.uploadedFileId,
+        deletedAt: null,
+        uploadedFile: { deletedAt: null },
         processingAttempt: args.processingAttempt,
         s3Key: clip.s3Key,
       },
@@ -129,6 +131,8 @@ export async function findClipById(clipId: string, userId: string) {
     where: {
       id: clipId,
       userId,
+      deletedAt: null,
+      OR: [{ uploadedFileId: null }, { uploadedFile: { deletedAt: null } }],
     },
     select: {
       id: true,
@@ -141,6 +145,50 @@ export async function findClipById(clipId: string, userId: string) {
         },
       },
     },
+  });
+}
+
+export async function lockClipForCardNews(
+  id: string,
+  tx: Prisma.TransactionClient,
+): Promise<void> {
+  await tx.$queryRaw`SELECT "id" FROM "Clip" WHERE "id" = ${id} FOR UPDATE`;
+}
+
+export async function findClipForDeletion(
+  id: string,
+  userId: string,
+  tx?: Prisma.TransactionClient,
+) {
+  return getClient(tx).clip.findFirst({
+    where: { id, userId },
+    include: { uploadedFile: true },
+  });
+}
+
+export async function markClipsDeleting(
+  ids: string[],
+  tx: Prisma.TransactionClient,
+): Promise<void> {
+  await tx.clip.updateMany({
+    where: { id: { in: ids } },
+    data: { deletedAt: new Date() },
+  });
+}
+
+export async function findCardNewsSourceClip(
+  id: string,
+  userId: string,
+  options?: { tx?: Prisma.TransactionClient },
+) {
+  return getClient(options?.tx).clip.findFirst({
+    where: {
+      id,
+      userId,
+      deletedAt: null,
+      uploadedFile: { userId, deletedAt: null, uploaded: true },
+    },
+    include: { uploadedFile: true },
   });
 }
 

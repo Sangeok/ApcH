@@ -1,4 +1,5 @@
 import type { PlanTier } from "../config";
+import type { CreditBalance } from "~/fsd/entities/user";
 
 export type SubscriptionInfo = {
   id: string;
@@ -20,7 +21,8 @@ export type OrderInfo = {
 };
 
 export type BillingPageData = {
-  credits: number;
+  authUserId: string;
+  creditBalance: CreditBalance;
   subscription: SubscriptionInfo | null;
   orders: OrderInfo[];
 };

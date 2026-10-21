@@ -6,6 +6,7 @@ import {
   type UploadedFileSummary,
 } from "~/fsd/entities/uploaded-file";
 import { deleteUploadedFile } from "../api";
+import { cardNewsKeys } from "~/fsd/entities/card-news";
 
 /**
  * 업로드 삭제 mutation과 그 캐시 정책의 단일 소유자.
@@ -14,7 +15,10 @@ import { deleteUploadedFile } from "../api";
  * (목록 프룬 + detail 제거 + invalidate / invalidate만 / invalidate만).
  * 규약 §8.1: `useQueryClient()`는 mutation을 소유한 feature model 훅 안에서 부른다.
  */
-export function useDeleteUploadedFile(options?: { onDeleted?: () => void }) {
+export function useDeleteUploadedFile(
+  userId: string,
+  options?: { onDeleted?: () => void },
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -25,9 +29,9 @@ export function useDeleteUploadedFile(options?: { onDeleted?: () => void }) {
         throw new Error(result.error);
       }
 
-      return uploadedFileId;
+      return { uploadedFileId, ...result.data };
     },
-    onSuccess: async (uploadedFileId) => {
+    onSuccess: async ({ uploadedFileId }) => {
       queryClient.setQueriesData<UploadedFileSummary[]>(
         { queryKey: uploadedFileKeys.lists() },
         (old) => old?.filter((file) => file.id !== uploadedFileId),
@@ -37,6 +41,8 @@ export function useDeleteUploadedFile(options?: { onDeleted?: () => void }) {
       });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: uploadedFileKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: cardNewsKeys.user(userId) }),
+        queryClient.invalidateQueries({ queryKey: ["asset-cleanup", userId] }),
         queryClient.invalidateQueries({
           queryKey: uploadedFileKeys.activeQueues(),
         }),

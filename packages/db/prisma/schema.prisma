@@ -47,6 +47,7 @@ model User {
     emailVerified   DateTime?
     password        String?
     credits         Int       @default(3)
+    reservedCredits Int       @default(0)
     polarCustomerId String?   @unique
     image           String?
 
@@ -75,6 +76,10 @@ model User {
     subscription  Subscription?
     orders        Order[]
     analyticsEvents AnalyticsEvent[]
+    creditReservations CreditReservation[]
+    cardNewsSets CardNewsSet[]
+    cardNewsJobs CardNewsJob[]
+    assetCleanupJobs AssetCleanupJob[]
 }
 
 model UploadedFile {
@@ -109,11 +114,13 @@ model UploadedFile {
     reviewAttempt         Int?
     reviewReadyAt         DateTime?
     transcriptS3Key       String?
+    deletedAt             DateTime?
     userId                String
 
     clips      Clip[]
     dispatches ProcessingDispatch[]
     clipDrafts ClipDraft[]
+    cardNewsSets CardNewsSet[]
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -155,6 +162,7 @@ model Clip {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    deletedAt DateTime?
 
     youtubeTitle       String?
     youtubeDescription String?
@@ -165,6 +173,7 @@ model Clip {
 
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String
+    cardNewsSets CardNewsSet[]
 
     @@index([uploadedFileId, processingAttempt])
     @@unique([uploadedFileId, processingAttempt, s3Key])
@@ -220,12 +229,181 @@ model ProcessingDispatch {
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
 
+    workerRunId String?
+    modalCallId String?
+    // Existing rows are unknown, not proof that no producer was spawned.
+    modalSpawnState String @default("unknown")
+    producerEndEvidence Json?
+    reservationId String?
+    inputSnapshot Json?
+    claimedAt DateTime?
+    leaseUntil DateTime?
+    heartbeatAt DateTime?
+    deadlineAt DateTime?
+    reservation CreditReservation? @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
     uploadedFile UploadedFile @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
 
     @@unique([uploadedFileId, attempt])
     @@index([status, nextRetryAt])
     @@index([status, createdAt])
     @@index([status, lockedAt])
+    @@index([reservationId])
+}
+
+model CreditReservation {
+    id String @id @default(cuid())
+    userId String
+    operationKey String @unique
+    kind String
+    reservedAmount Int
+    chargedAmount Int @default(0)
+    status String @default("held")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    settledAt DateTime?
+    releasedAt DateTime?
+
+    user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+    dispatches ProcessingDispatch[]
+    cardNewsJobs CardNewsJob[]
+
+    @@index([userId, status])
+    @@index([status, createdAt])
+}
+
+model CardNewsSet {
+    id String @id @default(cuid())
+    userId String
+    clipId String
+    uploadedFileId String
+    sourceSnapshot Json
+    sourceHash String
+    language String
+    draftDocument Json?
+    draftSnapshots Json @default("{}")
+    draftRevision Int @default(0)
+    publishedRevision Int @default(0)
+    pendingRenderRevision Int?
+    regeneratedFromId String?
+    status String @default("generating")
+    deletedAt DateTime?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+    clip Clip @relation(fields: [clipId], references: [id], onDelete: Restrict)
+    uploadedFile UploadedFile @relation(fields: [uploadedFileId], references: [id], onDelete: Restrict)
+    regeneratedFrom CardNewsSet? @relation("CardNewsRegeneration", fields: [regeneratedFromId], references: [id], onDelete: SetNull)
+    regeneratedSets CardNewsSet[] @relation("CardNewsRegeneration")
+    jobs CardNewsJob[]
+
+    @@index([userId, createdAt])
+    @@index([clipId])
+    @@index([uploadedFileId])
+    @@index([status, deletedAt])
+}
+
+model CardNewsJob {
+    id String @id @default(cuid())
+    userId String
+    setId String
+    kind String
+    requestId String
+    requestHash String
+    inputRevision Int
+    inputSnapshot Json
+    executionEpoch Int @default(1)
+    status String @default("pending")
+    stage String @default("accepted")
+    reservationId String?
+    templateVersion String
+    deadlineAt DateTime
+    dispatchStatus String @default("pending")
+    dispatchLeaseUntil DateTime?
+    nextDispatchAt DateTime?
+    dispatchCount Int @default(0)
+    lastDispatchError String?
+    dispatchedAt DateTime?
+    claimedAt DateTime?
+    heartbeatAt DateTime?
+    workerRunId String?
+    modalCallId String?
+    callbackInbox Json @default("[]")
+    modalSpawnState String @default("not_sent")
+    selectedManifestKey String?
+    selectedInvocationId String?
+    progressInvocationId String?
+    manifest Json?
+    failureCode String?
+    completedAt DateTime?
+    usageMetrics Json?
+    analyticsContext Json?
+    pendingAnalytics Json @default("[]")
+    outputRetiredAt DateTime?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+    set CardNewsSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+    reservation CreditReservation? @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+    invocations CardNewsInvocation[]
+
+    @@unique([userId, requestId])
+    @@index([setId, inputRevision, templateVersion])
+    @@index([status, nextDispatchAt])
+    @@index([status, deadlineAt])
+    @@index([reservationId])
+}
+
+model CardNewsInvocation {
+    id String @id @default(cuid())
+    jobId String
+    executionEpoch Int
+    invocationId String
+    modalCallId String
+    writeDeadlineAt DateTime
+    status String @default("registered")
+    progressSequence Int @default(0)
+    stage String @default("accepted")
+    producerEndEvidence Json?
+    registeredAt DateTime @default(now())
+    endedAt DateTime?
+    updatedAt DateTime @updatedAt
+
+    job CardNewsJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+    @@unique([jobId, executionEpoch, invocationId])
+    @@index([status, writeDeadlineAt])
+}
+
+model AssetCleanupJob {
+    id String @id @default(cuid())
+    userId String
+    kind String
+    scopeId String
+    scopeSnapshot Json
+    exactKeys Json @default("[]")
+    dedicatedPrefixes Json @default("[]")
+    retainedReferences Json @default("[]")
+    producerReferences Json @default("[]")
+    cursor Json?
+    failedKeys Json @default("[]")
+    status String @default("pending")
+    notBefore DateTime @default(now())
+    leaseUntil DateTime?
+    nextRetryAt DateTime?
+    attemptCount Int @default(0)
+    lastError String?
+    completedAt DateTime?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Scope data survives deletion of its source, clips and sets.
+    user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+    @@index([status, notBefore, nextRetryAt])
+    @@index([userId, kind, scopeId])
 }
 
 model Subscription {

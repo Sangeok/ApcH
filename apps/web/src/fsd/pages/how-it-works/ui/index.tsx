@@ -11,7 +11,7 @@ export function HowItWorksPage() {
       <SeoPageHero
         eyebrow="How it works"
         title="How AI Podcast Clipper Turns Podcasts Into Shorts"
-        description="The pipeline combines upload storage, transcription, AI highlight selection, active speaker framing, captions, rendering, and dashboard review."
+        description="Generate short video highlights, then use one completed clip to create card news when enabled for your account. Review and download files and copy before publishing."
         primaryCta={{ label: "Try it free", href: "/login" }}
         secondaryCta={{ label: "See security", href: "/security" }}
       />

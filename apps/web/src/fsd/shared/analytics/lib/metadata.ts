@@ -48,6 +48,66 @@ export const ANALYTICS_METADATA_KEYS_BY_EVENT = {
   clip_review_generate_blocked: ["uploadedFileId", "reason", "selectedCount"],
   clip_review_confirmed: ["uploadedFileId", "selectedCount", "budgetLimit"],
   clip_viewed: ["clipId", "uploadedFileId"],
+  card_news_requested: [
+    "setId",
+    "jobId",
+    "revision",
+    "cardCount",
+    "durationMs",
+    "failureCode",
+    "billingStatus",
+    "editedFieldCount",
+  ],
+  card_news_completed: [
+    "setId",
+    "jobId",
+    "revision",
+    "cardCount",
+    "durationMs",
+    "failureCode",
+    "billingStatus",
+    "editedFieldCount",
+  ],
+  card_news_failed: [
+    "setId",
+    "jobId",
+    "revision",
+    "cardCount",
+    "durationMs",
+    "failureCode",
+    "billingStatus",
+    "editedFieldCount",
+  ],
+  card_news_edited: [
+    "setId",
+    "jobId",
+    "revision",
+    "cardCount",
+    "durationMs",
+    "failureCode",
+    "billingStatus",
+    "editedFieldCount",
+  ],
+  card_news_regenerated: [
+    "setId",
+    "jobId",
+    "revision",
+    "cardCount",
+    "durationMs",
+    "failureCode",
+    "billingStatus",
+    "editedFieldCount",
+  ],
+  card_news_downloaded: [
+    "setId",
+    "jobId",
+    "revision",
+    "cardCount",
+    "durationMs",
+    "failureCode",
+    "billingStatus",
+    "editedFieldCount",
+  ],
   billing_viewed: [],
   billing_cta_clicked: ["tier", "billingInterval"],
   checkout_started: ["tier", "billingInterval"],
@@ -69,6 +129,56 @@ function isSafeMetadataValue(value: unknown): value is SafeMetadataValue {
   }
 
   return typeof value === "boolean";
+}
+
+const CARD_NEWS_FAILURE_CODES = new Set([
+  "insufficient_content",
+  "invalid_source",
+  "source_unavailable",
+  "source_head_failed",
+  "generation_failed",
+  "model_timeout",
+  "model_unavailable",
+  "invalid_provider_output",
+  "schema_validation_failed",
+  "text_overflow",
+  "unsupported_glyph",
+  "highlight_not_in_body",
+  "render_failed",
+  "cover_extraction_failed",
+  "media_process_failed",
+  "manifest_validation_failed",
+  "dispatch_timeout",
+  "job_timeout",
+  "cpu_timeout",
+  "storage_failed",
+  "callback_failed",
+  "write_deadline_exceeded",
+  "source_too_large",
+  "source_checksum_mismatch",
+  "internal_error",
+]);
+
+function isSafeCardNewsValue(
+  key: string,
+  value: unknown,
+): value is string | number {
+  if (key === "setId" || key === "jobId")
+    return typeof value === "string" && /^[A-Za-z0-9_-]{1,80}$/.test(value);
+  if (key === "billingStatus")
+    return (
+      typeof value === "string" &&
+      ["held", "settled", "released", "free"].includes(value)
+    );
+  if (key === "failureCode")
+    return typeof value === "string" && CARD_NEWS_FAILURE_CODES.has(value);
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0)
+    return false;
+  if (key === "durationMs") return value <= 86400000;
+  if (!Number.isSafeInteger(value)) return false;
+  if (key === "revision") return value >= 1 && value <= 1000000000;
+  if (key === "cardCount") return value >= 3 && value <= 7;
+  return key === "editedFieldCount" && value <= 1000;
 }
 
 export function sanitizeAnalyticsMetadata(
@@ -93,7 +203,9 @@ export function sanitizeAnalyticsMetadata(
   for (const key of allowedKeys) {
     const value = input[key];
 
-    if (isSafeMetadataValue(value)) {
+    if (eventName.startsWith("card_news_")) {
+      if (isSafeCardNewsValue(key, value)) output[key] = value;
+    } else if (isSafeMetadataValue(value)) {
       output[key] = value;
     }
   }

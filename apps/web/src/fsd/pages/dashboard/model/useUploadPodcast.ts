@@ -12,12 +12,12 @@ import { toast } from "sonner";
 import { trackAnalyticsEvent } from "~/fsd/shared/analytics";
 import {
   confirmUploadObjectExists,
-  deleteUploadedFile,
   prepareUpload,
   reconcileProcessingRequest,
   reconcileUploadConfirmation,
   scheduleUploadedFileProcessing,
 } from "~/fsd/features/upload/api";
+import { useDeleteUploadedFile } from "~/fsd/features/upload";
 
 async function uploadFileToS3(file: File, signedUrl: string): Promise<void> {
   const response = await fetch(signedUrl, {
@@ -80,17 +80,20 @@ export function toUploadAnalyticsMetadata({
 }
 
 interface UseUploadPodcastOptions {
+  userId: string;
   onOptimisticAdd: (file: UploadedFileSummary) => void;
   onSuccess?: () => void;
 }
 
 export function useUploadPodcast({
+  userId,
   onOptimisticAdd,
   onSuccess,
 }: UseUploadPodcastOptions) {
   const [isUploading, startUploading] = useTransition();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const deleteMutation = useDeleteUploadedFile(userId);
 
   const markUploadVisible = async () => {
     await queryClient.invalidateQueries({
@@ -299,7 +302,7 @@ export function useUploadPodcast({
         // 정리 조건이 한 줄로 읽힌다. 새 early return을 추가할 때
         // disposition을 정하지 않으면 그것이 곧 컴파일 대상 실수가 된다.
         if (draftId && disposition === "delete-on-exit") {
-          await deleteUploadedFile(draftId).catch(console.error);
+          await deleteMutation.mutateAsync(draftId).catch(console.error);
         }
       }
     });

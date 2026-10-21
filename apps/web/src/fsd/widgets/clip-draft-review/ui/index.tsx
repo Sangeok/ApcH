@@ -37,7 +37,7 @@ interface ClipDraftReviewSectionProps {
   uploadedFileId: string;
   clipDrafts: ClipDraft[];
   targetClipCount: number;
-  currentUserCredits: number;
+  availableCredits: number;
   language: string;
 }
 
@@ -53,11 +53,11 @@ export type BlockKind = "empty" | "credits" | "limit" | "overlap";
 // (selection-budget.ts 주석 참고). 그래서 인자로 따로 받는다.
 function getGenerateBlockReason({
   budget,
-  currentUserCredits,
+  availableCredits,
   overlappingCount,
 }: {
   budget: SelectionBudget;
-  currentUserCredits: number;
+  availableCredits: number;
   overlappingCount: number;
 }): { message: string; kind: BlockKind } | null {
   if (budget.selectedCount === 0) {
@@ -73,9 +73,9 @@ function getGenerateBlockReason({
   }
   // 크레딧 부족은 정상 경로에서 도달한다 — 검토 화면은 목표 개수만큼 미리
   // 선택된 채로 열리므로, 크레딧이 목표보다 적은 사용자는 첫 렌더부터 이 사유를 본다.
-  if (currentUserCredits < budget.selectedCount) {
+  if (availableCredits < budget.selectedCount) {
     return {
-      message: `Not enough credits — need ${budget.selectedCount}, you have ${currentUserCredits}.`,
+      message: `Not enough credits — need ${budget.selectedCount}, you have ${availableCredits}.`,
       kind: "credits",
     };
   }
@@ -92,7 +92,7 @@ export default function ClipDraftReviewSection({
   uploadedFileId,
   clipDrafts,
   targetClipCount,
-  currentUserCredits,
+  availableCredits,
   language,
 }: ClipDraftReviewSectionProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -142,7 +142,7 @@ export default function ClipDraftReviewSection({
 
   const generateBlockReason = getGenerateBlockReason({
     budget,
-    currentUserCredits,
+    availableCredits,
     overlappingCount: overlappingDraftIds.size,
   });
 
@@ -162,14 +162,14 @@ export default function ClipDraftReviewSection({
         draftCount: clipDrafts.length,
         // 선택 상한. 예산 모듈(Phase 2) 도입 후에도 값은 동일하다.
         budgetLimit: targetClipCount,
-        credits: currentUserCredits,
+        credits: availableCredits,
       },
       {
         path: REVIEW_ANALYTICS_PATH,
         dedupeKey: `clip_review_opened:${uploadedFileId}`,
       },
     );
-  }, [uploadedFileId, clipDrafts.length, targetClipCount, currentUserCredits]);
+  }, [uploadedFileId, clipDrafts.length, targetClipCount, availableCredits]);
 
   // 사유별로 "이 사용자가 이 벽에 부딪혔는가"를 1회 기록한다.
   //
@@ -273,7 +273,7 @@ export default function ClipDraftReviewSection({
             {budget.remaining > 0
               ? `${budget.remaining} slot${budget.remaining === 1 ? "" : "s"} left. `
               : "Swap one out to change your pick. "}
-            {`Each clip uses 1 credit; you have ${currentUserCredits}.`}
+            {`Each clip uses 1 credit; you have ${availableCredits}.`}
           </p>
           {/* 번역은 렌더 단계에서만 일어나므로(apps/backend/main.py process_clip의 elif selected_language == "Korean" → create_korean_subtitles_with_ffmpeg) 검토
               화면은 영어 원문을 보여준다. 그 전까지 유일한 안내는 검토 화면 캡션
@@ -332,7 +332,7 @@ export default function ClipDraftReviewSection({
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   This will render the {selectedCount} selected {clipNoun} and
-                  use up to {selectedCount} of your {currentUserCredits}{" "}
+                  use up to {selectedCount} of your {availableCredits}{" "}
                   {creditNoun}. The review step closes once rendering starts.
                 </AlertDialogDescription>
               </AlertDialogHeader>

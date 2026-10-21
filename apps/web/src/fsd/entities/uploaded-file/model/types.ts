@@ -42,7 +42,7 @@ export interface UploadedFileDetail {
   reviewBeforeGenerate: boolean;
   reviewAttempt: number | null;
   reviewReadyAt: Date | null;
-  currentUserCredits: number;
+  creditBalance: { owned: number; reserved: number; available: number };
   clips: Clip[];
   clipDrafts: ClipDraft[];
 }

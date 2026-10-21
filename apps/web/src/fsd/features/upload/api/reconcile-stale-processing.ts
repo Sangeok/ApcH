@@ -16,6 +16,7 @@ import {
   markUploadedFileAttemptFailed,
   type StaleProcessingCandidate,
 } from "~/fsd/entities/uploaded-file/server";
+import { settleProcessingAttempt } from "./settle-processing-attempt";
 import { inngest } from "~/inngest/client";
 
 /**
@@ -143,15 +144,30 @@ export async function reconcileStaleUploadedFileForUser(
     };
   }
 
-  const updated = await markUploadedFileAttemptFailed(
-    file.id,
-    file.currentAttempt,
-    failureCode,
-    {
-      now,
-      statuses: [status],
-    },
-  );
+  const updated =
+    status === "processing"
+      ? {
+          count: (
+            await settleProcessingAttempt({
+              uploadedFileId: file.id,
+              attempt: file.currentAttempt,
+              userId,
+              failureCode,
+              now,
+            })
+          ).completed
+            ? 1
+            : 0,
+        }
+      : await markUploadedFileAttemptFailed(
+          file.id,
+          file.currentAttempt,
+          failureCode,
+          {
+            now,
+            statuses: [status],
+          },
+        );
 
   if (updated.count === 1 && failureCode === "worker_timeout") {
     await sendProcessingCancelEventBestEffort({
@@ -208,7 +224,9 @@ export async function reconcileStaleUploadedFilesForUser(
     // 루프 밖에서 한 번 세면 방금 실패시킨 행이 아직 처리 중으로 잡혀,
     // 같은 사이클에서 정리됐어야 할 queued 행이 한 번 더 밀린다.
     const hasProcessing =
-      rule.status === "queued" ? await hasProcessingUploadForUser(userId) : false;
+      rule.status === "queued"
+        ? await hasProcessingUploadForUser(userId)
+        : false;
 
     for (const file of activeFiles.filter(
       (candidate) => candidate.status === rule.status,
@@ -219,15 +237,30 @@ export async function reconcileStaleUploadedFilesForUser(
         continue;
       }
 
-      const updated = await markUploadedFileAttemptFailed(
-        file.id,
-        file.currentAttempt,
-        failureCode,
-        {
-          now,
-          statuses: [rule.status],
-        },
-      );
+      const updated =
+        rule.status === "processing"
+          ? {
+              count: (
+                await settleProcessingAttempt({
+                  uploadedFileId: file.id,
+                  attempt: file.currentAttempt,
+                  userId,
+                  failureCode,
+                  now,
+                })
+              ).completed
+                ? 1
+                : 0,
+            }
+          : await markUploadedFileAttemptFailed(
+              file.id,
+              file.currentAttempt,
+              failureCode,
+              {
+                now,
+                statuses: [rule.status],
+              },
+            );
 
       if (updated.count !== 1) {
         continue;
