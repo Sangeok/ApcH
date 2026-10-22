@@ -46,7 +46,7 @@
 
 ## FEAT-63 — Instagram 카드뉴스 사후 인수: V1·V3·V4·B4·C1·A2·B3'·공개 문구 (web·backend, 구현 2026-10-22)
 
-원천: `docs/agents/main-loop/FEAT-63.md` 「구현」·`docs/plans/FEAT-63.md` 「테스트 — 못 덮는 범위」. **미배포** — 배포는 소유자 승인 뒤(main 합류 → Vercel, CPU 앱은 `apps/backend`에서 `PYTHONUTF8=1 modal deploy card_news_app.py`). 운영 영상 게이트는 2026-10-22 소유자 확인으로 둘 다 `true`(열림)라 이 배포 전까지 V1이 운영에 열려 있다(사용자 0명이라 닫지 않기로 함). web 화면 줄은 admin 호스트 전용인 자동 판정 태그를 붙이지 않는다.
+원천: `docs/agents/main-loop/FEAT-63.md` 「구현」·`docs/plans/FEAT-63.md` 「테스트 — 못 덮는 범위」. **배포 진행 중(2026-10-22, 소유자 승인)** — CPU 앱 `apch-card-news`는 `apps/backend`에서 `PYTHONUTF8=1 python -m modal deploy card_news_app.py`로 재배포했다(무인증 `POST /status` 401, 옛 컨테이너 0). web은 PR #137(dev→main)을 머지할 차례다. ruleset이 「마지막 push의 타인 승인」을 요구해 관리자 머지가 필요하고, 자동 모드가 그 머지를 거부해 소유자가 실행한다. 운영 영상 게이트는 2026-10-22 소유자 확인으로 둘 다 `true`(열림)라 이 배포 전까지 V1이 운영에 열려 있다(사용자 0명이라 닫지 않기로 함). web 화면 줄은 admin 호스트 전용인 자동 판정 태그를 붙이지 않는다.
 
 - [ ] **V1 클립 정산** — 배포 뒤 짧은 영상 1개를 처리해 정산된 클립 수 = 만들어진 클립 수 = 차감 크레딧인지 본다(전제: 실제 S3 HEAD의 ContentType `binary/octet-stream` 수용). 24시간 뒤 그 클립이 남아 있는지도 본다 — orphan 정리는 BUG-19 배포 뒤라야 돈다
 - [ ] **V3 유예** — 웹훅이 정산한 영상에 제목·설명 메타데이터가 붙는지, analyze가 `review_pending`으로 가는지 본다

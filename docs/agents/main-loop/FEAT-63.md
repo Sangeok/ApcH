@@ -415,3 +415,11 @@ worktree는 스크래치패드 `f63r1/wt`(`8916909`에서 detached — 코드는
 원장: `docs/release-checks.md`에 「FEAT-63」 절 9줄을 등재했다(미배포). web 화면 줄이라 자동 판정 태그는 붙이지 않았다.
 
 후속 후보(계획서 「범위 밖 의존 — 후속 후보」)는 소유자에게 제시했다. 등재 여부는 소유자 답을 받은 뒤 정한다.
+
+## 배포 (2026-10-22, 진행 중)
+
+소유자가 메인 루프의 권고(FEAT-63 즉시 배포 → BUG-19 → 후속 후보는 (a)(b)만 등재)를 「그렇게 해」로 승인했다.
+
+- **web**: PR #137(dev→main)을 만들었다. Vercel 미리보기(apc-h·apch-admin)는 성공했다. main ruleset(`10167307`)이 `require_last_push_approval`이라 `mergeStateStatus: BLOCKED`다. 관리자 머지(`gh pr merge 137 --merge --admin`)는 자동 모드 분류기가 「Merge Without Review」로 거부했다. 우회하지 않고 소유자 실행으로 넘겼다(PR #134 때도 소유자 승인 관리자 머지였다 — `docs/card-news-release-verification-20261020.md:48`).
+- **CPU 앱(B4)**: `apps/backend`에서 `PYTHONUTF8=1 python -m modal deploy card_news_app.py`로 배포했다(`✓ App deployed`). 실행 중인 옛 컨테이너는 0이었고, 무인증 `POST /status`는 401이다. B4 자체는 실패를 유도하기 어려워 원장 줄로 남긴다.
+- **후속 후보 등재**: BUG-20(정산 HEAD 키별 처리)과 BUG-21(CPU 앱 인증의 비ASCII 500 + 콜백 호스트 허용 목록)을 `TASK_BACKLOG.md`에 올렸다. (c) 문서 정정, (d) 죽은 코드, (e) 화면 문구는 소유자 결정으로 등재하지 않는다.
