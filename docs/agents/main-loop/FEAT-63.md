@@ -208,3 +208,77 @@ junction 449개, `@repo/db`만 worktree 자기 `packages/db`로). 결과는 계�
 - **옛 계획서의 쓰임**: `docs/plans/FEAT-63.md`(통합 계획)가 찾은 결함과 고칠 파일 35개는 새 계획서에서 대조
   체크리스트가 된다. 각 항목을 배포본 `d836dc7`에 대조해 「이미 고쳐짐 / 남음 / 바뀜」으로 판정한다.
 - **BUG-19와의 경계**: 매분 cron 4개의 스케줄은 BUG-19가 맡는다. 복구 헬퍼의 의미는 이 항목이 인수한다.
+
+## 필수 경로 확정 (2026-10-22, 사후 인수 계획)
+
+카탈로그(`docs/plans/verification-paths.md`) 기준. 대상은 `c448b93`의 사후 인수 계획서(보정 27행, 코드 블록 43개).
+
+| # | 경로 | 판정 | 이유 |
+| --- | --- | --- | --- |
+| 1 | 인용 전수 대조 | 필수 | 모든 항목. 산문 인용 100여 건, 블록 머리 줄 번호 34곳 |
+| 2 | 스케치 추출·실행 | 필수 | py·ts·tsx·md 블록. web check·test·build, backend unittest, admin, 실 PostgreSQL CLI 3종 |
+| 3 | before/after 기계 적용 | 필수 | 기존 파일 수정 22곳 + 새 파일 4 + 산문 임포트 지시 1 |
+| 4 | 전칭 여집합 | 필수 | 「진입점 3곳」, 「호출처 하나뿐」, 「`env.`는 여기뿐」, 「`object(...)` 타입 인자는 하나뿐」, 「표에 없는 테스트 12개」, 「단서 없는 공개 문구는 이 다섯뿐」, 「BUG-19와 함께 고치는 파일은 없다」, 「코드가 `d836dc7`과 바이트 동일」 |
+| 5 | 돌연변이 | 필수 | 순수 함수 신설 셋(`isStoredClipObject`·`canRecoverySettleVideoAttempt`/`producerEndObservedAt`·`callback_failure_code`) |
+| 6 | 실제 사건 재생 | 필수(로컬 재생) | S3 HEAD ContentType·Gemini 오류 코드·Modal 종료 신호를 해석한다. 운영 실측은 계획 단계에서 하지 않으므로 신호의 모양을 로컬에서 다시 재생한다. 근거 버전이 배포본에서 그대로인지가 요점이다 |
+| 7 | 음성 시험 | 필수 | 각 보정을 되돌리면 그것을 지키는 검사가 실패하는가. 실 DB 검사가 V1·V3을 지키는가 |
+| 8 | 실물 렌더 | 필수 | 헤더·대시보드 탭·잔액 배지 변경 |
+| 9 | 구조적 아티팩트 | **제외** | 이번 보정 27행에 schema·config·JSON·생성 파일·`.gitattributes` 변경이 없다(`.gitattributes`의 B3은 배포본이 이미 고쳤다 — 옛 1번 「고쳐짐」) |
+
+## 라운드 1 — 메인 루프 편집 라운드 (2026-10-22, 사후 인수 · 구현 영향 1 · 위생 4)
+
+worktree는 스크래치패드 `f63r1/wt`(`8916909`에서 detached — 코드는 `d836dc7`과 동일)에 만들고, node_modules는 junction 셋으로 연결했다.
+하니스는 `f63r1/h/`에 있다: `blocks.py`, `apply.py`·`apply2.py`, `cite.py`, `heads.py`, `mutate.py`, `negative.py`·`negative_v3.py`, `b4guard.py`.
+로그는 `f63r1/logs/`에 있다. 렌더 하니스는 `f63r1/h/render/`(`render63.tsx`·`register63.mjs`·`loader63.mjs`·`tsconfig.render63.json` — 실행 시 사본의 `apps/web` 바로 아래에 둔다, 10-19 하니스 설정과 같음)다.
+
+- **경로 3**: 블록 43개와 산문 지시 1개가 **전부 정확히 1회 일치**했다. 손 개입은 0이다.
+- **경로 2**(모두 worktree, `SKIP_ENV_VALIDATION=1` — worktree에 `.env`가 없다):
+  - web: `check` EXIT 0, `test` **365/0**(359 + 신규 두 파일 6), `next build` EXIT 0.
+  - backend: **163 OK**, `py_compile` OK.
+  - admin: check EXIT 0 · **337/0** · fsd:final EXIT 0.
+  - 실 PostgreSQL 3종 EXIT 0, client 회귀 6/0, surfaces EXIT 0.
+  - surfaces는 메인 트리에서 `SKIP_ENV_VALIDATION` 없이도 EXIT 0이다. 계획서 명령 그대로 돈다.
+- **경로 5**: 돌연변이 **22/22 사멸**(10-19와 같은 집합). 원본 3파일 해시를 복원했다.
+- **경로 7 · 구현 영향 R1-1**: **B4 호출부(`card_news_app.py:190`)를 옛 `getattr(error, "code", …)`로 되돌려도 backend 163개가 전부 통과**한다. 새 테스트는 순수 함수만 보기 때문이다.
+  - 해소: 기존 오케스트레이션 시험에 `sdk-failure` 시나리오를 넣는 블록 셋을 3번에 추가했다(`:118`·`:134-136`·`:215`). 정수 `code` 429 오류를 넣으면 단계는 `failed`까지 가고 `failureCode`는 `cpu_job_failed`여야 한다.
+  - 넣은 뒤 다시 확인: 호출부를 되돌리면 `['accepted', 'generating-text'] != [..., 'failed']`로 실패하고, 고친 상태에서는 163 OK다.
+  - 나머지 음성 시험 4건은 모두 「실패함(정상)」이다.
+    - V1 `binary/octet-stream` 제거, V1 호출부 되돌림: 실 DB `balance` `:154`.
+    - V3 유예 0, V3 호출부 되돌림(첫 관측을 epoch로): 패치된 CLI `:552` `1 !== 0`. 이 둘은 node_modules 사고 뒤 재실행으로 실패 지점을 확정했다.
+- **경로 6**(로컬 재생, 근거 버전 대조):
+  - `requirements-card-news.txt`·`requirements.txt`는 `72bde11..` 사이에 바뀌지 않았다. `main.py:879`·`:894`의 `upload_file` 모양도 같다.
+  - boto3 1.43.62 가짜 S3 재생(10-19 하니스 `h63/replay/boto_put.py`): **PUT에 `Content-Type` 없음**.
+  - google-genai 1.49.0 wheel `errors.py` 31·39행 `code: int`, 52행 `self.code = code if code else …`.
+- **경로 8**: 헤더·대시보드 탭 `showCardNews=false` → `/dashboard/card-news` 링크 0개, `true` → 1개(대시보드 탭은 `AppRouterContext`를 주고 렌더했다).
+  - 잔액 배지 「갱신 실패 + 이전 data」: 보정 후 `3 available · 2 reserved`, 보정 전 조건으로 되돌리면 `Balance unavailable`. 하니스가 결함을 구별한다.
+- **경로 1**:
+  - 블록 머리 줄 번호: 편집 전 34곳, 편집 후 37곳 모두 불일치 0.
+  - 산문 인용 100여 건: 기계 대조의 불일치 표시는 표 안 `\|` 이스케이프 2, 의도적 생략 `.env({...})` 1, 한 줄에 두 파일이 섞인 스캐너 오탐 1뿐이다.
+  - 같은 줄에 기준 경로가 없는 `:N` 39건은 손으로 전부 대조했다(릴리스 기록·CLI·wiring·settle·functions·pricing·CLAUDE.md) — 불일치 0.
+- **경로 4 · 위생 R1-2**: 「BUG-19와 **함께 고치는 파일은 없다**」는 거짓이었다.
+  - `app/dashboard/page.tsx`·`entities/card-news/api/index.ts`·`features/card-news/api/index.ts`를 둘 다 고친다. 처음 BUG-19 계획(`7d913e8`)부터 그랬다.
+  - 고치는 자리는 서로 겹치지 않는다(이 계획 before `:15`·`:59` / `:325-334` / `:21-22`·`:318-328`·`:338-346`, BUG-19 page 임포트·`:27` 뒤 / entities 끝 / features `:96`·`:111`). 그래서 위생으로 분류한다.
+  - 「나중 구현 쪽이 before와 줄 번호를 다시 확인」을 명시했다.
+- **위생 R1-3**: BUG-19 결합 서술을 그 계획 라운드 1(`8916909`, 라운드 3 `9cfb1a7`도 같음)로 갱신했다.
+  - N2는 해소됐다.
+  - V3 유예 틱: BUG-19는 영상 후보를 `deadlineAt`에만 깨운다. 틀리지는 않고 늦다. 유예 기한을 다음 깨움에 더하는 것은 후속이다.
+  - 후속 후보 「`nextDispatchAt`·heartbeat 재배차」는 BUG-19 `cardNewsJobDueAt`이 다루므로 해소 목록으로 옮겼다.
+  - BUG-19가 먼저면 surfaces 스크립트가 바뀌어 있다는 것도 적었다.
+- **위생 R1-4**: 25번 테스트 표에 「BUG-19가 먼저면 그 4행도 함께, `card-news-functions.test.mjs` 행은 드레인 루틴으로」를 추가했다.
+- **위생 R1-5**: 모호한 경로 두 곳을 풀어 적었다. `migration.sql:77`(같은 이름 14개) → 전체 경로. 저장소 밖 `errors.py` → wheel 경로와 고정 버전 출처.
+- 그 밖에 확인한 전칭(여집합 열거 — 결함 없음):
+  - 무조건 노출 진입점은 헤더 2·탭 1뿐이다. `ClipActions.tsx:170`은 `derivedSets.length > 0`, 편집기·에러 페이지는 카드뉴스 라우트 안이다.
+  - `listUserAssetCleanupJobs` 호출처는 하나, CLI의 `reconcileVideoReservations` 호출은 둘, 타입 인자 `object(...)`는 하나다.
+  - 표에 없는 테스트 12개(44개와 대조)는 계획과 일치한다.
+  - 공개 문구 중 단서가 없는 것은 계획이 고치는 다섯뿐이다(`how-it-works`·`terms:51-55`·`pricing/page.tsx:11`·config `:15`·`:32`는 단서 있음).
+  - `d836dc7..HEAD` 코드 차이는 0줄이다.
+
+**환경 사고 (같은 시각, BUG-19 라운드 2 포크)**: 20:08:54~56에 그 포크가 `git worktree remove --force`로 worktree를 정리했고, 이 명령이 junction을 따라 메인 트리 `node_modules` 일부와 `apps/web/node_modules` 전체를 지웠다(`npm ls` missing: `@auth/prisma-adapter`·`@aws-sdk/client-s3` 등).
+- 이 라운드의 게이트는 모두 20:04 이전에 끝나 영향이 없다.
+- 영향을 받은 것은 렌더 1회(`ERR_MODULE_NOT_FOUND`)와 V3 음성 시험의 실패 지점 기록 둘이다. 메인 루프가 `npm ci`로 복구한 뒤 다시 실행했다(위 경로 7·8).
+- worktree 정리는 junction을 링크만 끊은 뒤에 했다.
+
+이 라운드는 계획서를 고쳤다(구현 영향 1). 다음은 편집본의 무편집 재확인이다. 편집본은 새 worktree `f63r1/wt2`(`b35c6c9`)에 처음부터 다시 적용해 보았다.
+- 블록 46개와 산문 1개가 전부 1회 일치했다.
+- 결과 트리는 라운드 1 트리와 **26파일 바이트 동일**하다(`cmp`).
+- backend 163 OK, 블록 머리 37곳 불일치 0이다.

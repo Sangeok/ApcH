@@ -133,12 +133,12 @@ V1이 운영에서 지금 일어나고 있다는 뜻이다 — 그때는 이 항
   `index.ts`(import 줄 이동)뿐이다. 예약·차감·해제 경로(`claim`·`settle`·`reconcile`)는 `72bde11` 그대로다 — 옛 계획의 before 블록 세 개와
   diff 0줄(`settle :78-89`·`reconcile :43-67`·`claim :249-278`).
 - **카드뉴스 유료 요청 멱등**: `createPaidCardNews`가 `analyticsContext`를 떼고 해시한다(`features/card-news/api/job-lifecycle.ts:133` `const { analyticsContext: rawContext, ...productPayload } = payload;` → `:135` `const requestHash = stableHash(productPayload);`). 분석 문맥이 달라도 같은 요청은 같은 해시다 — 맞다.
-  분석 문맥은 `sanitizeCardNewsAnalyticsContext`(`features/card-news/model/analytics-context.ts`)를 거쳐서만 저장된다(`queueAnalytics`, `analytics.ts:65`). 컬럼 `analyticsContext Json?`(`packages/db/prisma/schema.prisma:341`)은 운영 마이그레이션에 이미 있다(`migration.sql:77`).
+  분석 문맥은 `sanitizeCardNewsAnalyticsContext`(`features/card-news/model/analytics-context.ts`)를 거쳐서만 저장된다(`queueAnalytics`, `analytics.ts:65`). 컬럼 `analyticsContext Json?`(`packages/db/prisma/schema.prisma:341`)은 운영 마이그레이션에 이미 있다(`packages/db/prisma/migrations/20261011000000_card_news_credit_reservations/migration.sql:77`).
 - **인가**: 업로드 상세 페이지가 `requireAuth()` → 실패 시 `redirect("/login")`을 먼저 한다(`apps/web/src/app/dashboard/uploads/[uploadedFileId]/page.tsx:15-16`). 강화이고 결함은 없다.
 - **정리**: 부모 업로드가 없는 clip 정리를 허용한다(`features/card-news/api/cleanup.ts:406-407` `(typeof scope.uploadedFileId !== "string" &&` / `!(job.kind === "clip" && scope.uploadedFileId === null))`). 그 경우 사용자 잠금만 잡고 clip 잠금은 전부 개별로 잡는다. 옛 계획 후속 후보 「`Clip.uploadedFileId` null 클립의 정리 스코프」가 해소됐다.
 - **cron 본문**(4859d2e — 스케줄은 BUG-19 범위): 세 cron이 헬퍼(`dispatchPendingCardNewsJobs`·`recoverCardNewsJobs`·`cleanupPendingCardNewsAssets`)를 한 step에서 부르던 것을, 목록 step 1개 + **작업별 step**으로 바꿨다(`inngest/card-news-functions.ts:110-155`). 이유는 한 step이 최대 100건을 순차로 처리하다 요청 한도를 넘어 504가 난 것이다(릴리스 기록 `:62`). 의미는 헬퍼와 같다 — 같은 목록 함수, 같은 작업 함수. 다른 점 둘: `cardNewsRuntime().now()` 대신 `new Date()`(운영에서는 같은 값), 배차 직후의 `flushCardNewsAnalytics(job.id)`가 analytics 목록 순회로 옮겨진 것. 헬퍼 셋은 이제 테스트(`card-news-functions.test.mjs:40-46`)와 `verify-card-news-surfaces.mts:22-24`에서만 불린다.
 - **새로 찾은 것 — N1(낮음, 문서↔코드)**: `docs/video-cutover-gates.md:5` 「닫힌 gate에서 새 claim은 실패로 반환되어 기존 retry 규칙이 적용되며」. 그런데 `7a91665`의 충돌 해소 뒤 코드는 `not_claimable` → `{ skipped: true }`(`functions.ts:217-219`)로, 재시도 없이 런을 끝낸다. 그 사이 `queued`로 남은 업로드는 사용자가 대시보드를 방문할 때 stale 규칙(`reconcile-stale-processing.ts:208` `reconcileStaleUploadedFilesForUser`)이 실패로 바꾼다. 테스트도 skip을 단언한다(`inngest/processing-admission.test.mjs:55` `assert.equal(closed.skipped, true);`). admission을 먼저 닫는 런북 순서(`card-news-runbook.md:91`)에서는 해가 없다 — 후속 후보로 넘긴다.
-- **새로 찾은 것 — N2(BUG-19에 영향)**: BUG-19 백로그 요구 ①은 「처리 본체는 기존 헬퍼를 그대로 부른다」이다. 그런데 배포본의 cron은 위처럼 헬퍼를 부르지 않는다. 헬퍼를 한 step에서 부르면 4859d2e가 고친 「배치 전체가 한 요청 예산을 공유」가 돌아온다. 이 계획에서는 고치지 않는다(「범위 밖 의존」 2).
+- **새로 찾은 것 — N2(BUG-19에 영향, 해소됨)**: BUG-19 백로그 요구 ①은 「처리 본체는 기존 헬퍼를 그대로 부른다」였다. 그런데 배포본의 cron은 위처럼 헬퍼를 부르지 않는다. 헬퍼를 한 step에서 부르면 4859d2e가 고친 「배치 전체가 한 요청 예산을 공유」가 돌아온다. BUG-19 메인 루프 라운드 1(`8916909`)이 이를 재현했고, cron 본문을 작업별 step 그대로 드레인 루틴으로 옮기도록 BUG-19 계획서를 고쳤다. 이 계획에서 할 일은 없다(「범위 밖 의존」 2).
 - **화면**: CN001(종료된 업로드 화면의 카드 생성이 live 잔액을 씀 — `pages/upload-detail/ui/index.tsx:214` `creditBalance: liveCreditBalance,`), CN003~005(편집 충돌·해시태그·canonical 저장), 업로드 폼 서식 정리. 크레딧 판정은 서버 쪽(`createPaidCardNews`의 예약)이 하고, 화면 값은 표시용이다. 결함은 찾지 못했다 — DOM 검사는 「못 덮는 범위」.
 
 ## 문제
@@ -151,7 +151,7 @@ V1이 운영에서 지금 일어나고 있다는 뜻이다 — 그때는 이 항
 3. 운영 실물 확인 중 문서에 남지 않은 것이 있다 — PR #136 배포 결과, legacy receipt `--apply`(로컬 로그에만 있음), 멈춘 무료 렌더 job의 복구, 현재 게이트 값.
 
 백로그와 어긋나는 점: 백로그 재범위는 「남은 결함은 이 항목에서 고칠지 백로그로 나눌지 계획에서 정한다」였다. 이 계획은 **남은 8건을 전부 여기서 고친다** —
-판단 근거는 「대안」 2. 새로 찾은 N1은 후속 후보로, N2는 BUG-19 쪽 의존으로 넘긴다.
+판단 근거는 「대안」 2. 새로 찾은 N1은 후속 후보로 넘긴다. N2는 BUG-19 계획서가 라운드 1에서 해소했다.
 
 ## 고칠 파일
 
@@ -162,7 +162,7 @@ V1이 운영에서 지금 일어나고 있다는 뜻이다 — 그때는 이 항
 | --- | --- | --- | --- |
 | 1 | `apps/backend/card_news_app.py` | 실패 코드를 `callback_failure_code`로 | B4 |
 | 2 | `apps/backend/card_news/policy.py` | `callback_failure_code` 순수 함수 추가(stdlib) | B4 |
-| 3 | `apps/backend/test_card_news_wiring.py` | import·orchestration namespace 주입·실패 코드 테스트 1건 | B4 |
+| 3 | `apps/backend/test_card_news_wiring.py` | import·orchestration namespace 주입·실패 코드 테스트 1건·오케스트레이션 `sdk-failure` 시나리오(호출부 가드) | B4 |
 | 4 | `apps/web/src/fsd/features/upload/model/stored-clip-object.ts` `(신규)` | 정산 대상 클립 객체 판정 순수 함수 | V1 |
 | 5 | `apps/web/src/fsd/features/upload/model/stored-clip-object.test.mjs` `(신규)` | 위 테스트 | V1 |
 | 6 | `apps/web/src/fsd/features/upload/api/settle-processing-attempt.ts` | HEAD 판정을 4번으로 교체 | V1 |
@@ -276,6 +276,45 @@ from card_news.policy import Deadline, callback_failure_code, model_timeout_ms, 
 ```
 
 (`ContractError`·`LayoutError`·`SimpleNamespace`는 이미 import돼 있다 — `:11`·`:13`·`:14`.)
+
+위 테스트는 순수 함수만 본다. **호출부(1번의 `:190`)를 고치지 않아도 backend 163개가 전부 통과한다**(메인 루프 라운드 1 음성 시험).
+호출부를 지키기 위해 같은 파일의 실제 오케스트레이션 시험 `test_actual_orchestration_stages_repair_budget_and_free_render`에
+정수 `code`를 가진 SDK 오류 시나리오를 넣는다. 카드뉴스 이미지가 고정한 google-genai 1.49.0(`apps/backend/requirements-card-news.txt:2`)의
+`APIError.code`는 HTTP 상태 정수다(wheel의 `google/genai/errors.py` 31행 `code: int`·52행 `self.code = code if code else …`).
+`callback_adapter`가 알림을 `validate_contract("callback", notice)`로 검사하므로, 호출부가 옛 코드면 실패 콜백이 계약에서 거부된다.
+그러면 `failed` 단계가 기록되지 않고 이 시나리오가 실패한다.
+
+```python
+# before (:118)
+        for scenario in ("normal", "layout-repair", "model-repair", "free-render", "free-overflow", "media-failure", "completed-reuse"):
+# after
+        for scenario in ("normal", "layout-repair", "model-repair", "free-render", "free-overflow", "media-failure", "sdk-failure",
+                         "completed-reuse"):
+```
+
+```python
+# before (:134-136)
+                def model_adapter(**kwargs):
+                    model_calls.append(kwargs)
+                    events.append(("model", len(model_calls)))
+# after
+                def model_adapter(**kwargs):
+                    model_calls.append(kwargs)
+                    events.append(("model", len(model_calls)))
+                    if scenario == "sdk-failure":
+                        # google-genai APIError.code is the HTTP status int; the failed callback must still pass the contract.
+                        raise type("APIError", (Exception,), {"code": 429})()
+```
+
+```python
+# before (:215)
+                elif scenario == "media-failure":
+# after
+                elif scenario == "sdk-failure":
+                    self.assertEqual(stages, ["accepted", "generating-text", "failed"])
+                    self.assertEqual(outcome["failureCode"], "cpu_job_failed")
+                elif scenario == "media-failure":
+```
 
 ### 4) `apps/web/src/fsd/features/upload/model/stored-clip-object.ts` (신규)
 
@@ -453,7 +492,8 @@ import {
 ```
 
 (`:68` `if (dispatch.uploadedFile.status !== "processing") return;` 이하는 바꾸지 않는다. 처음 관측한 틱은 `producerEndedAt = now`라
-유예 안에 있다. 기록된 증거의 `observedAt` 기준으로 5분 뒤 틱이 정산한다 — 그 「뒤 틱」을 누가 깨우는지는 BUG-19의 몫이다(「범위 밖 의존」 2).)
+유예 안에 있다. 기록된 증거의 `observedAt` 기준으로 5분 뒤의 틱이 정산한다. 그 「뒤 틱」을 누가 깨우는지는 BUG-19의 몫이다. BUG-19(`8916909`) 설계에서 영상 후보 때문에 깨는 시각은
+마감(`deadlineAt`)뿐이고, 그 사이에는 다른 이벤트가 깨울 때만 처리된다. 그래서 틀리지는 않고 늦을 수 있다(「범위 밖 의존」 2).)
 
 ### 10) `claim-processing-attempt.ts`
 
@@ -979,6 +1019,8 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
   `features/upload/model/stored-clip-object.test.mjs` · `features/upload/model/recovery-settle-policy.test.mjs`.
   각 행은 그 파일의 `describe`/`test` 이름을 읽고 「무엇을 지키는가」를 한두 문장으로 쓴다(기존 행 형식). 마지막 둘은 V1(`binary/octet-stream`
   포함이 요점)과 V3(유예 경계 5분 정확값이 요점)를 적는다.
+- BUG-19가 먼저 구현됐으면, 그 계획서 「범위 밖 의존」이 이 표에 넣으라고 한 4행(`maintenance-schedule`·`maintenance-functions`·`job-due`·`cleanup-retry`)도
+  이 갱신에 함께 넣는다. `inngest/card-news-functions.test.mjs` 행은 그때의 시험 대상(cron 셋이 아니라 드레인 루틴 셋)으로 적는다. 수치는 어느 쪽이든 `npm test` 실측이다.
 
 ### 26) `apps/backend/CLAUDE.md` — 끝에 절 추가
 
@@ -1065,6 +1107,9 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
   **정확히 5:00은 참**. 마감 null + 오래된 종료는 참. **마감 null + 종료 없음, 마감 null + 방금 종료는 거짓**(마이그레이션 전 dispatch는 `deadlineAt`이 null이다 —
   이 둘이 없으면 「null = 마감 경과」 돌연변이가 생존한다). `producerEndObservedAt`: `observedAt` · `confirmedAt` · 둘 다면 `observedAt` · 잘못된 날짜 문자열 · `null` · 비객체 → epoch
 - backend 신규 1건: 실패 코드 — 문자열 계약 id는 통과, 정수 429·`None`·빈 문자열·공백 포함·161자·코드 없음은 `cpu_job_failed`
+- backend 오케스트레이션 `sdk-failure` 시나리오(기존 테스트의 subTest라 `Ran N`은 163 그대로): 정수 `code` 오류 → 단계 `accepted`·`generating-text`·`failed`,
+  결과 `failureCode` = `cpu_job_failed`. 1번의 호출부(`:190`)를 옛 `getattr(error, "code", "cpu_job_failed")`로 되돌리면 이 시나리오가
+  `['accepted', 'generating-text'] != [..., 'failed']`로 실패한다(라운드 1 실측)
 
 **못 덮는 범위** — 배포 확인 원장(`docs/release-checks.md`) 등재 대상
 
@@ -1100,27 +1145,32 @@ import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
    6. **확인** — 짧은 영상 1개로 클립 수 = 정산 크레딧(V1), 제목·설명 존재(V3)를 본다. 영상 하나를 삭제하면 정리 패널이 사라져야 한다(A2).
       그다음 allowlist의 소유자 계정으로 카드뉴스 1세트를 만든다(B4는 실패 유도가 어려우므로 원장에 남긴다).
       정리·복구가 실제로 도는 것은 cron(현재 일시정지)이나 BUG-19의 대체가 있어야 보인다.
-2. **BUG-19(web-dev, 계획 중)와의 결합**
-   - 이 계획은 `inngest/card-news-functions.ts`·`inngest/video-reservation-functions.ts`·`app/api/inngest/route.ts`를 고치지 않는다. 두 항목이 함께
-     고치는 파일은 없다. 다만 9번(`reconcile-video-reservations.ts`)은 BUG-19가 부를 함수의 본문이다.
-   - **V3 유예가 새 기한을 만든다**: producer `ended` 관측 시각 + `PRODUCER_END_SETTLE_GRACE_MS`(5분). BUG-19의 다음 기한 계산이 영상 후보에 `deadlineAt`만 쓰면,
-     웹훅 정산이 실패한 영상은 마감(claim + 65분, `claim-processing-attempt.ts:151`)까지 정산되지 않는다. 틀리지는 않고 늦을 뿐이다. BUG-19 계획에
-     이 기한을 넣을지는 그 계획이 정한다 — 이 계획은 상수를 export한다.
-   - **N2**: BUG-19 백로그 요구 ①의 「기존 헬퍼를 그대로 부른다」는 배포본과 맞지 않는다. 배포본 cron은 작업별 step이다(4859d2e, `card-news-functions.ts:110-155`).
-     헬퍼를 한 step에서 부르면 504가 돌아온다(릴리스 기록 `:62`). BUG-19 계획 검증 때 메인 루프가 대조할 사항이다.
+2. **BUG-19(web-dev, `검토대기` — 계획서 `docs/plans/BUG-19.md`, 메인 루프 라운드 1 반영 `8916909`, 라운드 3 반영 `9cfb1a7` — 아래 결합 지점은 두 판 모두 같다)와의 결합**
+   - 이 계획은 `inngest/card-news-functions.ts`·`inngest/video-reservation-functions.ts`·`app/api/inngest/route.ts`를 고치지 않는다. 9번(`reconcile-video-reservations.ts`)은
+     BUG-19가 드레인 루틴(`drainVideoReservations`)으로 부를 함수의 본문이다. 이 계획은 그 본문을, BUG-19는 부르는 시각을 바꾼다.
+   - **같은 파일 셋을 함께 고친다**: `app/dashboard/page.tsx`(이 계획 20번 / BUG-19 방문 킥), `fsd/entities/card-news/api/index.ts`(16번 / BUG-19 다음 기한·읽기 게이트를 끝에 추가),
+     `fsd/features/card-news/api/index.ts`(15번 / BUG-19 `listCardNews`·`getCardNewsDetail` 콜백 시작의 킥). 고치는 자리는 서로 다르다 — 이 계획의 before 블록
+     (`:15`·`:59`, `:325-334`, `:21-22`·`:318-328`·`:338-346`)과 BUG-19의 삽입 지점(page 임포트·`:27` 뒤, entities 끝·임포트, features 임포트·`:96`·`:111`)은 겹치지 않는다.
+     before 블록은 텍스트로 찾으므로 그대로 맞지만 줄 번호는 밀린다. **나중에 구현하는 쪽은 before 블록과 줄 번호를 그때의 트리로 다시 확인한다**(BUG-19 계획서도 같은 규칙).
+   - **V3 유예가 새 기한을 만든다**: producer `ended` 관측 시각 + `PRODUCER_END_SETTLE_GRACE_MS`(5분). BUG-19 계획은 영상 후보의 다음 기한을 `deadlineAt`(claim + 65분,
+     `claim-processing-attempt.ts:151`)으로만 잡는다. 웹훅 정산이 실패한 영상은 그 사이 다른 이벤트가 깨우지 않으면 마감에 정산된다 — 틀리지는 않고 늦다.
+     이 계획이 유예 기한을 DB 행에 따로 남기지 않으므로(관측 증거의 `observedAt`만 있다), 그 기한을 다음 깨움에 더하는 일은 BUG-19 계획서가 적은 대로 이 계획 뒤의 후속이다.
+     이 계획은 상수를 export한다.
+   - **N2**(해소): BUG-19 라운드 1이 cron 본문을 작업별 step 그대로 드레인 루틴으로 옮기도록 계획을 고쳤다(504 재생으로 확인). 이 계획에서 할 일은 없다.
    - 구현 순서: 둘 다 `apps/web`을 고치므로 web-dev 규칙(구현은 하나씩)과 같은 이유로 **한 번에 하나**만 구현한다. 먼저 끝난 쪽 위에서 다른 쪽이 게이트를 다시 돌린다.
+     BUG-19가 먼저면 `scripts/verify-card-news-surfaces.mts`의 serve 심볼 목록이 바뀌어 있다(BUG-19 계획서 「범위 밖 의존」) — 이 계획의 게이트는 그 바뀐 스크립트로 돈다.
 3. **`packages/db`** — 이 계획은 스키마·마이그레이션을 바꾸지 않는다.
 
 **후속 후보 (백로그 제시용, 이 계획에서 고치지 않음)** — 옛 계획 목록을 배포본에 다시 대조한 결과다.
 
 - N1 `docs/video-cutover-gates.md:5`의 「닫힌 worker gate → 실패·retry」 서술이 코드(`skipped`)와 다르다 — 문서 정정 또는 검증된 동작으로 서술 교체
-- `dispatchCardNewsJob`의 `nextDispatchAt` +60초(`job-lifecycle.ts:356-358`·`:373-375`)와 `listRecoverableCardNewsJobs`의 `nextDispatchAt <= now` 조건 — 런이 살아 있어도 heartbeat가 90초 넘게 끊기면 매분 재배차한다. BUG-19의 기한 계산과 함께 볼 것
 - 정리 재시도 60초 고정(`cleanup.ts:492`) — BUG-19 요구 ⑥이 이미 다룬다
 - 정산 HEAD 예외의 키별 처리(`settle-processing-attempt.ts:78-89` — 키 하나의 HEAD 실패가 `Promise.all` 전체를 던진다)
 - 예약도 스냅샷도 없는 legacy processing 행의 자동 종료 · 죽은 코드 `decrementUserCreditsFloorZero`(`entities/user/api/index.ts:217` — 재수출 `entities/user/server.ts:5` 말고는 런타임 호출처 0, `verify-card-news-surfaces.mts:91-93`은 `functions.ts`에 없음을 단언할 뿐)
 - 삭제 실패 원문 노출 · 토스트 「Asset cleanup」 용어 · 삭제 다이얼로그의 카드뉴스 문구(플래그 무관 노출) · 카드뉴스 목록 빈 문구 · 중첩 `<main>`·내부 코드 노출
 - `executionEpoch` 고정값 대 문서의 「epoch fencing」 · Python/JS 공백 분할 차이 · callback URL 호스트 허용 목록 · `/status` 인증의 비ASCII 헤더 500
 - (해소되어 목록에서 뺀 것: BLK-CN-03 수정 필드 계측·analytics context — ddef38c `countEditedCardNewsFields`·`sanitizeCardNewsAnalyticsContext`.
+  `dispatchCardNewsJob`의 `nextDispatchAt` +60초와 heartbeat 90초 재배차의 기한 — BUG-19 계획(`8916909`)의 `cardNewsJobDueAt`이 같은 조건으로 다룬다.
   `Clip.uploadedFileId` null 정리 스코프 — `cleanup.ts:406-407`. 카드뉴스 복구 cron의 job별 격리 — 4859d2e가 작업별 step으로 나눴다)
 
 ## 대안
