@@ -301,3 +301,24 @@ worktree는 스크래치패드 `f63r1/wt`(`8916909`에서 detached — 코드는
   - 경로 2의 「스케치 적용본 전체 `check`·`test`」와 경로 8의 「실제 모듈 그래프 DOM 렌더」. 검증자가 정의의 junction 경고를 worktree 금지로 읽었다.
   - 경로 6의 실제 S3 HEAD는 자격증명이 없다. google-genai 1.49.0의 줄 번호는 로컬에 2.16.0이 설치돼 있어 대조하지 못했다(메인 루프가 1.49.0 설치본으로 라운드 2에서 대조함).
 - 판정: 미실행 경로가 있으므로 무소득 보고가 아니다. 정의의 문구를 「적용본 worktree는 표준 방법, 지킬 것은 정리 순서」로 고친 뒤(`.claude/agents/plan-verifier.md`) 같은 브리핑으로 다시 디스패치한다. 계획서는 바뀌지 않았다.
+
+## 독립 패스 2 — `plan-verifier` (2026-10-22, 사후 인수, 결함 0 · 미실행 0) → 클린 패스
+
+- 브리핑 계약 위반: 없음. 트리 청결과 `node_modules`(루트·web·db) 온전을 검증자가 확인했고, 메인 루프도 직접 확인했다.
+- 검증한 트리: 디스패치 시점 HEAD는 `c8ca547`이었다. 그 사이 dev가 문서 커밋만으로 전진했다. `git diff --stat d836dc7 c8ca547 -- apps packages .env.example .gitattributes`가 0줄이라 코드는 같다.
+- **경로 2(적용본 전체)**: 스케치 23개를 worktree에 적용했다.
+  - backend: `py_compile` OK, unittest 163 OK.
+  - web: `npm run check` EXIT 0(fsd·lint 0·tsc), `npm test` 359/0.
+  - 실 PostgreSQL 통합 CLI: EXIT 0.
+  - 새 테스트 파일 2개는 계획서에 코드 블록이 아니라 산문 명세(`:1104-1106`)로만 있다. 이 명세는 경로 5 하니스로 실행됐다.
+- **경로 3**: before 앵커 23개가 각각 정확히 1회 매치됐다.
+- **경로 4**: 전칭 6건을 열거했다.
+- **경로 5**: 신규 순수 함수 3개에 심은 돌연변이 14개가 모두 사멸했다(계획서가 짚은 경계 — 세미콜론 앞 공백·정확히 5:00·마감 null·161자 — 가 전부 load-bearing).
+- **경로 6**: PyPI의 google-genai 1.49.0 wheel에서 `errors.py:31`·`:52`를 대조해 일치했다.
+- **경로 7**: 호출부 `:190`만 되돌리면 sdk-failure 시나리오가 `['accepted', 'generating-text'] != [..., 'failed']`로 실패했다.
+- **경로 8**: `renderToStaticMarkup`로 확인했다.
+  - 헤더의 카드뉴스 링크는 `showCardNews` false일 때 0개, true일 때 1개다.
+  - 잔액 배지는 보정 뒤 `3 available · 2 reserved`다.
+- 실제 S3 ContentType 캡처는 계획서가 「못 덮는 범위(배포 후)」로 지정한 항목이다.
+
+**판정: 클린 패스.** 무편집 독립 패스 1회에서 결함 0, 미실행 경로 0이다. 사이클 계수: 독립 1회차는 결함 0이었으나 경로가 미실행이라 판정할 수 없었고(정의 문구 탓), 구현 영향 결함을 낸 독립 사이클은 0이다. 보드 `검증:` 줄을 쓴다. 다음은 게이트②(소유자)다.
