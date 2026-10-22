@@ -13,6 +13,7 @@ export {
   listProcessingDispatchRecoveryCandidates,
   listProcessingDispatchesForUpload,
   findProcessingDispatchById,
+  nextVideoReservationWakeAt,
 } from "./api";
 export type { PendingProcessingDispatch } from "./api";
 export { findLegacyProducerDrainState } from "./api";

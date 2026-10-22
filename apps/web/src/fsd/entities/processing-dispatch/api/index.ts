@@ -210,3 +210,14 @@ export async function markProcessingDispatchDeadLetter(
     },
   });
 }
+
+export async function nextVideoReservationWakeAt(): Promise<Date | null> {
+  const [row] = await db.$queryRaw<{ next: Date | null }[]>`
+    SELECT MIN(d."deadlineAt") AS next
+    FROM "ProcessingDispatch" d
+    JOIN "UploadedFile" f ON f."id" = d."uploadedFileId"
+    LEFT JOIN "CreditReservation" r ON r."id" = d."reservationId"
+    WHERE r."status" = 'held'
+       OR (f."status" = 'processing' AND f."currentAttempt" = d."attempt" AND d."kind" = 'analyze')`;
+  return row?.next ?? null;
+}

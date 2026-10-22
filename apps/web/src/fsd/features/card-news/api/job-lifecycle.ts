@@ -655,7 +655,7 @@ export async function acceptCardNewsCallback(
         },
       });
     } catch {
-      /* Inbox is durable; the minute recovery worker reads it directly. */
+      /* Inbox is durable; the maintenance drain reconciles it when woken by this or any later event. */
     }
   }
   return result;

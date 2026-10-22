@@ -49,10 +49,7 @@ for (const symbol of [
   "watchProcessingAttempt",
   "generateCardNews",
   "renderCardNews",
-  "dispatchPendingCardNews",
-  "reconcileCardNewsJobs",
-  "cleanupCardNewsAssets",
-  "reconcileVideoCreditReservations",
+  "maintenanceDrain",
 ])
   assert.ok(serve.includes(symbol), `Missing served worker ${symbol}`);
 const schema = JSON.parse(
