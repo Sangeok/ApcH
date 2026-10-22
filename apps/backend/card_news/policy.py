@@ -1,5 +1,6 @@
 """stdlib-only time budgets, independent of Modal and network SDKs."""
 from datetime import datetime
+import re
 import time
 
 from card_news.contract import ContractError
@@ -33,3 +34,16 @@ def model_timeout_ms(deadline):
     if seconds < 1:
         raise ContractError("write_deadline_exceeded")
     return int(seconds * 1000)
+
+
+def callback_failure_code(error):
+    """failureCode for a failed callback.
+
+    The web contract accepts only ^[A-Za-z0-9_-]{1,160}$ strings and rejects the whole callback
+    otherwise. SDK errors carry non-string codes (google-genai APIError.code is the HTTP status
+    int), and a rejected failed callback leaves the job waiting for its 15-minute deadline.
+    """
+    code = getattr(error, "code", None)
+    if isinstance(code, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,160}", code):
+        return code
+    return "cpu_job_failed"

@@ -28,6 +28,7 @@ import {
 } from "~/fsd/entities/clip/server";
 import { createAssetCleanupJob } from "~/fsd/entities/card-news/server";
 import { videoProcessingRuntime } from "./video-runtime-dependencies";
+import { isStoredClipObject } from "../model/stored-clip-object";
 import { resolvePartialClipNoteCode } from "~/fsd/entities/uploaded-file";
 import type { UploadedFileFailureCode } from "~/fsd/entities/uploaded-file";
 import type { ProcessVideoBackendClip } from "~/inngest/modal-contract";
@@ -76,16 +77,11 @@ export async function settleProcessingAttempt(args: {
       ? await findAttemptGeneratedClipKeys(prefix)
       : [];
   const verified = await Promise.all(
-    discovered.map(async (key) => {
-      const head = await videoProcessingRuntime().headObject(key);
-      // GPU upload_file uses S3's application/octet-stream default for existing MP4s.
-      return head.contentLength > 0 &&
-        ["video/mp4", "application/octet-stream"].includes(
-          head.contentType.split(";")[0]!.trim(),
-        )
+    discovered.map(async (key) =>
+      isStoredClipObject(await videoProcessingRuntime().headObject(key))
         ? key
-        : null;
-    }),
+        : null,
+    ),
   );
   const keys = verified
     .filter((key): key is string => key !== null)

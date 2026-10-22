@@ -46,6 +46,8 @@ interface DashboardViewProps {
   uploadDefaults: ResolvedUploadDefaults;
   defaultCaptionStyles: CaptionStyleDefaults;
   defaultVideoPaddingPercent: number;
+  /** 카드뉴스 탭 링크 노출 — 헤더와 같은 판정(canUserAccessCardNews) */
+  showCardNews: boolean;
 }
 
 export default function DashboardView({
@@ -56,6 +58,7 @@ export default function DashboardView({
   uploadDefaults,
   defaultCaptionStyles,
   defaultVideoPaddingPercent,
+  showCardNews,
 }: DashboardViewProps) {
   const router = useRouter();
 
@@ -125,9 +128,11 @@ export default function DashboardView({
         <TabsList>
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="my-clips">My Clips</TabsTrigger>
-          <Link className="px-3 text-sm" href="/dashboard/card-news">
-            Card news
-          </Link>
+          {showCardNews && (
+            <Link className="px-3 text-sm" href="/dashboard/card-news">
+              Card news
+            </Link>
+          )}
         </TabsList>
 
         <TabsContent value="upload" className="space-y-6">

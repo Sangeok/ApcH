@@ -10,15 +10,15 @@ export const pricingHighlights: PricingHighlight[] = [
   },
   {
     label: "How usage is counted",
-    value: "1 credit per clip or card-news set",
+    value: "1 credit per clip",
     footnote:
       "Video uses one credit per stored clip, including partial results. Card news, when enabled, uses one credit only after the whole set is ready.",
   },
   {
     label: "Output per credit",
-    value: "Video or carousel files",
+    value: "Vertical mp4 + captions",
     footnote:
-      "Video ships as a 1080x1920 mp4. A separate card-news generation creates 1080x1350 JPGs, ZIP and Instagram copy from one completed clip.",
+      "Video ships as a 1080x1920 mp4. When enabled for your account, a separate card-news generation creates 1080x1350 JPGs, ZIP and Instagram copy from one completed clip.",
   },
 ];
 

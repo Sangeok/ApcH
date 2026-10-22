@@ -22,12 +22,15 @@ interface DashboardHeaderProps {
   creditBalanceSlot: React.ReactNode;
   email: string;
   image?: string | null;
+  /** 카드뉴스 진입점 노출 — 클립의 생성 버튼과 같은 판정(canUserAccessCardNews) */
+  showCardNews: boolean;
 }
 
 export default function DashboardHeader({
   creditBalanceSlot,
   email,
   image,
+  showCardNews,
 }: DashboardHeaderProps) {
   return (
     <header className="bg-background sticky top-0 z-10 flex justify-center border-b">
@@ -40,12 +43,14 @@ export default function DashboardHeader({
           </div>
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard/card-news"
-            className="hidden text-sm font-medium md:block"
-          >
-            Card news
-          </Link>
+          {showCardNews && (
+            <Link
+              href="/dashboard/card-news"
+              className="hidden text-sm font-medium md:block"
+            >
+              Card news
+            </Link>
+          )}
           <div className="flex items-center gap-2">
             {creditBalanceSlot}
             {env.NEXT_PUBLIC_SUBSCRIPTION_ENABLED && (
@@ -77,10 +82,14 @@ export default function DashboardHeader({
                 <p className="text-muted-foreground text-xs">{email}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/card-news">Card news</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {showCardNews && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/card-news">Card news</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/settings">Settings</Link>
               </DropdownMenuItem>

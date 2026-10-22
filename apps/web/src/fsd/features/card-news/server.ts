@@ -20,3 +20,5 @@ export {
   cleanupPendingCardNewsAssets,
   runCardNewsCleanup,
 } from "./api/cleanup";
+
+export { canUserAccessCardNews } from "./api/access";

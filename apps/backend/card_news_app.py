@@ -39,7 +39,7 @@ def process_card_news(payload):
     from card_news.io import Deadline, download_object, create_s3_client, extract_candidates, find_completed_manifest, post_callback, timestamp, upload_object
     from card_news.layout import LayoutError
     from card_news.prompt import build_prompt, normalize_model_output, provider_schema
-    from card_news.policy import model_timeout_ms
+    from card_news.policy import callback_failure_code, model_timeout_ms
     from card_news.render import asset_record, render_cards, verify_dependencies
     from google import genai
     from google.genai import types
@@ -187,7 +187,7 @@ def process_card_news(payload):
         if manifest_committed:
             return {"outcome": "completed", "callbackDelivered": False}
         sequence += 1
-        failure = getattr(error, "code", "cpu_job_failed")
+        failure = callback_failure_code(error)
         if isinstance(error, LayoutError):
             import re
             failure += "_" + re.sub(r"[^A-Za-z0-9_-]+", "_", error.field).strip("_")

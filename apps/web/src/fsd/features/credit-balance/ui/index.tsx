@@ -34,7 +34,8 @@ export function CreditBalance({
       client.removeQueries({ queryKey: creditBalanceKeys.user(authUserId) });
   }, [query.error, authUserId, client]);
 
-  if (query.isError || !query.data) {
+  // TanStack keeps the last data when a refetch fails; show it instead of hiding a valid balance.
+  if (!query.data) {
     return (
       <span className="text-muted-foreground text-sm" role="status">
         Balance unavailable

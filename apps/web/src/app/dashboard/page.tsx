@@ -13,6 +13,7 @@ import {
   reconcileUploadDraftsForUser,
 } from "~/fsd/entities/uploaded-file/server";
 import { reconcileStaleUploadedFilesForUser } from "~/fsd/features/upload/api/reconcile-stale-processing";
+import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
 import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
 
@@ -57,6 +58,7 @@ export default async function DashboardPage() {
         korean: captionStyles.defaultCaptionStyleKorean as CaptionStyle | null,
       }}
       defaultVideoPaddingPercent={framing.defaultVideoPaddingPercent}
+      showCardNews={canUserAccessCardNews(session.user.id)}
     />
   );
 }

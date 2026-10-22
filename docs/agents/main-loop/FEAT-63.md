@@ -338,3 +338,80 @@ worktree는 스크래치패드 `f63r1/wt`(`8916909`에서 detached — 코드는
 메인 루프가 게이트② 판단 자료를 냈다. 두 계획서의 클린 패스, 영상 게이트가 열려 있다는 사실, 그로 인한 배포 순서(FEAT-63 → BUG-19)다. 소유자가 「그래 그럼 FEAT-63 수행하자」로 FEAT-63을 `구현승인`으로 전이했다. BUG-19는 `검토대기`로 둔다 — 같은 파일 셋을 고치므로 하나씩 구현한다.
 
 소유자가 아직 답하지 않은 것 둘: 운영 영상 게이트를 임시로 닫을지, 10/20 이후 `process-video` 실행 이력이 있는지.
+
+## 구현 (2026-10-22)
+
+`구현승인`(`0982c2a`) 뒤 계획서를 파일에서 다시 읽어 메인 워킹트리에 적용했다(포크 실행, 커밋 전).
+
+**적용 방법**: 계획서 코드 블록 46개를 바이트 그대로 추출했다(`f63r1/h/blocks.py` → 스크래치패드 `impl63/blocks.json`). 라운드 1 재적용 때 쓴 추출(`blocks2.json`)과 46개 본문이 같았다. 라운드 1의 적용 스크립트(`impl63/apply.py` = `f63r1/h/apply2.py`)로 블록 46개와 산문 지시 1개(6번의 import 한 줄)를 넣었다. 모두 **정확히 1회 매치**였고 `FAILED: 0`이다.
+
+**변경 파일 = 「고칠 파일」 27행과 정확히 일치**(`git diff --name-only` + 미추적 파일과 표 경로를 `comm`으로 대조 — 양쪽 차집합 0). 수정 22개, 신규 5개(4·5·7·8·13번). BUG-19 대상 파일(`card-news-functions.ts`·`video-reservation-functions.ts`·`route.ts`·`verify-card-news-surfaces.mts`)과 `packages/db/**`는 건드리지 않았다.
+
+**스케치와 다른 점**(모두 의미 무변경):
+- 2번 `policy.py`: 「끝에 추가」한 `callback_failure_code` 앞의 빈 줄을 2줄로 했다. 파일의 최상위 정의 간격(`:7-8`·`:29-30`)에 맞췄다. 적용 스크립트는 1줄을 넣는다.
+- 5·8번 테스트: 계획서에 코드 블록이 없고 산문 명세(`:1104-1108`)만 있다. 그 명세의 값을 모두 단언으로 옮겼다.
+  - `stored-clip-object`: 참 6(`video/mp4`·`binary/octet-stream`·`application/octet-stream`·매개변수·세미콜론 앞 공백·대소문자), 거짓 3(`text/html`·빈 타입·0바이트).
+  - `recovery-settle-policy`: 유예 상수 300,000, 마감 경과 같은 시각 포함, 4:59.999 거짓·정확히 5:00 참, 마감 null 3종, `producerEndObservedAt` 6종.
+- 25번 `apps/web/CLAUDE.md`:
+  - 수치 줄을 「46개 파일, 56 suite, 369개 테스트」로 바꿨다(`npm test` 실측).
+  - 표에 없던 14개(계획서 목록과 같고, `src` 아래 46개와 표 경로를 대조해 다시 확인)에 행을 추가했다. 각 행은 그 파일의 `test` 이름을 읽고 썼다.
+  - BUG-19가 아직 구현되지 않았으므로 그 4행은 넣지 않았다. `card-news-functions.test.mjs` 행은 현재의 시험 대상(cron 셋)으로 적었다.
+
+**게이트**(구현 후 메인 트리):
+
+| 게이트 | 결과 |
+| --- | --- |
+| web `npm run check -w apps/web` | EXIT 0 (verify:fsd:test·FSD 경계·lint 경고/오류 0·tsc) |
+| web `npm test -w apps/web` | **369/0**, 56 suite (359 + 신규 10) |
+| web `npm run build -w apps/web` | EXIT 0 (Compiled successfully, 정적 페이지 43/43) |
+| backend `python -m unittest discover -s apps/backend -p "test_*.py"` | **Ran 163 tests OK** (162 + 신규 1. sdk-failure는 subTest) |
+| backend `py_compile` `main.py`·`card_news_app.py`·`card_news/policy.py` | OK |
+| admin `check` · `test` · `verify:fsd:final` | EXIT 0 · **337/0** · EXIT 0 |
+| 실 PostgreSQL 통합 CLI(`verify-card-news-local-db.mts`, 바이너리 `…apch-card-news-postgres-20261020/pgsql/bin`, `DATABASE_URL*` 제거) | **EXIT 0** — concurrency·lifecycle·video compatibility 각각 passed, 「All isolated PostgreSQL card news integration checks passed」. `23514` 3건은 기대된 CHECK 거부 |
+| `node --import tsx --test scripts/card-news-client-regressions.test.mjs` | **6/0** |
+| `verify-card-news-surfaces.mts`(`SKIP_ENV_VALIDATION=1`) | EXIT 0 |
+
+**음성 시험(B4 호출부)**: `card_news_app.py:190`을 옛 `getattr(error, "code", "cpu_job_failed")`로 되돌렸다. 그 상태에서 `sdk-failure` subTest가 `AssertionError: Lists differ: ['accepted', 'generating-text'] != ['accepted', 'generating-text', 'failed']`로 실패했다(계획서 예측과 같다). 보관본으로 원복해 `cmp` 일치를 확인했고, 163 OK로 돌아왔다.
+
+**못 덮는 범위**(계획서 그대로 — 원장 등재 대상):
+- 운영 영상 게이트 값과 게이트를 연 뒤 첫 영상: 정산 클립 수 = 생성 수(V1 — 실제 S3 HEAD의 ContentType), 제목·설명 존재(V3), 24시간 뒤 클립 잔존(V1 orphan 정리).
+- V3 유예의 실효: 웹훅 정산 영상에 메타데이터가 붙는지, analyze가 `review_pending`으로 가는지.
+- V4: Modal 거절 뒤 step 재시도가 실제로 다시 POST하는지(Inngest 실행 기록으로만 보인다).
+- B4: 실제 Gemini 오류가 실패 콜백으로 도착하는지(CPU 앱 재배포 뒤).
+- 화면(C1·A2·B3'·문구): DOM은 러너 밖이다. 계획 검증 경로 8(독립 패스 2)에서 렌더로 확인했다.
+- PR #136 배포 READY·Inngest sync, 멈춘 무료 v2 렌더 job의 종결(cron 일시정지 중).
+
+**소유자 확인이 필요한 배포 절차**(계획서 「범위 밖 의존」 1. 2026-10-22 「운영 사실 갱신」을 반영 — 게이트는 이미 열려 있다):
+1. 게이트를 임시로 닫을지 정한다(소유자). 10/20 이후 `process-video` 실행 이력을 확인한다.
+2. 운영 DB 읽기(SELECT만, 소유자 `!` 실행 또는 권한) — legacy receipt 43행, 활성 업로드, 활성 `CardNewsJob`, 미완료 `AssetCleanupJob`. **이번 갱신으로 하나 추가: V1로 생긴 orphan 정리 행**(`kind='orphan'`, video-attempt scope, 클립 0개로 정산된 시도)이 있는지. 있으면 BUG-19 배포 전에 처리한다(정리 cron 재개 = 클립 삭제). `migrate status` 미적용 0.
+3. web 배포 — 이 커밋을 main에 합류(PR) → Vercel.
+4. CPU 앱 재배포(B4) — `apps/backend`에서 `PYTHONUTF8=1 modal deploy card_news_app.py`, 배포 직후 Modal 탐침 규칙대로.
+5. (게이트를 닫았다면) 영상 게이트 열기 → 재배포.
+6. 확인 — 짧은 영상 1개로 클립 수 = 정산 크레딧(V1), 제목·설명(V3), 영상 하나를 삭제하면 정리 패널이 사라지는지(A2), allowlist 계정으로 카드뉴스 1세트.
+7. 그다음 BUG-19 순서다(배포 순서 FEAT-63 → BUG-19).
+
+## 인수 (2026-10-22)
+
+인수 조건 다섯은 모두 메인 루프가 직접 본 것이다(구현은 포크가 했다).
+
+1. **변경 파일 ↔ 「고칠 파일」**
+   - `git diff --name-only`에 untracked를 더하고 `docs/agents/`를 뺀 목록이 27개, 계획서 표도 27행이다. `comm` 양쪽 차집합이 0이다.
+   - BUG-19 대상 파일과 `packages/db`는 변경이 없다.
+2. **diff ↔ 구현 스케치**
+   - 구현 포크의 스크립트가 아니라 plan-verifier(독립 패스 2)가 만든 적용 스크립트(`apply.py`·`apply_web.py`)로, 깨끗한 HEAD worktree에 계획서를 적용했다. 그 결과를 메인 트리 27개 파일과 비교했다.
+   - 공백·빈 줄을 무시하면 11개 파일이 같고 14개 파일이 달랐다. 다른 줄을 전부 계획서 본문에서 찾았더니 모두 있었다. 검증자 스크립트가 주석과 docstring을 줄여 적용했던 탓이고, 구현은 계획서와 일치한다.
+   - `apps/backend/CLAUDE.md` 절은 계획서 26번 블록과 바이트가 같다.
+   - `apps/web/CLAUDE.md`는 지정된 14행과 수치 줄(46파일·369)이 들어갔고, 실제 `*.test.mjs` 수는 46이다.
+   - 비교용 worktree는 junction 없이 만들었고 제거했다.
+3. **검증 명령 재실행**(로그는 스크래치패드 `acc63/`)
+   - web: `npm run check` EXIT 0(lint 경고·오류 0), `npm test` 369/0, `npm run build` EXIT 0.
+   - backend: unittest `Ran 163 tests OK`, py_compile OK.
+   - admin: check EXIT 0, test 337/0.
+   - client 회귀 6/0, `verify-card-news-surfaces` 통과.
+   - 실 PostgreSQL 통합 CLI: 1회차는 EXIT 1이었다. 원인은 테스트 클러스터가 기동 중일 때 `createdb`가 먼저 접속한 경합(`FATAL: the database system is starting up`)으로, 코드 결함이 아니다. 2회차는 EXIT 0이고 「All isolated PostgreSQL card news integration checks passed」, 기대된 `23514` 거부 3건이 나왔다.
+4. **백로그 제거**: `TASK_BACKLOG.md`에서 FEAT-63 항목(제목·재범위·area·source)을 지웠다. BUG-19 source가 FEAT-63을 언급하는 것은 남긴다(맥락 참조).
+5. **상세 기록 실재**: 이 파일의 「구현 (2026-10-22)」 절(50줄)이 있다. 보드 `결과`가 이 파일을 가리킨다.
+
+원장: `docs/release-checks.md`에 「FEAT-63」 절 9줄을 등재했다(미배포). web 화면 줄이라 자동 판정 태그는 붙이지 않았다.
+
+후속 후보(계획서 「범위 밖 의존 — 후속 후보」)는 소유자에게 제시했다. 등재 여부는 소유자 답을 받은 뒤 정한다.
