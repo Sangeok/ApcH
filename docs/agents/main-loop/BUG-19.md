@@ -68,3 +68,34 @@
 영상 복구 지연(영상 후보는 마감 때만 깬다)은 백로그 요구 ③과 소유자가 승인한 설계(기한까지 잔다)를 따른 것이다. 결함이 아니라 트레이드오프로 「못 덮는 범위」에 명시했다. FEAT-63 V3 유예와의 결합도 같은 성격(틀리지 않고 늦다)이라 「범위 밖 의존」에 적었다.
 
 트리 검산: 편집 대상은 `docs/plans/BUG-19.md` 하나다.
+
+## 라운드 2 — 메인 루프 무편집 실행 라운드 (2026-10-22, 구현 영향 1 · 명세 구멍 1 · 위생 2)
+
+계획서 `8916909`를 스크래치 worktree에 그대로 적용했다(포크 실행). 하니스는 스크래치패드 `b19r2/`(`apply.mjs`·`mutate.mjs`·`cites.mjs`·`sql-rehearsal.sql`)에 있다.
+
+- **경로 3+2**: `apply.mjs` 31단계, before 불일치 0. 바뀐 파일은 「고칠 파일」 23개에 범위 밖 의존인 `verify-card-news-surfaces.mts`를 더한 것과 정확히 일치한다(`comm` 양쪽 0줄).
+- **경로 6**: 새 드레인 루틴 위에서 504 예산 모델(`card-news-functions.test.mjs`)이 통과한다.
+- **`npm test`**: 387/387(기존 359 + 신규 28). `verify-card-news-surfaces`는 수정본 EXIT 0이고, 원본은 `Missing served worker dispatchPendingCardNews`로 EXIT 1이다. 범위 밖 의존이 실제로 필요하다는 뜻이다.
+- **경로 5**: 33개를 심어 30개가 사멸했고 3개가 생존했다. 생존 중 등가 2개(해소 분기에서 streak가 이미 0, 비유한 값→0이 지수 동치)를 빼면 구멍은 1개다(아래 D2).
+- **경로 7**: 모두 실패를 확인했다 — 벌크 헬퍼 한 step 호출, `< 60_000` 변조, singleton 제거·cron 추가·skip 모드, try/catch 제거, streak를 아무 이벤트에서 읽기, 계획 실패 시 streak 누락, 이어달리기 킥 누락.
+- **경로 9**: 실제 SDK `getConfig`로 확인했다. `maintenance-drain`은 트리거가 이벤트 5개(cron 없음)이고 `"singleton":{"mode":"cancel"}`, `retries.attempts:1`이다. route가 등록하는 함수는 7개이고 옛 id 4개는 없다.
+- **경로 1**: 인용 124개 중 내용이 틀린 것은 0개다(휴리스틱 표시 25개는 모두 오탐).
+- **경로 4**: `createAssetCleanupJob(` 호출은 정확히 6곳이다(3/3 분류). 적용 뒤 `src`·`scripts`에서 cron 이름 참조는 0건이다.
+- **SQL 리허설**(로컬 PG 16): 두 쿼리의 NULL·GREATEST 동작이 기대값과 같다. 업로드가 `completed`인데 예약이 held인 후보도 후보로 남는 것을 실측했다 — 라운드 1의 4번 결함(기한 경과 백오프)의 근거다.
+
+결함:
+- **D1 [구현 영향]**: `npm run check` EXIT 2(TS2322 3건). 세 삭제 경로를 `const result = await …`로 바꾸면 반환 문맥이 사라져 `status`가 `string`으로 넓어진다. 변수 타입 주석으로 고치면 `check` EXIT 0이다(포크 실측).
+- **D2 [명세 구멍]**: `drainFailed`를 무시하는 돌연변이가 생존했다.
+- **D3 [위생]**: vm realm 탓에 `deepEqual`이 거짓 실패를 낸다(정규화 지시가 없었다).
+- **D4 [위생]**: 블록 줄 범위 표기 3곳과 `listCardNews`·`getCardNewsDetail` 선언 줄.
+
+**사고**: 포크가 worktree를 정리하면서 `git worktree remove --force`를 썼고, 이 명령이 node_modules junction을 따라 들어가 메인 트리의 루트 `node_modules`(`.bin`과 약 30개 패키지)와 `apps/web/node_modules`를 지웠다. 추적 파일은 영향이 없다(`git status` 0줄). 메인 루프가 `npm ci`로 복구한다. 앞으로 worktree에 junction을 쓰면, 링크를 먼저 끊고(`[IO.Directory]::Delete(path,$false)` 또는 `/s` 없는 `rmdir`) 그 뒤에 제거한다.
+
+## 라운드 3 — 메인 루프 편집 라운드 (2026-10-22, D1~D4 반영)
+
+- **D1**: 세 곳 after에 `const result: { status: "deleting"; cleanupId: string } = await …`를 넣고 이유를 적었다(clip·upload는 진행 중 정리 `return`이 `:47-48`·`:57-58`에 더 있다).
+- **D2**: `maintenance-schedule.test.mjs` 명세에 「미래 기한 + 드레인 실패 → 해소 아님」 사례를 추가했다.
+- **D3**: `maintenance-functions.test.mjs` 명세에 JSON 왕복 정규화를 추가했다.
+- **D4**: 줄 범위를 `:228-230`·`:117-119`·`:139-141`로, 선언 줄을 `:93`·`:108`로 고쳤다.
+
+D1 수정은 라운드 2에서 이미 실측했다(같은 수정으로 `check` EXIT 0). 다음 단계는 `plan-verifier` 독립 무편집 패스다. node_modules 복구 뒤에 디스패치한다.

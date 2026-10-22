@@ -24,7 +24,7 @@ agent: web-dev
 
 **깨우는 이벤트는 이미 다 있다.** `apps/web/src/inngest/client.ts`의 `Events`에 `card-news/generate.requested`·`card-news/render.requested`·`card-news/completed`(`card-news-contract.ts:7-11`), `processing/attempt.claimed`(`client.ts:50-58`)가 정의돼 있다. `processing/attempt.claimed`는 `functions.ts:222`·`:637`에서 발송되고 `watchProcessingAttempt`(`functions.ts:902`)가 이미 이벤트 구동+`step.sleep`로 돈다(cron 아닌 패턴의 선례).
 
-**카드뉴스 화면은 활성 작업이 있는 동안 5초마다 폴링한다**: `features/card-news/model/query-options.ts:24-30`(목록)·`:53-58`(상세) `refetchInterval` → `5000`. 폴링이 부르는 서버 함수는 `features/card-news/api/index.ts`의 `listCardNews`(`:96`)·`getCardNewsDetail`(`:111`)이다.
+**카드뉴스 화면은 활성 작업이 있는 동안 5초마다 폴링한다**: `features/card-news/model/query-options.ts:24-30`(목록)·`:53-58`(상세) `refetchInterval` → `5000`. 폴링이 부르는 서버 함수는 `features/card-news/api/index.ts`의 `listCardNews`(`:93`)·`getCardNewsDetail`(`:108`)이다.
 
 **읽기 시 복구 선례**: `apps/web/src/app/dashboard/page.tsx:26` `await reconcileStaleUploadedFilesForUser(session.user.id)` — 대시보드 방문이 그 사용자의 밀린 업로드를 동기 reconcile한다.
 
@@ -512,16 +512,18 @@ export async function nextVideoReservationWakeAt(): Promise<Date | null> {
   ```ts
     return cardNewsTransaction(async (tx) => {
   ```
-  …함수 끝 `:229-230`:
+  …함수 끝 `:228-230`:
   ```ts
       return { status: "deleting", cleanupId: cleanup.id };
     });
   }
   ```
-  after — 트랜잭션 결과를 받아 커밋 뒤 킥:
+  after — 트랜잭션 결과를 받아 커밋 뒤 킥. **변수 타입을 반드시 적는다**: `return` 문맥이 사라지면 콜백 반환의 `status: "deleting"`이 `string`으로 넓어져 함수 반환 타입 `Promise<{ status: "deleting"; cleanupId: string }>`(`:191`)과 맞지 않는다(TS2322 — 메인 루프 라운드 2 실측):
   ```ts
-    const result = await cardNewsTransaction(async (tx) => {
+    const result: { status: "deleting"; cleanupId: string } =
+      await cardNewsTransaction(async (tx) => {
   ```
+  (줄바꿈은 prettier 결과에 맡긴다 — 요점은 변수 타입 주석이다.)
   ```ts
       return { status: "deleting", cleanupId: cleanup.id };
     });
@@ -549,13 +551,13 @@ after:
   import { kickMaintenanceDrain } from "~/inngest/maintenance-event";
   ```
   (`findCardNewsSet`·`listCardNewsSets` 등은 이미 `~/fsd/entities/card-news/server`에서 import 중이므로 `hasDueActiveCardNewsJob`은 그 블록에 합류.)
-- `listCardNews`(`:96`) 콜백 시작에:
+- `listCardNews`(`:93`)의 `:96` `return authenticatedAction(async (userId) => {` 콜백 시작에:
   ```ts
   return authenticatedAction(async (userId) => {
     if (await hasDueActiveCardNewsJob(userId, new Date()))
       await kickMaintenanceDrain("card-news-read");
   ```
-- `getCardNewsDetail`(`:111`) 콜백 시작에 같은 두 줄 추가.
+- `getCardNewsDetail`(`:108`)의 `:111` 같은 줄 콜백 시작에 같은 두 줄 추가.
   (게이트가 있어 폴링마다 보내지 않는다: 워커가 살아 있는 job은 `cardNewsJobDueAt`이 「마지막 heartbeat + 90초」로 미래에 있고, 미클레임 job은 드레인이 발송하면 `nextDispatchAt`이 +60초로 밀린다.)
 
 ### `src/fsd/features/clip/api/delete-clip-assets.ts` (편집)
@@ -565,15 +567,16 @@ after:
   ```ts
     return db.$transaction(async (tx) => {
   ```
-  함수 끝 `:117-118`:
+  함수 끝 `:117-119`:
   ```ts
       return { status: "deleting", cleanupId: cleanup.id };
     });
   }
   ```
-  after:
+  after — 변수 타입 주석 필수(위 `cleanup.ts`와 같은 이유. 이 함수는 진행 중 정리를 돌려주는 `return`이 하나 더 있어(`:47-48`) 마지막 `return`에만 `as const`를 붙여서는 해소되지 않는다 — 라운드 2 실측):
   ```ts
-    const result = await db.$transaction(async (tx) => {
+    const result: { status: "deleting"; cleanupId: string } =
+      await db.$transaction(async (tx) => {
   ```
   ```ts
       return { status: "deleting", cleanupId: cleanup.id };
@@ -586,7 +589,7 @@ after:
 ### `src/fsd/features/upload/api/delete-upload-assets.ts` (편집)
 
 - import 추가: `import { kickMaintenanceDrain } from "~/inngest/maintenance-event";`
-- `acceptUploadAssetDeletion`(`:35`) `:39` `return db.$transaction(async (tx) => {` → `const result = await db.$transaction(async (tx) => {`, 함수 끝 `:139-140` 뒤에 `await kickMaintenanceDrain("upload-deletion"); return result;` 추가(위 clip와 동일 형태).
+- `acceptUploadAssetDeletion`(`:35`) `:39` `return db.$transaction(async (tx) => {` → `const result: { status: "deleting"; cleanupId: string } = await db.$transaction(async (tx) => {`(변수 타입 주석 필수 — 진행 중 정리 `return`이 `:57-58`에도 있다), 함수 끝 `:139-141`의 `});` 뒤에 `await kickMaintenanceDrain("upload-deletion"); return result;` 추가(위 clip와 동일 형태).
 
 ### `src/app/dashboard/page.tsx` (편집)
 
@@ -609,11 +612,11 @@ after:
 ## 테스트
 
 - **덮는 것**:
-  - `maintenance-schedule.test.mjs` — `pastDueFloorMs`: 0→30_000, 1→60_000, 5→960_000, 6→1_800_000(상한, 30_000×64=1_920_000을 자름), 음수·`NaN`·`Infinity`→30_000, 소수 2.9→120_000(내림). `computeNextWake`: 전부 null·드레인 성공→null; 전부 null·드레인 실패→now+30초·streak 1; 최솟값 선택; 미래 최솟값이 now+30초보다 이르면 now+30초·streak 0(입력 streak 5여도 0으로 돌아감); 상한(최솟값 > now+6시간 → now+6시간); 최솟값 = now(경계) → 기한 경과로 셈(streak 증가); now+1ms → 경과 아님; 입력 streak 3·기한 경과 → now+240초·streak 4; 입력 streak 10·기한 경과 → now+30분·streak 11; `null`/`undefined`/비유한(`new Date(NaN)`) 혼재 필터.
+  - `maintenance-schedule.test.mjs` — `pastDueFloorMs`: 0→30_000, 1→60_000, 5→960_000, 6→1_800_000(상한, 30_000×64=1_920_000을 자름), 음수·`NaN`·`Infinity`→30_000, 소수 2.9→120_000(내림). `computeNextWake`: 전부 null·드레인 성공→null; 전부 null·드레인 실패→now+30초·streak 1; 최솟값 선택; 미래 최솟값이 now+30초보다 이르면 now+30초·streak 0(입력 streak 5여도 0으로 돌아감); 상한(최솟값 > now+6시간 → now+6시간); 최솟값 = now(경계) → 기한 경과로 셈(streak 증가); now+1ms → 경과 아님; 입력 streak 3·기한 경과 → now+240초·streak 4; 입력 streak 10·기한 경과 → now+30분·streak 11; **기한이 미래여도 드레인이 실패했으면 해소로 치지 않는다**: now+5초·`drainFailed: true`·입력 streak 3 → now+240초·streak 4(`drainFailed`를 무시하는 구현은 now+30초·streak 0을 낸다 — 라운드 2 생존 돌연변이); `null`/`undefined`/비유한(`new Date(NaN)`) 혼재 필터.
   - `job-due.test.mjs` — `cardNewsJobDueAt`: 미클레임·`nextDispatchAt` null → now; 미클레임·미래 `nextDispatchAt` → 그 값; 발송 리스가 더 늦으면 리스; claim·heartbeat 신선(now−10초)·`nextDispatchAt` 과거 → heartbeat+90초(미래); claim·heartbeat 낡음(now−100초) → heartbeat+90초(과거 = 처리할 때); claim·heartbeat 신선·`nextDispatchAt`이 더 늦으면 그 값; claim·`heartbeatAt` null → 발송 게이트가 막지 않으므로 `nextDispatchAt ?? now`; 미클레임인데 `heartbeatAt`만 있으면 heartbeat 무시; 마감이 가장 이르면 마감. **고정 검사**: `../../../features/card-news/api/job-lifecycle.ts`를 읽어 `< 90_000`이 정확히 2번(`:331`·`:409`) 있고 그 값이 `CARD_NEWS_HEARTBEAT_STALE_MS`와 같은지 단언 — 발송 게이트 값이 바뀌면 이 계산도 같이 바뀌어야 한다.
   - `cleanup-retry.test.mjs` — `cleanupRetryDelayMs`: attempt 1→60_000, 2→120_000, 3→240_000, 큰 값→상한 86_400_000, 0·음수→60_000, 비유한→60_000(=attempts 1), 지수 상한(2^30에서 포화).
   - `card-news-functions.test.mjs`(편집) — 세 드레인 루틴이 작업마다 따로 step 예산을 받아 4개 작업에 모두 닿는다(2026-10-20 504 모델 그대로). 루틴이 벌크 헬퍼를 한 step에서 부르도록 바뀌면 `FUNCTION_INVOCATION_TIMEOUT`으로 실패한다.
-  - `maintenance-functions.test.mjs` — 구조 시험(`card-news-functions.test.mjs`의 vm+`typescript` transpile 기법. `./client`·`./card-news-functions`·`./video-reservation-functions`·`./maintenance-event`·`./maintenance-schedule`·entities를 `require` 스텁으로): (1) 네 루틴이 이 순서로 `{ step }`을 받아 불린다, (2) 루틴 하나가 던져도 나머지 루틴이 불리고 계획 step이 `drainFailed: true`를 받는다, (3) 계획이 null이면 `sleepUntil`·`sendEvent` 없이 `{ idle: true }`, (4) 계획이 있으면 `sleepUntil`을 그 ISO로 부른 뒤 `sendEvent`로 `maintenance/drain.requested`와 계획의 `pastDueStreak`을 보낸다, (5) `pastDueStreak`은 `maintenance/drain.requested` 이벤트에서만 읽고 다른 이벤트는 0, (6) 계획 step이 던지면 `step.sleep(pastDueFloorMs(streak))` 뒤 streak+1로 킥한다, (7) 설정: 트리거 배열이 다섯 이벤트이고 `cron` 트리거가 없으며 `singleton.mode === "cancel"`.
+  - `maintenance-functions.test.mjs` — 구조 시험(`card-news-functions.test.mjs`의 vm+`typescript` transpile 기법. `./client`·`./card-news-functions`·`./video-reservation-functions`·`./maintenance-event`·`./maintenance-schedule`·entities를 `require` 스텁으로): (1) 네 루틴이 이 순서로 `{ step }`을 받아 불린다, (2) 루틴 하나가 던져도 나머지 루틴이 불리고 계획 step이 `drainFailed: true`를 받는다, (3) 계획이 null이면 `sleepUntil`·`sendEvent` 없이 `{ idle: true }`, (4) 계획이 있으면 `sleepUntil`을 그 ISO로 부른 뒤 `sendEvent`로 `maintenance/drain.requested`와 계획의 `pastDueStreak`을 보낸다, (5) `pastDueStreak`은 `maintenance/drain.requested` 이벤트에서만 읽고 다른 이벤트는 0, (6) 계획 step이 던지면 `step.sleep(pastDueFloorMs(streak))` 뒤 streak+1로 킥한다, (7) 설정: 트리거 배열이 다섯 이벤트이고 `cron` 트리거가 없으며 `singleton.mode === "cancel"`. vm 안에서 만든 객체는 다른 realm의 프로토타입을 가져 `assert.deepEqual`이 같은 값도 다르다고 판정하므로, 비교 전에 `JSON.parse(JSON.stringify(x))`로 정규화한다(라운드 2 실측 — 거짓 실패 3건).
 - **못 덮는 범위**(Node 내장 러너·DOM/DB/외부 I/O 없음):
   - **singleton cancel이 자고 있는(sleeping) 런도 대체하는지는 SDK 문서에 명시가 없다**(`InngestFunction.d.ts:307` "while another is still in progress"·`:322`까지). 어느 쪽이어도 결과는 정확하다: 복구 함수가 행 잠금(`lockedCardNewsJob`·`lockAssetCleanupJob`·`FOR UPDATE`)과 compare-and-set(`compareAndSetCardNewsJob`)·claim 리스(`claimAssetCleanupJob`의 `leaseUntil`)로 멱등이라, 자는 런과 새 런이 겹쳐 중복 실행돼도 두 번째가 이미 처리된 행을 건너뛴다. 대체하지 않는다면 일이 남아 있는 동안 이어달리기 사슬이 바깥 이벤트 수만큼 겹칠 수 있다 — 일이 끝나면(idle) 각 사슬이 끝난다. 다른 점은 중복 실행 비용뿐이다. 배포 후 Inngest 대시보드로 관측(아래 원장).
   - 재시도를 소진한 step이 핸들러에서 잡히는 동작(`StepError`)은 SDK 타입·주석으로만 확인했다(실행 미확인).
