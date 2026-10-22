@@ -11,6 +11,7 @@ export {
   beginProcessingSpawn,
   recordProcessingSpawnResult,
   markProcessingSpawnUnknown,
+  resetRejectedProcessingSpawn,
   loadVideoProcessingContext,
   parseVideoProcessingSnapshot,
 } from "./api/claim-processing-attempt";

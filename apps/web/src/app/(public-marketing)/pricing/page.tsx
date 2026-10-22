@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "AI Podcast Clipper - Pricing",
     description:
-      "3-credit trial with shared available and reserved balances for video clips and complete card-news sets.",
+      "3-credit trial with shared available and reserved balances for video clips and, when enabled, complete card-news sets.",
     locale: "en_US",
     url: absoluteSiteUrl("/pricing"),
     type: "website",

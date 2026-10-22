@@ -140,7 +140,13 @@ try {
       },
     };
   }
-  function object(key: string, contentLength = 100, contentType = "video/mp4") {
+  // GPU upload_file sends no ContentType, so real clip objects carry S3's
+  // default; the settlement must accept it (FEAT-63).
+  function object(
+    key: string,
+    contentLength = 100,
+    contentType = "binary/octet-stream",
+  ) {
     runtime.objects.set(key, { contentLength, contentType, metadata: {} });
   }
   async function balance(userId: string, owned: number, reserved: number) {
@@ -541,8 +547,10 @@ try {
     response: { status: "accepted", call_id: "fc-ended-fixture" },
   });
   producerStatus = "ended";
-  assert.equal((await video.reconcileVideoReservations()).settled, 1);
-  await balance(confirmed.userId, 1, 0);
+  // The first observation only records the end; the webhook's own settlement
+  // gets PRODUCER_END_SETTLE_GRACE_MS before recovery takes over (FEAT-63).
+  assert.equal((await video.reconcileVideoReservations()).settled, 0);
+  await balance(confirmed.userId, 1, 1);
   assert.equal(
     (
       await runtime.db.processingDispatch.findUniqueOrThrow({
@@ -551,6 +559,9 @@ try {
     ).modalSpawnState,
     "ended",
   );
+  now = new Date(now.getTime() + 5 * 60_000);
+  assert.equal((await video.reconcileVideoReservations()).settled, 1);
+  await balance(confirmed.userId, 1, 0);
 
   // A permanently unknown producer must not occupy every cleanup batch. Use
   // a batch of one to exercise the same ordering boundary deterministically.

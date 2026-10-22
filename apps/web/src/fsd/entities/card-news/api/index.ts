@@ -322,12 +322,17 @@ export async function findAssetCleanupJobsForScope(
     orderBy: { createdAt: "desc" },
   });
 }
+/** Deletions the user started that are still in progress. Completed and internal orphan/retention jobs stay hidden. */
 export async function listUserAssetCleanupJobs(
   userId: string,
   limit = 20,
 ): Promise<AssetCleanupJob[]> {
   return db.assetCleanupJob.findMany({
-    where: { userId },
+    where: {
+      userId,
+      kind: { in: ["set", "clip", "uploaded-file"] },
+      status: { not: "completed" },
+    },
     orderBy: { createdAt: "desc" },
     take: limit,
   });

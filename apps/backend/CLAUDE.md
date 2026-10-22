@@ -241,3 +241,12 @@ MultiEdit(file_path: "D:/repos/project/file.tsx", ...)
 Edit(file_path: "D:\repos\project\file.tsx", ...)
 MultiEdit(file_path: "D:\repos\project\file.tsx", ...)
 ```
+
+## Card-news CPU app (FEAT-63)
+
+`card_news_app.py` is a **separate Modal app** (`apch-card-news`, CPU only) with its own `requirements-card-news.txt`; it never imports `main.py`. Deploy from `apps/backend` with `PYTHONUTF8=1 modal deploy card_news_app.py` (same cp949 crash as the GPU app). It reads `ai-podcast-clipper-secret` (Gemini, AWS) plus its own `apch-card-news-auth` (card-news bearer secrets); it never overwrites the GPU secret. Details, pinned dependencies and image qualification live in `card_news/README.md`.
+
+- Its `/status` endpoint is also the **video** producer-termination lookup: video deletions and global recovery in the web app wait on it (`CARD_NEWS_ENDPOINT` in the web env). Keep it deployed even while card news is disabled.
+- Image build steps (`.env`, `pip_install…`) must come **before** every `add_local_*` call — Modal raises `InvalidError` only at deploy time. `test_card_news_wiring.py` checks the order.
+- `card_news/assets/OFL.txt` is hashed at runtime against `dependency-manifest.json`; `.gitattributes` pins it to LF because this repo checks out with `core.autocrlf=true`.
+- A failed callback's `failureCode` must match the web contract `^[A-Za-z0-9_-]{1,160}$`; `card_news.policy.callback_failure_code` maps SDK errors (integer HTTP codes) to `cpu_job_failed`.

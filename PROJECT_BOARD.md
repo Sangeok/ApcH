@@ -39,6 +39,23 @@
 > `보류`에서 재개할 때는 계획부터 다시 받으려면 `계획지시`, 기존 계획으로 이어가려면 `구현승인`으로 되돌린다.
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
+## 2026-10-21
+- [ ] BUG-19: 프로덕션 Inngest의 매분 cron 4개가 사용자 0명에도 하루 12,960 execution을 쓰고 Neon compute를 상시 깨운다 — cron 없이, 일이 생길 때만 깨어나 DB의 다음 기한까지 자는 단일 정비 함수로 대체한다
+  agent: web-dev
+  area: apps/web/src/inngest + apps/web/src/app/api/inngest/route.ts + apps/web/src/fsd/features/card-news/api + apps/web/src/fsd/entities/card-news/api + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/processing-dispatch/api + apps/web/src/fsd/features/clip/api + apps/web/src/app/dashboard
+  status: 검토대기
+  근거: 소유자 직접 발주(2026-10-21 — Inngest·Neon 사용량 급증 원인이 PR #135의 매분 cron 4개로 확인, 대시보드 일시정지 완료, 「cron 아닌 방식」 지시). 선행 main 머지 완료(745439f)
+  검증: 클린 패스 (2026-10-22, 독립 무편집 1라운드 — 메인 루프 라운드 구현 영향 7·위생 3 반영, 독립 1회차 위생 3, 2회차 경로 2 적용본 미실행으로 재디스패치, 3회차 필수 8경로 전수 결함 0)
+
+## 2026-10-19
+- [x] FEAT-63: Instagram 카드뉴스 생성 — 계획 검증 없이 PR #134~#136으로 운영에 배포된 구현(`d836dc7`)을 사후 인수한다. 공통 크레딧 예약으로 기존 영상 과금도 이미 바뀌었다
+  agent: main-loop
+  area: apps/backend/card_news + apps/backend/card_news_app.py + apps/web/src/fsd/features/card-news + apps/web/src/fsd/entities/card-news + apps/web/src/fsd/widgets/card-news-editor + apps/web/src/app/dashboard/card-news + apps/web/src/fsd/features/upload/api + apps/web/src/inngest + packages/db/prisma + .env.example
+  status: 완료
+  근거: 소유자 직접 발주(2026-10-19 게이트① 세션 지시 「진행해」). packages/db를 포함해 pm 선정 밖 — 쪼개지 않고 main-loop 하나. 이미 쓰인 브랜치 코드를 dev로 옮기는 통합 계획
+  결과: 27파일(V1·V3·V4·B4·C1·A2·B3'·문구). 인수 재현 web check 0·test 369/0·build 0·backend 163·admin 337/0·실PG 0. 미배포. 상세 docs/agents/main-loop/FEAT-63.md
+  검증: 클린 패스 (2026-10-22, 독립 무편집 1라운드 — 사후 인수 계획, 메인 루프 라운드 구현 영향 1·위생 4 반영, 독립 1회차 경로 2·8 일부 미실행으로 재디스패치, 2회차 필수 8경로 전수 결함 0)
+
 ## 2026-10-14
 - [x] BUG-18: 설정 `Video style` 카드의 저장 버튼이 둘(`Save framing`·`Save caption style`)이라, 여백과 자막 위치를 함께 편집해도 한쪽만 저장되고 나머지는 경고 없이 사라진다 — 저장을 하나로 합치고 미저장 변경을 표시한다
   agent: web-dev

@@ -11,6 +11,10 @@ import {
 import { parseProducerStatusResponse } from "~/fsd/entities/card-news/server";
 import { videoProcessingRuntime } from "./video-runtime-dependencies";
 import { settleProcessingAttempt } from "./settle-processing-attempt";
+import {
+  canRecoverySettleVideoAttempt,
+  producerEndObservedAt,
+} from "../model/recovery-settle-policy";
 
 export async function recordVideoProducerEnd(
   dispatchId: string,
@@ -40,10 +44,12 @@ export async function reconcileVideoReservations(): Promise<{
   let settled = 0;
   await Promise.all(
     candidates.map(async (dispatch) => {
-      let ended =
+      let producerEndedAt =
         dispatch.modalSpawnState === "ended" &&
-        dispatch.producerEndEvidence !== null;
-      if (!ended && dispatch.modalCallId) {
+        dispatch.producerEndEvidence !== null
+          ? producerEndObservedAt(dispatch.producerEndEvidence)
+          : null;
+      if (producerEndedAt === null && dispatch.modalCallId) {
         try {
           const result = await videoProcessingRuntime().producerStatus({
             schemaVersion: 1,
@@ -52,7 +58,7 @@ export async function reconcileVideoReservations(): Promise<{
             modalCallId: dispatch.modalCallId,
           });
           if (parseProducerStatusResponse(result).status === "ended") {
-            ended = true;
+            producerEndedAt = now;
             await recordVideoProducerEnd(dispatch.id, {
               kind: "modal-status",
               observedAt: now.toISOString(),
@@ -62,9 +68,14 @@ export async function reconcileVideoReservations(): Promise<{
           /* Unknown producer state never authorizes storage deletion. */
         }
       }
-      const expired =
-        dispatch.deadlineAt !== null && dispatch.deadlineAt <= now;
-      if (!ended && !expired) return;
+      if (
+        !canRecoverySettleVideoAttempt({
+          now,
+          deadlineAt: dispatch.deadlineAt,
+          producerEndedAt,
+        })
+      )
+        return;
       if (dispatch.uploadedFile.status !== "processing") return;
       const result = await settleProcessingAttempt({
         uploadedFileId: dispatch.uploadedFileId,

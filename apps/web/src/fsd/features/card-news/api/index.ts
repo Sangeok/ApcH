@@ -18,8 +18,7 @@ import type {
   CardNewsSummary,
 } from "~/fsd/entities/card-news";
 import { getUserCreditBalance } from "~/fsd/entities/user/server";
-import { env } from "~/env";
-import { canAcceptCardNews } from "~/fsd/shared/config/card-news";
+import { canUserAccessCardNews } from "./access";
 import { failure, success, type ActionResult } from "~/fsd/shared/api/result";
 import { cardNewsRuntime } from "./runtime-dependencies";
 import {
@@ -315,17 +314,7 @@ export async function getCardNewsCreationContext(): Promise<
   return authenticatedAction(async (userId) => ({
     userId,
     creditBalance: await getUserCreditBalance(userId),
-    enabled: canAcceptCardNews(
-      {
-        enabled: env.CARD_NEWS_ENABLED,
-        allowedUserIds: env.CARD_NEWS_ALLOWED_USER_IDS,
-        endpoint: env.CARD_NEWS_ENDPOINT,
-        endpointAuth: env.CARD_NEWS_ENDPOINT_AUTH,
-        webhookSecret: env.CARD_NEWS_WEBHOOK_SECRET,
-        siteUrl: env.NEXT_PUBLIC_SITE_URL,
-      },
-      userId,
-    ),
+    enabled: canUserAccessCardNews(userId),
     sets: (await listCardNewsSets(userId)).map(toCardNewsSummary),
   }));
 }
@@ -335,15 +324,13 @@ export async function listAssetCleanupStatuses(): Promise<
 > {
   return authenticatedAction(async (userId) => ({
     authUserId: userId,
-    cleanups: (await listUserAssetCleanupJobs(userId, 20))
-      .filter((job) => ["set", "clip", "uploaded-file"].includes(job.kind))
-      .map((job) => ({
-        id: job.id,
-        kind: job.kind,
-        status: job.status,
-        lastError: job.lastError,
-        createdAt: job.createdAt.toISOString(),
-      })),
+    cleanups: (await listUserAssetCleanupJobs(userId, 20)).map((job) => ({
+      id: job.id,
+      kind: job.kind,
+      status: job.status,
+      lastError: job.lastError,
+      createdAt: job.createdAt.toISOString(),
+    })),
   }));
 }
 

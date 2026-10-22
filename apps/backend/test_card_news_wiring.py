@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 from card_news.contract import ContractError, validate_contract
 from card_news.layout import LayoutError
-from card_news.policy import Deadline, model_timeout_ms, timestamp
+from card_news.policy import Deadline, callback_failure_code, model_timeout_ms, timestamp
 from card_news.prompt import build_prompt, normalize_model_output, provider_schema
 
 ROOT = Path(__file__).resolve().parent
@@ -115,7 +115,8 @@ class CardNewsWiringTests(unittest.TestCase):
         cases = json.loads((ROOT.parents[1] / "packages/db/contracts/card-news-v1.fixtures.json").read_text(encoding="utf-8"))["cases"]
         initial = next(case["value"] for case in cases if case["definition"] == "input" and case["valid"] and case["value"]["mode"] == "generate")
         manifest = next(case["value"] for case in cases if case["definition"] == "manifest" and case["valid"])
-        for scenario in ("normal", "layout-repair", "model-repair", "free-render", "free-overflow", "media-failure", "completed-reuse"):
+        for scenario in ("normal", "layout-repair", "model-repair", "free-render", "free-overflow", "media-failure", "sdk-failure",
+                         "completed-reuse"):
             with self.subTest(scenario=scenario):
                 payload = copy.deepcopy(initial)
                 payload["writeDeadlineAt"] = "2099-01-01T00:00:00Z"
@@ -134,6 +135,9 @@ class CardNewsWiringTests(unittest.TestCase):
                 def model_adapter(**kwargs):
                     model_calls.append(kwargs)
                     events.append(("model", len(model_calls)))
+                    if scenario == "sdk-failure":
+                        # google-genai APIError.code is the HTTP status int; the failed callback must still pass the contract.
+                        raise type("APIError", (Exception,), {"code": 429})()
                     draft = manifest["draftDocument"]
                     provider = {"outcome": "ready", "reason": "", "language": draft["language"],
                                 "cards": [{key: value for key, value in card.items() if key != "provenance"} for card in draft["cards"]],
@@ -192,6 +196,7 @@ class CardNewsWiringTests(unittest.TestCase):
                 namespace = {"os": os, "json": json, "Path": Path, "tempfile": tempfile, "time": time, "uuid": uuid,
                     "ContractError": ContractError, "LayoutError": LayoutError, "validate_contract": validate_contract,
                     "Deadline": Deadline, "timestamp": timestamp, "model_timeout_ms": model_timeout_ms,
+                    "callback_failure_code": callback_failure_code,
                     "build_prompt": build_prompt, "normalize_model_output": normalize_model_output, "provider_schema": provider_schema,
                     "post_callback": callback_adapter, "create_s3_client": s3_adapter, "download_object": download_adapter,
                     "extract_candidates": extract_adapter, "render_cards": render_adapter, "asset_record": record_adapter,
@@ -212,6 +217,9 @@ class CardNewsWiringTests(unittest.TestCase):
                     self.assertEqual(stages, ["accepted"])
                     self.assertEqual(model_calls, [])
                     self.assertEqual(outcome, {"outcome": "existing_manifest"})
+                elif scenario == "sdk-failure":
+                    self.assertEqual(stages, ["accepted", "generating-text", "failed"])
+                    self.assertEqual(outcome["failureCode"], "cpu_job_failed")
                 elif scenario == "media-failure":
                     self.assertEqual(stages, ["accepted", "generating-text", "extracting-cover", "failed"])
                     self.assertEqual(len(model_calls), 1)
@@ -231,6 +239,13 @@ class CardNewsWiringTests(unittest.TestCase):
                     self.assertEqual(len([event for event in events if event[0] == "extract"]), 1)
                     self.assertLess(next(i for i, event in enumerate(events) if event[0] == "model"),
                                     next(i for i, event in enumerate(events) if event[0] == "extract"))
+
+    def test_callback_failure_code_accepts_only_contract_ids(self):
+        self.assertEqual(callback_failure_code(ContractError("source_too_short")), "source_too_short")
+        self.assertEqual(callback_failure_code(LayoutError("cards.1.title", "unsupported_glyph")), "unsupported_glyph")
+        for bad in (429, None, "", "bad code", "x" * 161):
+            self.assertEqual(callback_failure_code(SimpleNamespace(code=bad)), "cpu_job_failed", bad)
+        self.assertEqual(callback_failure_code(RuntimeError("no code")), "cpu_job_failed")
 
 
 if __name__ == "__main__":

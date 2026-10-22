@@ -246,11 +246,16 @@ export async function recordProcessingSpawnResult(args: {
   });
 }
 
-export async function markProcessingSpawnUnknown(args: {
+type ProcessingSpawnOwner = {
   uploadedFileId: string;
   attempt: number;
   workerRunId: string;
-}): Promise<void> {
+};
+
+async function leaveSendingProcessingSpawn(
+  args: ProcessingSpawnOwner,
+  modalSpawnState: "unknown" | "not_sent",
+): Promise<void> {
   const hint = await findProcessingDispatchForAttempt(
     args.uploadedFileId,
     args.attempt,
@@ -269,10 +274,20 @@ export async function markProcessingSpawnUnknown(args: {
       current?.workerRunId === args.workerRunId &&
       current.modalSpawnState === "sending"
     )
-      await updateProcessingDispatch(
-        current.id,
-        { modalSpawnState: "unknown" },
-        tx,
-      );
+      await updateProcessingDispatch(current.id, { modalSpawnState }, tx);
   });
+}
+
+/** The POST may have reached Modal (timeout, network error): never POST again for this attempt. */
+export async function markProcessingSpawnUnknown(
+  args: ProcessingSpawnOwner,
+): Promise<void> {
+  await leaveSendingProcessingSpawn(args, "unknown");
+}
+
+/** Modal answered with a non-2xx response, so nothing was spawned: the step retry may POST again. */
+export async function resetRejectedProcessingSpawn(
+  args: ProcessingSpawnOwner,
+): Promise<void> {
+  await leaveSendingProcessingSpawn(args, "not_sent");
 }

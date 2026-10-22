@@ -8,6 +8,7 @@ import {
   beginProcessingSpawn,
   recordProcessingSpawnResult,
   markProcessingSpawnUnknown,
+  resetRejectedProcessingSpawn,
   loadVideoProcessingContext,
 } from "~/fsd/features/upload/server";
 import {
@@ -54,6 +55,22 @@ const MODAL_METADATA_GRACE_INTERVAL = "2m";
  * 읽는 유일한 근거다. 이전에는 반환 타입 선언 없이 16가지 객체 리터럴이
  * 즉석에서 만들어져, 오타 난 status나 빠진 필드를 컴파일러가 잡지 못했다.
  */
+/** Modal이 HTTP 응답으로 거절했다 — 응답이 왔으니 spawn은 일어나지 않았다(FEAT-63). */
+class ModalDispatchRejectedError extends Error {}
+
+/**
+ * send-to-modal이 실패한 뒤의 spawn 상태. 거절(응답 있음)은 not_sent로 되돌려 step 재시도가 다시 POST하게
+ * 하고(예약 도입 전 동작), 타임아웃·네트워크 오류는 Modal이 이미 받았을 수 있어 unknown으로 둔다 — 재시도해도
+ * POST하지 않고 콜백을 기다린다.
+ */
+async function recordFailedProcessingSpawn(
+  error: unknown,
+  owner: { uploadedFileId: string; attempt: number; workerRunId: string },
+): Promise<void> {
+  if (error instanceof ModalDispatchRejectedError)
+    await resetRejectedProcessingSpawn(owner);
+  else await markProcessingSpawnUnknown(owner);
+}
 type ProcessingSkipReason = "already_processing" | "attempt_no_longer_active";
 
 /** 시도가 실제로 진행된 뒤의 종료 상태. */
@@ -284,7 +301,7 @@ export const processVideo = inngest.createFunction(
 
           if (!response.ok) {
             const text = await response.text().catch(() => "");
-            throw new Error(
+            throw new ModalDispatchRejectedError(
               `Modal dispatch failed (${response.status}): ${text.slice(0, 500)}`,
             );
           }
@@ -292,7 +309,7 @@ export const processVideo = inngest.createFunction(
           const result = (await response.json()) as Record<string, unknown>;
           return result;
         } catch (error) {
-          await markProcessingSpawnUnknown({
+          await recordFailedProcessingSpawn(error, {
             uploadedFileId,
             attempt,
             workerRunId: runId,
@@ -689,7 +706,7 @@ export const analyzeVideo = inngest.createFunction(
 
             if (!response.ok) {
               const text = await response.text().catch(() => "");
-              throw new Error(
+              throw new ModalDispatchRejectedError(
                 `Modal analyze dispatch failed (${response.status}): ${text.slice(0, 500)}`,
               );
             }
@@ -697,7 +714,7 @@ export const analyzeVideo = inngest.createFunction(
             const result = (await response.json()) as Record<string, unknown>;
             return result;
           } catch (error) {
-            await markProcessingSpawnUnknown({
+            await recordFailedProcessingSpawn(error, {
               uploadedFileId,
               attempt,
               workerRunId: runId,

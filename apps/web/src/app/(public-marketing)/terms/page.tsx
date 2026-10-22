@@ -86,9 +86,10 @@ export default function TermsPage() {
               results; a run producing zero clips costs zero credits.
             </li>
             <li>
-              Card-news generation costs one credit per set, settled only when
-              the entire image set, ZIP and copy are ready. A final failure
-              releases the reservation. Technical retries do not add a charge.
+              When enabled for your account, card-news generation costs one
+              credit per set, settled only when the entire image set, ZIP and
+              copy are ready. A final failure releases the reservation.
+              Technical retries do not add a charge.
             </li>
             <li>
               Manual card-news edits, their rerender and downloads are free.
