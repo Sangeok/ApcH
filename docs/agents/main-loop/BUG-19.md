@@ -148,3 +148,38 @@ D1 수정은 라운드 2에서 이미 실측했다(같은 수정으로 `check` E
 교훈 — 경로 2를 「사본 tsc」로 대신한 패스가 두 번 나왔다(BUG-19 2회차, FEAT-63 1회차). 정의 문구(`7054b7f`)로 「적용본 worktree가 표준」임을 밝힌 뒤에는 두 항목 모두 적용본 전체 게이트를 돌렸다.
 
 다음은 게이트②(소유자)다.
+
+## 게이트② (2026-10-22)
+
+FEAT-63이 먼저 배포됐다(`a7fa447`, 배포 순서 FEAT-63 → BUG-19 — V1 orphan 정리 행을 BUG-19의 정비 함수가 실행하기 전에 V1을 고친다). 그 뒤 소유자가 「BUG-19 구현 승인」으로 `구현승인`으로 전이했다.
+
+FEAT-63과 겹치는 파일 셋의 삽입 지점을 메인 루프가 지금 트리에서 다시 확인했다.
+- `app/dashboard/page.tsx`: `await reconcileUploadDraftsForUser(…)`·`reconcileStaleUploadedFilesForUser(…)`가 각 1회 있다.
+- `features/card-news/api/index.ts`: `listCardNews`가 `:93`에서 `:92`로, `getCardNewsDetail`이 `:108`에서 `:107`로 한 줄씩 밀렸다. 콜백 줄은 함수 안에 그대로 있다.
+- `entities/card-news/api/index.ts`: `../model/contract` import(`:10-14`)와 파일 끝이 그대로 있다.
+
+계획서의 「나중에 구현하는 쪽은 before와 줄 번호를 다시 맞춘다」 규칙의 범위 안이다. BUG-19가 고치는 나머지 파일은 FEAT-63이 건드리지 않았다.
+
+## 메인 루프 반영 — 계획서 「범위 밖 의존」 (2026-10-22)
+
+- `apps/web/scripts/verify-card-news-surfaces.mts`: route.ts serve 심볼 목록의 cron 넷(`dispatchPendingCardNews`·`reconcileCardNewsJobs`·`cleanupCardNewsAssets`·`reconcileVideoCreditReservations`)을 `"maintenanceDrain",` 한 줄로 바꿨다. 실행하면 「…registered workers… passed」.
+- `apps/web/CLAUDE.md` 테스트 표: 4행을 추가했다(`maintenance-schedule`·`maintenance-functions`·`job-due`·`cleanup-retry`). `card-news-functions.test.mjs` 행은 「드레인 루틴 셋」으로 고쳤다(FEAT-63 25번이 남긴 지시). 수치 줄은 「50개 파일, 56 suite, 402개 테스트」로 바꿨다(`npm test` 실측, `*.test.mjs` 50개).
+
+## 인수 (2026-10-22)
+
+인수 조건 다섯은 모두 메인 루프가 직접 본 것이다.
+
+1. **변경 파일 ↔ 「고칠 파일」**: 소스 변경 23개(수정 14, 신규 9)와 계획서 23행이 `comm` 양쪽 차집합 0으로 일치한다. 그 밖의 변경은 보드·백로그·보고서와 메인 루프 반영 두 파일뿐이다.
+2. **diff ↔ 구현 스케치**
+   - 새 파일 5개: 계획서 코드 블록을 추출해 비교했다. 4개는 바이트가 같고, `maintenance-functions.ts`는 반환 객체 한 줄을 여러 줄로 감싸고 쉼표를 붙인 것만 다르다.
+   - `card-news-functions.ts`: `git diff -w HEAD`로 보면 바뀐 것은 껍데기 셋(`createFunction` → `export async function drain…({ step }: { step: DrainStep })`)과 import 하나다. cleanup 목록 줄이 한 줄로 합쳐진 것은 줄바꿈뿐이고, 작업별 step·id·상한 100은 그대로다.
+   - 나머지 수정 파일: plan-verifier 독립 패스 3의 적용 스크립트(`e2a~c.py`)를 HEAD worktree에 돌려 비교했다. 그 스크립트가 적용하지 않은 부분(inngest 파일, 주석)과 import 위치, 80열 줄바꿈 말고는 다른 점이 없다. 남은 차이도 계획서 본문과 일치한다.
+3. **검증 명령 재실행**(로그는 스크래치패드 `acc19/`)
+   - `npm run check -w apps/web` EXIT 0, `npm test` 402/0(56 suite).
+   - `verify-card-news-surfaces` 통과(메인 루프 반영 뒤), client 회귀 6/0.
+   - 실 PostgreSQL 통합 CLI EXIT 0 — 「All isolated PostgreSQL card news integration checks passed」. 기대된 `23514` 거부 3건과 테스트가 일부러 일으키는 `synthetic analytics outage`가 나왔다. 이 검사는 정리 재시도 백오프와 삭제 경로 킥이 실 DB에서 깨지지 않는지 함께 덮는다.
+   - `npm run build -w apps/web` EXIT 0.
+4. **백로그 제거**: `TASK_BACKLOG.md`에 `**BUG-19**`가 0건이다. web-dev가 3줄을 `sed`로 지웠고 diff는 그 3줄 삭제뿐이다. BUG-14·20·21·FEAT-27은 그대로다.
+5. **상세 기록 실재**: `docs/agents/web-dev/BUG-19.md`(129줄)가 있다. 보드 `결과`(138자)가 그 파일을 가리킨다.
+
+원장: `docs/release-checks.md`에 「BUG-19」 절 7줄을 등재했다(미배포).

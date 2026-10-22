@@ -77,6 +77,10 @@ type Events = CardNewsEvents & {
       error?: string;
     };
   };
+  "maintenance/drain.requested": {
+    // reason: 어느 경로가 깨웠는지(관측용). pastDueStreak: 이어달리기 킥만 싣는 연속 기한 경과 횟수.
+    data: { reason?: string; pastDueStreak?: number };
+  };
 };
 
 export const inngest = new Inngest({

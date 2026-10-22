@@ -12,6 +12,7 @@ import {
   parseCardNewsSource,
   splitSourceSentences,
 } from "../model/contract";
+import { cardNewsJobDueAt } from "../model/job-due";
 import type {
   CardNewsDetail,
   CardNewsJobSummary,
@@ -492,4 +493,51 @@ export function toCardNewsDetail(
       ? { id: cleanup.id, status: cleanup.status, lastError: cleanup.lastError }
       : null,
   };
+}
+
+const jobTimingSelect = {
+  deadlineAt: true,
+  claimedAt: true,
+  heartbeatAt: true,
+  nextDispatchAt: true,
+  dispatchLeaseUntil: true,
+} as const;
+
+// 활성 job은 마감(15분) 안에 끝나므로 행 수가 작다 — 전부 읽어 cardNewsJobDueAt으로 최솟값을 낸다.
+// 기한 정의를 SQL과 TS에 두 벌 두지 않기 위해서다(읽기 게이트가 같은 함수를 쓴다).
+export async function nextCardNewsJobWakeAt(now: Date): Promise<Date | null> {
+  const jobs = await db.cardNewsJob.findMany({
+    where: { status: { in: ["pending", "running"] } },
+    select: jobTimingSelect,
+  });
+  let earliest: Date | null = null;
+  for (const job of jobs) {
+    const due = cardNewsJobDueAt(job, now);
+    if (!earliest || due.getTime() < earliest.getTime()) earliest = due;
+  }
+  return earliest;
+}
+
+export async function nextAssetCleanupWakeAt(): Promise<Date | null> {
+  // GREATEST는 Postgres에서 NULL을 무시한다. notBefore는 비null이라 행마다 결과가 비null이다.
+  const [row] = await db.$queryRaw<{ next: Date | null }[]>`
+    SELECT MIN(GREATEST("notBefore", "nextRetryAt", "leaseUntil")) AS next
+    FROM "AssetCleanupJob"
+    WHERE "status" <> 'completed'`;
+  return row?.next ?? null;
+}
+
+// 읽기 시 안전망의 게이트: 그 사용자의 활성 job 중 처리할 때가 된 것이 있는가.
+// 워커가 살아 있는 job은 heartbeat 때문에 아니다 — 폴링(5초)마다 킥하지 않는다.
+export async function hasDueActiveCardNewsJob(
+  userId: string,
+  now: Date,
+): Promise<boolean> {
+  const jobs = await db.cardNewsJob.findMany({
+    where: { userId, status: { in: ["pending", "running"] } },
+    select: jobTimingSelect,
+  });
+  return jobs.some(
+    (job) => cardNewsJobDueAt(job, now).getTime() <= now.getTime(),
+  );
 }

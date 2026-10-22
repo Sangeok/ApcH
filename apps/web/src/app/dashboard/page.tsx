@@ -14,6 +14,8 @@ import {
 } from "~/fsd/entities/uploaded-file/server";
 import { reconcileStaleUploadedFilesForUser } from "~/fsd/features/upload/api/reconcile-stale-processing";
 import { canUserAccessCardNews } from "~/fsd/features/card-news/server";
+import { hasDueActiveCardNewsJob } from "~/fsd/entities/card-news/server";
+import { kickMaintenanceDrain } from "~/inngest/maintenance-event";
 import DashboardView from "~/fsd/pages/dashboard/ui";
 import { auth } from "~/server/auth";
 
@@ -26,6 +28,8 @@ export default async function DashboardPage() {
 
   await reconcileStaleUploadedFilesForUser(session.user.id);
   await reconcileUploadDraftsForUser(session.user.id);
+  if (await hasDueActiveCardNewsJob(session.user.id, new Date()))
+    await kickMaintenanceDrain("dashboard-visit");
 
   // 큐 상태를 여기서 함께 읽는다. 이전에는 클라이언트가 uploadedFiles에서
   // 서버와 같은 형태를 재구성했는데(같은 status 필터 + 하드코딩된 25),

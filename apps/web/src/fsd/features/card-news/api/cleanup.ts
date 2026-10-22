@@ -44,6 +44,8 @@ import {
   lockCardNewsScope,
 } from "./reservation-tx";
 import { cardNewsRuntime } from "./runtime-dependencies";
+import { cleanupRetryDelayMs } from "../model/cleanup-retry";
+import { kickMaintenanceDrain } from "~/inngest/maintenance-event";
 
 type Producer = {
   kind: "video" | "card-news";
@@ -189,44 +191,47 @@ export async function acceptCardNewsDeletion(
   userId: string,
   setId: string,
 ): Promise<{ status: "deleting"; cleanupId: string }> {
-  return cardNewsTransaction(async (tx) => {
-    const set = await lockedCardNewsSet(setId, userId, tx);
-    if (
-      set.jobs.some(
-        (job) => job.status === "pending" || job.status === "running",
+  const result: { status: "deleting"; cleanupId: string } =
+    await cardNewsTransaction(async (tx) => {
+      const set = await lockedCardNewsSet(setId, userId, tx);
+      if (
+        set.jobs.some(
+          (job) => job.status === "pending" || job.status === "running",
+        )
       )
-    )
-      throw new Error("Wait for active card news jobs before deleting");
-    const producers: Producer[] = [];
-    for (const entry of set.jobs) {
-      const job = await findCardNewsJob(entry.id, tx);
-      if (job) producers.push(...producersForJob(job));
-    }
-    await updateCardNewsSet(
-      setId,
-      { status: "deleting", deletedAt: cardNewsRuntime().now() },
-      tx,
-    );
-    const cleanup = await createAssetCleanupJob(
-      {
-        userId,
-        kind: "set",
-        scopeId: setId,
-        scopeSnapshot: jsonValue({
-          scopeKind: "set",
+        throw new Error("Wait for active card news jobs before deleting");
+      const producers: Producer[] = [];
+      for (const entry of set.jobs) {
+        const job = await findCardNewsJob(entry.id, tx);
+        if (job) producers.push(...producersForJob(job));
+      }
+      await updateCardNewsSet(
+        setId,
+        { status: "deleting", deletedAt: cardNewsRuntime().now() },
+        tx,
+      );
+      const cleanup = await createAssetCleanupJob(
+        {
+          userId,
+          kind: "set",
           scopeId: setId,
-          setIds: [setId],
-          jobIds: set.jobs.map((job) => job.id),
-          clipIds: [],
-          uploadedFileId: set.uploadedFileId,
-        }),
-        dedicatedPrefixes: jsonValue([`card-news/${userId}/${setId}/`]),
-        producerReferences: jsonValue(producers),
-      },
-      tx,
-    );
-    return { status: "deleting", cleanupId: cleanup.id };
-  });
+          scopeSnapshot: jsonValue({
+            scopeKind: "set",
+            scopeId: setId,
+            setIds: [setId],
+            jobIds: set.jobs.map((job) => job.id),
+            clipIds: [],
+            uploadedFileId: set.uploadedFileId,
+          }),
+          dedicatedPrefixes: jsonValue([`card-news/${userId}/${setId}/`]),
+          producerReferences: jsonValue(producers),
+        },
+        tx,
+      );
+      return { status: "deleting", cleanupId: cleanup.id };
+    });
+  await kickMaintenanceDrain("card-news-deletion");
+  return result;
 }
 
 async function producerEnded(producer: Producer): Promise<boolean> {
@@ -489,7 +494,10 @@ export async function runCardNewsCleanup(cleanupId: string): Promise<void> {
             error instanceof S3DeleteError ? error.failedKeys : [],
           ),
           leaseUntil: null,
-          nextRetryAt: new Date(cardNewsRuntime().now().getTime() + 60_000),
+          nextRetryAt: new Date(
+            cardNewsRuntime().now().getTime() +
+              cleanupRetryDelayMs(current.attemptCount),
+          ),
           lastError:
             error instanceof Error
               ? error.message.slice(0, 200)

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import {
   findAssetCleanupJobsForScope,
+  hasDueActiveCardNewsJob,
   lockAssetCleanupJob,
   listUserAssetCleanupJobs,
   updateAssetCleanupJob,
@@ -12,6 +13,7 @@ import {
   toCardNewsDetail,
   toCardNewsSummary,
 } from "~/fsd/entities/card-news/server";
+import { kickMaintenanceDrain } from "~/inngest/maintenance-event";
 import type {
   CardNewsDetail,
   CardNewsExport,
@@ -93,6 +95,8 @@ export async function listCardNews(
   raw: unknown = {},
 ): Promise<ActionResult<{ authUserId: string; sets: CardNewsSummary[] }>> {
   return authenticatedAction(async (userId) => {
+    if (await hasDueActiveCardNewsJob(userId, new Date()))
+      await kickMaintenanceDrain("card-news-read");
     const filter = z.object({ clipId: id.optional() }).strict().parse(raw);
     const sets = await listCardNewsSets(userId);
     return {
@@ -108,6 +112,8 @@ export async function getCardNewsDetail(
   raw: unknown,
 ): Promise<ActionResult<{ authUserId: string; detail: CardNewsDetail }>> {
   return authenticatedAction(async (userId) => {
+    if (await hasDueActiveCardNewsJob(userId, new Date()))
+      await kickMaintenanceDrain("card-news-read");
     const { setId } = z.object({ setId: id }).strict().parse(raw);
     const set = await findCardNewsSet(setId);
     if (!set || set.userId !== userId) throw new Error("Card news not found");

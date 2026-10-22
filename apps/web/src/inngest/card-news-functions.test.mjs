@@ -12,9 +12,9 @@ const budget = Number(route.match(/export const maxDuration = (\d+)/)?.[1]);
 const ids = ["job-a", "job-b", "job-c", "job-d"];
 
 for (const [handler, operation] of [
-  ["dispatchPendingCardNews", "dispatch"],
-  ["reconcileCardNewsJobs", "recover"],
-  ["cleanupCardNewsAssets", "cleanup"],
+  ["drainCardNewsDispatch", "dispatch"],
+  ["drainCardNewsRecovery", "recover"],
+  ["drainCardNewsCleanup", "cleanup"],
 ]) {
   test(`${handler}: jobs have separate durable request budgets and memoization keys`, async () => {
     assert.ok(

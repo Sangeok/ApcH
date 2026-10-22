@@ -44,9 +44,23 @@
 
 ---
 
+## BUG-19 — 매분 cron 4개를 이벤트 구동 단일 정비 함수(`maintenance-drain`)로 대체 (web, 구현 2026-10-22)
+
+원천: `docs/agents/web-dev/BUG-19.md`·`docs/plans/BUG-19.md` 「테스트 — 못 덮는 범위」. **미배포** — 배포는 소유자 승인 뒤(main 합류 → Vercel). Inngest 대시보드 확인은 web 라우트가 아니라 자동 판정 태그를 붙이지 않는다.
+
+- [ ] **유휴 실행 0** — 배포 뒤 할 일이 없을 때 Inngest 대시보드의 `maintenance-drain` 실행이 0인지 본다(이벤트가 없으면 런이 생기지 않는다)
+- [ ] **옛 cron 4개 소멸** — `dispatch-pending-card-news`·`reconcile-card-news-jobs`·`cleanup-card-news-assets`·`reconcile-video-credit-reservations`가 함수 목록에서 사라지고 `maintenance-drain`이 등록됐는지 본다(새 id라 Resume 불필요)
+- [ ] **업로드 1건의 깨움** — 영상 1개를 올리면 claim 직후 1회, 그 뒤 마감(`deadlineAt`, claim + 65분)에 1회 깨는지 본다(사이에 다른 이벤트가 없을 때)
+- [ ] **카드뉴스 생성 중 깨움** — 생성 1건 동안 정비 함수가 「heartbeat + 90초」 간격으로만 깨고, 상세 화면 폴링(5초)이 킥(`reason: card-news-read`)을 보내지 않는지 본다(runs의 trigger 이벤트로 판별)
+- [ ] **singleton이 자는 런을 대체하는가** — 새 이벤트가 왔을 때 자고 있던 `maintenance-drain` 런이 cancel되는지 본다. 대체하지 않아도 결과는 맞다(복구 함수가 멱등). 대체하지 않으면 일이 남아 있는 동안 이어달리기 사슬이 겹칠 수 있다 — 겹침이 보이면 기록한다
+- [ ] **Neon Idle 복귀** — 배포 뒤 할 일이 없을 때 Neon compute가 자동 정지(Idle)로 돌아가는지 본다
+- [ ] **삭제 킥** — 영상·클립·카드뉴스 하나를 지우면 `maintenance-drain`이 `reason: *-deletion` 킥으로 깨어 정리 행을 처리하는지 본다
+
+---
+
 ## FEAT-63 — Instagram 카드뉴스 사후 인수: V1·V3·V4·B4·C1·A2·B3'·공개 문구 (web·backend, 구현 2026-10-22)
 
-원천: `docs/agents/main-loop/FEAT-63.md` 「구현」·`docs/plans/FEAT-63.md` 「테스트 — 못 덮는 범위」. **배포 진행 중(2026-10-22, 소유자 승인)** — CPU 앱 `apch-card-news`는 `apps/backend`에서 `PYTHONUTF8=1 python -m modal deploy card_news_app.py`로 재배포했다(무인증 `POST /status` 401, 옛 컨테이너 0). web은 PR #137(dev→main)을 머지할 차례다. ruleset이 「마지막 push의 타인 승인」을 요구해 관리자 머지가 필요하고, 자동 모드가 그 머지를 거부해 소유자가 실행한다. 운영 영상 게이트는 2026-10-22 소유자 확인으로 둘 다 `true`(열림)라 이 배포 전까지 V1이 운영에 열려 있다(사용자 0명이라 닫지 않기로 함). web 화면 줄은 admin 호스트 전용인 자동 판정 태그를 붙이지 않는다.
+원천: `docs/agents/main-loop/FEAT-63.md` 「구현」·`docs/plans/FEAT-63.md` 「테스트 — 못 덮는 범위」. **배포됨(2026-10-22 22:46 KST, PR #137 합류 `a7fa447` — 소유자 관리자 머지)** — Vercel `apc-h`·`apch-admin` success. CPU 앱 `apch-card-news`는 `apps/backend`에서 `PYTHONUTF8=1 python -m modal deploy card_news_app.py`로 재배포했다(무인증 `POST /status` 401, 옛 컨테이너 0). 운영 영상 게이트는 2026-10-22 소유자 확인으로 둘 다 `true`(열림)라 이 배포 전까지 V1이 운영에 열려 있다(사용자 0명이라 닫지 않기로 함). web 화면 줄은 admin 호스트 전용인 자동 판정 태그를 붙이지 않는다.
 
 - [ ] **V1 클립 정산** — 배포 뒤 짧은 영상 1개를 처리해 정산된 클립 수 = 만들어진 클립 수 = 차감 크레딧인지 본다(전제: 실제 S3 HEAD의 ContentType `binary/octet-stream` 수용). 24시간 뒤 그 클립이 남아 있는지도 본다 — orphan 정리는 BUG-19 배포 뒤라야 돈다
 - [ ] **V3 유예** — 웹훅이 정산한 영상에 제목·설명 메타데이터가 붙는지, analyze가 `review_pending`으로 가는지 본다
@@ -55,7 +69,7 @@
 - [ ] **C1 진입점** — 카드뉴스를 쓸 수 없는 계정(플래그 off·allowlist 밖)의 `/dashboard`에서 헤더(데스크톱·드롭다운)와 대시보드 탭에 카드뉴스 링크가 없는지, allowlist 계정에서는 보이는지 본다
 - [ ] **A2 정리 패널** — 영상 하나를 삭제한 뒤 정리가 끝나면 진행 패널이 사라지는지, 내부 orphan·retention 작업이 사용자 화면에 보이지 않는지 본다
 - [ ] **B3' 잔액 배지** — 잔액 갱신이 실패해도 직전 값(`N available · M reserved`)이 남고 `Balance unavailable`로 바뀌지 않는지 본다(네트워크 끊기로 유도)
-- [ ] **공개 문구** — `/pricing` 헤드라인 2개가 카드뉴스 이전 문구인지, 설명과 openGraph, `/terms` §3 카드뉴스 가격 불릿에 「When enabled for your account」 단서가 있는지 본다
+- [x] **공개 문구** — `/pricing` 헤드라인 2개가 카드뉴스 이전 문구인지, 설명과 openGraph, `/terms` §3 카드뉴스 가격 불릿에 「When enabled for your account」 단서가 있는지 본다 — 확인(2026-10-22, 메인 루프 운영 응답 — `curl https://a-pch.com/pricing` 200: `1 credit per clip`·`Vertical mp4 + captions` 각 2회, 옛 헤드라인 `1 credit per clip or card-news set`·`Video or carousel files` 0회, 단서 2회, `og:description`에 「when enabled」. `/terms` 200: 단서 4회)
 - [ ] **운영 실물 기록** — PR #136(`maxDuration = 300`) 배포의 READY·Inngest sync, legacy receipt 적용(`ProcessingDispatch.producerEndEvidence->>'kind' = 'legacy-drain'` 43행), 멈췄던 무료 v2 렌더 job의 종결(BUG-19 배포 뒤 정비 함수가 처리)
 
 ---

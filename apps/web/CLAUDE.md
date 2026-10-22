@@ -66,7 +66,7 @@ Node 내장 러너를 `tsx`로 실행한다. `.test.mjs` 파일이 `.ts` 모듈�
 npm test -w apps/web
 ```
 
-현재 46개 파일, 56 suite, 369개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
+현재 50개 파일, 56 suite, 402개 테스트. 퍼널 집계 테스트(`reporting.test.mjs`)는 로직과 함께 `apps/admin`으로 갔다.
 
 | 파일 | 지키는 것 |
 |---|---|
@@ -105,14 +105,18 @@ npm test -w apps/web
 | `entities/card-news/model/contract.test.mjs` | 카드뉴스 wire 계약(`packages/db/contracts/card-news-v1`)의 웹 쪽 판정이 공유 fixture의 기대값과 같은지, 소스 해시가 속성 순서와 무관한지, 길이 경계(100,000 code point)·비유한 시간·모르는 callback 속성 거부, manifest가 다른 revision·경로·증거로 게시되지 못하는지, 무료 렌더가 승인된 초안과 재사용 표지만 쓰는지. **backend `test_card_news_contract.py`도 같은 fixture 파일을 읽는다** — 한쪽 판정만 바꾸면 그쪽 테스트가 깨진다 |
 | `entities/card-news/model/revision-policy.test.mjs` | 카드뉴스 revision 규칙 — 늦게 도착한 완료가 게시 revision을 되돌리지 못하고, 같은 기대 revision으로 저장한 두 탭은 덮어쓰기 대신 충돌을 받으며, 대기 revision은 합쳐져도 저장된 문서는 불변이고, 생성 revision 0은 편집할 수 없다 |
 | `entities/card-news/model/text-length.test.mjs` | wire 텍스트 길이를 code point로 센다(ASCII·한국어·astral). 결합 문자·결합 이모지를 grapheme으로 줄이지 않는다 — backend 길이 판정과 같은 단위다 |
+| `entities/card-news/model/job-due.test.mjs` | `cardNewsJobDueAt` — job이 처리 가능해지는 시각(목록 조건 ∧ 발송 게이트, 또는 마감). 워커가 살아 있으면 「마지막 heartbeat + 90초」라 폴링 킥이 나가지 않고, 죽으면 재발송된다. `job-lifecycle.ts`의 `< 90_000` 두 곳과 상수가 같은지 고정 검사(BUG-19) |
 | `entities/credit-reservation/model/reservation-policy.test.mjs` | 크레딧 예약 정산 — 영상 부분 성공은 저장된 클립 수만 차감하고 예약 전체를 푼다, 정산된 예약은 중복·지연 종료 통지로 바뀌지 않는다, 실패한 카드뉴스는 차감 없이 전액 반환, 잘못된 개수와 카드뉴스 부분 성공은 거부, 재시작한 워커의 operation key는 그대로다 |
 | `entities/user/model/credit-balance.test.mjs` | 잔액 계산 — 예약(held)은 보유 크레딧을 쓰지 않고 사용 가능 잔액만 줄인다, 잘못된 금액 상태는 조용히 0으로 깎지 않고 실패한다, live 잔액 캐시는 인증 사용자별로 나뉜다 |
 | `features/card-news/model/analytics-context.test.mjs` | 카드뉴스 요청에 붙는 분석 문맥(`sanitizeCardNewsAnalyticsContext`) — 기존 UUID·timestamp ID를 받아 공백을 다듬고, 잘못되거나 확장된 문맥은 제품 입력을 바꾸지 않고 버린다(문맥은 요청 해시에 들어가지 않는다) |
 | `features/card-news/model/editor-schema.test.mjs` | 카드뉴스 편집기 스키마 — 편집 필드 계수(파생 provenance 제외, 본문 카드 재정렬은 한 번), 카드 역할 불변·중복 ID·모르는 필드 거부, 바뀐 텍스트는 AI provenance를 잃고 클라이언트가 보낸 source ID를 믿지 않는다, 바뀌지 않은 유료 초안은 하이픈 해시태그·허용 최대 길이 그대로 편집 가능 |
+| `features/card-news/model/cleanup-retry.test.mjs` | `cleanupRetryDelayMs` — 정리 재시도 간격(시도 1회 60초, 2배씩, 24시간 상한). 60초 고정이면 막힌 정리 행 하나가 정비 함수를 끝없이 깨운다(BUG-19) |
 | `features/upload/model/stored-clip-object.test.mjs` | 정산이 클립으로 세는 S3 객체(`isStoredClipObject`, FEAT-63 V1). **`binary/octet-stream` 수용이 요점이다** — GPU `upload_file`이 ContentType 없이 올려 S3가 이 기본값을 붙이는데, 이를 거부하던 배포본은 성공한 영상을 클립 0개로 정산하고 그 클립을 24시간 뒤 orphan 정리로 지웠다. 매개변수·세미콜론 앞 공백·대소문자 무시(공백 케이스가 없으면 `trim` 제거 돌연변이가 생존한다), `text/html`·빈 타입·0바이트 거부 |
 | `features/upload/model/recovery-settle-policy.test.mjs` | 전역 영상 복구가 정산해도 되는 시점(`canRecoverySettleVideoAttempt`, FEAT-63 V3). **유예 경계 5분 정확값이 요점이다** — 4:59.999는 거짓, 정확히 5:00은 참. 마감 경과(같은 시각 포함)는 즉시 참이고, 마감이 null인 마이그레이션 전 dispatch는 오래된 종료만 참이다(「null = 마감 경과」 돌연변이를 잡는다). 유예가 없으면 복구가 웹훅의 정상 정산을 가로채 메타데이터 없이 `worker_timeout`으로 끝낸다. `producerEndObservedAt`은 `observedAt` 우선·`confirmedAt` 다음·읽을 수 없으면 epoch |
 | `inngest/card-news-contract.test.mjs` | 카드뉴스 wake-up 키가 execution epoch와 불변 revision을 모두 담아 서로 다른 실행·revision의 완료 신호가 섞이지 않는 것 |
-| `inngest/card-news-functions.test.mjs` | 카드뉴스 복구 cron 셋(배차·복구·정리)이 작업마다 따로 durable step과 memoization 키를 받아 큐의 모든 작업에 닿는 것. **2026-10-20 운영 504의 모델이다** — 작업 하나가 요청 예산의 60%를 쓰게 두고, 한 step에서 여러 작업을 순차 처리하면 `FUNCTION_INVOCATION_TIMEOUT`으로 실패한다(4859d2e) |
+| `inngest/card-news-functions.test.mjs` | 카드뉴스 드레인 루틴 셋(배차·복구·정리 — BUG-19 이후 `maintenance-drain`이 부른다)이 작업마다 따로 durable step과 memoization 키를 받아 큐의 모든 작업에 닿는 것. **2026-10-20 운영 504의 모델이다** — 작업 하나가 요청 예산의 60%를 쓰게 두고, 한 step에서 여러 작업을 순차 처리하면 `FUNCTION_INVOCATION_TIMEOUT`으로 실패한다(4859d2e) |
+| `inngest/maintenance-functions.test.mjs` | `maintenanceDrain` 구조 — 드레인 루틴 넷을 순서대로 부르고 하나가 던져도 나머지와 다음 일정이 이어짐, 계획 null이면 idle 종료, 계획이 있으면 `sleepUntil` 뒤 이어달리기 킥, `pastDueStreak`은 drain 이벤트에서만 읽음, 계획 실패 시 바닥만큼 자고 streak+1로 킥, 트리거 다섯·cron 없음·singleton cancel(BUG-19) |
+| `inngest/maintenance-schedule.test.mjs` | 정비 드레인의 다음 깨움 계산 — `pastDueFloorMs`(30초에서 2배씩, 30분 상한, 비정상 입력 클램프), `computeNextWake`(기한 최솟값·30초 바닥·6시간 천장, 드레인 뒤에도 기한이 지났거나 드레인이 실패하면 연속 횟수만큼 바닥을 늘림 — 미래 기한이어도 `drainFailed`면 해소로 치지 않는다). 풀리지 않는 행 하나가 정비 함수를 30초마다 깨우지 못하게 하는 것이 요점(BUG-19) |
 | `inngest/processing-admission.test.mjs` | 영상 게이트 — `processVideo`·`analyzeVideo` 모두 공유 claim이 시작을 통제하고 캐시된 claim은 끝낼 수 있다, admission이 닫히면 업로드는 draft·URL을 만들기 전에, 스케줄은 트랜잭션을 열기 전에 거부된다. 닫힌 worker 게이트의 claim은 재시도가 아니라 `skipped`로 끝난다 |
 | `shared/api/s3-policy.test.mjs` | S3 일괄 삭제가 키를 중복 제거하고 요청당 1000개를 넘기지 않는 것, 다운로드 파일명이 헤더·경로 구분자를 주입하지 못하는 것 |
 | `shared/config/card-news.test.mjs` | 카드뉴스 접근 판정(`canAcceptCardNews`) — 유료 생성은 enable과 HTTPS backend 설정이 모두 있어야 하고, allowlist는 사용자 ID 전체 일치로만 열며 enable이면 다른 인증 사용자도 허용한다. 헤더·대시보드 탭의 카드뉴스 진입점과 생성 버튼이 같은 판정을 쓴다(FEAT-63 C1) |

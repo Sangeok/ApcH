@@ -40,11 +40,12 @@
 > 맨 아래 「파이프라인 구조」 섹션은 정적 구조도다 — 상태 기록이 아니며, 미결 계수에 넣지 않는다.
 
 ## 2026-10-21
-- [ ] BUG-19: 프로덕션 Inngest의 매분 cron 4개가 사용자 0명에도 하루 12,960 execution을 쓰고 Neon compute를 상시 깨운다 — cron 없이, 일이 생길 때만 깨어나 DB의 다음 기한까지 자는 단일 정비 함수로 대체한다
+- [x] BUG-19: 프로덕션 Inngest의 매분 cron 4개가 사용자 0명에도 하루 12,960 execution을 쓰고 Neon compute를 상시 깨운다 — cron 없이, 일이 생길 때만 깨어나 DB의 다음 기한까지 자는 단일 정비 함수로 대체한다
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/app/api/inngest/route.ts + apps/web/src/fsd/features/card-news/api + apps/web/src/fsd/entities/card-news/api + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/processing-dispatch/api + apps/web/src/fsd/features/clip/api + apps/web/src/app/dashboard
-  status: 검토대기
+  status: 완료
   근거: 소유자 직접 발주(2026-10-21 — Inngest·Neon 사용량 급증 원인이 PR #135의 매분 cron 4개로 확인, 대시보드 일시정지 완료, 「cron 아닌 방식」 지시). 선행 main 머지 완료(745439f)
+  결과: 계획대로 23파일(수정14·신규9) — 이벤트 구동 단일 maintenanceDrain+드레인 루틴·순수모듈3+테스트4·읽기/삭제/방문 킥. 스케치 동일(들여쓰기만). check0·test402/0(369→402). 상세 web-dev/BUG-19
   검증: 클린 패스 (2026-10-22, 독립 무편집 1라운드 — 메인 루프 라운드 구현 영향 7·위생 3 반영, 독립 1회차 위생 3, 2회차 경로 2 적용본 미실행으로 재디스패치, 3회차 필수 8경로 전수 결함 0)
 
 ## 2026-10-19
