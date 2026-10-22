@@ -148,3 +148,14 @@ D1 수정은 라운드 2에서 이미 실측했다(같은 수정으로 `check` E
 교훈 — 경로 2를 「사본 tsc」로 대신한 패스가 두 번 나왔다(BUG-19 2회차, FEAT-63 1회차). 정의 문구(`7054b7f`)로 「적용본 worktree가 표준」임을 밝힌 뒤에는 두 항목 모두 적용본 전체 게이트를 돌렸다.
 
 다음은 게이트②(소유자)다.
+
+## 게이트② (2026-10-22)
+
+FEAT-63이 먼저 배포됐다(`a7fa447`, 배포 순서 FEAT-63 → BUG-19 — V1 orphan 정리 행을 BUG-19의 정비 함수가 실행하기 전에 V1을 고친다). 그 뒤 소유자가 「BUG-19 구현 승인」으로 `구현승인`으로 전이했다.
+
+FEAT-63과 겹치는 파일 셋의 삽입 지점을 메인 루프가 지금 트리에서 다시 확인했다.
+- `app/dashboard/page.tsx`: `await reconcileUploadDraftsForUser(…)`·`reconcileStaleUploadedFilesForUser(…)`가 각 1회 있다.
+- `features/card-news/api/index.ts`: `listCardNews`가 `:93`에서 `:92`로, `getCardNewsDetail`이 `:108`에서 `:107`로 한 줄씩 밀렸다. 콜백 줄은 함수 안에 그대로 있다.
+- `entities/card-news/api/index.ts`: `../model/contract` import(`:10-14`)와 파일 끝이 그대로 있다.
+
+계획서의 「나중에 구현하는 쪽은 before와 줄 번호를 다시 맞춘다」 규칙의 범위 안이다. BUG-19가 고치는 나머지 파일은 FEAT-63이 건드리지 않았다.
