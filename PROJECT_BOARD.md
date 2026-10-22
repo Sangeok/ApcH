@@ -43,7 +43,7 @@
 - [ ] BUG-19: 프로덕션 Inngest의 매분 cron 4개가 사용자 0명에도 하루 12,960 execution을 쓰고 Neon compute를 상시 깨운다 — cron 없이, 일이 생길 때만 깨어나 DB의 다음 기한까지 자는 단일 정비 함수로 대체한다
   agent: web-dev
   area: apps/web/src/inngest + apps/web/src/app/api/inngest/route.ts + apps/web/src/fsd/features/card-news/api + apps/web/src/fsd/entities/card-news/api + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/processing-dispatch/api + apps/web/src/fsd/features/clip/api + apps/web/src/app/dashboard
-  status: 계획지시
+  status: 검토대기
   근거: 소유자 직접 발주(2026-10-21 — Inngest·Neon 사용량 급증 원인이 PR #135의 매분 cron 4개로 확인, 대시보드 일시정지 완료, 「cron 아닌 방식」 지시). 선행 main 머지 완료(745439f)
 
 ## 2026-10-19
