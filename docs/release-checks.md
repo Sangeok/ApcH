@@ -44,6 +44,22 @@
 
 ---
 
+## FEAT-63 — Instagram 카드뉴스 사후 인수: V1·V3·V4·B4·C1·A2·B3'·공개 문구 (web·backend, 구현 2026-10-22)
+
+원천: `docs/agents/main-loop/FEAT-63.md` 「구현」·`docs/plans/FEAT-63.md` 「테스트 — 못 덮는 범위」. **미배포** — 배포는 소유자 승인 뒤(main 합류 → Vercel, CPU 앱은 `apps/backend`에서 `PYTHONUTF8=1 modal deploy card_news_app.py`). 운영 영상 게이트는 2026-10-22 소유자 확인으로 둘 다 `true`(열림)라 이 배포 전까지 V1이 운영에 열려 있다(사용자 0명이라 닫지 않기로 함). web 화면 줄은 admin 호스트 전용인 자동 판정 태그를 붙이지 않는다.
+
+- [ ] **V1 클립 정산** — 배포 뒤 짧은 영상 1개를 처리해 정산된 클립 수 = 만들어진 클립 수 = 차감 크레딧인지 본다(전제: 실제 S3 HEAD의 ContentType `binary/octet-stream` 수용). 24시간 뒤 그 클립이 남아 있는지도 본다 — orphan 정리는 BUG-19 배포 뒤라야 돈다
+- [ ] **V3 유예** — 웹훅이 정산한 영상에 제목·설명 메타데이터가 붙는지, analyze가 `review_pending`으로 가는지 본다
+- [ ] **V4 거절 재시도** — Modal이 HTTP 거절을 돌려준 실행에서 step 재시도가 다시 POST하는지 Inngest 실행 기록으로 본다(유도하기 어려우면 발생 시 관측)
+- [ ] **B4 실패 콜백** — CPU 앱 재배포 뒤 실제 Gemini 오류(정수 코드 429 등)가 `failed` 콜백으로 도착해 job이 마감까지 기다리지 않고 실패 처리되는지 본다(유도하기 어려우면 발생 시 관측)
+- [ ] **C1 진입점** — 카드뉴스를 쓸 수 없는 계정(플래그 off·allowlist 밖)의 `/dashboard`에서 헤더(데스크톱·드롭다운)와 대시보드 탭에 카드뉴스 링크가 없는지, allowlist 계정에서는 보이는지 본다
+- [ ] **A2 정리 패널** — 영상 하나를 삭제한 뒤 정리가 끝나면 진행 패널이 사라지는지, 내부 orphan·retention 작업이 사용자 화면에 보이지 않는지 본다
+- [ ] **B3' 잔액 배지** — 잔액 갱신이 실패해도 직전 값(`N available · M reserved`)이 남고 `Balance unavailable`로 바뀌지 않는지 본다(네트워크 끊기로 유도)
+- [ ] **공개 문구** — `/pricing` 헤드라인 2개가 카드뉴스 이전 문구인지, 설명과 openGraph, `/terms` §3 카드뉴스 가격 불릿에 「When enabled for your account」 단서가 있는지 본다
+- [ ] **운영 실물 기록** — PR #136(`maxDuration = 300`) 배포의 READY·Inngest sync, legacy receipt 적용(`ProcessingDispatch.producerEndEvidence->>'kind' = 'legacy-drain'` 43행), 멈췄던 무료 v2 렌더 job의 종결(BUG-19 배포 뒤 정비 함수가 처리)
+
+---
+
 ## BUG-18 — 설정 Video style 저장 버튼 하나로 합치기와 미저장 표시 (web, 구현 2026-10-15)
 
 원천: `docs/agents/web-dev/BUG-18.md`·`docs/plans/BUG-18.md` 「못 덮는 범위」 ①~④. **배포됨(2026-10-15 14:18 KST, PR #133 합류 `67e9a13`)** — Vercel `Production – apc-h` success(배포 id 7084537371), 소유자가 합류했다. 합류 직전 메인 루프가 `365478d` 깨끗한 사본에서 web `build` EXIT 0(정적 페이지 41/41, 경고 0)을 확인했다. 아래 넷은 지금 판정 가능하다. 인수 때 메인 루프가 게이트를 직접 다시 돌렸다. `npm run check -w apps/web` EXIT 0(경고 0, `tsc` 포함), `npm test -w apps/web` **227/56/0**이다. 계획서 스케치를 HEAD에 기계로 적용한 결과와 구현을 비교하니, 다섯 파일 중 둘은 같고 셋은 줄바꿈·함수 위치·임포트 위치만 달랐다. 커밋할 테스트는 필드 제거 돌연변이 7종을 전부 잡았다. 이 배포로 FEAT-60 절 「저장 분리가 그대로인가」를 `대체`로 닫았고, FEAT-62 절 「스냅·프리셋·저장」과 FEAT-42 절 「설정 화면에 캡션 기본 스타일 카드가…」의 버튼 이름을 재앵커했다. **`〔auto〕` 태그를 붙이지 않는다**: 전부 로그인 뒤 web 화면이다(루틴의 기준 호스트는 admin 하나다 — 머리말 참조).
