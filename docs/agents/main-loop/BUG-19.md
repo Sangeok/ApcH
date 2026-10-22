@@ -99,3 +99,21 @@
 - **D4**: 줄 범위를 `:228-230`·`:117-119`·`:139-141`로, 선언 줄을 `:93`·`:108`로 고쳤다.
 
 D1 수정은 라운드 2에서 이미 실측했다(같은 수정으로 `check` EXIT 0). 다음 단계는 `plan-verifier` 독립 무편집 패스다. node_modules 복구 뒤에 디스패치한다.
+
+## 독립 패스 1 — `plan-verifier` (2026-10-22, 결함 3 · 전부 문서 위생)
+
+- 브리핑 계약 위반: 없음.
+- 실행한 경로: 1·2·3·4·5·6·7·9 전부.
+  - 경로 2의 eslint 하위 검사는 스크래치 파일이 eslint base path 밖이라 실행하지 못했다. 다만 라운드 2 worktree의 `npm run check`가 이미 lint를 통과했다.
+- 트리 청결: `git status --porcelain` 빈 출력.
+- 경로 5: 21개 중 20개 사멸. 생존 1개(`claimedAt && heartbeatAt`→`||`)는 이식한 입력이 낡은 heartbeat였던 탓이다. 검증자가 신선한 heartbeat로 다시 돌려 사멸을 확인했다(명세 구멍이 아니라 이식 충실도 문제).
+- 경로 6: 계획의 작업별 드레인 구조는 4개 작업 모두에 도달했고, 벌크 1-step 구조에서는 `FUNCTION_INVOCATION_TIMEOUT`이 재현됐다.
+
+결함(전부 위생):
+1. `deadlineAt` 계산 줄이 `:301`이 아니라 `:257`이다.
+2. `listRecoverableCardNewsJobs` 호출 줄이 `:114`가 아니라 `:115`다.
+3. `types.d.ts:1385`의 경로 접두가 모호하다 — `components/` 아래가 아니라 `node_modules/inngest/types.d.ts`다.
+
+반영: 세 곳을 정정했다. 생존 돌연변이의 교훈은 테스트 명세의 「미클레임 + heartbeat」 사례에 「신선한 heartbeat로 둔다」고 덧붙였다.
+
+사이클 계수: 위생만 나온 사이클이라 정지 규칙 계수에 넣지 않는다. 계획서가 바뀌었으므로 독립 패스를 다시 받는다.
