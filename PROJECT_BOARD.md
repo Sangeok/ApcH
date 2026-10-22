@@ -45,6 +45,7 @@
   area: apps/web/src/inngest + apps/web/src/app/api/inngest/route.ts + apps/web/src/fsd/features/card-news/api + apps/web/src/fsd/entities/card-news/api + apps/web/src/fsd/features/upload/api + apps/web/src/fsd/entities/processing-dispatch/api + apps/web/src/fsd/features/clip/api + apps/web/src/app/dashboard
   status: 검토대기
   근거: 소유자 직접 발주(2026-10-21 — Inngest·Neon 사용량 급증 원인이 PR #135의 매분 cron 4개로 확인, 대시보드 일시정지 완료, 「cron 아닌 방식」 지시). 선행 main 머지 완료(745439f)
+  검증: 클린 패스 (2026-10-22, 독립 무편집 1라운드 — 메인 루프 라운드 구현 영향 7·위생 3 반영, 독립 1회차 위생 3, 2회차 경로 2 적용본 미실행으로 재디스패치, 3회차 필수 8경로 전수 결함 0)
 
 ## 2026-10-19
 - [ ] FEAT-63: Instagram 카드뉴스 생성 — 계획 검증 없이 PR #134~#136으로 운영에 배포된 구현(`d836dc7`)을 사후 인수한다. 공통 크레딧 예약으로 기존 영상 과금도 이미 바뀌었다
