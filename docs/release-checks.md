@@ -44,6 +44,20 @@
 
 ---
 
+## BUG-19 — 매분 cron 4개를 이벤트 구동 단일 정비 함수(`maintenance-drain`)로 대체 (web, 구현 2026-10-22)
+
+원천: `docs/agents/web-dev/BUG-19.md`·`docs/plans/BUG-19.md` 「테스트 — 못 덮는 범위」. **미배포** — 배포는 소유자 승인 뒤(main 합류 → Vercel). Inngest 대시보드 확인은 web 라우트가 아니라 자동 판정 태그를 붙이지 않는다.
+
+- [ ] **유휴 실행 0** — 배포 뒤 할 일이 없을 때 Inngest 대시보드의 `maintenance-drain` 실행이 0인지 본다(이벤트가 없으면 런이 생기지 않는다)
+- [ ] **옛 cron 4개 소멸** — `dispatch-pending-card-news`·`reconcile-card-news-jobs`·`cleanup-card-news-assets`·`reconcile-video-credit-reservations`가 함수 목록에서 사라지고 `maintenance-drain`이 등록됐는지 본다(새 id라 Resume 불필요)
+- [ ] **업로드 1건의 깨움** — 영상 1개를 올리면 claim 직후 1회, 그 뒤 마감(`deadlineAt`, claim + 65분)에 1회 깨는지 본다(사이에 다른 이벤트가 없을 때)
+- [ ] **카드뉴스 생성 중 깨움** — 생성 1건 동안 정비 함수가 「heartbeat + 90초」 간격으로만 깨고, 상세 화면 폴링(5초)이 킥(`reason: card-news-read`)을 보내지 않는지 본다(runs의 trigger 이벤트로 판별)
+- [ ] **singleton이 자는 런을 대체하는가** — 새 이벤트가 왔을 때 자고 있던 `maintenance-drain` 런이 cancel되는지 본다. 대체하지 않아도 결과는 맞다(복구 함수가 멱등). 대체하지 않으면 일이 남아 있는 동안 이어달리기 사슬이 겹칠 수 있다 — 겹침이 보이면 기록한다
+- [ ] **Neon Idle 복귀** — 배포 뒤 할 일이 없을 때 Neon compute가 자동 정지(Idle)로 돌아가는지 본다
+- [ ] **삭제 킥** — 영상·클립·카드뉴스 하나를 지우면 `maintenance-drain`이 `reason: *-deletion` 킥으로 깨어 정리 행을 처리하는지 본다
+
+---
+
 ## FEAT-63 — Instagram 카드뉴스 사후 인수: V1·V3·V4·B4·C1·A2·B3'·공개 문구 (web·backend, 구현 2026-10-22)
 
 원천: `docs/agents/main-loop/FEAT-63.md` 「구현」·`docs/plans/FEAT-63.md` 「테스트 — 못 덮는 범위」. **배포됨(2026-10-22 22:46 KST, PR #137 합류 `a7fa447` — 소유자 관리자 머지)** — Vercel `apc-h`·`apch-admin` success. CPU 앱 `apch-card-news`는 `apps/backend`에서 `PYTHONUTF8=1 python -m modal deploy card_news_app.py`로 재배포했다(무인증 `POST /status` 401, 옛 컨테이너 0). 운영 영상 게이트는 2026-10-22 소유자 확인으로 둘 다 `true`(열림)라 이 배포 전까지 V1이 운영에 열려 있다(사용자 0명이라 닫지 않기로 함). web 화면 줄은 admin 호스트 전용인 자동 판정 태그를 붙이지 않는다.
