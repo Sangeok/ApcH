@@ -64,6 +64,8 @@ tools: Read, Glob, Grep, Bash, Skill
 
 `Read`의 `file_path`에는 역슬래시(`\`)를 쓴다. `Bash`는 POSIX 경로를 쓴다.
 
+스크래치 worktree에 메인 트리의 `node_modules`를 junction으로 연결했다면, 정리할 때 `git worktree remove --force`나 `rm -rf`를 먼저 쓰지 않는다. 이 명령들은 junction을 따라 들어가 **메인 트리의 `node_modules`를 지운다**(2026-10-22 BUG-19 라운드 2 실측 — 루트 `.bin`·패키지 약 30개·`apps/web/node_modules`가 사라져 `npm ci`로 복구했다). 링크만 먼저 끊고(PowerShell `[IO.Directory]::Delete('<경로>', $false)` 또는 `cmd //c rmdir "<경로>"` — `/s` 없이) 남은 junction이 없음을 확인한 뒤 worktree를 제거한다.
+
 ## 출력
 
 세션 종료 시 아래 형식만 사용한다.
