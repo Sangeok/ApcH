@@ -64,7 +64,7 @@ tools: Read, Glob, Grep, Bash, Skill
 
 `Read`의 `file_path`에는 역슬래시(`\`)를 쓴다. `Bash`는 POSIX 경로를 쓴다.
 
-스크래치 worktree에 메인 트리의 `node_modules`를 junction으로 연결했다면, 정리할 때 `git worktree remove --force`나 `rm -rf`를 먼저 쓰지 않는다. 이 명령들은 junction을 따라 들어가 **메인 트리의 `node_modules`를 지운다**(2026-10-22 BUG-19 라운드 2 실측 — 루트 `.bin`·패키지 약 30개·`apps/web/node_modules`가 사라져 `npm ci`로 복구했다). 링크만 먼저 끊고(PowerShell `[IO.Directory]::Delete('<경로>', $false)` 또는 `cmd //c rmdir "<경로>"` — `/s` 없이) 남은 junction이 없음을 확인한 뒤 worktree를 제거한다.
+경로 2·8을 계획서 스케치 **적용본** 전체에 돌리려면(`npm run check`·`npm test`·렌더 하니스) 스크래치패드에 `git worktree`를 만들고 메인 트리의 `node_modules`를 junction으로 연결해 쓴다 — **허용되고, 그 경로를 실행하는 표준 방법이다**(`npm install`은 쓰지 않는다). worktree 생성·junction은 저장소 파일 수정이 아니다. 지킬 것은 정리 순서 하나다: 정리할 때 `git worktree remove --force`나 `rm -rf`를 먼저 쓰지 않는다. 이 명령들은 junction을 따라 들어가 **메인 트리의 `node_modules`를 지운다**(2026-10-22 BUG-19 라운드 2 실측 — 루트 `.bin`·패키지 약 30개·`apps/web/node_modules`가 사라져 `npm ci`로 복구했다). 링크만 먼저 끊고(PowerShell `[IO.Directory]::Delete('<경로>', $false)` 또는 `cmd //c rmdir "<경로>"` — `/s` 없이) 남은 junction이 없음을 확인한 뒤 worktree를 제거한다.
 
 ## 출력
 
