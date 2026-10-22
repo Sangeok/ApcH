@@ -183,3 +183,8 @@ FEAT-63과 겹치는 파일 셋의 삽입 지점을 메인 루프가 지금 트�
 5. **상세 기록 실재**: `docs/agents/web-dev/BUG-19.md`(129줄)가 있다. 보드 `결과`(138자)가 그 파일을 가리킨다.
 
 원장: `docs/release-checks.md`에 「BUG-19」 절 7줄을 등재했다(미배포).
+
+## 배포 (2026-10-23)
+
+- **web**: PR #138(dev→main)은 소유자가 `gh pr merge 138 --merge --admin`으로 머지했다(2026-10-22T22:59:09Z, `6e93c4e`). 자동 모드 분류기가 관리자 머지를 거부하므로 PR #137과 같은 방식이다. Vercel `apc-h`·`apch-admin` 두 status가 모두 success다(`Deployment has completed`).
+- **serve 목록**: 무인증 `GET https://a-pch.com/api/inngest`의 `function_count`가 배포 전 10, 배포 뒤 7이다. 「cron 넷 제거 + `maintenanceDrain` 하나 추가」와 맞는다. Inngest Cloud 쪽 sync(옛 넷 소멸·`maintenance-drain` 등록)와 유휴 실행 0, Neon Idle 복귀는 대시보드로만 보인다. 원장 7줄은 아직 열려 있다.

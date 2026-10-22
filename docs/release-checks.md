@@ -46,10 +46,11 @@
 
 ## BUG-19 — 매분 cron 4개를 이벤트 구동 단일 정비 함수(`maintenance-drain`)로 대체 (web, 구현 2026-10-22)
 
-원천: `docs/agents/web-dev/BUG-19.md`·`docs/plans/BUG-19.md` 「테스트 — 못 덮는 범위」. **미배포** — 배포는 소유자 승인 뒤(main 합류 → Vercel). Inngest 대시보드 확인은 web 라우트가 아니라 자동 판정 태그를 붙이지 않는다.
+원천: `docs/agents/web-dev/BUG-19.md`·`docs/plans/BUG-19.md` 「테스트 — 못 덮는 범위」. **배포됨(2026-10-23 07:59 KST, PR #138 합류 `6e93c4e` — 소유자 관리자 머지)** — Vercel `apc-h`·`apch-admin` success. Inngest 대시보드 확인은 web 라우트가 아니라 자동 판정 태그를 붙이지 않는다.
 
 - [ ] **유휴 실행 0** — 배포 뒤 할 일이 없을 때 Inngest 대시보드의 `maintenance-drain` 실행이 0인지 본다(이벤트가 없으면 런이 생기지 않는다)
 - [ ] **옛 cron 4개 소멸** — `dispatch-pending-card-news`·`reconcile-card-news-jobs`·`cleanup-card-news-assets`·`reconcile-video-credit-reservations`가 함수 목록에서 사라지고 `maintenance-drain`이 등록됐는지 본다(새 id라 Resume 불필요)
+  - 엔드포인트 쪽 절반(2026-10-23, 메인 루프 `curl https://a-pch.com/api/inngest`): `function_count`가 배포 전 10 → 배포 뒤 7. 운영이 새 serve 목록을 내보낸다. Inngest Cloud가 sync해 옛 넷을 지웠는지는 대시보드로만 보인다
 - [ ] **업로드 1건의 깨움** — 영상 1개를 올리면 claim 직후 1회, 그 뒤 마감(`deadlineAt`, claim + 65분)에 1회 깨는지 본다(사이에 다른 이벤트가 없을 때)
 - [ ] **카드뉴스 생성 중 깨움** — 생성 1건 동안 정비 함수가 「heartbeat + 90초」 간격으로만 깨고, 상세 화면 폴링(5초)이 킥(`reason: card-news-read`)을 보내지 않는지 본다(runs의 trigger 이벤트로 판별)
 - [ ] **singleton이 자는 런을 대체하는가** — 새 이벤트가 왔을 때 자고 있던 `maintenance-drain` 런이 cancel되는지 본다. 대체하지 않아도 결과는 맞다(복구 함수가 멱등). 대체하지 않으면 일이 남아 있는 동안 이어달리기 사슬이 겹칠 수 있다 — 겹침이 보이면 기록한다
