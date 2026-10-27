@@ -184,8 +184,8 @@ modal run main.py
 4. **Analysis**: Inngest calls the Modal endpoint in `analyze` mode — WhisperX
    transcription plus Gemini moment detection
 5. **Review** (when enabled): The run stops at `review_pending` and the proposals
-   are stored as `ClipDraft` rows. Adjust each clip's start/end, deselect clips
-   you do not want, and override caption style per clip. The AI's original range
+   are stored as `ClipDraft` rows. Adjust each clip's start/end and deselect
+   clips you do not want. The AI's original range
    is kept separately (`aiStartSeconds` / `aiEndSeconds`) so a reset is possible.
 6. **Render**: Confirmed segments go back to Modal in `render` mode
 7. **View & Download**: Open the upload detail page for the clip gallery and

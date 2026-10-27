@@ -129,10 +129,10 @@ npm test -w apps/web
 
 | 레이어 | 슬라이스 |
 |---|---|
-| `pages/` | about, ai-podcast-clipper, changelog, compare, contact, dashboard, features, guides, home, how-it-works, podcast-to-shorts, pricing, product-tour, security, settings, upload-detail, youtube-shorts-generator |
-| `widgets/` | clip-display, clip-draft-review, dashboard-header, login-form, site-footer, site-header, uploaded-file-list |
-| `features/` | auth, billing, caption-style, clip, clip-review, handle-order-*, handle-subscription-*, settings, upload |
-| `entities/` | analytics-event, clip, clip-draft, order, processing-dispatch, subscription, uploaded-file, user |
+| `pages/` | about, ai-podcast-clipper, card-news-detail, card-news-list, changelog, compare, contact, dashboard, features, guides, home, how-it-works, podcast-to-shorts, pricing, product-tour, security, settings, upload-detail, youtube-shorts-generator |
+| `widgets/` | card-news-editor, clip-display, clip-draft-review, dashboard-header, login-form, site-footer, site-header, uploaded-file-list |
+| `features/` | auth, billing, caption-style, card-news, clip, clip-review, credit-balance, handle-order-*, handle-subscription-*, settings, upload |
+| `entities/` | analytics-event, card-news, clip, clip-draft, credit-reservation, order, processing-dispatch, subscription, uploaded-file, user |
 | `shared/` | analytics, api, config, lib, observability, ui |
 
 **규칙**
@@ -148,8 +148,10 @@ npm test -w apps/web
 
 ```
 features/billing/api/index.ts            결제·체크아웃
+features/card-news/api/index.ts          카드뉴스 생성·재생성·조회·저장·내보내기·삭제, 자산 정리 상태·재시도
 features/clip/api/index.ts               클립 조회·삭제·URL 생성
 features/clip-review/api/index.ts        생성 전 클립 검토
+features/credit-balance/api/index.ts     크레딧 잔액 조회(사용 가능·예약)
 features/settings/api/index.ts           사용자 업로드 기본값·Video style(여백 + 두 언어 캡션) 저장
 features/upload/api/index.ts             업로드 준비·확정·처리 스케줄링
 ```
@@ -169,7 +171,7 @@ features/upload/api/index.ts             업로드 준비·확정·처리 스케
 
 - 스키마: `packages/db/prisma/schema.prisma`
 - 생성 클라이언트: `packages/db/generated/prisma/` — **git 추적 대상이다**(27개 파일). `.gitignore`에 넣지 말 것. tmp 찌꺼기 규칙만 `packages/db/.gitignore`에 있다
-- 모델: Account, Session, VerificationToken, User, UploadedFile, Clip, ClipDraft, ProcessingDispatch, Subscription, Order, AnalyticsEvent
+- 모델: Account, Session, VerificationToken, User, UploadedFile, Clip, ClipDraft, ProcessingDispatch, CreditReservation, CardNewsSet, CardNewsJob, CardNewsInvocation, AssetCleanupJob, Subscription, Order, AnalyticsEvent
 - 크레딧: 기본 3, 클립당 1 차감
 
 ```typescript
@@ -192,7 +194,7 @@ export * from "./analytics-contract"   // 아래 참조
 
 ### analytics 계약 — 손댈 때 주의
 
-`packages/db/src/analytics-contract.ts`가 이벤트 이름 30개, 퍼널 정의, 관련 타입을 **한 곳에서** 정의한다. web이 쓰고(기록), 앞으로 admin이 읽는다(집계).
+`packages/db/src/analytics-contract.ts`가 이벤트 이름 36개, 퍼널 정의, 관련 타입을 **한 곳에서** 정의한다. web이 쓰고(기록), 앞으로 admin이 읽는다(집계).
 
 `ANALYTICS_FUNNELS`의 `satisfies Record<FunnelId, readonly AnalyticsEventName[]>` 절이 "퍼널 단계는 실제 존재하는 이벤트 이름이어야 한다"를 컴파일 타임에 강제한다. **이 방어선은 양쪽이 같은 파일을 볼 때만 작동한다.** 계약을 복사해 두 벌로 만들면 한쪽에서 rename해도 다른 쪽은 통과하고, 대시보드가 에러 없이 0을 보여준다.
 
@@ -202,8 +204,8 @@ export * from "./analytics-contract"   // 아래 참조
 
 - `client.ts` — 클라이언트와 앱 id
 - `functions.ts` — `processVideo` 등. 사용자별 동시성 1 (userId 키), 재시도 1회
-- 흐름: 크레딧 확인 → Modal 호출 → 응답 파싱 → Clip 레코드 생성 → 크레딧 차감
-- 백엔드가 클립 메타데이터를 안 주면 S3 목록으로 폴백
+- 흐름: claim(요청 클립 수만큼 크레딧 예약 — `CreditReservation` held) → Modal 호출 → 정산. 정산은 그 시도의 S3 출력 접두사를 나열하고 HEAD로 확인한 키로 Clip을 만들며, 백엔드 메타데이터는 그 키에만 덧입힌다(S3 목록이 폴백이 아니라 상시 경로다). 저장된 클립 수만 차감하고 예약을 푼다 — 0개면 전액 해제
+- `maintenance-functions.ts` — `maintenanceDrain`. cron이 없다. 이벤트로 깨어 카드뉴스 배차·복구·정리와 영상 예약 복구를 돌리고 DB의 다음 기한까지 잔다(BUG-19)
 
 ### 환경 변수
 
